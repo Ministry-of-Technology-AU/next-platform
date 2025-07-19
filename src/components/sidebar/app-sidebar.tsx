@@ -96,26 +96,24 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-border" collapsible="icon">
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="flex-shrink-0">
             <Image
               src="https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg"
               alt="Ministry of Technology"
-              width={40}
-              height={40}
-              className="rounded-lg object-cover"
+              width={48}
+              height={48}
+              className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8"
             />
           </div>
-          {!isCollapsed && (
-            <div className="flex flex-col justify-center min-w-0">
-              <h3 className="text-lg font-semibold text-foreground truncate leading-tight">
+          <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
+            <h3 className="text-lg font-semibold text-foreground truncate leading-tight whitespace-nowrap">
                 Platform
               </h3>
-              <p className="text-xs text-muted-foreground leading-tight">
+            <p className="text-xs text-muted-foreground leading-tight whitespace-nowrap">
                 by Ministry of Technology
               </p>
-            </div>
-          )}
+          </div>
         </div>
       </SidebarHeader>
 
@@ -154,13 +152,11 @@ export function AppSidebar() {
                           className="flex items-center gap-3 w-full"
                         >
                           {IconComponent && (
-                            <IconComponent className="size-4 flex-shrink-0" />
+                            <IconComponent className="size-4 flex-shrink-0 transition-all duration-500 ease-in-out" />
                           )}
-                          {!isCollapsed && (
-                            <span className="truncate text-sm font-medium">
+                          <span className="truncate text-sm font-medium transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0 whitespace-nowrap">
                               {item.title}
-                            </span>
-                          )}
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -173,12 +169,10 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        {!isCollapsed && (
-          <div className="text-xs text-muted-foreground text-center">
+        <div className="text-xs text-muted-foreground text-center transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
             <p>Developed and maintained by</p>
             <p>the Ministry of Technology</p>
-          </div>
-        )}
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
