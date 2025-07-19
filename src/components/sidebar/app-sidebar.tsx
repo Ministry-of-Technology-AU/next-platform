@@ -41,6 +41,7 @@ import {
   Settings,
   HelpCircle,
   Zap,
+  MailPlus,
   Clock,
   User,
 } from "lucide-react";
@@ -71,7 +72,7 @@ const iconMap = {
   Bookmark,
   Settings,
   HelpCircle,
-  Zap,
+  MailPlus,
   Clock,
   User,
 };

@@ -11,8 +11,8 @@
         },
         {
           "title": "SG Compose",
-          "icon": "Zap",
-          "href": "/quick-access"
+          "icon": "MailPlus",
+          "href": "/sg-compose/outbox"
         }
       ]
     },
