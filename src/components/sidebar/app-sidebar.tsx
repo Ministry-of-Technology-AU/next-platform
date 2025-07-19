@@ -96,22 +96,22 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-border" collapsible="icon">
       <SidebarHeader className="p-4">
-        <div className="flex items-center justify-left gap-3">
+        <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
             <Image
               src="https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg"
               alt="Ministry of Technology"
-              width={32}
-              height={32}
-              className="rounded-lg"
+              width={40}
+              height={40}
+              className="rounded-lg object-cover"
             />
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <h3 className="text-lg font-semibold text-foreground truncate">
+            <div className="flex flex-col justify-center min-w-0">
+              <h3 className="text-lg font-semibold text-foreground truncate leading-tight">
                 Platform
               </h3>
-              <p className="text-xs text-muted-foreground wrap">
+              <p className="text-xs text-muted-foreground leading-tight">
                 by Ministry of Technology
               </p>
             </div>
