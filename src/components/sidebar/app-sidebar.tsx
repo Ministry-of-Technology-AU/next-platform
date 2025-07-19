@@ -150,7 +150,7 @@ export function AppSidebar() {
                       >
                         <Link
                           href={item.href}
-                          className="flex items-center gap-3 w-full group-data-[state=collapsed]:justify-center"
+                          className="flex items-center gap-3 w-full"
                         >
                           {IconComponent && (
                             <IconComponent className="size-4 flex-shrink-0 transition-all duration-500 ease-in-out" />
