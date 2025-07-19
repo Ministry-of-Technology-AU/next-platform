@@ -144,13 +144,13 @@ export function AppSidebar() {
                           "hover:bg-primary-light/50 hover:text-accent-foreground",
                           isActive &&
                             "bg-primary text-primary-foreground hover:bg-primary/90",
-                          isCollapsed ? "justify-center" : "justify-start"
+                          "justify-start group-data-[state=collapsed]:justify-center"
                         )}
                         tooltip={isCollapsed ? item.title : undefined}
                       >
                         <Link
                           href={item.href}
-                          className="flex items-center gap-3 w-full"
+                          className="flex items-center gap-3 w-full group-data-[state=collapsed]:justify-center"
                         >
                           {IconComponent && (
                             <IconComponent className="size-4 flex-shrink-0 transition-all duration-500 ease-in-out" />
