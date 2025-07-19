@@ -1,0 +1,160 @@
+{
+  "categories": [
+    {
+      "id": "home",
+      "title": "Home",
+      "items": [
+        {
+          "title": "Dashboard",
+          "icon": "Home",
+          "href": "/dashboard"
+        },
+        {
+          "title": "SG Compose",
+          "icon": "Zap",
+          "href": "/quick-access"
+        }
+      ]
+    },
+    {
+      "id": "academics",
+      "title": "Academics",
+      "items": [
+        {
+          "title": "Courses",
+          "icon": "BookOpen",
+          "href": "/courses"
+        },
+        {
+          "title": "Assignments",
+          "icon": "FileText",
+          "href": "/assignments"
+        },
+        {
+          "title": "Grades",
+          "icon": "Award",
+          "href": "/grades"
+        },
+        {
+          "title": "Schedule",
+          "icon": "Calendar",
+          "href": "/schedule"
+        },
+        {
+          "title": "Library",
+          "icon": "Library",
+          "href": "/library"
+        }
+      ]
+    },
+    {
+      "id": "campus-life",
+      "title": "Campus Life",
+      "items": [
+        {
+          "title": "Events",
+          "icon": "Calendar",
+          "href": "/events"
+        },
+        {
+          "title": "Organizations",
+          "icon": "Users",
+          "href": "/organizations"
+        },
+        {
+          "title": "Dining",
+          "icon": "UtensilsCrossed",
+          "href": "/dining"
+        },
+        {
+          "title": "Transportation",
+          "icon": "Bus",
+          "href": "/transportation"
+        },
+        {
+          "title": "Housing",
+          "icon": "Building",
+          "href": "/housing"
+        }
+      ]
+    },
+    {
+      "id": "cultural-life",
+      "title": "Cultural Life",
+      "items": [
+        {
+          "title": "Arts & Culture",
+          "icon": "Palette",
+          "href": "/arts-culture"
+        },
+        {
+          "title": "Performances",
+          "icon": "Theater",
+          "href": "/performances"
+        },
+        {
+          "title": "Galleries",
+          "icon": "Image",
+          "href": "/galleries"
+        },
+        {
+          "title": "Cultural Events",
+          "icon": "PartyPopper",
+          "href": "/cultural-events"
+        }
+      ]
+    },
+    {
+      "id": "public",
+      "title": "Public",
+      "items": [
+        {
+          "title": "Announcements",
+          "icon": "Megaphone",
+          "href": "/announcements"
+        },
+        {
+          "title": "News",
+          "icon": "Newspaper",
+          "href": "/news"
+        },
+        {
+          "title": "Directory",
+          "icon": "Search",
+          "href": "/directory"
+        },
+        {
+          "title": "Contact",
+          "icon": "Phone",
+          "href": "/contact"
+        }
+      ]
+    },
+    {
+      "id": "my-resources",
+      "title": "My Resources",
+      "items": [
+        {
+          "title": "My Files",
+          "icon": "FolderOpen",
+          "href": "/my-files"
+        },
+        {
+          "title": "Bookmarks",
+          "icon": "Bookmark",
+          "href": "/bookmarks"
+        },
+        {
+          "title": "Settings",
+          "icon": "Settings",
+          "href": "/settings"
+        },
+        {
+          "title": "Help Center",
+          "icon": "HelpCircle",
+          "href": "/help"
+        }
+      ]
+    }
+  ]
+}
