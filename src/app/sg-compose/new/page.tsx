@@ -22,24 +22,28 @@ import { cn } from "@/lib/utils"
 
 // Sample data for categories and recipients
 const mailCategories = [
-  { value: "academic", label: "Academic Affairs" },
-  { value: "student-life", label: "Student Life" },
-  { value: "administrative", label: "Administrative" },
-  { value: "cultural", label: "Cultural Events" },
-  { value: "sports", label: "Sports & Recreation" },
-  { value: "general", label: "General Announcement" },
-]
+  { value: "inductions", label: "Inductions" },
+  { value: "lost-and-found", label: "Lost and Found" },
+  { value: "jobs-and-internships", label: "Jobs and Internships" },
+  { value: "surveys", label: "Surveys" },
+  { value: "campaigns", label: "Campaigns" },
+  { value: "fundraisers", label: "Fundraisers" },
+  { value: "events-and-invitations", label: "Events and Invitations" },
+  { value: "promotions", label: "Promotions" }
+];
 
 const recipients = [
-  { id: "all-students", label: "All Students", email: "students@ashoka.edu.in" },
-  { id: "faculty", label: "Faculty", email: "faculty@ashoka.edu.in" },
-  { id: "staff", label: "Staff", email: "staff@ashoka.edu.in" },
-  { id: "ug-students", label: "Undergraduate Students", email: "ug@ashoka.edu.in" },
-  { id: "pg-students", label: "Postgraduate Students", email: "pg@ashoka.edu.in" },
-  { id: "phd-students", label: "PhD Students", email: "phd@ashoka.edu.in" },
-  { id: "alumni", label: "Alumni", email: "alumni@ashoka.edu.in" },
-  { id: "parents", label: "Parents", email: "parents@ashoka.edu.in" },
-]
+  {
+    id: "all-students",
+    label: "All Students",
+    email: "students@ashoka.edu.in",
+  },
+  { id: "asp25", label: "ASP25", email: "asp25@ashoka.edu.in" },
+  { id: "ug26", label: "UG26", email: "ug26@ashoka.edu.in" },
+  { id: "ug2023", label: "UG2023", email: "ug2023@ashoka.edu.in" },
+  { id: "ug2024", label: "UG2024", email: "ug2024@ashoka.edu.in" },
+  { id: "ug2025", label: "UG2025", email: "ug2025@ashoka.edu.in" }
+];
 
 export default function ComposeNew() {
   const router = useRouter()
@@ -102,12 +106,17 @@ export default function ComposeNew() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Compose New Mail</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Compose New Mail
+          </h1>
         </div>
         <p className="text-muted-foreground">
-          Moving Forward; Not Just Forwards - SG Compose is a streamlined email management platform designed for Student Government, allowing students to submit requests that can be quickly approved and automatically sent to targeted groups. The system includes rich text editing, alias-based organization, and options for directing emails to specific audiences within Ashoka University.
-
-
+          Moving Forward; Not Just Forwards - SG Compose is a streamlined email
+          management platform designed for Student Government, allowing students
+          to submit requests that can be quickly approved and automatically sent
+          to targeted groups. The system includes rich text editing, alias-based
+          organization, and options for directing emails to specific audiences
+          within Ashoka University.
         </p>
       </div>
 
@@ -120,9 +129,13 @@ export default function ComposeNew() {
           {/* Category Selection */}
           <div className="space-y-2">
             <Label htmlFor="category" className="text-sm font-medium">
-              Select Your Category of Mail <span className="text-destructive">*</span>
+              Select Your Category of Mail{" "}
+              <span className="text-destructive">*</span>
             </Label>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger id="category">
                 <SelectValue placeholder="Choose a category" />
               </SelectTrigger>
@@ -147,7 +160,7 @@ export default function ComposeNew() {
                   <Checkbox
                     id={recipient.id}
                     checked={selectedRecipients.includes(recipient.id)}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       handleRecipientChange(recipient.id, checked as boolean)
                     }
                   />
@@ -157,7 +170,9 @@ export default function ComposeNew() {
                   >
                     <div>
                       <div className="font-medium">{recipient.label}</div>
-                      <div className="text-xs text-muted-foreground">{recipient.email}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {recipient.email}
+                      </div>
                     </div>
                   </Label>
                 </div>
@@ -186,19 +201,19 @@ export default function ComposeNew() {
           {/* Mail Draft */}
           <div className="space-y-2">
             <Label htmlFor="mail-draft" className="text-sm font-medium">
-              Mail Draft
+              Mail Draft<span className="text-destructive">*</span>
             </Label>
             <RichTextEditor
               value={mailDraft}
               onChange={setMailDraft}
-              placeholder="Compose your email content here..."
+              placeholder=""
               className="w-full"
             />
           </div>
 
           {/* File Attachment */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">File Attachment</Label>
+            <Label className="text-sm font-medium">File Attachment (if any)</Label>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Button
@@ -222,7 +237,7 @@ export default function ComposeNew() {
                 onChange={handleFileUpload}
                 accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
               />
-              
+
               {/* Display attached files */}
               {attachedFiles.length > 0 && (
                 <div className="space-y-2">
@@ -235,7 +250,9 @@ export default function ComposeNew() {
                         key={index}
                         className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
                       >
-                        <span className="text-sm truncate flex-1">{file.name}</span>
+                        <span className="text-sm truncate flex-1">
+                          {file.name}
+                        </span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
                             {(file.size / 1024 / 1024).toFixed(2)} MB
@@ -261,7 +278,7 @@ export default function ComposeNew() {
           {/* Additional Notes */}
           <div className="space-y-2">
             <Label htmlFor="additional-notes" className="text-sm font-medium">
-              Additional Notes
+              Additional Notes (if any)
             </Label>
             <Textarea
               id="additional-notes"
@@ -275,22 +292,21 @@ export default function ComposeNew() {
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <Button
-              onClick={() => handleSubmit('request')}
+              onClick={() => handleSubmit("request")}
               className="gap-2"
-              disabled={!selectedCategory || selectedRecipients.length === 0 || !subject}
+              disabled={
+                !selectedCategory || selectedRecipients.length === 0 || !subject
+              }
             >
               <Send className="h-4 w-4" />
               Request Email
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleSubmit('cancel')}
-            >
+            <Button variant="outline" onClick={() => handleSubmit("cancel")}>
               Cancel Email
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
