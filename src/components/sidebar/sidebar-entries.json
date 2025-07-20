@@ -21,29 +21,24 @@
       "title": "Academics",
       "items": [
         {
-          "title": "Courses",
-          "icon": "BookOpen",
+          "title": "Course Reviews",
+          "icon": "ClipboardPenLine",
           "href": "/courses"
         },
         {
-          "title": "Assignments",
+          "title": "Semester Planner",
           "icon": "FileText",
           "href": "/assignments"
         },
         {
-          "title": "Grades",
+          "title": "CGPA Planner",
           "icon": "Award",
           "href": "/grades"
         },
         {
-          "title": "Schedule",
+          "title": "Degree Tracker",
           "icon": "Calendar",
           "href": "/schedule"
-        },
-        {
-          "title": "Library",
-          "icon": "Library",
-          "href": "/library"
         }
       ]
     },
@@ -52,27 +47,27 @@
       "title": "Campus Life",
       "items": [
         {
-          "title": "Events",
+          "title": "Wifi Tickets",
           "icon": "Calendar",
           "href": "/events"
         },
         {
-          "title": "Organizations",
+          "title": "Pool a Cab",
           "icon": "Users",
           "href": "/organizations"
         },
         {
-          "title": "Dining",
+          "title": "Pool a Subscription",
           "icon": "UtensilsCrossed",
           "href": "/dining"
         },
         {
-          "title": "Transportation",
+          "title": "Borrow Assets",
           "icon": "Bus",
           "href": "/transportation"
         },
         {
-          "title": "Housing",
+          "title": "Resources",
           "icon": "Building",
           "href": "/housing"
         }
@@ -83,24 +78,19 @@
       "title": "Cultural Life",
       "items": [
         {
-          "title": "Arts & Culture",
+          "title": "Organisations Catalogue",
           "icon": "Palette",
           "href": "/arts-culture"
         },
         {
-          "title": "Performances",
+          "title": "Events Calendar",
           "icon": "Theater",
           "href": "/performances"
         },
         {
-          "title": "Galleries",
+          "title": "Intercollegiate Events",
           "icon": "Image",
           "href": "/galleries"
-        },
-        {
-          "title": "Cultural Events",
-          "icon": "PartyPopper",
-          "href": "/cultural-events"
         }
       ]
     },
@@ -135,24 +125,14 @@
       "title": "My Resources",
       "items": [
         {
-          "title": "My Files",
-          "icon": "FolderOpen",
-          "href": "/my-files"
-        },
-        {
-          "title": "Bookmarks",
+          "title": "Create a Ticket",
           "icon": "Bookmark",
           "href": "/bookmarks"
         },
         {
-          "title": "Settings",
-          "icon": "Settings",
-          "href": "/settings"
-        },
-        {
-          "title": "Help Center",
-          "icon": "HelpCircle",
-          "href": "/help"
+          "title": "My Profile",
+          "icon": "FolderOpen",
+          "href": "/my-files"
         }
       ]
     }

@@ -25,7 +25,7 @@ export type OutboxEmail = {
 
 export const columns: ColumnDef<OutboxEmail>[] = [
   {
-    accessorKey: "recipient",
+    accessorKey: "id",
     header: ({ column }) => {
       return (
         <Button
@@ -33,7 +33,7 @@ export const columns: ColumnDef<OutboxEmail>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="h-auto p-0 hover:bg-transparent"
         >
-          Recipient
+          ID
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
@@ -43,7 +43,7 @@ export const columns: ColumnDef<OutboxEmail>[] = [
     ),
   },
   {
-    accessorKey: "subject",
+    accessorKey: "date",
     header: ({ column }) => {
       return (
         <Button
@@ -51,7 +51,7 @@ export const columns: ColumnDef<OutboxEmail>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="h-auto p-0 hover:bg-transparent"
         >
-          Subject
+          Date of Request
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
@@ -83,8 +83,8 @@ export const columns: ColumnDef<OutboxEmail>[] = [
     },
   },
   {
-    accessorKey: "priority",
-    header: "Priority",
+    accessorKey: "to",
+    header: "To",
     cell: ({ row }) => {
       const priority = row.getValue("priority") as string
       return (
@@ -103,7 +103,7 @@ export const columns: ColumnDef<OutboxEmail>[] = [
     },
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "category",
     header: ({ column }) => {
       return (
         <Button
@@ -111,7 +111,7 @@ export const columns: ColumnDef<OutboxEmail>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="h-auto p-0 hover:bg-transparent"
         >
-          Created
+          Category
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
@@ -122,8 +122,8 @@ export const columns: ColumnDef<OutboxEmail>[] = [
     },
   },
   {
-    accessorKey: "sentAt",
-    header: "Sent",
+    accessorKey: "request",
+    header: "Mail Request",
     cell: ({ row }) => {
       const sentAt = row.getValue("sentAt") as string
       if (!sentAt) return <div className="text-muted-foreground">-</div>

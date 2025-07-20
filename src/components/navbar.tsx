@@ -59,7 +59,7 @@ function ThemeToggle() {
 
 export default function Navbar() {
   return (
-    <nav className="w-full flex top-0 items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-background backdrop-blur-md stick z-50">
+    <nav className="w-full flex sticky top-0 items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-background backdrop-blur-md z-50">
       {/* Left: Logo and text */}
       <div className="flex items-center gap-2 min-w-0">
         <SidebarTrigger />

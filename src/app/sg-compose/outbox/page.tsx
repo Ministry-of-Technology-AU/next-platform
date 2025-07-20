@@ -59,9 +59,13 @@ export default function ComposeOutbox() {
     <div className="space-y-6">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">SG Compose</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">SG Compose</h1>
         <p className="text-muted-foreground">
-          Manage and track your outgoing emails and communications
+          View the status of all your email requests here. If your outbox
+          contains a pending request, do not raise new requests till an approval
+          or a rejection from the SG. Repeated spam requests will be blocked
+          from the service or from the platform. In case of any queries, write
+          directly to sg@ashoka.edu.in
         </p>
       </div>
 
@@ -77,14 +81,14 @@ export default function ComposeOutbox() {
 
       {/* Data Table Section */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Outbox Status</h2>
+        <h2 className="text-xl font-semibold text-black">Outbox Status</h2>
         <DataTable
           columns={columns}
           data={sampleData}
           searchKey="subject"
-          filterColumns={["status", "priority", "recipient"]}
+          filterColumns={["All Mails", "Pending", "Approved", "Rejected"]}
         />
       </div>
     </div>
-  )
+  );
 }

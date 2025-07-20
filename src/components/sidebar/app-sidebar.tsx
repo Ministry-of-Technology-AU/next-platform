@@ -40,7 +40,7 @@ import {
   Bookmark,
   Settings,
   HelpCircle,
-  Zap,
+  ClipboardPenLine,
   MailPlus,
   Clock,
   User,
@@ -51,7 +51,7 @@ import sidebarData from "@/components/sidebar/sidebar-entries.json";
 // Icon mapping
 const iconMap = {
   Home,
-  BookOpen,
+  ClipboardPenLine,
   FileText,
   Award,
   Calendar,
@@ -100,7 +100,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2">
           <div className="flex-shrink-0">
             <Image
-              src="https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg"
+              src="/MoT logo.png"
               alt="Ministry of Technology"
               width={48}
               height={48}
@@ -111,8 +111,8 @@ export function AppSidebar() {
             <h3 className="text-lg font-semibold text-foreground truncate leading-tight whitespace-nowrap">
                 Platform
               </h3>
-            <p className="text-xs text-muted-foreground leading-tight whitespace-nowrap">
-                by Ministry of Technology
+            <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">
+                by Technology Ministry
               </p>
           </div>
         </div>
@@ -139,24 +139,26 @@ export function AppSidebar() {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "group relative",
-                          "transition-all duration-200 ease-in-out",
+                          "group relative w-full flex items-center transition-all duration-200 ease-in-out",
                           "hover:bg-primary-light/50 hover:text-accent-foreground",
                           isActive &&
                             "bg-primary text-primary-foreground hover:bg-primary/90",
-                          "justify-start group-data-[state=collapsed]:justify-center"
+                          // When collapsed
+                          "group-data-[state=collapsed]:justify-center",
+                          "group-data-[state=collapsed]:gap-0",
+                          "group-data-[state=collapsed]:px-0",
+                          // When expanded (default)
+                          "justify-start gap-3 px-2"
                         )}
                         tooltip={isCollapsed ? item.title : undefined}
                       >
                         <Link
                           href={item.href}
-                          className="flex items-center gap-3 w-full"
+                          className="flex items-center w-full"
                         >
-                          {IconComponent && (
-                            <IconComponent className="size-4 flex-shrink-0 transition-all duration-500 ease-in-out" />
-                          )}
-                          <span className="truncate text-sm font-medium transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0 whitespace-nowrap">
-                              {item.title}
+                          <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto" />
+                          <span className="truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
+                            {item.title}
                           </span>
                         </Link>
                       </SidebarMenuButton>
@@ -170,9 +172,9 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        <div className="text-xs text-muted-foreground text-center transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
-            <p>Developed and maintained by</p>
-            <p>the Ministry of Technology</p>
+        <div className="text-xs text-muted-foreground text-left transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
+            <p>Developed & maintained by</p>
+            <p className="text-primary text-bold">the Ministry of Technology</p>
         </div>
       </SidebarFooter>
     </Sidebar>
