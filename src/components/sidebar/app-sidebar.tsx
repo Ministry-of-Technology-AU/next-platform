@@ -96,6 +96,33 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
+  // Icon collapse state
+  const [iconCollapse, setIconCollapse] = React.useState(isCollapsed);
+  const collapseDelay = 2500; // ms, adjust as needed
+  const collapseTimeout = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    if (isCollapsed) {
+      // Set iconCollapse to true after a delay
+      collapseTimeout.current = setTimeout(() => {
+        setIconCollapse(true);
+      }, collapseDelay);
+    } else {
+      // Immediately set iconCollapse to false and clear timeout
+      setIconCollapse(false);
+      if (collapseTimeout.current) {
+        clearTimeout(collapseTimeout.current);
+        collapseTimeout.current = null;
+      }
+    }
+    // Cleanup on unmount
+    return () => {
+      if (collapseTimeout.current) {
+        clearTimeout(collapseTimeout.current);
+      }
+    };
+  }, [isCollapsed, collapseDelay]);
+
   const isMac = useIsMac();
 
   return (
@@ -168,14 +195,17 @@ export function AppSidebar() {
                           // When expanded (default)
                           "justify-start gap-3 px-2"
                         )}
-                        tooltip={isCollapsed ? item.title : undefined}
+                        tooltip={iconCollapse ? item.title : undefined}
                       >
                         <Link
                           href={item.href}
                           className="flex items-center w-full"
                         >
                           <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto" />
-                          <span className="truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
+                          <span className={cn(
+                            "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap",
+                            iconCollapse && "w-0 opacity-0"
+                          )}>
                             {item.title}
                           </span>
                         </Link>
