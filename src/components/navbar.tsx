@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { useIsMac } from "@/hooks/useIsMac";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon, User, Newspaper, HelpCircle, LogOut, UserPen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,11 +32,30 @@ import { SidebarTrigger } from "./ui/sidebar";
 // Simple dark/light toggle (uses 'dark' class on html)
 function ThemeToggle() {
   const [isDark, setIsDark] = React.useState(false);
+  const isMac = useIsMac();
+
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       setIsDark(document.documentElement.classList.contains("dark"));
     }
   }, []);
+
+  // Keyboard shortcut: Cmd+D (Mac) or Ctrl+D (Windows)
+  React.useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (
+        (isMac && event.metaKey && event.key.toLowerCase() === "d") ||
+        (!isMac && event.ctrlKey && event.key.toLowerCase() === "d")
+      ) {
+        event.preventDefault();
+        toggle();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMac]);
+
   const toggle = () => {
     setIsDark((d) => {
       const next = !d;
@@ -43,6 +63,7 @@ function ThemeToggle() {
       return next;
     });
   };
+
   return (
     <TooltipTrigger asChild>
       <Button
@@ -57,7 +78,9 @@ function ThemeToggle() {
   );
 }
 
+
 export default function Navbar() {
+const isMac = useIsMac();
   return (
     <nav className="w-full flex sticky top-0 items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-background backdrop-blur-md z-50">
       {/* Left: Logo and text */}
@@ -118,7 +141,16 @@ export default function Navbar() {
         <Tooltip>
           <ThemeToggle />
           <TooltipContent>
-            <p className="text-sm">Toggle dark/light mode</p>
+            <p className="text-sm text-white">
+              Toggle dark/light mode
+              <br />
+              <span className="text-xs text-white/80">
+                Shortcut:{" "}
+                <kbd className="text-gray-dark font-mono bg-white px-1 py-0.5 rounded">
+                  {isMac ? "⌘" : "Ctrl"} + D
+                </kbd>
+              </span>
+            </p>
           </TooltipContent>
         </Tooltip>
 

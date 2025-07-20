@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useIsMac } from "@/hooks/useIsMac";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -47,6 +48,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Icon mapping
 const iconMap = {
@@ -94,21 +96,37 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
+  const isMac = useIsMac();
+
   return (
-    <Sidebar className="border-r border-border" collapsible="icon">
+    <Sidebar className="border-r border-border flex flex-col h-screen" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <div className="flex-shrink-0">
-            <Image
-              src="/MoT logo.png"
-              alt="Ministry of Technology"
-              width={48}
-              height={48}
-              className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8"
-            />
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex-shrink-0 cursor-pointer">
+                <Image
+                  src="/MoT logo.png"
+                  alt="Ministry of Technology"
+                  width={48}
+                  height={48}
+                  className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8"
+                />
+              </div>
+            </TooltipTrigger>
+            {isCollapsed && (
+              <TooltipContent side="right" align="center" className="text-white">
+                Toggle Sidebar
+                <div className="text-xs text-white/80 mt-1">
+                  Shortcut: <kbd className="font-mono text-gray-dark bg-white px-1 py-0.5 rounded">
+                    {isMac ? "⌘" : "Ctrl"} + B
+                  </kbd>
+                </div>
+              </TooltipContent>
+            )}
+          </Tooltip>
           <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
-            <h3 className="text-lg font-semibold text-foreground truncate leading-tight whitespace-nowrap">
+            <h3 className="text-lg font-semibold text-primary truncate leading-tight whitespace-nowrap">
                 Platform
               </h3>
             <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">
@@ -171,12 +189,12 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
+      {!isCollapsed && (<SidebarFooter className="p-4">
         <div className="text-xs text-muted-foreground text-left transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
             <p>Developed & maintained by</p>
             <p className="text-primary text-bold">the Ministry of Technology</p>
         </div>
-      </SidebarFooter>
+      </SidebarFooter>)}
     </Sidebar>
   );
 }
