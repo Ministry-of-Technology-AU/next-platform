@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import {
   Select,
   SelectContent,
@@ -185,12 +186,11 @@ export default function ComposeNew() {
             <Label htmlFor="mail-draft" className="text-sm font-medium">
               Mail Draft
             </Label>
-            <Textarea
-              id="mail-draft"
-              placeholder="Compose your email content here..."
-              className="min-h-[200px] resize-y"
+            <RichTextEditor
               value={mailDraft}
-              onChange={(e) => setMailDraft(e.target.value)}
+              onChange={setMailDraft}
+              placeholder="Compose your email content here..."
+              className="w-full"
             />
           </div>
 
