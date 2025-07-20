@@ -105,7 +105,9 @@ export default function ComposeNew() {
           <h1 className="text-3xl font-bold tracking-tight">Compose New Mail</h1>
         </div>
         <p className="text-muted-foreground">
-          Create and send emails to various groups within the university community
+          Moving Forward; Not Just Forwards - SG Compose is a streamlined email management platform designed for Student Government, allowing students to submit requests that can be quickly approved and automatically sent to targeted groups. The system includes rich text editing, alias-based organization, and options for directing emails to specific audiences within Ashoka University.
+
+
         </p>
       </div>
 
