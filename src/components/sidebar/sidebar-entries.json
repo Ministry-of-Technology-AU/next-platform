@@ -53,8 +53,8 @@
         },
         {
           "title": "Pool a Cab",
-          "icon": "Users",
-          "href": "/organizations"
+          "icon": "Car",
+          "href": "/pool-cab"
         },
         {
           "title": "Pool a Subscription",
