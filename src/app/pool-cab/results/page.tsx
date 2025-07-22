@@ -76,8 +76,8 @@ export default function PoolCabResults() {
 
   const [filteredPools, setFilteredPools] = React.useState(samplePools)
   const [searchTerm, setSearchTerm] = React.useState("")
-  const [dayFilter, setDayFilter] = React.useState("")
-  const [routeFilter, setRouteFilter] = React.useState("")
+  const [dayFilter, setDayFilter] = React.useState("all")
+  const [routeFilter, setRouteFilter] = React.useState("all")
   const [entriesPerPage, setEntriesPerPage] = React.useState("10")
   const [currentPage, setCurrentPage] = React.useState(1)
 
@@ -113,11 +113,11 @@ export default function PoolCabResults() {
       )
     }
 
-    if (dayFilter) {
+    if (dayFilter && dayFilter !== "all") {
       filtered = filtered.filter(pool => pool.day === dayFilter)
     }
 
-    if (routeFilter) {
+    if (routeFilter && routeFilter !== "all") {
       filtered = filtered.filter(pool => pool.route === routeFilter)
     }
 
@@ -177,7 +177,7 @@ export default function PoolCabResults() {
                   <SelectValue placeholder="All Days" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Days</SelectItem>
+                  <SelectItem value="all">All Days</SelectItem>
                   <SelectItem value="Jul 22">Jul 22</SelectItem>
                   <SelectItem value="Jul 23">Jul 23</SelectItem>
                   <SelectItem value="Jul 24">Jul 24</SelectItem>
@@ -193,7 +193,7 @@ export default function PoolCabResults() {
                   <SelectValue placeholder="All Routes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Routes</SelectItem>
+                  <SelectItem value="all">All Routes</SelectItem>
                   <SelectItem value="Campus to New Delhi">Campus to New Delhi</SelectItem>
                   <SelectItem value="Campus to Gurgaon">Campus to Gurgaon</SelectItem>
                   <SelectItem value="New Delhi to Campus">New Delhi to Campus</SelectItem>
