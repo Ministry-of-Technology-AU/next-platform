@@ -391,7 +391,7 @@ export default function PoolCabResults() {
             </div>
           </div>
           
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-3 mt-6 justify-end">
             <Button className="bg-green-600 hover:bg-green-700">
               Found a Cab Pool
             </Button>

@@ -67,26 +67,81 @@ export default function PoolCab() {
   const [selectedDate, setSelectedDate] = React.useState("")
   const [fromLocation, setFromLocation] = React.useState("")
   const [toLocation, setToLocation] = React.useState("")
-  const [selectedTime, setSelectedTime] = React.useState("")
+  const [selectedHour, setSelectedHour] = React.useState("")
+  const [selectedMinute, setSelectedMinute] = React.useState("")
+  const [selectedPeriod, setSelectedPeriod] = React.useState("")
   const [contactNumber, setContactNumber] = React.useState("")
+  const [phoneError, setPhoneError] = React.useState("")
 
   const dates = generateDates()
-  const timeSlots = generateTimeSlots()
+
+  // Generate hours (1-12)
+  const hours = Array.from({ length: 12 }, (_, i) => ({
+    value: (i + 1).toString(),
+    label: (i + 1).toString().padStart(2, '0')
+  }))
+
+  // Generate minutes (00, 15, 30, 45)
+  const minutes = [
+    { value: "00", label: "00" },
+    { value: "15", label: "15" },
+    { value: "30", label: "30" },
+    { value: "45", label: "45" }
+  ]
+
+  const periods = [
+    { value: "AM", label: "AM" },
+    { value: "PM", label: "PM" }
+  ]
+
+  const validatePhoneNumber = (phone: string) => {
+    const phoneRegex = /^[0-9]{10}$/
+    return phoneRegex.test(phone)
+  }
+
+  const handlePhoneChange = (value: string) => {
+    // Remove any non-numeric characters
+    const numericValue = value.replace(/[^0-9]/g, '')
+    
+    // Limit to 10 digits
+    const limitedValue = numericValue.slice(0, 10)
+    
+    setContactNumber(limitedValue)
+    
+    // Validate and set error
+    if (limitedValue.length > 0 && !validatePhoneNumber(limitedValue)) {
+      if (limitedValue.length < 10) {
+        setPhoneError("Phone number must be exactly 10 digits")
+      } else {
+        setPhoneError("Invalid phone number format")
+      }
+    } else {
+      setPhoneError("")
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!selectedDate || !fromLocation || !toLocation || !selectedTime || !contactNumber) {
+    if (!selectedDate || !fromLocation || !toLocation || !selectedHour || !selectedMinute || !selectedPeriod || !contactNumber) {
       alert("Please fill in all required fields")
       return
     }
+
+    if (!validatePhoneNumber(contactNumber)) {
+      alert("Please enter a valid 10-digit phone number")
+      return
+    }
+
+    // Combine time components
+    const combinedTime = `${selectedHour}:${selectedMinute} ${selectedPeriod}`
 
     // Navigate to results page with form data
     const searchParams = new URLSearchParams({
       date: selectedDate,
       from: fromLocation,
       to: toLocation,
-      time: selectedTime,
+      time: combinedTime,
       contact: contactNumber,
     })
     
@@ -94,14 +149,15 @@ export default function PoolCab() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="flex justify-center px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-4xl space-y-6">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+        <h1 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-3">
           <Car className="h-8 w-8 text-primary" />
           Pool a Cab
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-center">
           Find others traveling on the same route and share a cab to save money and reduce environmental impact. 
           Fill in your travel details below to find potential cab partners or create a new pool request.
         </p>
@@ -110,7 +166,7 @@ export default function PoolCab() {
       {/* Form Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center justify-center gap-2">
             <MapPin className="h-5 w-5" />
             Trip Details
           </CardTitle>
@@ -182,24 +238,59 @@ export default function PoolCab() {
               </Select>
             </div>
 
-            {/* Time Selection */}
+            {/* Time Selection - Hour, Minute, AM/PM */}
             <div className="space-y-2">
-              <Label htmlFor="time" className="text-sm font-medium flex items-center gap-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 Select time to pool at <span className="text-destructive">*</span>
               </Label>
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
-                <SelectTrigger id="time">
-                  <SelectValue placeholder="Choose departure time" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {timeSlots.map((slot) => (
-                    <SelectItem key={slot.value} value={slot.value}>
-                      {slot.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label htmlFor="hour" className="text-xs text-muted-foreground">Hour</Label>
+                  <Select value={selectedHour} onValueChange={setSelectedHour}>
+                    <SelectTrigger id="hour">
+                      <SelectValue placeholder="HH" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {hours.map((hour) => (
+                        <SelectItem key={hour.value} value={hour.value}>
+                          {hour.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="minute" className="text-xs text-muted-foreground">Minute</Label>
+                  <Select value={selectedMinute} onValueChange={setSelectedMinute}>
+                    <SelectTrigger id="minute">
+                      <SelectValue placeholder="MM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {minutes.map((minute) => (
+                        <SelectItem key={minute.value} value={minute.value}>
+                          {minute.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="period" className="text-xs text-muted-foreground">Period</Label>
+                  <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                    <SelectTrigger id="period">
+                      <SelectValue placeholder="AM/PM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {periods.map((period) => (
+                        <SelectItem key={period.value} value={period.value}>
+                          {period.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
             {/* Contact Number */}
@@ -208,14 +299,25 @@ export default function PoolCab() {
                 <Phone className="h-4 w-4" />
                 Enter contact number <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id="contact"
-                type="tel"
-                placeholder="+91 XXXXX XXXXX"
-                value={contactNumber}
-                onChange={(e) => setContactNumber(e.target.value)}
-                className="font-mono"
-              />
+              <div className="flex gap-2">
+                <div className="flex items-center px-3 py-2 bg-muted border border-input rounded-md text-sm font-mono text-muted-foreground">
+                  +91
+                </div>
+                <div className="flex-1">
+                  <Input
+                    id="contact"
+                    type="tel"
+                    placeholder="Enter 10-digit number"
+                    value={contactNumber}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    className={`font-mono ${phoneError ? 'border-destructive' : ''}`}
+                    maxLength={10}
+                  />
+                  {phoneError && (
+                    <p className="text-xs text-destructive mt-1">{phoneError}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Submit Button */}
@@ -223,7 +325,17 @@ export default function PoolCab() {
               <Button 
                 type="submit" 
                 className="w-full gap-2 text-lg py-6"
-                disabled={!selectedDate || !fromLocation || !toLocation || !selectedTime || !contactNumber}
+                disabled={
+                  !selectedDate || 
+                  !fromLocation || 
+                  !toLocation || 
+                  !selectedHour || 
+                  !selectedMinute || 
+                  !selectedPeriod || 
+                  !contactNumber || 
+                  !!phoneError ||
+                  !validatePhoneNumber(contactNumber)
+                }
               >
                 <Car className="h-5 w-5" />
                 Pool a Cab!
@@ -232,6 +344,7 @@ export default function PoolCab() {
           </form>
         </CardContent>
       </Card>
+    </div>
     </div>
   )
 }
