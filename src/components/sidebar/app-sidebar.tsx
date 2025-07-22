@@ -45,6 +45,7 @@ import {
   MailPlus,
   Clock,
   User,
+  Bus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -77,6 +78,7 @@ const iconMap = {
   MailPlus,
   Clock,
   User,
+  Bus,
 };
 
 interface SidebarItem {
