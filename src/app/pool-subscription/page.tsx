@@ -2,12 +2,20 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Users, Calendar, Phone, Hash } from "lucide-react"
+import { Users, Calendar, Phone, Hash, Tv, ChevronUp, ChevronDown } from "lucide-react"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -15,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
 // Sample services for subscription pooling
 const services = [
@@ -138,7 +147,7 @@ export default function PoolSubscription() {
               {/* Service Selection */}
               <div className="space-y-2">
                 <Label htmlFor="service" className="text-sm font-medium flex items-center gap-2">
-                  <Users className="h-4 w-4" />
+                  <Tv className="h-4 w-4" />
                   Select service to pool <span className="text-destructive">*</span>
                 </Label>
                 <Select value={selectedService} onValueChange={setSelectedService}>
@@ -158,17 +167,47 @@ export default function PoolSubscription() {
               {/* Number of People */}
               <div className="space-y-2">
                 <Label htmlFor="people" className="text-sm font-medium flex items-center gap-2">
-                  <Hash className="h-4 w-4" />
+                  <Users className="h-4 w-4" />
                   Number of people you want to share with <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="people"
-                  type="text"
-                  placeholder="Enter number of people"
-                  value={numberOfPeople}
-                  onChange={(e) => handleNumberOfPeopleChange(e.target.value)}
-                  className="font-mono"
-                />
+                <div className="relative">
+                  <Input
+                    id="people"
+                    type="number"
+                    min="1"
+                    max="99"
+                    placeholder="Enter number of people"
+                    value={numberOfPeople}
+                    onChange={(e) => handleNumberOfPeopleChange(e.target.value)}
+                    className="pr-8"
+                  />
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseInt(numberOfPeople) || 0
+                        if (current < 99) {
+                          setNumberOfPeople((current + 1).toString())
+                        }
+                      }}
+                      className="h-4 w-6 flex items-center justify-center hover:bg-muted rounded-sm"
+                    >
+                      <ChevronUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseInt(numberOfPeople) || 0
+                        if (current > 1) {
+                          setNumberOfPeople((current - 1).toString())
+                        }
+                      }}
+                      className="h-4 w-6 flex items-center justify-center hover:bg-muted rounded-sm"
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Enter the total number of people you want to share the subscription with (including yourself)
                 </p>
@@ -180,13 +219,33 @@ export default function PoolSubscription() {
                   <Calendar className="h-4 w-4" />
                   Subscription start date <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(new Date(startDate), "PPP") : "Pick a start date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={startDate ? new Date(startDate) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setStartDate(date.toISOString().split('T')[0])
+                        }
+                      }}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* End Date */}
@@ -195,13 +254,36 @@ export default function PoolSubscription() {
                   <Calendar className="h-4 w-4" />
                   Subscription end date <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  min={startDate || new Date().toISOString().split('T')[0]}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(new Date(endDate), "PPP") : "Pick an end date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={endDate ? new Date(endDate) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setEndDate(date.toISOString().split('T')[0])
+                        }
+                      }}
+                      disabled={(date) => {
+                        const minDate = startDate ? new Date(startDate) : new Date()
+                        return date <= minDate
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Contact Number */}
