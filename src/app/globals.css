@@ -108,7 +108,7 @@ h3{
      --card: oklch(1 0 0);
      --card-foreground: oklch(0.147 0.004 49.25);
      --popover: oklch(1 0 0);
-     --popover-foreground: oklch(0.147 0.004 49.25);
+     --popover-foreground: var(--color-white);
      --primary:  var(--color-primary);
      --primary-foreground: oklch(0.985 0.001 106.423);
      --secondary: var(--color-secondary);
@@ -144,7 +144,7 @@ h3{
      --popover: oklch(0.216 0.006 56.043);
      --popover-foreground: oklch(0.985 0.001 106.423);
      --primary: #87281b;
-     --primary-foreground: oklch(0.216 0.006 56.043);
+     --primary-foreground: var(--color-black);
      --secondary: oklch(0.268 0.007 34.298);
      --secondary-foreground: oklch(0.985 0.001 106.423);
      --muted: oklch(0.268 0.007 34.298);
@@ -223,4 +223,34 @@ h3{
   .dark * {
     scrollbar-color: var(--color-primary) var(--color-black); /* dark */
   }
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+/* src/app/globals.css or a new CSS file you import */
+.button-animated {
+  position: relative;
+  overflow: hidden;
+  transition: color 0.5s ease-out, box-shadow 0.5s ease-out, transform 0.1s;
+  box-shadow: inset 0 0 0 0 var(--color-primary-dark);
+}
+
+.button-animated:hover {
+  color: white !important;
+  box-shadow: inset 0 -100px 0 0 var(--color-primary-dark);
+}
+
+.button-animated:active {
+  transform: scale(0.95);
 }

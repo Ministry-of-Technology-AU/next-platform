@@ -28,55 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SidebarTrigger } from "./ui/sidebar";
-
-// Simple dark/light toggle (uses 'dark' class on html)
-function ThemeToggle() {
-  const [isDark, setIsDark] = React.useState(false);
-  const isMac = useIsMac();
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    }
-  }, []);
-
-  // Keyboard shortcut: Cmd+D (Mac) or Ctrl+D (Windows)
-  React.useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
-      if (
-        (isMac && event.metaKey && event.key.toLowerCase() === "d") ||
-        (!isMac && event.ctrlKey && event.key.toLowerCase() === "d")
-      ) {
-        event.preventDefault();
-        toggle();
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMac]);
-
-  const toggle = () => {
-    setIsDark((d) => {
-      const next = !d;
-      document.documentElement.classList.toggle("dark", next);
-      return next;
-    });
-  };
-
-  return (
-    <TooltipTrigger asChild>
-      <Button
-        variant="default"
-        size="icon"
-        aria-label="Toggle theme"
-        onClick={toggle}
-      >
-        {isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
-      </Button>
-    </TooltipTrigger>
-  );
-}
+import ThemeToggle from "@/components/ui/theme-toggle";
 
 
 export default function Navbar() {
@@ -85,7 +37,20 @@ const isMac = useIsMac();
     <nav className="w-full flex sticky top-0 items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-background backdrop-blur-md z-50">
       {/* Left: Logo and text */}
       <div className="flex items-center gap-2 min-w-0">
-        <SidebarTrigger />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <SidebarTrigger className="hover:text-primary-extralight dark:hover:text-primary-light"/>
+          </TooltipTrigger>
+          <TooltipContent side="right" align="center" className="text-white">
+            Toggle Sidebar
+            <div className="text-xs text-white/80 mt-1">
+              Shortcut:{" "}
+              <kbd className="font-mono text-gray-dark bg-white px-1 py-0.5 rounded">
+                {isMac ? "⌘" : "Ctrl"} + B
+              </kbd>
+            </div>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Right: Help, Feedback, theme toggle, profile */}
@@ -93,7 +58,7 @@ const isMac = useIsMac();
         {/* Help button - Launches global tooltips */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Help">
+            <Button variant="animatedGhost" size="icon" aria-label="Help">
               <HelpCircle className="size-5" />
             </Button>
           </TooltipTrigger>
@@ -107,7 +72,11 @@ const isMac = useIsMac();
           <Dialog>
             <DialogTrigger asChild>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Feedback">
+                <Button
+                  variant="animatedGhost"
+                  size="icon"
+                  aria-label="Feedback"
+                >
                   <Newspaper className="size-5" />
                 </Button>
               </TooltipTrigger>
@@ -139,7 +108,11 @@ const isMac = useIsMac();
 
         {/* Dark/Light Mode Toggle button */}
         <Tooltip>
-          <ThemeToggle />
+          <ThemeToggle onClick={() => {
+            // Replicate the old toggle logic
+            const next = !document.documentElement.classList.contains("dark");
+            document.documentElement.classList.toggle("dark", next);
+          }} />
           <TooltipContent>
             <p className="text-sm text-white">
               Toggle dark/light mode

@@ -26,7 +26,7 @@ import {
   Calendar,
   Library,
   Users,
-  UtensilsCrossed,
+  Tv,
   Car,
   Building,
   Palette,
@@ -60,7 +60,7 @@ const iconMap = {
   Calendar,
   Library,
   Users,
-  UtensilsCrossed,
+  Tv,
   Car,
   Building,
   Palette,
@@ -128,11 +128,9 @@ export function AppSidebar() {
   const isMac = useIsMac();
 
   return (
-    <Sidebar className="border-r border-border flex flex-col h-screen" collapsible="icon">
+    <Sidebar className="border-r border-border flex flex-col h-screen bg-[var(--color-white)] dark:bg-[var(--color-black)]" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
               <div className="flex-shrink-0 cursor-pointer">
                 <Image
                   src="/MoT logo.png"
@@ -142,20 +140,8 @@ export function AppSidebar() {
                   className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8"
                 />
               </div>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right" align="center" className="text-white">
-                Toggle Sidebar
-                <div className="text-xs text-white/80 mt-1">
-                  Shortcut: <kbd className="font-mono text-gray-dark bg-white px-1 py-0.5 rounded">
-                    {isMac ? "⌘" : "Ctrl"} + B
-                  </kbd>
-                </div>
-              </TooltipContent>
-            )}
-          </Tooltip>
           <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
-            <h3 className="text-lg font-semibold text-primary truncate leading-tight whitespace-nowrap">
+            <h3 className="text-lg font-semibold text-primary truncate leading-tight whitespace-nowrap !text-left">
                 Platform
               </h3>
             <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">

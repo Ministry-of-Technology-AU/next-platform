@@ -58,7 +58,7 @@
         },
         {
           "title": "Pool a Subscription",
-          "icon": "UtensilsCrossed",
+          "icon": "Tv",
           "href": "/pool-subscription"
         },
         {
@@ -80,7 +80,7 @@
         {
           "title": "Organisations Catalogue",
           "icon": "Palette",
-          "href": "/arts-culture"
+          "href": "/organisations-catalogue"
         },
         {
           "title": "Events Calendar",

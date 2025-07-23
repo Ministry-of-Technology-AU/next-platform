@@ -59,7 +59,7 @@ export default function ComposeOutbox() {
     <div className="space-y-6">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">SG Compose</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-white">SG Compose</h1>
         <p className="text-muted-foreground">
           View the status of all your email requests here. If your outbox
           contains a pending request, do not raise new requests till an approval
@@ -71,7 +71,7 @@ export default function ComposeOutbox() {
 
       {/* New Mail Button */}
       <div className="flex justify-start">
-        <Button asChild className="gap-2">
+        <Button asChild className="gap-2" variant="animated">
           <Link href="/sg-compose/new">
             <MailPlus className="h-4 w-4" />
             Compose New Mail

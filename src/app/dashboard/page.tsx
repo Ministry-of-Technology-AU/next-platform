@@ -1,3 +1,5 @@
+import ThemeToggle from "@/components/ui/theme-toggle";
+
 export default function() {
   return (
     <div className="flex flex-col items-center justify-center h-screen">

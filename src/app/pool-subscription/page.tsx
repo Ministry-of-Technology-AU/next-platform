@@ -129,7 +129,7 @@ export default function PoolSubscription() {
             Pool a Subscription
           </h1>
           <p className="text-muted-foreground text-center">
-            Share subscription costs with others and save money on your favorite services. 
+            Share subscription costs with others and save money on your favorite services! 
             Fill in your subscription details below to find potential partners or create a new pool request.
           </p>
         </div>
@@ -238,7 +238,7 @@ export default function PoolSubscription() {
                       selected={startDate ? new Date(startDate) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          setStartDate(date.toISOString().split('T')[0])
+                          setStartDate(format(date, "yyyy-MM-dd"));
                         }
                       }}
                       disabled={(date) => date < new Date()}
@@ -273,7 +273,7 @@ export default function PoolSubscription() {
                       selected={endDate ? new Date(endDate) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          setEndDate(date.toISOString().split('T')[0])
+                          setEndDate(format(date, "yyyy-MM-dd"));
                         }
                       }}
                       disabled={(date) => {
