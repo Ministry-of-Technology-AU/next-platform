@@ -45,7 +45,7 @@ import {
   MailPlus,
   Clock,
   User,
-  Bus,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -78,7 +78,7 @@ const iconMap = {
   MailPlus,
   Clock,
   User,
-  Bus,
+  ShoppingBag,
 };
 
 interface SidebarItem {
@@ -128,7 +128,7 @@ export function AppSidebar() {
   const isMac = useIsMac();
 
   return (
-    <Sidebar className="border-r border-border flex flex-col h-screen bg-[var(--color-white)] dark:bg-[var(--color-black)]" collapsible="icon">
+    <Sidebar className="border-r border-border flex flex-col h-screen bg-white dark:bg-black overflow-y-auto" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
               <div className="flex-shrink-0 cursor-pointer">
@@ -151,7 +151,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-2">
+      <SidebarContent className="p-2 overflow-y-auto min-h-0">
         {sidebarData.categories.map((category: SidebarCategory) => (
           <SidebarGroup key={category.id}>
             {!isCollapsed && (

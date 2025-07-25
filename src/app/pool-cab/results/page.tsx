@@ -290,7 +290,7 @@ export default function PoolCabResults() {
                       <Button
                         size="sm"
                         onClick={() => handleWhatsAppContact(pool.contact, pool.name)}
-                        className="gap-2 bg-green-600 hover:bg-green-700"
+                        className="gap-2 bg-green hover:bg-green-dark"
                       >
                         <MessageCircle className="h-4 w-4" />
                         WhatsApp

@@ -23,7 +23,7 @@
         {
           "title": "Course Reviews",
           "icon": "ClipboardPenLine",
-          "href": "/courses"
+          "href": "/course-reviews"
         },
         {
           "title": "Semester Planner",
@@ -63,8 +63,8 @@
         },
         {
           "title": "Borrow Assets",
-          "icon": "Bus",
-          "href": "/transportation"
+          "icon": "ShoppingBag",
+          "href": "/borrow-assets"
         },
         {
           "title": "Resources",
