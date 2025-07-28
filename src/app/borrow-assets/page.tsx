@@ -170,7 +170,7 @@ export default function BorrowAssetsPage() {
               <CardContent className="pt-0">
                 <div className="flex flex-wrap gap-2 mb-4">
                   {asset.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
+                    <Badge key={tag} variant="secondary" className="bg-secondary-light/80 dark:bg-secondary/70 dark:text-black text-xs">
                       <Tag className="w-3 h-3 mr-1" />
                       {tag}
                     </Badge>
