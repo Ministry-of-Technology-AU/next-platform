@@ -10,6 +10,8 @@ import { OrganisationCard } from "./components/organisation-card";
 import { OrganisationDialog } from "./components/organisations-dialog";
 import { FiltersDialog } from "./components/filters-dialog";
 import { SearchDropdown } from "./components/search-dropdown";
+import { TourStep } from "@/components/guided-tour";
+import { apiGet } from "@/lib/apis";
 import {
   organisations,
   type Organisation,
@@ -19,6 +21,17 @@ import {
 export default function OrganisationsCataloguePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+    const [courses, setCourses] = useState<any[] | null>(null);
+    const [err, setErr] = useState<string | null>(null);
+
+    useEffect(() => {
+      apiGet("/platform/organisation-catalogue?format=json")
+        .then((json) => {
+          setCourses(json.organisations || []);
+          console.log("orgs:", json.organisations); // log the payload directly
+        })
+        .catch((e) => setErr(e.message));
+    }, []);
   const [selectedFilters, setSelectedFilters] = useState<OrganisationType[]>([
     "show all",
   ]);
@@ -90,43 +103,59 @@ export default function OrganisationsCataloguePage() {
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search organisations..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setShowSearchDropdown(true);
-            }}
-            onFocus={() => setShowSearchDropdown(true)}
-            className="pl-10"
-          />
-          {showSearchDropdown && searchSuggestions.length > 0 && (
-            <SearchDropdown
-              suggestions={searchSuggestions}
-              onSelect={(org) => {
-                setSearchQuery(org.name);
-                setShowSearchDropdown(false);
-              }}
-              onClose={() => setShowSearchDropdown(false)}
-            />
-          )}
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => setShowFiltersDialog(true)}
-          className="flex items-center gap-2"
+        <TourStep
+          id="organisation-search"
+          order={1}
+          title="Search for Organisations!"
+          content="Find organisations by name, category, or description."
+          position="right"
         >
-          <Filter className="h-4 w-4" />
-          Filters & Preferences
-          {selectedFilters.length > 0 &&
-            !selectedFilters.includes("show all") && (
-              <Badge variant="secondary" className="ml-1">
-                {selectedFilters.length}
-              </Badge>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search organisations..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearchDropdown(true);
+              }}
+              onFocus={() => setShowSearchDropdown(true)}
+              className="pl-10"
+            />
+            {showSearchDropdown && searchSuggestions.length > 0 && (
+              <SearchDropdown
+                suggestions={searchSuggestions}
+                onSelect={(org) => {
+                  setSearchQuery(org.name);
+                  setShowSearchDropdown(false);
+                }}
+                onClose={() => setShowSearchDropdown(false)}
+              />
             )}
-        </Button>
+          </div>
+        </TourStep>
+        <TourStep
+          id="organisation-filters"
+          order={2}
+          title="Filters & Preferences"
+          content="Customize your view with filters for categories and preferences."
+          position="right"
+        >
+          <Button
+            variant="outline"
+            onClick={() => setShowFiltersDialog(true)}
+            className="flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filters & Preferences
+            {selectedFilters.length > 0 &&
+              !selectedFilters.includes("show all") && (
+                <Badge variant="secondary" className="ml-1">
+                  {selectedFilters.length}
+                </Badge>
+              )}
+          </Button>
+        </TourStep>
       </div>
 
       {/* Active Filters */}
@@ -159,16 +188,24 @@ export default function OrganisationsCataloguePage() {
           ))}
         </div>
       ) : (
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-          {filteredOrganisations.map((organisation) => (
-            <div key={organisation.id} className="break-inside-avoid">
-              <OrganisationCard
-                organisation={organisation}
-                onClick={() => setSelectedOrganisation(organisation)}
-              />
-            </div>
-          ))}
-        </div>
+        <TourStep
+          id="organisation-results"
+          order={3}
+          title="Browse Organisations"
+          content="Explore the organisations that match your search and filters. Click on any card to view more details about the organisation!"
+          position="top"
+        >
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+            {filteredOrganisations.map((organisation) => (
+              <div key={organisation.id} className="break-inside-avoid">
+                <OrganisationCard
+                  organisation={organisation}
+                  onClick={() => setSelectedOrganisation(organisation)}
+                />
+              </div>
+            ))}
+          </div>
+        </TourStep>
       )}
 
       {/* No Results */}
@@ -184,18 +221,31 @@ export default function OrganisationsCataloguePage() {
       )}
 
       {/* Dialogs */}
-      <FiltersDialog
-        open={showFiltersDialog}
-        onOpenChange={setShowFiltersDialog}
-        selectedFilters={selectedFilters}
-        onFiltersChange={setSelectedFilters}
-      />
-
-      <OrganisationDialog
-        organisation={selectedOrganisation}
-        open={!!selectedOrganisation}
-        onOpenChange={(open) => !open && setSelectedOrganisation(null)}
-      />
+      <TourStep
+        id="organisation-filters-dialog"
+        order={4}
+        title="Filters & Preferences Dialog"
+        content="Use the filters dialog to select categories and preferences that suit your interests. You can choose multiple categories and toggle options like 'Inductions Open'."
+      >
+          <FiltersDialog
+            open={showFiltersDialog}
+            onOpenChange={setShowFiltersDialog}
+            selectedFilters={selectedFilters}
+            onFiltersChange={setSelectedFilters}
+          />;
+      </TourStep>
+      <TourStep
+        id="organisation-details"
+        order={5}
+        title="Organisation Details"
+        content="View detailed information about the organisation, including its description, members, and contact information."
+      >
+        <OrganisationDialog
+          organisation={selectedOrganisation}
+          open={!!selectedOrganisation}
+          onOpenChange={(open) => !open && setSelectedOrganisation(null)}
+        />
+      </TourStep>
     </div>
   );
 }

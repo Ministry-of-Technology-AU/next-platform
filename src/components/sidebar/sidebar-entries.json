@@ -33,12 +33,12 @@
         {
           "title": "CGPA Planner",
           "icon": "Award",
-          "href": "/grades"
+          "href": "/cgpa-planner"
         },
         {
           "title": "Degree Tracker",
-          "icon": "Calendar",
-          "href": "/schedule"
+          "icon": "ListPlus",
+          "href": "/degree-tracker"
         }
       ]
     },
@@ -68,7 +68,7 @@
         },
         {
           "title": "Resources",
-          "icon": "Building",
+          "icon": "Boxes",
           "href": "/resources"
         }
       ]
@@ -89,34 +89,8 @@
         },
         {
           "title": "Intercollegiate Events",
-          "icon": "Image",
-          "href": "/galleries"
-        }
-      ]
-    },
-    {
-      "id": "public",
-      "title": "Public",
-      "items": [
-        {
-          "title": "Announcements",
-          "icon": "Megaphone",
-          "href": "/announcements"
-        },
-        {
-          "title": "News",
-          "icon": "Newspaper",
-          "href": "/news"
-        },
-        {
-          "title": "Directory",
-          "icon": "Search",
-          "href": "/directory"
-        },
-        {
-          "title": "Contact",
-          "icon": "Phone",
-          "href": "/contact"
+          "icon": "Building2",
+          "href": "/intercollegiate-events"
         }
       ]
     },
@@ -131,8 +105,8 @@
         },
         {
           "title": "My Profile",
-          "icon": "FolderOpen",
-          "href": "/my-files"
+          "icon": "UserCog",
+          "href": "/profile"
         }
       ]
     }

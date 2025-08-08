@@ -27,6 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { TourTrigger } from "./guided-tour";
 import { SidebarTrigger } from "./ui/sidebar";
 import ThemeToggle from "@/components/ui/theme-toggle";
 
@@ -39,7 +40,7 @@ const isMac = useIsMac();
       <div className="flex items-center gap-2 min-w-0">
         <Tooltip>
           <TooltipTrigger asChild>
-            <SidebarTrigger className="hover:text-primary-extralight dark:hover:text-primary-light"/>
+            <SidebarTrigger className="hover:text-primary-extralight dark:hover:text-primary-light" />
           </TooltipTrigger>
           <TooltipContent side="right" align="center" className="text-white">
             Toggle Sidebar
@@ -57,11 +58,13 @@ const isMac = useIsMac();
       <div className="flex items-center gap-1 sm:gap-2 ml-auto">
         {/* Help button - Launches global tooltips */}
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="animatedGhost" size="icon" aria-label="Help">
-              <HelpCircle className="size-5" />
-            </Button>
-          </TooltipTrigger>
+          <TourTrigger>
+            <TooltipTrigger asChild>
+              <Button variant="animatedGhost" size="icon" aria-label="Help">
+                <HelpCircle className="size-5" />
+              </Button>
+            </TooltipTrigger>
+          </TourTrigger>
           <TooltipContent>
             <p className="text-sm">Need help? See tooltips!</p>
           </TooltipContent>
@@ -108,11 +111,13 @@ const isMac = useIsMac();
 
         {/* Dark/Light Mode Toggle button */}
         <Tooltip>
-          <ThemeToggle onClick={() => {
-            // Replicate the old toggle logic
-            const next = !document.documentElement.classList.contains("dark");
-            document.documentElement.classList.toggle("dark", next);
-          }} />
+          <ThemeToggle
+            onClick={() => {
+              // Replicate the old toggle logic
+              const next = !document.documentElement.classList.contains("dark");
+              document.documentElement.classList.toggle("dark", next);
+            }}
+          />
           <TooltipContent>
             <p className="text-sm text-white">
               Toggle dark/light mode

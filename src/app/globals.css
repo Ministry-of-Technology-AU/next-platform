@@ -37,6 +37,7 @@
     --color-black: #1c1917;
     --color-gray: #767371;
     --color-gray-light: #bfbcba;
+    --color-gray-extralight: #f2f1ee;
     --color-gray-dark: #57504c;
 
     --color-bg: #f7f4f2;
@@ -105,7 +106,7 @@ h3{
      --radius: 0.725rem;
      --background: var(--color-white);
      --foreground: oklch(0.147 0.004 49.25);
-     --card: oklch(1 0 0);
+     --card: var(--color-gray-extralight);
      --card-foreground: oklch(0.147 0.004 49.25);
      --popover: oklch(1 0 0);
      --popover-foreground: var(--color-white);

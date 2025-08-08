@@ -103,7 +103,7 @@ function DialogOverlay({
 
 function DialogContent({
   children,
-  showCloseButton,
+  showCloseButton = true,
   className,
   ...rest
 }: DialogMotionProps & { showCloseButton?: boolean }) {

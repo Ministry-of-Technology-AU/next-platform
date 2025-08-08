@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import { Sidebar, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import {TourProvider} from "@/components/guided-tour";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -32,17 +33,21 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
         <TooltipProvider>
-          <SidebarProvider defaultOpen={false}>
-            <div className="flex min-h-screen w-full">
-              <AppSidebar />
-              <div className="flex flex-1 flex-col">
-                <Navbar />
-                <main className="flex-1 overflow-auto p-4 sm:p-6">
-                  {children}
-                </main>
+          <TourProvider
+            autoStart={false}
+          >
+            <SidebarProvider defaultOpen={false}>
+              <div className="flex min-h-screen w-full">
+                <AppSidebar />
+                <div className="flex flex-1 flex-col">
+                  <Navbar />
+                  <main className="flex-1 overflow-auto p-4 sm:p-6">
+                    {children}
+                  </main>
+                </div>
               </div>
-            </div>
-          </SidebarProvider>
+            </SidebarProvider>
+          </TourProvider>
         </TooltipProvider>
       </body>
     </html>

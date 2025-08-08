@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Course } from "../types"
+import { TourStep } from "@/components/guided-tour";
 
 interface CourseSelectionProps {
   courses: Course[];
@@ -56,12 +57,14 @@ export function CourseSelection({
         <div className="space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search courses, codes, or professors..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <TourStep id="course-search" order={1} title="Search for Courses!" content="Find courses by name, code, or professor." position="right">
+              <Input
+                placeholder="Search courses, codes, or professors..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </TourStep>
           </div>
 
           <div className="flex gap-2">
