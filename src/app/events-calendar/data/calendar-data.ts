@@ -1,5 +1,6 @@
 import type { Event, Organization } from "../types/calendar";
 
+
 export const sampleEvents: Event[] = [
   {
     id: "1",
@@ -161,19 +162,217 @@ export const organizations: Organization[] = [
 ];
 
 export const defaultColors = [
-  "#87281B",
-  "#60150A",
-  "#3B0800", // Primary reds
-  "#FFCD74",
-  "#F4B448",
-  "#D68E3A", // Yellows
-  "#519872",
-  "#2B6948",
-  "#1B3022", // Greens
-  "#0267C1",
-  "#154A7B",
-  "#1C3144", // Blues
-  "#767371",
-  "#57504C",
-  "#1C1917", // Neutrals
+    "#c89188",
+    "#9b4e43",
+    "#87281b",
+    "#60150a",
+    "#3b0800",
+
+    /* Secondaries */
+    "#eef5db",
+    "#ffe7a9",
+    "#ffcd74",
+    "#f4b448",
+    "#d68e3a",
+
+    /* Greens */
+    "#8fd8ca",
+    "#70c49c",
+    "#519872",
+    "#2b6948",
+    "#1b3022",
+
+    /* Blues */
+    "#a1cdf1",
+    "#5197d6",
+    "#0267c1",
+    "#154a7b",
+    "#1c3144",
+
+    /* Neutrals */
+    "#bfbcba",
+    "#767371",
+    "#57504c",
 ];
+
+
+
+// This function is a backend utility to fetch events from a specific Google Calendar.
+
+// It is designed to be called from a Next.js Server Component or API Route.
+
+export async function getCalendarEvents() {
+
+// 1. Retrieve API key and calendar ID from environment variables.
+
+const { apiKey, calendarId } = getCredentials();
+
+
+
+// 2. Define the Google Calendar API endpoint and parameters.
+
+const now = new Date();
+
+const thirtyDaysLater = new Date();
+
+thirtyDaysLater.setDate(now.getDate() + 30);
+
+
+
+const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${apiKey}&timeMin=${now.toISOString()}&timeMax=${thirtyDaysLater.toISOString()}&singleEvents=true&orderBy=startTime`;
+
+
+
+try {
+
+// 3. Make the API request to Google Calendar.
+
+const response = await fetch(url, {
+
+method: 'GET',
+
+headers: {
+
+'Content-Type': 'application/json',
+
+},
+
+cache: 'no-store'
+
+});
+
+
+
+// 4. Handle non-successful responses.
+
+if (!response.ok) {
+
+console.error(`Error fetching calendar events: ${response.status} ${response.statusText}`);
+
+return { events: [], error: 'Failed to fetch calendar events from Google API.' };
+
+}
+
+
+
+// 5. Parse the JSON response and map it to your custom Event type.
+
+const data = await response.json();
+
+const mappedEvents: Event[] = data.items.map(mapToCustomEvent);
+
+
+
+return { events: mappedEvents, error: null };
+
+
+
+} catch (error) {
+
+// 6. Handle network or other unexpected errors.
+
+console.error('An unexpected error occurred while fetching calendar events:', error);
+
+return { events: [], error: 'An unexpected error occurred.' };
+
+}
+
+}
+
+
+
+/**
+
+* Maps a raw Google Calendar API event object to your custom Event interface.
+
+* Note: This assumes a few mappings. You might need to adjust based on your specific data.
+
+* The `category` field is not available from the API and is set to a default value.
+
+*/
+
+function mapToCustomEvent(googleEvent: any): Event {
+
+const startDate = new Date(googleEvent.start?.dateTime || googleEvent.start?.date);
+
+const endDate = new Date(googleEvent.end?.dateTime || googleEvent.end?.date);
+
+
+
+// Assuming that the organizingBody and organization can be derived from the organizer.
+
+const organizerName = googleEvent.organizer?.displayName || googleEvent.organizer?.email || "Unknown";
+
+
+
+// For the `category` field, since it's not a standard Google Calendar field,
+
+// we'll use a placeholder. You'd likely implement logic here to
+
+// determine the category based on other event properties (e.g., event title, tags, etc.)
+
+// or by cross-referencing a separate data source.
+
+const category: Event['category'] = 'others';
+
+
+
+return {
+
+id: googleEvent.id,
+
+title: googleEvent.summary || 'No Title',
+
+date: startDate.toISOString().split('T')[0], // YYYY-MM-DD
+
+time: startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+
+venue: googleEvent.location || 'Online / TBD',
+
+organizingBody: organizerName,
+
+description: googleEvent.description || 'No description provided.',
+
+category: category,
+
+organization: organizerName,
+
+};
+
+}
+
+
+
+
+
+/**
+
+* Helper function to retrieve and validate environment variables.
+
+* Throws an error if any required variable is missing to fail early.
+
+*/
+
+function getCredentials() {
+
+const apiKey = process.env.GOOGLE_API_TOKEN_READONLY;
+
+const calendarId = process.env.GOOGLE_CALENDAR_ID;
+
+
+
+if (!apiKey || !calendarId) {
+
+throw new Error(
+
+"Missing GOOGLE_CALENDAR_API_KEY or GOOGLE_CALENDAR_ID in environment variables."
+
+);
+
+}
+
+
+
+return { apiKey, calendarId };
+
+}

@@ -2,7 +2,6 @@ import { Trophy } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import EventCard from "./components/event-card"
 import SearchBar from "./components/search-bar"
-import {TourProvider, TourStep, TourTrigger } from "@/components/guided-tour"
 
 
 // Mock data for events

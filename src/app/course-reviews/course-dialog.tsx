@@ -76,11 +76,6 @@ export function CourseDialog({ course }: CourseDialogProps) {
     <div className="w-full max-w-full overflow-hidden">
       {/* Course Title */}
       <DialogHeader className="flex justify-center text-center align-center">
-        <DialogClose className="absolute right-2 top-2">
-          <Button variant="ghost" size="icon">
-            <X />
-          </Button>
-        </DialogClose>
         <DialogTitle>
           <h3 className="text-primary font-semibold text-sm sm:text-base px-8">
             {course.courseName} ({course.courseCode}){" "}

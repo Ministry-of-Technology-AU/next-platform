@@ -1,7 +1,14 @@
+import { WritingText } from "@/components/ui/shadcn-io/writing-text";
+
 export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <WritingText
+        className="text-3xl font-bold"
+        text="Welcome to Platform"
+        spacing={9}
+        transition={{ type: "spring", bounce: 0, duration: 1, delay: 0.25 }}
+      />
       <p className="mt-4 text-gray-600">
         This is a placeholder for the dashboard page.
       </p>

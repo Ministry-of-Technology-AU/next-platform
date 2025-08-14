@@ -100,6 +100,15 @@ h3{
      --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
      --color-sidebar-border: var(--sidebar-border);
      --color-sidebar-ring: var(--sidebar-ring);
+     --animate-aurora: aurora 60s linear infinite;
+  @keyframes aurora {
+  from {
+    backgroundPosition: 50% 50%, 50% 50%;
+          }
+  to {
+    backgroundPosition: 350% 50%, 350% 50%;
+          }
+     }
 }
 
 :root {
@@ -145,7 +154,7 @@ h3{
      --popover: oklch(0.216 0.006 56.043);
      --popover-foreground: oklch(0.985 0.001 106.423);
      --primary: #87281b;
-     --primary-foreground: var(--color-black);
+     --primary-foreground: var(--color-white);
      --secondary: oklch(0.268 0.007 34.298);
      --secondary-foreground: oklch(0.985 0.001 106.423);
      --muted: oklch(0.268 0.007 34.298);
@@ -178,12 +187,12 @@ h3{
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Smooth transitions for dark mode */
   html {
     transition: color-scheme 0.9s ease;
   }
-  
+
   html * {
     transition: 
       background-color 0.4s ease,
@@ -193,9 +202,6 @@ h3{
       stroke 0.4s ease;
   }
 }
-
-
-
 
 @layer base {
   /* 1. Set width */
@@ -219,10 +225,10 @@ h3{
   /* 4. Firefox fallback */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-primary) var(--color-white); /* light */
+    scrollbar-color: var(--color-gray-light) var(--color-white); /* light */
   }
-  .dark * {
-    scrollbar-color: var(--color-primary) var(--color-black); /* dark */
+  .dark {
+    scrollbar-color: var(--color-gray-dark) var(--color-black); /* dark */
   }
 }
 
@@ -237,7 +243,6 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
-
 
 /* src/app/globals.css or a new CSS file you import */
 .button-animated {
@@ -255,7 +260,6 @@ input[type=number] {
   transform: scale(0.95);
 }
 
-
 /* globals.css or equivalent */
 .scrollbar-none {
   scrollbar-width: none; /* Firefox */
@@ -264,4 +268,16 @@ input[type=number] {
 
 .scrollbar-none::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
+}
+
+@theme inline {
+  --animate-aurora: aurora 60s linear infinite;
+  @keyframes aurora {
+    from {
+      background-position: 50% 50%, 50% 50%;
+    }
+    to {
+      background-position: 350% 50%, 350% 50%;
+    }
+  }
 }

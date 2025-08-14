@@ -7,19 +7,26 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Calendar } from "@/components/ui/calendar";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Accordion11,
+  Accordion11Content,
+  Accordion11Item,
+  Accordion11Trigger,
+} from "@/components/ui/shadcn-io/accordion-11";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Search, Save } from "lucide-react";
+import { Search, Save, Palette } from "lucide-react";
 import { organizations, defaultColors } from "../data/calendar-data";
 import type { Preferences } from "../types/calendar";
 import { Button } from "@/components/ui/button";
+import { TourStep } from "@/components/guided-tour";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+
 
 interface PreferencesSidebarProps {
   open: boolean;
@@ -89,76 +96,105 @@ export function PreferencesSidebar({
     });
   };
 
-  const handleSelectAll = () => {
-    onPreferencesChange({
-      ...preferences,
-      selectedCategories: ["all"],
-    });
-  };
-
   const handleSavePreferences = () => {
-    // TODO: Implement backend save functionality
     alert("Preferences saved successfully!");
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-96 overflow-y-auto">
+      <SheetContent className="w-96 overflow-y-auto px-5">
         <SheetHeader>
-          <SheetTitle>Calendar Preferences</SheetTitle>
+          <SheetTitle>Preferences</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6">
           {/* Mini Calendar */}
-          <div>
+          <TourStep
+            id="calendar-preferences"
+            order={3}
+            title="Select a Date!"
+            content="Select a date to view events for that date."
+            position="right"
+          >
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={(date) => date && onDateSelect(date)}
-              className="rounded-md border"
+              className="rounded-md border mx-auto max-w-full w-85"
             />
-          </div>
+          </TourStep>
 
-          {/* Category Selection */}
+          {/* Organization Preferences with Category Checkboxes */}
           <div>
-            <h3 className="font-medium mb-3">Show Categories</h3>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="all"
-                  checked={preferences.selectedCategories.includes("all")}
-                  onCheckedChange={handleSelectAll}
-                />
-                <label htmlFor="all" className="text-sm font-medium">
-                  All
-                </label>
-              </div>
+            <h3 className="font-medium mb-3">Categories and Organizations</h3>
+            <Accordion11
+              type="single"
+              collapsible
+              className="w-full max-w-2xl"
+              defaultValue="3"
+            >
               {categories.map((category) => (
-                <div key={category} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={category}
-                    checked={preferences.selectedCategories.includes(category)}
-                    onCheckedChange={() => handleCategoryToggle(category)}
-                    disabled={preferences.selectedCategories.includes("all")}
-                  />
-                  <label htmlFor={category} className="text-sm capitalize">
-                    {category}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
+                <Accordion11Item
+                  key={category}
+                  value={category}
+                  className="flex flex-col justify-start !w-full"
+                >
+                  <Accordion11Trigger className="capitalize text-sm text-left flex items-center w-full">
+                    {/* Left: Checkbox + Category */}
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`cat-${category}`}
+                        checked={preferences.selectedCategories.includes(
+                          category
+                        )}
+                        onCheckedChange={() => handleCategoryToggle(category)}
+                        className="rounded-xs mx-3 w-4 h-4 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
+                      />
+                      <span className="font-semibold text-sm">{category}</span>
+                    </div>
 
-          {/* Organization Preferences */}
-          <div>
-            <h3 className="font-medium mb-3">Select Organizations</h3>
-            <Accordion type="multiple" className="w-full">
-              {categories.map((category) => (
-                <AccordionItem key={category} value={category}>
-                  <AccordionTrigger className="capitalize">
-                    {category}
-                  </AccordionTrigger>
-                  <AccordionContent>
+                    {/* Right: Palette + Chevron */}
+                    <div className="flex items-center space-x-2 ml-auto">
+                      <Button
+                        variant="animatedGhost"
+                        className="hover:text-primary"
+                      >
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              className="w-5 h-5 rounded border"
+                              style={{
+                                backgroundColor:
+                                  preferences.categoryColors[category],
+                              }}
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent className="flex flex-wrap gap-2 w-50">
+                            {defaultColors.map((color) => (
+                              <button
+                                key={color}
+                                onClick={() =>
+                                  handleColorChange(category, color)
+                                }
+                                className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
+                                style={{
+                                  backgroundColor: color,
+                                  borderColor:
+                                    preferences.categoryColors[category] ===
+                                    color
+                                      ? "#000"
+                                      : "#d1d5db",
+                                }}
+                              />
+                            ))}
+                          </PopoverContent>
+                        </Popover>
+                      </Button>
+                      {/* Chevron will still render automatically as part of AccordionTrigger */}
+                    </div>
+                  </Accordion11Trigger>
+
+                  <Accordion11Content>
                     <div className="space-y-3">
                       <div className="relative">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -188,6 +224,7 @@ export function PreferencesSidebar({
                               onCheckedChange={() =>
                                 handleOrganizationToggle(org.id)
                               }
+                              className="rounded-md w-5 h-5 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
                             />
                             <label htmlFor={org.id} className="text-sm">
                               {org.name}
@@ -196,47 +233,61 @@ export function PreferencesSidebar({
                         ))}
                       </div>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
+                  </Accordion11Content>
+                </Accordion11Item>
               ))}
-            </Accordion>
+            </Accordion11>
           </div>
 
-          {/* Color Preferences */}
-          <div>
-            <h3 className="font-medium mb-3">Category Colors</h3>
-            <div className="space-y-3">
-              {categories.map((category) => (
-                <div key={category} className="space-y-2">
-                  <label className="text-sm capitalize font-medium">
-                    {category}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {defaultColors.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => handleColorChange(category, color)}
-                        className="w-6 h-6 rounded-full border-2 border-gray-300 hover:scale-110 transition-transform"
-                        style={{
-                          backgroundColor: color,
-                          borderColor:
-                            preferences.categoryColors[category] === color
-                              ? "#000"
-                              : "#d1d5db",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Save Button */}
           <div className="pt-4 border-t">
-            <Button onClick={handleSavePreferences} className="w-full">
-              <Save className="h-4 w-4 mr-2" />
-              Save Preferences
+            <Button
+              onClick={handleSavePreferences}
+              className={`
+                fixed
+                bottom-6
+                right-6
+                z-50
+                h-14
+                w-14
+                rounded-full
+                flex
+                items-center
+                justify-center
+                bg-primary/70
+                shadow-lg
+                transition-all
+                duration-300
+                group
+                hover:w-56
+                hover:rounded-3xl
+                hover:justify-start
+                px-4
+                overflow-hidden
+              `}
+              style={{ minWidth: "3.5rem" }}
+            >
+              <span className="flex items-center w-full justify-center group-hover:justify-start">
+                <Save
+                  className="w-15 h-15 flex-shrink-0 text-center"
+                  strokeWidth={2.5}
+                />
+                <span
+                  className={`
+      ml-4
+      text-lg
+      font-semibold
+      whitespace-nowrap
+      hidden
+      group-hover:inline
+      transition-all
+      duration-300
+    `}
+                >
+                  Save Preferences
+                </span>
+              </span>
             </Button>
           </div>
         </div>
