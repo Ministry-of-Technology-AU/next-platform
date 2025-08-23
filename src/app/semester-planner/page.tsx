@@ -1,6 +1,7 @@
 import { Calendar, Clock } from "lucide-react";
 import { Toaster } from "sonner";
 import { SemesterPlannerClient } from "./semester-planner";
+import PageTitle from "@/components/page-title";
 
 // Mock data - in real app this would come from API
 const mockCourses = [
@@ -99,15 +100,7 @@ export default function SemesterPlannerPage() {
   return (
     <>
       <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Calendar className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">Semester Planner</h1>
-            <p className="text-muted-foreground">
-              Plan and organize your course schedule
-            </p>
-          </div>
-        </div>
+        <PageTitle text="Semester Planner" icon={Calendar} subheading="Plan and organize your course schedule" />
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />

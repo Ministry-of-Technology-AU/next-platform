@@ -188,7 +188,7 @@ export default function ComposeNew() {
           {/* Subject */}
           <div className="space-y-2">
             <Label htmlFor="subject" className="text-sm font-medium">
-              Subject (of mail) <span className="text-destructive">*</span>
+              Subject <span className="text-destructive">*</span>
             </Label>
             <Input
               id="subject"
@@ -201,7 +201,7 @@ export default function ComposeNew() {
           {/* Mail Draft */}
           <div className="space-y-2">
             <Label htmlFor="mail-draft" className="text-sm font-medium">
-              Mail Draft<span className="text-destructive">*</span>
+              Mail Draft <span className="text-destructive">*</span>
             </Label>
             <RichTextEditor
               value={mailDraft}

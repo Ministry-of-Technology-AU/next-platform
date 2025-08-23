@@ -71,7 +71,7 @@ const iconMap = {
   MailPlus,
   Clock,
   User,
-  ShoppingBag,
+  ShoppingBag
 };
 
 interface SidebarItem {

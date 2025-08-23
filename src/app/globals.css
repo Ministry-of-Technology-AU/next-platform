@@ -48,6 +48,7 @@
     --font-heading: 'Nunito';
 }
 
+
 body{
   @apply font-body text-left;
 }

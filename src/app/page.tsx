@@ -1,17 +1,14 @@
-import { WritingText } from "@/components/ui/shadcn-io/writing-text";
+"use client";
+import PageTitle from "@/components/page-title"
+import { PenBoxIcon } from "lucide-react";
+import { FormContainer, PhoneInput, TextInput, SingleSelect, MultiSelectCheckbox, MultiSelectDropdown, FileUpload, ImageUpload, SubmitButton } from "@/components/form";
+import { useState } from "react";
 
 export default function Home() {
+  const [phoneNumber, setPhoneNumber] = useState("");
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <WritingText
-        className="text-3xl font-bold"
-        text="Welcome to Platform"
-        spacing={9}
-        transition={{ type: "spring", bounce: 0, duration: 1, delay: 0.25 }}
-      />
-      <p className="mt-4 text-gray-600">
-        This is a placeholder for the dashboard page.
-      </p>
+      <PageTitle text="Try Page" icon={PenBoxIcon} subheading="Placeholder"></PageTitle>
     </div>
   );
 }
