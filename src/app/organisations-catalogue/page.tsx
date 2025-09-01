@@ -17,6 +17,7 @@ import {
   type Organisation,
   type OrganisationType,
 } from "./data/organisations";
+import PageTitle from "@/components/page-title";
 
 export default function OrganisationsCataloguePage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -86,20 +87,13 @@ export default function OrganisationsCataloguePage() {
 
   return (
     <div className="container px-4 py-8 space-y-8">
-      {/* Header */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Users className="h-8 w-8 text-primary" />
-          <h1 className="text-4xl font-bold text-foreground">
-            Organisations Catalogue
-          </h1>
-        </div>
-        <p className="text-lg text-muted-foreground max-w-4xl">
-          Find and connect with all 73 student organizations through our
+      <PageTitle
+        text="Organisations Catalogue"
+        icon={Users}
+        subheading="Find and connect with all 73 student organizations through our
           catalogue—featuring clubs, societies, fests, collectives, ISOs,
-          leagues, and more!
-        </p>
-      </div>
+          leagues, and more!"
+      />
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -227,12 +221,12 @@ export default function OrganisationsCataloguePage() {
         title="Filters & Preferences Dialog"
         content="Use the filters dialog to select categories and preferences that suit your interests. You can choose multiple categories and toggle options like 'Inductions Open'."
       >
-          <FiltersDialog
-            open={showFiltersDialog}
-            onOpenChange={setShowFiltersDialog}
-            selectedFilters={selectedFilters}
-            onFiltersChange={setSelectedFilters}
-          />;
+        <FiltersDialog
+          open={showFiltersDialog}
+          onOpenChange={setShowFiltersDialog}
+          selectedFilters={selectedFilters}
+          onFiltersChange={setSelectedFilters}
+        />
       </TourStep>
       <TourStep
         id="organisation-details"

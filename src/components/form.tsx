@@ -19,6 +19,7 @@ import {
   DisclosureContent,
   DisclosureTrigger,
 } from "@/components/ui/disclosure";
+import MultipleSelector, { Option } from "@/components/ui/multi-select";
 
 // Phone Input Component
 interface PhoneInputProps {
@@ -132,6 +133,8 @@ interface DropdownOption {
   value: string;
   label: string;
   isDefault?: boolean;
+  onClick?: () => void;
+  disable?: boolean;
 }
 
 interface SingleSelectProps {
@@ -250,7 +253,7 @@ interface MultiSelectDropdownProps {
   className?: string;
   isRequired?: boolean;
   errorMessage?: string;
-  items: DropdownOption[];
+  items: Option[];
   value?: string[];
   onChange?: (value: string[]) => void;
 }
@@ -281,51 +284,16 @@ export function MultiSelectDropdown({
     .join(", ");
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <Label className="text-base font-medium">
-        {title} {isRequired && <span className="text-destructive">*</span>}
-      </Label>
-      {description && (
-        <p className="text-sm text-muted-foreground">{description}</p>
-      )}
-      <div className="relative">
-        <div
-          className="flex items-center justify-between w-full px-3 py-2 border border-input bg-background rounded-md cursor-pointer hover:bg-accent"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <span className={selectedLabels ? "text-foreground" : "text-muted-foreground"}>
-            {selectedLabels || placeholder}
-          </span>
-          <svg
-            className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-        {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-background border border-input rounded-md shadow-lg max-h-60 overflow-auto">
-            {items.map((item) => (
-              <div
-                key={item.value}
-                className="flex items-center space-x-2 px-3 py-2 hover:bg-accent cursor-pointer"
-                onClick={() => handleToggle(item.value)}
-              >
-                <Checkbox
-                  checked={value.includes(item.value)}
-                  onCheckedChange={() => handleToggle(item.value)}
-                />
-                <span className="text-sm">{item.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {errorMessage && (
-        <p className="text-sm text-destructive">{errorMessage}</p>
-      )}
+    <div className="flex w-full flex-col gap-5 px-10">
+      <MultipleSelector
+        defaultOptions={items}
+        placeholder="Select frameworks you like..."
+        emptyIndicator={
+          <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+            no results found.
+          </p>
+        }
+      />
     </div>
   );
 }

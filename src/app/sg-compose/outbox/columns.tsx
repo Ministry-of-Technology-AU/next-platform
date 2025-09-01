@@ -17,45 +17,87 @@ export type OutboxEmail = {
   id: string
   recipient: string
   subject: string
-  status: "pending" | "sent" | "failed" | "draft"
+  status: "pending" | "approved" | "failed" | "draft"
   createdAt: string
   sentAt?: string
-  priority: "low" | "normal" | "high"
+  category?: "Inductions" | "Lost and Found" | "Surveys" | "Jobs and Internships" | "Campaigns" | "Fundraisers" | "Events and Invitations" | "Promotions"
 }
 
 export const columns: ColumnDef<OutboxEmail>[] = [
   {
     accessorKey: "id",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 hover:bg-transparent"
-        >
-          ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="h-auto p-0 hover:bg-transparent"
+      >
+        ID
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => <div className="text-center">{Number(row.getValue("id"))}</div>,
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="h-auto p-0 hover:bg-transparent"
+      >
+        Date of Request
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("createdAt"));
+      return <div>{date.toLocaleDateString()}</div>;
     },
+  },
+  {
+    accessorKey: "recipient",
+    header: "To",
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("recipient")}</div>
     ),
   },
   {
-    accessorKey: "date",
-    header: ({ column }) => {
+    accessorKey: "category",
+    header: "Category",
+    cell: ({ row }) => {
+      const category = row.getValue("category") as string;
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 hover:bg-transparent"
+        <Badge
+          variant="default"
+          className={
+            category === "Inductions"
+              ? "bg-blue-100 text-blue-800"
+              : category === "Lost and Found"
+              ? "bg-yellow-100 text-yellow-800"
+              : category === "Surveys"
+              ? "bg-green-100 text-green-800"
+              : category === "Jobs and Internships"
+              ? "bg-purple-100 text-purple-800"
+              : category === "Campaigns"
+              ? "bg-pink-100 text-pink-800"
+              : category === "Fundraisers"
+              ? "bg-red-100 text-red-800"
+              : category === "Events and Invitations"
+              ? "bg-indigo-100 text-indigo-800"
+              : category === "Promotions"
+              ? "bg-teal-100 text-teal-800"
+              : "bg-gray-100 text-gray-800"
+          }
         >
-          Date of Request
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
+          {category}
+        </Badge>
+      );
     },
+  },
+  {
+    accessorKey: "subject",
+    header: "Mail Request",
     cell: ({ row }) => (
       <div className="max-w-[300px] truncate">{row.getValue("subject")}</div>
     ),
@@ -64,79 +106,33 @@ export const columns: ColumnDef<OutboxEmail>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string
+      const status = row.getValue("status") as string;
       return (
         <Badge
-          variant={
-            status === "sent"
-              ? "default"
+          variant="default"
+          className={
+            status === "pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : status === "approved"
+              ? "bg-green-200 text-green-900"
+              : status === "rejected" ? "bg-red-700"
               : status === "failed"
-              ? "destructive"
-              : status === "pending"
-              ? "secondary"
-              : "outline"
+              ? "bg-red-100 text-red-800"
+              : status === "draft"
+              ? "bg-gray-100 text-gray-800"
+              : "bg-gray-100 text-gray-800"
           }
         >
           {status}
         </Badge>
-      )
-    },
-  },
-  {
-    accessorKey: "to",
-    header: "To",
-    cell: ({ row }) => {
-      const priority = row.getValue("priority") as string
-      return (
-        <Badge
-          variant={
-            priority === "high"
-              ? "destructive"
-              : priority === "normal"
-              ? "default"
-              : "outline"
-          }
-        >
-          {priority}
-        </Badge>
-      )
-    },
-  },
-  {
-    accessorKey: "category",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 hover:bg-transparent"
-        >
-          Category
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"))
-      return <div>{date.toLocaleDateString()}</div>
-    },
-  },
-  {
-    accessorKey: "request",
-    header: "Mail Request",
-    cell: ({ row }) => {
-      const sentAt = row.getValue("sentAt") as string
-      if (!sentAt) return <div className="text-muted-foreground">-</div>
-      const date = new Date(sentAt)
-      return <div>{date.toLocaleDateString()}</div>
+      );
     },
   },
   {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const email = row.original
-
+      const email = row.original;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -160,7 +156,7 @@ export const columns: ColumnDef<OutboxEmail>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

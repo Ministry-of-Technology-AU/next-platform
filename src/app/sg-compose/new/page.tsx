@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Upload, Send, X } from "lucide-react"
+import { ArrowLeft, Upload, Send, X, MailPlus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import PageTitle from "@/components/page-title"
 
 // Sample data for categories and recipients
 const mailCategories = [
@@ -106,18 +107,20 @@ export default function ComposeNew() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">
+          {/* <h1 className="text-3xl font-bold tracking-tight">
             Compose New Mail
-          </h1>
-        </div>
-        <p className="text-muted-foreground">
-          Moving Forward; Not Just Forwards - SG Compose is a streamlined email
+          </h1> */}
+          <PageTitle
+            text="Compose a new mail"
+            subheading=" Moving Forward; Not Just Forwards - SG Compose is a streamlined email
           management platform designed for Student Government, allowing students
           to submit requests that can be quickly approved and automatically sent
           to targeted groups. The system includes rich text editing, alias-based
           organization, and options for directing emails to specific audiences
-          within Ashoka University.
-        </p>
+          within Ashoka University."
+          icon={MailPlus}
+          />
+        </div>
       </div>
 
       {/* Form Card */}
@@ -213,7 +216,9 @@ export default function ComposeNew() {
 
           {/* File Attachment */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">File Attachment (if any)</Label>
+            <Label className="text-sm font-medium">
+              File Attachment (if any)
+            </Label>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Button

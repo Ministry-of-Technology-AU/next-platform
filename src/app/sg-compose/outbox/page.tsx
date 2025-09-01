@@ -1,94 +1,46 @@
-"use client"
+"use server";
+import { CodeXml, Inbox } from "lucide-react";
+import PageTitle from "@/components/page-title";
+import OutboxTable from "./OutboxTable";
+import { OutboxEmail } from "./columns";
+import {strapiGet} from "@/apis/strapi";
 
-import * as React from "react"
-import Link from "next/link"
-import { MailPlus } from "lucide-react"
+async function getData(userEmail:string){
+  if(!userEmail) return null;
+  const data = await strapiGet(
+    `/users?filters[email][$eqi]=${userEmail}&populate=sg_mails`
+  );
+  const mails = data[0]?.sg_mails;
+  if(!mails) return null;
+  return mails.map((mail:any)=>mapToOutboxEmail(mail));
+}
 
-import { Button } from "@/components/ui/button"
-import { DataTable } from "@/components/data-table/data-table"
-import { columns, type OutboxEmail } from "./columns"
+function mapToOutboxEmail(data:any):OutboxEmail{
+  console.log(data.alias);
+  return {
+    id: data.id,
+    category: data.alias.toString(),
+    recipient: data.recipients,
+    subject: data.subject,
+    status: data.status,
+    createdAt: data.createdAt,
+    sentAt: data.sentAt,
+  }
+}
 
-// Sample data
-const sampleData: OutboxEmail[] = [
-  {
-    id: "1",
-    recipient: "john.doe@ashoka.edu.in",
-    subject: "Welcome to the new semester",
-    status: "sent",
-    createdAt: "2024-01-15T10:30:00Z",
-    sentAt: "2024-01-15T10:35:00Z",
-    priority: "normal",
-  },
-  {
-    id: "2",
-    recipient: "jane.smith@ashoka.edu.in",
-    subject: "Important: Course registration deadline",
-    status: "pending",
-    createdAt: "2024-01-16T14:20:00Z",
-    priority: "high",
-  },
-  {
-    id: "3",
-    recipient: "student.affairs@ashoka.edu.in",
-    subject: "Event announcement - Cultural fest",
-    status: "failed",
-    createdAt: "2024-01-14T09:15:00Z",
-    priority: "normal",
-  },
-  {
-    id: "4",
-    recipient: "faculty@ashoka.edu.in",
-    subject: "Faculty meeting agenda",
-    status: "draft",
-    createdAt: "2024-01-17T16:45:00Z",
-    priority: "low",
-  },
-  {
-    id: "5",
-    recipient: "admissions@ashoka.edu.in",
-    subject: "Application review process update",
-    status: "sent",
-    createdAt: "2024-01-13T11:00:00Z",
-    sentAt: "2024-01-13T11:05:00Z",
-    priority: "high",
-  },
-]
+export default async function ComposeOutboxPage() {
+  const data = await getData("ibrahim.khalil_ug25@ashoka.edu.in"); //TODO: Replace with actual user email from session
+  if(!data) return <div className="container mx-auto p-6">No data found</div>;
 
-export default function ComposeOutbox() {
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-white">SG Compose</h1>
-        <p className="text-muted-foreground">
-          View the status of all your email requests here. If your outbox
-          contains a pending request, do not raise new requests till an approval
-          or a rejection from the SG. Repeated spam requests will be blocked
-          from the service or from the platform. In case of any queries, write
-          directly to sg@ashoka.edu.in
-        </p>
-      </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <PageTitle
+        text="SG Compose - My Outbox"
+        icon={Inbox}
+        subheading="View the status of all your email requests here. If your outbox contains a pending request, do not raise new requests till an approval or a rejection from the SG. Repeated spam requests will be blocked from the service or from the platform. In case of any queries, write directly to sg@ashoka.edu.in"
+      />
 
-      {/* New Mail Button */}
-      <div className="flex justify-start">
-        <Button asChild className="gap-2" variant="animated">
-          <Link href="/sg-compose/new">
-            <MailPlus className="h-4 w-4" />
-            Compose New Mail
-          </Link>
-        </Button>
-      </div>
-
-      {/* Data Table Section */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-black">Outbox Status</h2>
-        <DataTable
-          columns={columns}
-          data={sampleData}
-          searchKey="subject"
-          filterColumns={["All Mails", "Pending", "Approved", "Rejected"]}
-        />
-      </div>
+      <OutboxTable data={data} />
     </div>
   );
 }

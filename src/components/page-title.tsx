@@ -23,15 +23,15 @@ function PageTitle({
           spacing={9}
           transition={{ type: "spring", bounce: 0, duration: 1, delay: 0.25 }}
         />
-        {/* {subheading && <p className="text-muted-foreground">{subheading}</p>} */}
-        {subheading && <TypingText
+        {subheading && <p className="text-muted-foreground">{subheading}</p>}
+        {/* {subheading && <TypingText
           text={subheading}
           duration={20}
           cursor={false}
           loop={false}
           holdDelay={2000}
           className="text-muted-foreground"
-        />}
+        />} */}
       </div>
     </div>
   );

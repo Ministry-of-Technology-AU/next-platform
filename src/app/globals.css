@@ -119,7 +119,8 @@ h3{
      --card: var(--color-gray-extralight);
      --card-foreground: oklch(0.147 0.004 49.25);
      --popover: oklch(1 0 0);
-     --popover-foreground: var(--color-white);
+     /* --popover-foreground: var(--color-white); */
+     --popover-foreground: var(--color-black);
      --primary:  var(--color-primary);
      --primary-foreground: oklch(0.985 0.001 106.423);
      --secondary: var(--color-secondary);
