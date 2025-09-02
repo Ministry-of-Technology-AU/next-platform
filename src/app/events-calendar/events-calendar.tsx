@@ -209,8 +209,7 @@ export default function EventsCalendar({ events }: EventsCalendarProps) {
               title="Filter Events!"
               content="Filter events by category, organization, or date."
               position="right"
-              onOpen={()=>{setShowPreferences(true)}}            
-              >
+            >
               <Button
                 variant="outline"
                 size="sm"

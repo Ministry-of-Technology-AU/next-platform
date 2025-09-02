@@ -4,6 +4,7 @@ import EventCard from "./components/event-card"
 import SearchBar from "./components/search-bar"
 import { strapiGet } from "@/apis/strapi"
 import PageTitle from "@/components/page-title"
+import Image from "next/image"
 
 //TODO: Make search bar work, make responsive, fix tags, modularize
 
@@ -22,7 +23,12 @@ interface Event{
 
 async function getEvents(){
   try{
-    const data = await strapiGet('/intercollegiate-events');
+    const data = await strapiGet('/intercollegiate-events', {
+      populate: 'tags',
+      pagination: {
+        pageSize: 200
+      }
+    });
     console.log("Fetched data from Strapi:", data);
     return data;
   }
@@ -74,9 +80,11 @@ export default async function IntercollegiateEventsPage() {
 
         {/* Collaborative Banner */}
         <div className="mb-8">
-          <img
+          <Image
             src="/placeholder.svg?height=200&width=1200"
             alt="Collaborative Initiative Banner"
+            width={1200}
+            height={200}
             className="w-full h-48 object-cover rounded-lg shadow-lg"
           />
         </div>
@@ -94,7 +102,7 @@ export default async function IntercollegiateEventsPage() {
             </p>
             <p className="text-dark mb-6 leading-relaxed">
               Please be sure to review the off-campus policy before applying for
-              any competitions. If you encounter any challenges, don't hesitate
+              any competitions. If you encounter any challenges, don&apos;t hesitate
               to reach out via email or phone:
             </p>
 
