@@ -38,6 +38,7 @@ interface Course {
   courseName: string;
   faculty: string;
   extraCredit?: boolean;
+  classMode?: string;
   semester: string;
   year: string;
   gradingType?: string;
@@ -134,6 +135,7 @@ export function CourseDialog({ course }: CourseDialogProps) {
                 </div>
               </div>
             ))}
+            <p className="text-gray-500 dark:text-gray-light text-xs">From {course.reviews.length} reviews</p>
           </DisclosureContent>
         </Disclosure>
 
@@ -161,8 +163,11 @@ export function CourseDialog({ course }: CourseDialogProps) {
               </span>
               {course.extraCredit ? "Provided" : "Not Provided"}
             </p>
-            <p className="text-xs sm:text-sm break-words leading-relaxed">
-              {course.description}
+            <p className="text-xs sm:text-sm break-words">
+              <span className="text-secondary-dark font-semibold">
+                Class Mode:{" "}
+              </span>
+              {course.classMode ? course.classMode: "Not Provided"}
             </p>
           </DisclosureContent>
         </Disclosure>
@@ -217,12 +222,20 @@ export function CourseDialog({ course }: CourseDialogProps) {
                 <p className="font-normal mt-2 text-xs sm:text-sm break-words leading-relaxed">
                   {review.summary}
                 </p>
+                {review.taInfluence && (
+                  <p className="mt-2 text-xs sm:text-sm break-words">
+                    <span className="font-semibold text-secondary-dark">
+                      TA Influence:{" "}
+                    </span>
+                    {review.taInfluence}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         ) : (
           <p className="text-gray text-sm">
-            No reviews available for this course.
+            No reviews available for this course. <strong className="text-primary">Be the first to add one!</strong>
           </p>
         )}
       </div>

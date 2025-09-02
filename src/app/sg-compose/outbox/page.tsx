@@ -30,7 +30,7 @@ function mapToOutboxEmail(data:any):OutboxEmail{
 
 export default async function ComposeOutboxPage() {
   const data = await getData("ibrahim.khalil_ug25@ashoka.edu.in"); //TODO: Replace with actual user email from session
-  if(!data) return <div className="container mx-auto p-6">No data found</div>;
+  if(!data) return <div className="container mx-auto p-6">No emails found</div>;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -39,7 +39,6 @@ export default async function ComposeOutboxPage() {
         icon={Inbox}
         subheading="View the status of all your email requests here. If your outbox contains a pending request, do not raise new requests till an approval or a rejection from the SG. Repeated spam requests will be blocked from the service or from the platform. In case of any queries, write directly to sg@ashoka.edu.in"
       />
-
       <OutboxTable data={data} />
     </div>
   );

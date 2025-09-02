@@ -10,7 +10,7 @@ interface DeveloperProps{
 
 export default function DeveloperCredits({developers}: DeveloperProps) {
     return (
-      <div className="text-center text-sm text-muted-foreground border-t pt-8">
+      <div className="text-center text-sm text-muted-foreground border-t pt-8 mt-8">
         <p>
           Feature developed by{" "}
           {developers.map((dev, index) => (
