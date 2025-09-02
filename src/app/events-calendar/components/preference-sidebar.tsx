@@ -16,7 +16,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Search, Save, Palette } from "lucide-react";
+import { Search, Save } from "lucide-react";
 import { organizations, defaultColors } from "../data/calendar-data";
 import type { Preferences } from "../types/calendar";
 import { Button } from "@/components/ui/button";
@@ -155,41 +155,36 @@ export function PreferencesSidebar({
 
                     {/* Right: Palette + Chevron */}
                     <div className="flex items-center space-x-2 ml-auto">
-                      <Button
-                        variant="animatedGhost"
-                        className="hover:text-primary"
-                      >
-                        <Popover>
-                          <PopoverTrigger asChild>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            className="w-5 h-5 rounded border hover:scale-110 transition-transform"
+                            style={{
+                              backgroundColor:
+                                preferences.categoryColors[category],
+                            }}
+                          />
+                        </PopoverTrigger>
+                        <PopoverContent className="flex flex-wrap gap-2 w-50">
+                          {defaultColors.map((color) => (
                             <button
-                              className="w-5 h-5 rounded border"
+                              key={color}
+                              onClick={() =>
+                                handleColorChange(category, color)
+                              }
+                              className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
                               style={{
-                                backgroundColor:
-                                  preferences.categoryColors[category],
+                                backgroundColor: color,
+                                borderColor:
+                                  preferences.categoryColors[category] ===
+                                  color
+                                    ? "#000"
+                                    : "#d1d5db",
                               }}
                             />
-                          </PopoverTrigger>
-                          <PopoverContent className="flex flex-wrap gap-2 w-50">
-                            {defaultColors.map((color) => (
-                              <button
-                                key={color}
-                                onClick={() =>
-                                  handleColorChange(category, color)
-                                }
-                                className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
-                                style={{
-                                  backgroundColor: color,
-                                  borderColor:
-                                    preferences.categoryColors[category] ===
-                                    color
-                                      ? "#000"
-                                      : "#d1d5db",
-                                }}
-                              />
-                            ))}
-                          </PopoverContent>
-                        </Popover>
-                      </Button>
+                          ))}
+                        </PopoverContent>
+                      </Popover>
                       {/* Chevron will still render automatically as part of AccordionTrigger */}
                     </div>
                   </Accordion11Trigger>
