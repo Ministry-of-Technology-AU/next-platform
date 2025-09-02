@@ -193,7 +193,7 @@ export default function CourseReviewsClient({ courses }: { courses: any[] }) {
                   </DialogTrigger>
                   <DialogContent className="w-4/5 max-w-[80vw] overflow-y-scroll max-h-[90vh]">
                     <CourseDialog course={course} />
-                    <Button variant="animated" className="mt-3">
+                    <Button variant="animated" className="mt-3" onClick={()=>{window.location.href=`/course-reviews/add/${course.id}?name=${encodeURIComponent(course.courseName)}&code=${encodeURIComponent(course.courseCode)}&year=${course.year}&semester=${encodeURIComponent(course.semester)}`}}>
                       <CirclePlus /> Add Review
                     </Button>
                   </DialogContent>
