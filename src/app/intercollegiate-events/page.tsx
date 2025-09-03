@@ -1,9 +1,11 @@
+"use client"
+
+import * as React from "react"
 import { Trophy } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import EventCard from "./components/event-card"
 import SearchBar from "./components/search-bar"
-import { strapiGet } from "@/apis/strapi"
 import Image from "next/image"
 
 //TODO: Make search bar work, make responsive, fix tags, modularize
@@ -21,50 +23,33 @@ interface Event{
   websiteLink: string;
 }
 
-async function getEvents(){
-  try{
-    const data = await strapiGet('/intercollegiate-events', {
-      populate: 'tags',
-      pagination: {
-        pageSize: 200
+export default function IntercollegiateEventsPage() {
+  const [events, setEvents] = React.useState<Event[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    async function fetchEvents() {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/intercollegiate-events')
+        const result = await response.json()
+        
+        if (result.success) {
+          setEvents(result.data || [])
+        } else {
+          setError(result.error || 'Failed to fetch events')
+        }
+      } catch (err) {
+        console.error('Error fetching events:', err)
+        setError('Failed to fetch events')
+      } finally {
+        setLoading(false)
       }
-    });
-    return data;
-  }
-  catch(error){
-    console.error("Error fetching data from Strapi:", error);
-    return [];
-  }
-}
+    }
 
-async function mapEvents(){
-  const data = await getEvents();
-  if(!data || !data.data){
-    return [];
-  }
-  const mappedEvents: Event[] = data.data.map((item: any) => {
-    const attributes = item.attributes;
-    return {
-      id: item.id,
-      title: attributes.event_title,
-      logo: attributes.image_url || "/placeholder.svg?height=60&width=60",
-      dates: `${attributes.from} - ${attributes.to}`,
-      description: attributes.short_description || attributes.description || "",
-      deadline: attributes.deadline,
-      endDate: attributes.to, // Store the end date for comparison
-      tags: attributes.tags ? attributes.tags.map((tag: any) => ({
-        name: tag.name,
-        color: tag.color
-      })) : [],
-      registrationLink: attributes.form_link,
-      websiteLink: attributes.website_link
-    };
-  });  
-  return mappedEvents;
-}
-
-export default async function IntercollegiateEventsPage() {
-  const events = await mapEvents();
+    fetchEvents()
+  }, [])
 
   return (
     <div className="min-h-screen bg-extralight">
@@ -153,7 +138,37 @@ export default async function IntercollegiateEventsPage() {
 
         {/* Events List */}
         <div className="space-y-4">
-          {events.length === 0 ? (
+          {loading ? (
+            <Card className="p-8 text-center">
+              <CardContent>
+                <div className="flex flex-col items-center gap-4">
+                  <Trophy className="h-16 w-16 text-gray-400 animate-pulse" />
+                  <h3 className="text-xl font-semibold text-gray-600">Loading Events...</h3>
+                  <p className="text-gray-500 max-w-md">
+                    Please wait while we fetch the latest intercollegiate events.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : error ? (
+            <Card className="p-8 text-center">
+              <CardContent>
+                <div className="flex flex-col items-center gap-4">
+                  <Trophy className="h-16 w-16 text-red-400" />
+                  <h3 className="text-xl font-semibold text-red-600">Error Loading Events</h3>
+                  <p className="text-red-500 max-w-md">
+                    {error}
+                  </p>
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : events.length === 0 ? (
             <Card className="p-8 text-center">
               <CardContent>
                 <div className="flex flex-col items-center gap-4">
