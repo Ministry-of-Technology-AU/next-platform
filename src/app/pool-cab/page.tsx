@@ -3,7 +3,6 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Car, Clock, MapPin, Phone, Calendar } from "lucide-react"
-import { strapiPost } from "@/apis/strapi"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,18 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-// Sample data for routes
-const routes = [
-  "Campus to New Delhi",
-  "Campus to Gurgaon",
-  "Campus to Noida",
-  "Campus to Airport",
-  "New Delhi to Campus",
-  "Gurgaon to Campus",
-  "Noida to Campus",
-  "Airport to Campus",
-]
 
 // Generate dates for the next 30 days
 const generateDates = () => {
@@ -76,62 +63,6 @@ export default function PoolCab() {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const dates = generateDates()
-
-  // Function to map locations to Strapi journey enum values
-  const mapToJourneyEnum = (from: string, to: string): string => {
-    const fromLower = from.toLowerCase()
-    const toLower = to.toLowerCase()
-    
-    // Create the journey string in the format expected by Strapi
-    const journey = `${fromLower} to ${toLower}`
-    
-    // Handle specific mappings for the Strapi enum
-    const mappings: Record<string, string> = {
-      "airport to campus": "airport to campus",
-      "campus to airport": "campus to airport",
-      "airport to jahangirpuri": "airport to jahangirpuri",
-      "jahangirpuri to airport": "jahangirpuri to airport",
-      "jahangirpuri to campus": "jahangirpuri to campus",
-      "azadpur to campus": "azadpur to campus",
-      "campus to jahangirpuri": "campus to jahangirpuri",
-      "campus to azadpur": "campus to azadpur",
-      "campus to new delhi": "campus to new delhi",
-      "new delhi to campus": "new delhi to campus",
-      "new delhi to jahangirpuri": "new delhi to jahangirpuri",
-      "jahangirpuri to new delhi": "jahangirpuri to new delhi",
-      "gurgaon to campus": "gurgaon to campus",
-      "campus to gurgaon": "campus to gurgaon",
-      "campus to chandigarh": "campus to chandigarh",
-      "chandigarh to campus": "chandigarh to campus",
-      "campus to jaipur": "campus to jaipur",
-      "jaipur to campus": "jaipur to campus",
-      "campus to ludhiana": "campus to ludhiana",
-      "ludhiana to campus": "ludhiana to campus",
-      "campus to noida": "campus to noida",
-      "noida to campus": "noida to campus",
-      "campus to ghaziabad": "campus to ghaziabad",
-      "ghaziabad to campus": "ghaziabad to campus",
-      "campus to nizamuddin": "campus to nizamuddin",
-      "nizamuddin to campus": "nizamuddin to campus",
-      "campus to agra": "campus to agra",
-      "agra to campus": "agra to campus"
-    }
-    
-    return mappings[journey] || journey
-  }
-
-  // Function to convert 12-hour time to 24-hour format for Strapi
-  const convertTo24HourFormat = (hour: string, minute: string, period: string): string => {
-    let hour24 = parseInt(hour)
-    
-    if (period === "AM" && hour24 === 12) {
-      hour24 = 0
-    } else if (period === "PM" && hour24 !== 12) {
-      hour24 += 12
-    }
-    
-    return `${hour24.toString().padStart(2, '0')}:${minute}:00`
-  }
 
   // Generate hours (1-12)
   const hours = Array.from({ length: 12 }, (_, i) => ({
@@ -194,36 +125,39 @@ export default function PoolCab() {
     setIsSubmitting(true)
 
     try {
-      // Convert time to 24-hour format for Strapi
-      const time24 = convertTo24HourFormat(selectedHour, selectedMinute, selectedPeriod)
-      
-      // Map locations to journey enum
-      const journey = mapToJourneyEnum(fromLocation, toLocation)
-      
-      // Prepare data for Strapi
+      // Prepare data for API call
       const poolData = {
-        data: {
-          journey: journey,
-          time: time24,
-          day: selectedDate,
-          status: "available",
-          pooler: 1 // Note: pooler will need to be set based on authenticated user
-          // For now, you might need to handle user authentication
-        }
+        selectedDate,
+        fromLocation,
+        toLocation,
+        selectedHour,
+        selectedMinute,
+        selectedPeriod,
+        contactNumber
       }
 
-      console.log("Submitting pool data:", poolData)
+      // Call API endpoint
+      const response = await fetch('/api/pool-cab', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(poolData)
+      })
 
-      // Submit to Strapi
-      const response = await strapiPost('/pools', poolData)
+      const result = await response.json()
       
-      console.log("Pool created successfully:", response)          
-      
-      router.push(`/pool-cab/results`)
+      if (!result.success) {
+        alert(result.error || "Failed to create pool")
+      } else {
+        // Success - navigate to results page
+        router.push('/pool-cab/results')
+      }
       
     } catch (error) {
       console.error("Error creating pool:", error)
-      alert("Failed to create pool. Please try again.")
+      const errorMessage = "Failed to create pool. Please try again."
+      alert(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -291,7 +225,8 @@ export default function PoolCab() {
                     <SelectItem value="New Delhi">New Delhi</SelectItem>
                     <SelectItem value="Gurgaon">Gurgaon</SelectItem>
                     <SelectItem value="Noida">Noida</SelectItem>
-                    <SelectItem value="Airport">Airport</SelectItem>                    
+                    <SelectItem value="Airport">Airport</SelectItem>
+                    <SelectItem value="Jahangirpuri">Jahangirpuri</SelectItem>
                     <SelectItem value="Azadpur">Azadpur</SelectItem>
                     <SelectItem value="Chandigarh">Chandigarh</SelectItem>
                     <SelectItem value="Jaipur">Jaipur</SelectItem>
@@ -318,7 +253,8 @@ export default function PoolCab() {
                     <SelectItem value="New Delhi">New Delhi</SelectItem>
                     <SelectItem value="Gurgaon">Gurgaon</SelectItem>
                     <SelectItem value="Noida">Noida</SelectItem>
-                    <SelectItem value="Airport">Airport</SelectItem>                    
+                    <SelectItem value="Airport">Airport</SelectItem>
+                    <SelectItem value="Jahangirpuri">Jahangirpuri</SelectItem>
                     <SelectItem value="Azadpur">Azadpur</SelectItem>
                     <SelectItem value="Chandigarh">Chandigarh</SelectItem>
                     <SelectItem value="Jaipur">Jaipur</SelectItem>

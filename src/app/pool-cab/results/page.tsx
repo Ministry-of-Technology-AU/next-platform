@@ -155,7 +155,7 @@ export default function PoolCabResults() {
         <p className="text-muted-foreground">
           Click on the WhatsApp icon to message the person. Below is the list of all people using the service. 
           Please find a person closest to your arrival time and route, and reach out to them using their contact details. 
-          Please make sure that they're available for pooling under the status bar before contacting them.
+          Please make sure that they are available for pooling under the status bar before contacting them.
         </p>
       </div>
 
@@ -362,7 +362,7 @@ export default function PoolCabResults() {
                   {userTime ? formatTime(userTime) : 'Not specified'}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  If you wish to change the time of your trip, please select your new time here and click 'Update My Time' button below
+                  If you wish to change the time of your trip, please select your new time here and click &quot;Update My Time&quot; button below
                 </p>
               </div>
             </div>
