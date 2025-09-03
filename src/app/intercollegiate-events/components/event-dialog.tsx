@@ -27,7 +27,7 @@ interface EventDialogProps {
 export default function EventDialog({ event, isOpen, onClose }: EventDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start gap-4 mb-4">
             <Image
@@ -39,7 +39,7 @@ export default function EventDialog({ event, isOpen, onClose }: EventDialogProps
             />
             <div className="flex-1">
               <DialogTitle className="text-2xl font-semibold text-extradark mb-2">{event.title}</DialogTitle>
-              <div className="flex items-center gap-4 text-sm text-primary mb-3">
+              <div className="flex justify-center items-center gap-4 text-sm text-primary mb-3">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   <span>{event.dates}</span>

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Car, Clock, MapPin, Phone, Calendar } from "lucide-react"
+import { strapiPost } from "@/apis/strapi"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,19 +49,19 @@ const generateDates = () => {
 }
 
 // Generate time slots
-const generateTimeSlots = () => {
-  const slots = []
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 30) {
-      const time24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-      const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
-      const ampm = hour < 12 ? 'AM' : 'PM'
-      const time12 = `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`
-      slots.push({ value: time24, label: time12 })
-    }
-  }
-  return slots
-}
+// const generateTimeSlots = () => {
+//   const slots = []
+//   for (let hour = 0; hour < 24; hour++) {
+//     for (let minute = 0; minute < 60; minute += 30) {
+//       const time24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+//       const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+//       const ampm = hour < 12 ? 'AM' : 'PM'
+//       const time12 = `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`
+//       slots.push({ value: time24, label: time12 })
+//     }
+//   }
+//   return slots
+// }
 
 export default function PoolCab() {
   const router = useRouter()
@@ -72,8 +73,65 @@ export default function PoolCab() {
   const [selectedPeriod, setSelectedPeriod] = React.useState("")
   const [contactNumber, setContactNumber] = React.useState("")
   const [phoneError, setPhoneError] = React.useState("")
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const dates = generateDates()
+
+  // Function to map locations to Strapi journey enum values
+  const mapToJourneyEnum = (from: string, to: string): string => {
+    const fromLower = from.toLowerCase()
+    const toLower = to.toLowerCase()
+    
+    // Create the journey string in the format expected by Strapi
+    const journey = `${fromLower} to ${toLower}`
+    
+    // Handle specific mappings for the Strapi enum
+    const mappings: Record<string, string> = {
+      "airport to campus": "airport to campus",
+      "campus to airport": "campus to airport",
+      "airport to jahangirpuri": "airport to jahangirpuri",
+      "jahangirpuri to airport": "jahangirpuri to airport",
+      "jahangirpuri to campus": "jahangirpuri to campus",
+      "azadpur to campus": "azadpur to campus",
+      "campus to jahangirpuri": "campus to jahangirpuri",
+      "campus to azadpur": "campus to azadpur",
+      "campus to new delhi": "campus to new delhi",
+      "new delhi to campus": "new delhi to campus",
+      "new delhi to jahangirpuri": "new delhi to jahangirpuri",
+      "jahangirpuri to new delhi": "jahangirpuri to new delhi",
+      "gurgaon to campus": "gurgaon to campus",
+      "campus to gurgaon": "campus to gurgaon",
+      "campus to chandigarh": "campus to chandigarh",
+      "chandigarh to campus": "chandigarh to campus",
+      "campus to jaipur": "campus to jaipur",
+      "jaipur to campus": "jaipur to campus",
+      "campus to ludhiana": "campus to ludhiana",
+      "ludhiana to campus": "ludhiana to campus",
+      "campus to noida": "campus to noida",
+      "noida to campus": "noida to campus",
+      "campus to ghaziabad": "campus to ghaziabad",
+      "ghaziabad to campus": "ghaziabad to campus",
+      "campus to nizamuddin": "campus to nizamuddin",
+      "nizamuddin to campus": "nizamuddin to campus",
+      "campus to agra": "campus to agra",
+      "agra to campus": "agra to campus"
+    }
+    
+    return mappings[journey] || journey
+  }
+
+  // Function to convert 12-hour time to 24-hour format for Strapi
+  const convertTo24HourFormat = (hour: string, minute: string, period: string): string => {
+    let hour24 = parseInt(hour)
+    
+    if (period === "AM" && hour24 === 12) {
+      hour24 = 0
+    } else if (period === "PM" && hour24 !== 12) {
+      hour24 += 12
+    }
+    
+    return `${hour24.toString().padStart(2, '0')}:${minute}:00`
+  }
 
   // Generate hours (1-12)
   const hours = Array.from({ length: 12 }, (_, i) => ({
@@ -120,7 +178,7 @@ export default function PoolCab() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!selectedDate || !fromLocation || !toLocation || !selectedHour || !selectedMinute || !selectedPeriod || !contactNumber) {
@@ -133,19 +191,42 @@ export default function PoolCab() {
       return
     }
 
-    // Combine time components
-    const combinedTime = `${selectedHour}:${selectedMinute} ${selectedPeriod}`
+    setIsSubmitting(true)
 
-    // Navigate to results page with form data
-    const searchParams = new URLSearchParams({
-      date: selectedDate,
-      from: fromLocation,
-      to: toLocation,
-      time: combinedTime,
-      contact: contactNumber,
-    })
-    
-    router.push(`/pool-cab/results?${searchParams.toString()}`)
+    try {
+      // Convert time to 24-hour format for Strapi
+      const time24 = convertTo24HourFormat(selectedHour, selectedMinute, selectedPeriod)
+      
+      // Map locations to journey enum
+      const journey = mapToJourneyEnum(fromLocation, toLocation)
+      
+      // Prepare data for Strapi
+      const poolData = {
+        data: {
+          journey: journey,
+          time: time24,
+          day: selectedDate,
+          status: "available",
+          pooler: 1 // Note: pooler will need to be set based on authenticated user
+          // For now, you might need to handle user authentication
+        }
+      }
+
+      console.log("Submitting pool data:", poolData)
+
+      // Submit to Strapi
+      const response = await strapiPost('/pools', poolData)
+      
+      console.log("Pool created successfully:", response)          
+      
+      router.push(`/pool-cab/results`)
+      
+    } catch (error) {
+      console.error("Error creating pool:", error)
+      alert("Failed to create pool. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -193,49 +274,61 @@ export default function PoolCab() {
               </Select>
             </div>
 
-            {/* From Location */}
-            <div className="space-y-2">
-              <Label htmlFor="from" className="text-sm font-medium flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                From <span className="text-destructive">*</span>
-              </Label>
-              <Select value={fromLocation} onValueChange={setFromLocation}>
-                <SelectTrigger id="from">
-                  <SelectValue placeholder="Select departure location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {routes.filter(route => !route.includes(" to ")).map((location) => (
-                    <SelectItem key={location} value={location.split(" to ")[0]}>
-                      {location.split(" to ")[0]}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="Campus">Campus</SelectItem>
-                  <SelectItem value="New Delhi">New Delhi</SelectItem>
-                  <SelectItem value="Gurgaon">Gurgaon</SelectItem>
-                  <SelectItem value="Noida">Noida</SelectItem>
-                  <SelectItem value="Airport">Airport</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* From and To Locations */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* From Location */}
+              <div className="space-y-2">
+                <Label htmlFor="from" className="text-sm font-medium flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  From <span className="text-destructive">*</span>
+                </Label>
+                <Select value={fromLocation} onValueChange={setFromLocation}>
+                  <SelectTrigger id="from">
+                    <SelectValue placeholder="Select departure location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Campus">Campus</SelectItem>
+                    <SelectItem value="New Delhi">New Delhi</SelectItem>
+                    <SelectItem value="Gurgaon">Gurgaon</SelectItem>
+                    <SelectItem value="Noida">Noida</SelectItem>
+                    <SelectItem value="Airport">Airport</SelectItem>                    
+                    <SelectItem value="Azadpur">Azadpur</SelectItem>
+                    <SelectItem value="Chandigarh">Chandigarh</SelectItem>
+                    <SelectItem value="Jaipur">Jaipur</SelectItem>
+                    <SelectItem value="Ludhiana">Ludhiana</SelectItem>
+                    <SelectItem value="Ghaziabad">Ghaziabad</SelectItem>
+                    <SelectItem value="Nizamuddin">Nizamuddin</SelectItem>
+                    <SelectItem value="Agra">Agra</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* To Location */}
-            <div className="space-y-2">
-              <Label htmlFor="to" className="text-sm font-medium flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                To <span className="text-destructive">*</span>
-              </Label>
-              <Select value={toLocation} onValueChange={setToLocation}>
-                <SelectTrigger id="to">
-                  <SelectValue placeholder="Select destination" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Campus">Campus</SelectItem>
-                  <SelectItem value="New Delhi">New Delhi</SelectItem>
-                  <SelectItem value="Gurgaon">Gurgaon</SelectItem>
-                  <SelectItem value="Noida">Noida</SelectItem>
-                  <SelectItem value="Airport">Airport</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* To Location */}
+              <div className="space-y-2">
+                <Label htmlFor="to" className="text-sm font-medium flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  To <span className="text-destructive">*</span>
+                </Label>
+                <Select value={toLocation} onValueChange={setToLocation}>
+                  <SelectTrigger id="to">
+                    <SelectValue placeholder="Select destination" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Campus">Campus</SelectItem>
+                    <SelectItem value="New Delhi">New Delhi</SelectItem>
+                    <SelectItem value="Gurgaon">Gurgaon</SelectItem>
+                    <SelectItem value="Noida">Noida</SelectItem>
+                    <SelectItem value="Airport">Airport</SelectItem>                    
+                    <SelectItem value="Azadpur">Azadpur</SelectItem>
+                    <SelectItem value="Chandigarh">Chandigarh</SelectItem>
+                    <SelectItem value="Jaipur">Jaipur</SelectItem>
+                    <SelectItem value="Ludhiana">Ludhiana</SelectItem>
+                    <SelectItem value="Ghaziabad">Ghaziabad</SelectItem>
+                    <SelectItem value="Nizamuddin">Nizamuddin</SelectItem>
+                    <SelectItem value="Agra">Agra</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Time Selection - Hour, Minute, AM/PM */}
@@ -326,6 +419,7 @@ export default function PoolCab() {
                 type="submit" 
                 className="w-full gap-2 text-lg py-6"
                 disabled={
+                  isSubmitting ||
                   !selectedDate || 
                   !fromLocation || 
                   !toLocation || 
@@ -338,7 +432,7 @@ export default function PoolCab() {
                 }
               >
                 <Car className="h-5 w-5" />
-                Pool a Cab!
+                {isSubmitting ? "Creating Pool..." : "Pool a Cab!"}
               </Button>
             </div>
           </form>

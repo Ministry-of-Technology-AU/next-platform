@@ -1,9 +1,9 @@
 import { Trophy } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import EventCard from "./components/event-card"
 import SearchBar from "./components/search-bar"
 import { strapiGet } from "@/apis/strapi"
-import PageTitle from "@/components/page-title"
 import Image from "next/image"
 
 //TODO: Make search bar work, make responsive, fix tags, modularize
@@ -29,7 +29,6 @@ async function getEvents(){
         pageSize: 200
       }
     });
-    console.log("Fetched data from Strapi:", data);
     return data;
   }
   catch(error){
@@ -60,8 +59,7 @@ async function mapEvents(){
       registrationLink: attributes.form_link,
       websiteLink: attributes.website_link
     };
-  });
-  console.log("Mapped Events:", mappedEvents);
+  });  
   return mappedEvents;
 }
 
@@ -71,15 +69,9 @@ export default async function IntercollegiateEventsPage() {
   return (
     <div className="min-h-screen bg-extralight">
       <div className="container mx-auto px-6 py-8">
-        {/* Header Section */}
-        <PageTitle
-          text="Intercollegiate Events"
-          icon={Trophy}
-          subheading="Discover and participate in exciting competitions across universities"
-        />
-
-        {/* Collaborative Banner */}
-        <div className="mb-8">
+        {/* Header Section with Banner Background */}
+        <div className="relative mb-8">
+          {/* Banner Image */}
           <Image
             src="/placeholder.svg?height=200&width=1200"
             alt="Collaborative Initiative Banner"
@@ -87,44 +79,67 @@ export default async function IntercollegiateEventsPage() {
             height={200}
             className="w-full h-48 object-cover rounded-lg shadow-lg"
           />
+          {/* Overlay Content */}
+          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+            <div className="text-center text-white px-6">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <Trophy className="h-8 w-8 text-white" />
+                <h1 className="text-3xl font-bold">Intercollegiate Events</h1>
+              </div>
+              <p className="text-lg text-gray-200 max-w-2xl">
+                Discover and participate in exciting competitions across universities
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Description Section */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <p className="text-dark mb-4 leading-relaxed">
-              This section serves as a comprehensive resource for all
-              intercollegiate events and competitions available for Ashoka
-              University students. Here, you will find interest forms for each
-              competition. Once you fill out the form, the designated Point of
-              Contact (POC) for that event will reach out to you with further
-              information.
-            </p>
-            <p className="text-dark mb-6 leading-relaxed">
-              Please be sure to review the off-campus policy before applying for
-              any competitions. If you encounter any challenges, don&apos;t hesitate
-              to reach out via email or phone:
-            </p>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="about">
+                <AccordionTrigger className="text-left bold text-xl">
+                  About Intercollegiate Events
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <p className="text-dark leading-relaxed">
+                      This section serves as a comprehensive resource for all
+                      intercollegiate events and competitions available for Ashoka
+                      University students. Here, you will find interest forms for each
+                      competition. Once you fill out the form, the designated Point of
+                      Contact (POC) for that event will reach out to you with further
+                      information.
+                    </p>
+                    <p className="text-dark leading-relaxed">
+                      Please be sure to review the off-campus policy before applying for
+                      any competitions. If you encounter any challenges, don&apos;t hesitate
+                      to reach out via email or phone:
+                    </p>
 
-            {/* Contact Information */}
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-extralight p-4 rounded-lg">
-                <p className="font-medium text-extradark">Vibha Rawat</p>
-                <p className="text-primary text-sm">
-                  vibha.rawat_ug2023@ashoka.edu.in
-                </p>
-                <p className="text-primary text-sm">9667764435</p>
-              </div>
-              <div className="bg-extralight p-4 rounded-lg">
-                <p className="font-medium text-extradark">Guntaas Kaur</p>
-                <p className="text-primary text-sm">
-                  guntaas.kaur_ug2023@ashoka.edu.in
-                </p>
-                <p className="text-primary text-sm">+91 98118 06032</p>
-              </div>
-            </div>
+                    {/* Contact Information */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="bg-extralight p-4 rounded-lg">
+                        <p className="font-medium text-extradark">Vibha Rawat</p>
+                        <p className="text-primary text-sm">
+                          vibha.rawat_ug2023@ashoka.edu.in
+                        </p>
+                        <p className="text-primary text-sm">9667764435</p>
+                      </div>
+                      <div className="bg-extralight p-4 rounded-lg">
+                        <p className="font-medium text-extradark">Guntaas Kaur</p>
+                        <p className="text-primary text-sm">
+                          guntaas.kaur_ug2023@ashoka.edu.in
+                        </p>
+                        <p className="text-primary text-sm">+91 98118 06032</p>
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
-            <div className="border-t pt-4">
+            <div className="border-t pt-4 mt-4">
               <p className="text-sm text-primary">
                 <span className="font-medium">Page Maintained by Jazbaa</span> |
                 Click on a competition to view further details
