@@ -12,7 +12,6 @@ const axiosConfig = {
 };
 
 const strapi = axios.create(axiosConfig);
-
 // Strapi-specific query parameter types
 interface StrapiPopulate {
     [key: string]: boolean | StrapiPopulate | string | string[] | {

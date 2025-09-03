@@ -31,9 +31,9 @@ interface FormData {
   isAnonymous: boolean;
 }
 
-export default function AddReview({ params, searchParams }: { params: { id: string }, searchParams: SearchParams }) {
-  const subheading = `Submit a course review about ${searchParams.name} (${searchParams.code}) offered in ${searchParams.semester} ${searchParams.year}.`;
-
+export default function AddReview({ params }: { params: { id: string }}) {
+//   const subheading = `Submit a course review about ${searchParams.name} (${searchParams.code}) offered in ${searchParams.semester} ${searchParams.year}.`;
+const subheading = "Submit a course review.";
   const [formData, setFormData] = useState<FormData>({
     reviewExperience: "",
     grading_transparent: "1",
@@ -84,8 +84,6 @@ export default function AddReview({ params, searchParams }: { params: { id: stri
         author: 1
       }
     };
-
-    console.log("Submitting review data:", apiData);
 
     const dummyApiData = {
       data: {
