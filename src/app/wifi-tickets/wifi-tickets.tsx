@@ -1,15 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Phone } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-
-
-import { FormContainer, PhoneInput, TextInput, SingleSelect, FileUpload, ImageUpload, SubmitButton, InstructionsField } from "@/components/form";
+import { FormContainer, PhoneInput, TextInput, SingleSelect, SubmitButton} from "@/components/form";
 
 // export function WifiTickets(){
 //     const [onAshokaWifi, setOnAshokaWifi] = useState("");
@@ -315,7 +306,7 @@ export default function WifiTickets1(){
         value={additionalDetails}
         onChange={setAdditionalDetails}
       />
-      <SubmitButton text="Submit Ticket" isLoading={isSubmitting} onClick={handleSubmit}/>
+      <SubmitButton text="Submit Ticket" isLoading={isSubmitting} onClick={() => handleSubmit({} as React.FormEvent)}/>
     </FormContainer>
   );
 }

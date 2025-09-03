@@ -1,13 +1,8 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Disclosure, DisclosureContent, DisclosureTrigger } from "@/components/ui/disclosure";
-import {Button } from "@/components/ui/button";
-import { ChevronDown, WifiPen } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { Select } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { Card, CardHeader } from "@/components/ui/card";
+import { WifiPen } from "lucide-react";
 import PageTitle from "@/components/page-title";
 import WifiTickets1 from "./wifi-tickets";
-import { FormContainer, PhoneInput, TextInput, SingleSelect, FileUpload, ImageUpload, SubmitButton, InstructionsField } from "@/components/form";
+import { InstructionsField } from "@/components/form";
 
 export default function WifiTicketsPage() {
   return (
