@@ -3,7 +3,7 @@ import { CodeXml, Inbox } from "lucide-react";
 import PageTitle from "@/components/page-title";
 import OutboxTable from "./OutboxTable";
 import { OutboxEmail } from "./columns";
-import {strapiGet} from "@/apis/strapi";
+import {strapiGet} from "@/lib/apis/strapi";
 
 async function getData(userEmail:string){
   if(!userEmail) return null;

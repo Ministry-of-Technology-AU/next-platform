@@ -4,7 +4,7 @@ import PageTitle from "@/components/page-title";
 import { CirclePlus } from "lucide-react";
 import { useState } from "react";
 import { majors, batches } from "@/data/data";
-import { strapiPost } from "@/apis/strapi";
+import { strapiPost } from "@/lib/apis/strapi";
 
 interface SearchParams {
   name: string;

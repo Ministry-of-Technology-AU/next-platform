@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { strapiGet } from '@/apis/strapi'
+import { strapiGet } from '@/lib/apis/strapi'
 
 interface Event {
   id: number;

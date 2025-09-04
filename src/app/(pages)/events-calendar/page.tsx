@@ -1,7 +1,7 @@
 import { start } from "repl";
 import EventsCalendar from "./events-calendar";
 import { sampleEvents } from "./data/calendar-data";
-import {getEvents} from "@/apis/calendar";
+import {getEvents} from "@/lib/apis/calendar";
 
 export default async function Page() {
   const startTime = new Date().toISOString();

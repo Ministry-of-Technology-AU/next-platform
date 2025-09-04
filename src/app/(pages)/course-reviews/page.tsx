@@ -3,7 +3,7 @@ import { BookOpen } from "lucide-react";
 import CourseReviewsClient from "./course-reviews-client";
 import PageTitle from "@/components/page-title";
 import DeveloperCredits from "@/components/developer-credits";
-import { strapiGet } from "@/apis/strapi";
+import { strapiGet } from "@/lib/apis/strapi";
 import { max } from "date-fns";
 
 const maxCoursesToLoad = 100;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { strapiPost, strapiGet } from '@/apis/strapi'
+import { strapiPost, strapiGet } from '@/lib/apis/strapi'
 
 // Helper function to validate phone number
 function validatePhoneNumber(phone: string): boolean {

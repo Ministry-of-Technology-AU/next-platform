@@ -54,11 +54,12 @@ export interface GoogleEvent {
  * @returns A promise that resolves to the list of events.
  */
 async function getEvents(
-  calId: string = process.env.GOOGLE_CALENDAR_ID!,
   startTime: string,
   endTime: string,
+  calId?: string,
   eventId?: string
 ) {
+  if (!calId) calId = process.env.GOOGLE_CALENDAR_ID!;
   try {
     if (eventId) {
       // Fetch a single event if eventId is provided
