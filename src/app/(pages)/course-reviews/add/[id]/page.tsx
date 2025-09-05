@@ -2,9 +2,8 @@
 import * as Form from "@/components/form";
 import PageTitle from "@/components/page-title";
 import { CirclePlus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
 import { majors, batches } from "@/data/data";
-import { strapiPost } from "@/lib/apis/strapi";
 
 interface SearchParams {
   name: string;
@@ -31,9 +30,21 @@ interface FormData {
   isAnonymous: boolean;
 }
 
-export default function AddReview({ params }: { params: { id: string }}) {
-//   const subheading = `Submit a course review about ${searchParams.name} (${searchParams.code}) offered in ${searchParams.semester} ${searchParams.year}.`;
-const subheading = "Submit a course review.";
+export default function AddReview({ params }: { params: Promise<{ id: string }> }) {
+  // Unwrap the params Promise using React.use()
+  const { id } = use(params);
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [courseDetails, setCourseDetails] = useState<{
+    id: string;
+    name: string;
+    code: string;
+    year: number;
+    semester: string;
+  } | null>(null);
+
+  // Initialize all form state at the top level
   const [formData, setFormData] = useState<FormData>({
     reviewExperience: "",
     grading_transparent: "1",
@@ -51,6 +62,102 @@ const subheading = "Submit a course review.";
     grade: "Do Not Wish to Reveal",
     isAnonymous: true,
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch course details based on ID from params
+  useEffect(() => {
+    async function fetchCourseDetail() {
+      try {
+        setLoading(true);
+        console.log('Fetching course details for ID:', id);
+        
+        // Use the dedicated course API endpoint
+        const response = await fetch(`/api/courses/${id}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('API Response:', result);
+        
+        if (result.data) {
+          const course = result.data;
+          setCourseDetails({
+            id: course.id.toString(),
+            name: course.attributes.courseTitle,
+            code: course.attributes.courseCode,
+            year: course.attributes.year,
+            semester: course.attributes.semester
+          });
+        } else {
+          setError('Course not found');
+        }
+      } catch (err) {
+        console.error('Error fetching course details:', err);
+        setError('Failed to fetch course details');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      fetchCourseDetail();
+    }
+  }, [id]);
+
+  const subheading = courseDetails 
+    ? `Submit a course review about ${courseDetails.name} (${courseDetails.code}) offered in ${courseDetails.semester} ${courseDetails.year}.`
+    : "Loading course details...";
+  
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+        <PageTitle
+          text="Add Course Review"
+          subheading="Loading course details..."
+          icon={CirclePlus}
+        />
+        <div className="flex justify-center items-center py-12">
+          <div className="text-neutral-primary">Loading course information...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+        <PageTitle
+          text="Add Course Review"
+          subheading="Error loading course details"
+          icon={CirclePlus}
+        />
+        <div className="flex justify-center items-center py-12">
+          <div className="text-red-500">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show form only when course details are loaded
+  if (!courseDetails) {
+    return (
+      <div className="min-h-screen container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+        <PageTitle
+          text="Add Course Review"
+          subheading="Course not found"
+          icon={CirclePlus}
+        />
+        <div className="flex justify-center items-center py-12">
+          <div className="text-neutral-primary">Course not found.</div>
+        </div>
+      </div>
+    );
+  }
   
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     setFormData((prevData) => ({
@@ -61,6 +168,17 @@ const subheading = "Submit a course review.";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!courseDetails) {
+      alert("Course details not loaded. Please refresh the page.");
+      return;
+    }
+
+    if (isSubmitting) {
+      return; // Prevent double submission
+    }
+
+    setIsSubmitting(true);
 
     // Map form data directly to API schema
     const apiData = {
@@ -80,40 +198,41 @@ const subheading = "Submit a course review.";
         tf: formData.taInfluence,
         major: formData.major,
         cr: false,
-        course: 1,
+        course: parseInt(courseDetails.id), // Use the actual course ID
         author: 1
       }
     };
 
-    const dummyApiData = {
-      data: {
-        review: "Prof is very approachable and teaches well.",
-        transparent: 5,
-        lecturer: 5,
-        overall: 5,
-        relatability: 4,
-        extracredit: true,
-        grading_type: "absolute",
-        grade: "A/A-",
-        batch: "UG2023",
-        strict: 3,
-        fair: 5,
-        mode: "offline",
-        tf: "No influence",
-        major: "Computer Science",
-        cr: false,
-        course: 1, // <-- must be a valid course ID
-        author: 1, // <-- must be a valid user ID
-      },
-    };
+    console.log("Submitting review with data:", apiData);
 
     try {
-      const res = await strapiPost("/reviews", dummyApiData);
-      console.log("✅ Review submitted:", res);
-      alert("Review submitted successfully!");
+      const response = await fetch(`/api/courses/${courseDetails.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(apiData),
+      });
+
+      const result = await response.json();
+      console.log("API Response:", result);
+
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP error! status: ${response.status}`);
+      }
+
+      if (result.success) {
+        alert("Review submitted successfully!");
+        // Optionally redirect back to course reviews page
+        window.location.href = "/course-reviews";
+      } else {
+        throw new Error(result.error || "Unknown error occurred");
+      }
     } catch (err) {
       console.error("❌ Error submitting review:", err);
-      alert("Failed to submit review");
+      alert("Failed to submit review: " + (err instanceof Error ? err.message : "Unknown error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -128,7 +247,7 @@ const subheading = "Submit a course review.";
   ];
   
   return (
-    <div className="min-h-screen container mx-auto px-6 py-8">
+    <div className="min-h-screen container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
       <PageTitle
         text="Add Course Review"
         subheading={subheading}
@@ -136,7 +255,7 @@ const subheading = "Submit a course review.";
       />
       <Form.FormContainer
         onSubmit={handleSubmit}
-        className="max-w-6xl mt-6 bg-gray-light-90 p-6 rounded-lg shadow-md"
+        className="max-w-6xl mt-4 sm:mt-6 bg-gray-light-90 p-3 sm:p-4 lg:p-6 rounded-lg shadow-md"
       >
         <div className="space-y-4">
           <h3 className="text-xl font-bold">SECTION 1 - Review</h3>
@@ -322,7 +441,11 @@ const subheading = "Submit a course review.";
             value={!formData.isAnonymous}
             onChange={(checked) => handleInputChange("isAnonymous", !checked)}
           />
-          <Form.SubmitButton text="Submit Review" />
+          <Form.SubmitButton 
+            text="Submit Review"
+            isLoading={isSubmitting}
+            disabled={isSubmitting}
+          />
         </div>
       </Form.FormContainer>
     </div>

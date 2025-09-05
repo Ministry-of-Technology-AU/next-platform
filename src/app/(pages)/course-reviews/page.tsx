@@ -3,8 +3,6 @@ import { BookOpen } from "lucide-react";
 import CourseReviewsClient from "./course-reviews-client";
 import PageTitle from "@/components/page-title";
 import DeveloperCredits from "@/components/developer-credits";
-import { strapiGet } from "@/lib/apis/strapi";
-import { max } from "date-fns";
 
 const maxCoursesToLoad = 100;
 
@@ -15,15 +13,19 @@ function calculateRating(ratings: number[]){
 }
 
 async function getData(){
-  const data = await strapiGet("/courses", {
-    fields: ["courseCode", "courseTitle", "semester", "year"],
-    populate: ["faculties", "course_reviews", "reviews"],
-    pagination: { pageSize: maxCoursesToLoad },
-    filters: {
-      year: { $eq: 2024 }
-    },
-    sort: ["year:desc"],
-  })
+  try {
+    // For local development, just use localhost
+    const baseUrl = 'http://localhost:3000';
+
+    const response = await fetch(`${baseUrl}/api/courses?year=2024&page=1&pageSize=${maxCoursesToLoad}`, {
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
     const courses = data
       ? data.data.map((item: any) => {
           return {
@@ -97,23 +99,22 @@ async function getData(){
         })
       : [];
     return courses;
+  } catch (error) {
+    console.error('Error fetching course data:', error);
+    return [];
+  }
 }
 
 export default async function CourseReviewsPage() {
   const data = await getData();
   return (
     <div className="min-h-screen bg-neutral-extralight">
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
-        {/** TODO: FIX THE ALIGNEMENT */}
         <PageTitle
           text="Course Reviews"
           icon={BookOpen}
-          subheading='A small guide to navigating course reviews: 
-          1. Courses listed below are courses offered in previous semesters, this includes their description as taken from 
-          2. Use the search bar and filters to find courses. 
-          3. For courses offered in multiple semesters, search by course name. 
-          We also request that you add your own reviews to help your peers make more informed choices!
+          subheading='We request that you add your own reviews to help your peers make more informed choices!
           Note: All course and faculty names are taken directly from AMS.'
         />
 
