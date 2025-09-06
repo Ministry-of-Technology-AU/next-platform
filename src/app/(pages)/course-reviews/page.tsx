@@ -15,7 +15,7 @@ function calculateRating(ratings: number[]){
 async function getData(){
   try {
     // For local development, just use localhost
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
     const response = await fetch(`${baseUrl}/api/courses?year=2024&page=1&pageSize=${maxCoursesToLoad}`, {
       cache: 'no-store'

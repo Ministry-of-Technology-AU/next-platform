@@ -52,7 +52,7 @@ export function CourseSelection({
   }, [courses, searchTerm, departmentFilter, typeFilter]);
 
   return (
-    <Card className="h-full">
+    <Card className="h-[90vh]">
       <CardContent className="p-4 space-y-4">
         <div className="space-y-3">
           <div className="relative">
@@ -100,7 +100,7 @@ export function CourseSelection({
           </div>
         </div>
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[70vh]">
           <div className="space-y-2">
             {filteredCourses.map((course) => (
               <Card

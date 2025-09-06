@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import { CourseSelection } from "./components/course-selection";
@@ -19,21 +19,51 @@ import {
 } from "@/components/ui/dialog";
 import { COURSE_COLORS } from "./types";
 
+
 interface SemesterPlannerClientProps {
   courses: Course[];
+  initialDrafts?: TimetableDraft[];
 }
 
-export function SemesterPlannerClient({ courses }: SemesterPlannerClientProps) {
-  const [drafts, setDrafts] = useState<TimetableDraft[]>([
-    {
-      id: "1",
-      name: "Draft 1",
-      courses: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
-  const [activeDraftId, setActiveDraftId] = useState("1");
+export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlannerClientProps) {
+  const [drafts, setDrafts] = useState<TimetableDraft[]>(() => {
+    if (Array.isArray(initialDrafts) && initialDrafts.length > 0) {
+      return initialDrafts.map((d: any) => ({
+        ...d,
+        createdAt: d.createdAt ? new Date(d.createdAt) : new Date(),
+        updatedAt: d.updatedAt ? new Date(d.updatedAt) : new Date(),
+      }));
+    }
+    return [
+      {
+        id: "1",
+        name: "Draft 1",
+        courses: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+  });
+
+  // Set activeDraftId to first draft's id if drafts exist, else "1"
+  const [activeDraftId, setActiveDraftId] = useState(() => {
+    if (Array.isArray(initialDrafts) && initialDrafts.length > 0) {
+      return initialDrafts[0].id;
+    }
+    return "1";
+  });
+
+  // If initialDrafts changes, update drafts and activeDraftId
+  useEffect(() => {
+    if (Array.isArray(initialDrafts) && initialDrafts.length > 0) {
+      setDrafts(initialDrafts.map((d: any) => ({
+        ...d,
+        createdAt: d.createdAt ? new Date(d.createdAt) : new Date(),
+        updatedAt: d.updatedAt ? new Date(d.updatedAt) : new Date(),
+      })));
+      setActiveDraftId(initialDrafts[0].id);
+    }
+  }, [initialDrafts]);
   const [lockedCourses, setLockedCourses] = useState<Set<string>>(new Set());
   const [showColorPicker, setShowColorPicker] = useState<{
     course: Course;
@@ -54,37 +84,58 @@ export function SemesterPlannerClient({ courses }: SemesterPlannerClientProps) {
               existingTimeSlot.day === newTimeSlot.day &&
               existingTimeSlot.slot === newTimeSlot.slot
             ) {
-              return true;
+              return {
+                hasConflict: true,
+                conflictingCourse: existingCourse,
+                conflictingSlot: existingTimeSlot
+              };
             }
           }
         }
       }
-      return false;
+      return { hasConflict: false };
     },
     []
   );
 
+  // Default color mapping for departments/majors
+  const DEPARTMENT_COLOR_MAP: Record<string, string> = {
+    "Computer Science": COURSE_COLORS[0],
+    "Mathematics": COURSE_COLORS[1],
+    "Physics": COURSE_COLORS[2],
+    "English": COURSE_COLORS[3],
+    "History": COURSE_COLORS[4],
+    "Economics": COURSE_COLORS[5],
+    "Biology": COURSE_COLORS[6],
+    "Chemistry": COURSE_COLORS[7],
+    // Add more as needed
+  };
+
   const handleAddCourse = useCallback(
     (course: Course) => {
       // Check for time conflicts
-      if (checkTimeConflict(course, activeDraft.courses)) {
+      const conflictResult = checkTimeConflict(course, activeDraft.courses);
+      if (conflictResult.hasConflict) {
+        const conflictingCourse = conflictResult.conflictingCourse!;
+        const conflictingSlot = conflictResult.conflictingSlot!;
         toast.error(
-          "Time conflict detected! This course overlaps with an existing course.",
+          `⚠️ TIME CONFLICT DETECTED! ${course.code} (${course.name}) clashes with ${conflictingCourse.code} (${conflictingCourse.name}) on ${conflictingSlot.day} at ${conflictingSlot.slot}.`,
           {
-            duration: 3000,
+            duration: 6000,
+            style: {
+              backgroundColor: '#87281B',
+              color: 'white',
+              border: '2px solid #87281B',
+              fontSize: '16px',
+              fontWeight: 'bold',
+            },
           }
         );
         return;
       }
 
-      // Show color picker
-      setShowColorPicker({ course, show: true });
-    },
-    [activeDraftId, activeDraft.courses, checkTimeConflict]
-  );
-
-  const handleColorSelect = useCallback(
-    (course: Course, color: string) => {
+      // Assign default color based on department
+      const color = DEPARTMENT_COLOR_MAP[course.department] || COURSE_COLORS[0];
       const scheduledCourse: ScheduledCourse = { ...course, color };
 
       setDrafts((prev) =>
@@ -98,9 +149,29 @@ export function SemesterPlannerClient({ courses }: SemesterPlannerClientProps) {
             : draft
         )
       );
-
-      setShowColorPicker({ course: courses[0], show: false });
       toast.success(`${course.code} added to timetable`, { duration: 2000 });
+    },
+    [activeDraftId, activeDraft.courses, checkTimeConflict]
+  );
+
+  // Color picker is now only for changing color, not for adding
+  const handleColorSelect = useCallback(
+    (course: Course, color: string) => {
+      setDrafts((prev) =>
+        prev.map((draft) =>
+          draft.id === activeDraftId
+            ? {
+                ...draft,
+                courses: draft.courses.map((c) =>
+                  c.id === course.id ? { ...c, color } : c
+                ),
+                updatedAt: new Date(),
+              }
+            : draft
+        )
+      );
+      setShowColorPicker({ course: courses[0], show: false });
+      toast.success("Course color updated", { duration: 2000 });
     },
     [activeDraftId, courses]
   );
@@ -318,9 +389,9 @@ export function SemesterPlannerClient({ courses }: SemesterPlannerClientProps) {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-col lg:grid lg:grid-cols-[350px_1fr] gap-6">
-        {/* Timetable - shows first on mobile */}
-        <div className="order-2 lg:order-2 space-y-4">
+      <div className="flex flex-col lg:grid lg:grid-cols-[350px_1fr] gap-6 min-w-0">
+        {/* Timetable - shows first on mobile, second on desktop */}
+        <div className="order-1 lg:order-2 space-y-4 min-w-0">
           <DraftTabs
             drafts={drafts}
             activeDraftId={activeDraftId}
@@ -330,7 +401,7 @@ export function SemesterPlannerClient({ courses }: SemesterPlannerClientProps) {
             onSwitchDraft={setActiveDraftId}
             onDownloadTimetable={handleDownloadTimetable}
           >
-            <div id="timetable-grid">
+            <div id="timetable-grid" className="min-w-0">
               <TimetableGrid
                 courses={activeDraft.courses}
                 onRemoveCourse={handleRemoveCourse}
@@ -342,8 +413,8 @@ export function SemesterPlannerClient({ courses }: SemesterPlannerClientProps) {
           </DraftTabs>
         </div>
 
-        {/* Course Selection - shows second on mobile */}
-        <div className="order-1 lg:order-1 space-y-4">
+        {/* Course Selection - shows second on mobile, first on desktop */}
+        <div className="order-2 lg:order-1 space-y-4 min-w-0">
           <CourseSelection courses={courses} onAddCourse={handleAddCourse} />
         </div>
       </div>

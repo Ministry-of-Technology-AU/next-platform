@@ -1,10 +1,30 @@
+"use client";
 import { Card, CardHeader } from "@/components/ui/card";
 import { WifiPen } from "lucide-react";
 import PageTitle from "@/components/page-title";
 import WifiTickets1 from "./wifi-tickets";
 import { InstructionsField } from "@/components/form";
+import { Drawer } from "@/components/ui/drawer";
+import SpeedTest from "./_components/speedtest";
+import { useState } from "react";
 
 export default function WifiTicketsPage() {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [hasTriggeredSpeedTest, setHasTriggeredSpeedTest] = useState(false);
+
+  const handleWifiStateChange = (state: string) => {
+    if (state === "yes" && !hasTriggeredSpeedTest) {
+      setIsDrawerOpen(true);
+      setHasTriggeredSpeedTest(true);
+    } else if (state === "no") {
+      setHasTriggeredSpeedTest(false); // Reset when user selects "no"
+    }
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+  };
+
   return (
     <div className="mx-8">
       <PageTitle
@@ -28,8 +48,12 @@ export default function WifiTicketsPage() {
             ]}
           />
         </CardHeader>
-        <WifiTickets1 />
+        <WifiTickets1 onWifiStateChange={handleWifiStateChange} />
       </Card>
+      
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <SpeedTest onClose={handleCloseDrawer} />
+      </Drawer>
     </div>
   );
 }

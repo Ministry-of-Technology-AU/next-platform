@@ -2,115 +2,68 @@ import { Calendar, Clock } from "lucide-react";
 import { Toaster } from "sonner";
 import { SemesterPlannerClient } from "./semester-planner";
 import PageTitle from "@/components/page-title";
+import { OrientationDialog } from "@/components/orientation-dialog";
 
-// Mock data - in real app this would come from API
-const mockCourses = [
-  {
-    id: "1",
-    code: "CS101",
-    name: "Introduction to Computer Science",
-    professor: "Dr. Smith",
-    department: "Computer Science",
-    type: "Core" as const,
-    credits: 3,
-    timeSlots: [
-      { day: "Monday" as const, slot: "8:30am-10:00am" },
-      { day: "Wednesday" as const, slot: "8:30am-10:00am" },
-      { day: "Friday" as const, slot: "8:30am-10:00am" },
-    ],
-  },
-  {
-    id: "2",
-    code: "MATH201",
-    name: "Calculus II",
-    professor: "Dr. Johnson",
-    department: "Mathematics",
-    type: "Core" as const,
-    credits: 4,
-    timeSlots: [
-      { day: "Tuesday" as const, slot: "10:10am-11:40am" },
-      { day: "Thursday" as const, slot: "10:10am-11:40am" },
-    ],
-  },
-  {
-    id: "3",
-    code: "PHYS101",
-    name: "Physics I",
-    professor: "Dr. Brown",
-    department: "Physics",
-    type: "Core" as const,
-    credits: 3,
-    timeSlots: [
-      { day: "Monday" as const, slot: "11:50am-1:20pm" },
-      { day: "Wednesday" as const, slot: "11:50am-1:20pm" },
-    ],
-  },
-  {
-    id: "4",
-    code: "ENG102",
-    name: "English Composition",
-    professor: "Prof. Davis",
-    department: "English",
-    type: "Core" as const,
-    credits: 3,
-    timeSlots: [
-      { day: "Tuesday" as const, slot: "3:00pm-4:30pm" },
-      { day: "Thursday" as const, slot: "3:00pm-4:30pm" },
-    ],
-  },
-  {
-    id: "5",
-    code: "CS201",
-    name: "Data Structures",
-    professor: "Dr. Wilson",
-    department: "Computer Science",
-    type: "Core" as const,
-    credits: 3,
-    timeSlots: [
-      { day: "Monday" as const, slot: "4:40pm-6:10pm" },
-      { day: "Wednesday" as const, slot: "4:40pm-6:10pm" },
-    ],
-  },
-  {
-    id: "6",
-    code: "ART101",
-    name: "Introduction to Art",
-    professor: "Prof. Garcia",
-    department: "Fine Arts",
-    type: "Elective" as const,
-    credits: 2,
-    timeSlots: [{ day: "Friday" as const, slot: "3:00pm-4:30pm" }],
-  },
-  {
-    id: "7",
-    code: "CS102",
-    name: "Programming Fundamentals",
-    professor: "Dr. Lee",
-    department: "Computer Science",
-    type: "Core" as const,
-    credits: 3,
-    timeSlots: [
-      { day: "Monday" as const, slot: "8:30am-10:00am" }, // Conflicts with CS101
-      { day: "Friday" as const, slot: "10:10am-11:40am" },
-    ],
-  },
-];
+interface ApiResponse {
+  success: boolean;
+  data: {
+    courses: any[];
+    syncInfo: {
+      date: string;
+      time: string;
+    };
+  };
+  error?: string;
+}
 
-export default function SemesterPlannerPage() {
+
+async function fetchDraftsAndCourses() {
+  const email = 'soham.tulsyan_ug2023@ashoka.edu.in'; //TODO: Change this to get from session
+  let drafts = [];
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/semester-planner/${email}`, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        drafts = data.data;
+      }
+    }
+  } catch (e) {
+    // fallback: no drafts
+  }
+
+  // Also fetch courses as before
+  let courses = [];
+  let syncInfo = { date: 'Unknown', time: 'Unknown' };
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/semester-planner`, { cache: 'no-store' });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        courses = data.data.courses;
+        syncInfo = data.data.syncInfo;
+      }
+    }
+  } catch (e) {}
+
+  return { drafts, courses, syncInfo };
+}
+
+
+export default async function SemesterPlannerPage() {
+  const { drafts, courses, syncInfo } = await fetchDraftsAndCourses();
   return (
     <>
       <div className="container mx-auto p-6 space-y-6">
+        <OrientationDialog />
         <PageTitle text="Semester Planner" icon={Calendar} subheading="Plan and organize your course schedule" />
-
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
+          <Clock className="h-4 w-4" />
           <span>
-            Last synced on {new Date().toLocaleDateString()} at{" "}
-            {new Date().toLocaleTimeString()}
+            Last synced on {syncInfo.date} at {syncInfo.time}
           </span>
         </div>
-
-        <SemesterPlannerClient courses={mockCourses} />
+        <SemesterPlannerClient courses={courses} initialDrafts={drafts} />
       </div>
       <Toaster position="top-right" />
     </>
