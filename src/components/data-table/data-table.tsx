@@ -44,6 +44,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   searchKey?: string
   filterColumns?: string[]
+  initialSorting?: SortingState
 }
 
 export function DataTable<TData, TValue>({
@@ -51,8 +52,9 @@ export function DataTable<TData, TValue>({
   data,
   searchKey = "",
   filterColumns = [],
+  initialSorting = [],
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>(initialSorting)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})

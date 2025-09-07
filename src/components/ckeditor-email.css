@@ -1,0 +1,151 @@
+/* Custom CKEditor styles for email composition */
+.ck-editor__editable {
+  min-height: 300px !important;
+  padding: 1rem !important;
+  border-radius: 0.375rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.ck-editor__editable:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring)) !important;
+}
+
+.ck-toolbar {
+  border-radius: 0.375rem 0.375rem 0 0 !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--muted)) !important;
+}
+
+.ck.ck-editor {
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.375rem !important;
+}
+
+.ck.ck-editor__main > .ck-editor__editable {
+  border-radius: 0 0 0.375rem 0.375rem !important;
+  border: none !important;
+}
+
+/* Custom placeholder styling */
+.ck-editor__editable .ck-placeholder::before {
+  color: hsl(var(--muted-foreground)) !important;
+  font-style: italic;
+}
+
+/* Button styling to match theme */
+.ck-button {
+  transition: all 0.2s ease-in-out !important;
+}
+
+.ck-button:hover {
+  background: hsl(var(--accent)) !important;
+}
+
+.ck-button.ck-on {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Dropdown styling */
+.ck-dropdown__panel {
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.375rem !important;
+  background: hsl(var(--background)) !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Table styling */
+.ck-content table {
+  border-collapse: collapse !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.ck-content table td,
+.ck-content table th {
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 0.5rem !important;
+}
+
+.ck-content table th {
+  background: hsl(var(--muted)) !important;
+  font-weight: 600 !important;
+}
+
+/* Link styling */
+.ck-content a {
+  color: hsl(var(--primary)) !important;
+  text-decoration: underline !important;
+}
+
+.ck-content a:hover {
+  color: hsl(var(--primary)) !important;
+  opacity: 0.8 !important;
+}
+
+/* Image styling */
+.ck-content img {
+  border-radius: 0.375rem !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Blockquote styling */
+.ck-content blockquote {
+  border-left: 4px solid hsl(var(--primary)) !important;
+  padding-left: 1rem !important;
+  margin: 1rem 0 !important;
+  font-style: italic !important;
+  background: hsl(var(--muted) / 0.3) !important;
+  padding: 1rem !important;
+  border-radius: 0.375rem !important;
+}
+
+/* Heading styles */
+.ck-content h1 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  margin: 1rem 0 0.5rem 0 !important;
+}
+
+.ck-content h2 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  margin: 0.875rem 0 0.5rem 0 !important;
+}
+
+.ck-content h3 {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  margin: 0.75rem 0 0.5rem 0 !important;
+}
+
+.ck-content h4,
+.ck-content h5,
+.ck-content h6 {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin: 0.5rem 0 0.25rem 0 !important;
+}
+
+/* List styling */
+.ck-content ul,
+.ck-content ol {
+  padding-left: 1.5rem !important;
+  margin: 0.5rem 0 !important;
+}
+
+.ck-content li {
+  margin: 0.25rem 0 !important;
+}
+
+/* Code styling */
+.ck-content code {
+  background: hsl(var(--muted)) !important;
+  padding: 0.125rem 0.25rem !important;
+  border-radius: 0.25rem !important;
+  font-family: monospace !important;
+  font-size: 0.875em !important;
+}
