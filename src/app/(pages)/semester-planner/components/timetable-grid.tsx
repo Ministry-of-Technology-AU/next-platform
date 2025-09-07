@@ -47,20 +47,21 @@ export function TimetableGrid({
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="min-w-[800px] border border-border rounded-lg overflow-hidden">
+      <div className="min-w-[600px] md:min-w-[800px] border border-border rounded-lg overflow-hidden">
         {/* Header */}
         <div className="grid grid-cols-6 border-b border-border">
-          <div className="font-semibold text-center p-4 bg-muted border-r border-border">
+          <div className="font-semibold text-center p-2 md:p-4 bg-muted border-r border-border text-xs md:text-sm">
             Time
           </div>
           {DAYS.map((day, index) => (
             <div
               key={day}
-              className={`font-semibold text-center p-4 bg-muted ${
+              className={`font-semibold text-center p-2 md:p-4 bg-muted text-xs md:text-sm ${
                 index < DAYS.length - 1 ? "border-r border-border" : ""
               }`}
             >
-              {day}
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden">{day.slice(0, 3)}</span>
             </div>
           ))}
         </div>
@@ -73,13 +74,14 @@ export function TimetableGrid({
               slotIndex < TIME_SLOTS.length - 1 ? "border-b border-border" : ""
             }`}
           >
-            <div className="font-medium text-center p-4 bg-muted border-r border-border text-sm">
-              {slot}
+            <div className="font-medium text-center p-2 md:p-4 bg-muted border-r border-border text-xs md:text-sm">
+              <span className="hidden sm:inline">{slot}</span>
+              <span className="sm:hidden">{slot.length > 8 ? slot.slice(0, 5) + "..." : slot}</span>
             </div>
 
             {slot === "LUNCH" ? (
-              <div className="col-span-5 p-4 bg-yellow-50 text-center text-sm text-yellow-800 font-medium">
-                🍽️ Lunch Break
+              <div className="col-span-5 p-2 md:p-4 bg-yellow-50 text-center text-xs md:text-sm text-yellow-800 font-medium">
+                🍽️ <span className="hidden sm:inline">Lunch Break</span><span className="sm:hidden">Lunch</span>
               </div>
             ) : (
               DAYS.map((day, dayIndex) => {
@@ -92,29 +94,29 @@ export function TimetableGrid({
                 return (
                   <div
                     key={`${day}-${slot}`}
-                    className={`p-2 min-h-[80px] ${
+                    className={`p-1 md:p-2 min-h-[60px] md:min-h-[80px] ${
                       dayIndex < DAYS.length - 1 ? "border-r border-border" : ""
                     }`}
                   >
                     {course ? (
                       <Card
-                        className="h-full p-2 relative group cursor-pointer transition-all hover:shadow-md border-2"
+                        className="h-full p-1 md:p-2 relative group cursor-pointer transition-all hover:shadow-md border-2"
                         style={{
                           backgroundColor: course.color + "20",
                           borderColor: course.color,
                         }}
                       >
-                        <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute top-0.5 md:top-1 right-0.5 md:right-1 flex gap-0.5 md:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-5 w-5 p-0 hover:bg-white/80"
+                            className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
                             onClick={() => onToggleLock(course.id, day, slot)}
                           >
                             {isLocked ? (
-                              <Lock className="h-3 w-3" />
+                              <Lock className="h-2 w-2 md:h-3 md:w-3" />
                             ) : (
-                              <Unlock className="h-3 w-3" />
+                              <Unlock className="h-2 w-2 md:h-3 md:w-3" />
                             )}
                           </Button>
 
@@ -123,9 +125,9 @@ export function TimetableGrid({
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-5 w-5 p-0 hover:bg-white/80"
+                                className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
                               >
-                                <Palette className="h-3 w-3" />
+                                <Palette className="h-2 w-2 md:h-3 md:w-3" />
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-2">
@@ -153,32 +155,32 @@ export function TimetableGrid({
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-5 w-5 p-0 hover:bg-white/80"
+                              className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
                               onClick={() =>
                                 onRemoveCourse(course.id, day, slot)
                               }
                             >
-                              <X className="h-3 w-3" />
+                              <X className="h-2 w-2 md:h-3 md:w-3" />
                             </Button>
                           )}
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-0.5 md:space-y-1">
                           <p
-                            className="font-semibold text-xs"
+                            className="font-semibold text-[10px] md:text-xs"
                             style={{ color: course.color }}
                           >
                             {course.code}
                           </p>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
+                          <p className="text-[9px] md:text-xs text-muted-foreground line-clamp-2 hidden sm:block">
                             {course.name}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-[8px] md:text-xs text-muted-foreground hidden md:block">
                             {course.professor}
                           </p>
                         </div>
                       </Card>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-muted-foreground text-xs">
+                      <div className="h-full flex items-center justify-center text-muted-foreground text-[10px] md:text-xs">
                         Free
                       </div>
                     )}
