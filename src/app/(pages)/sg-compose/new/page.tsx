@@ -18,7 +18,12 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import PageTitle from "@/components/page-title"
-const CkEditor = dynamic(() => import("@/components/editor"), { ssr: false });
+import { toast } from "sonner"
+// Use dynamic import with ssr: false to avoid hydration issues with the editor
+const Editor = dynamic(() => import("@/components/editor"), { 
+  ssr: false,
+  loading: () => <div className="border rounded-md min-h-[300px] p-4">Loading editor...</div>
+});
 
 // Sample data for categories and recipients
 const mailCategories = [
@@ -89,7 +94,27 @@ export default function ComposeNew() {
   }
 
   const insertTemplate = (templateKey: keyof typeof emailTemplates) => {
-    setMailDraft(emailTemplates[templateKey])
+    // Set the HTML template directly
+    setMailDraft(emailTemplates[templateKey]);
+    // Set a meaningful subject based on the template type
+    if (subject === "") {
+      switch(templateKey) {
+        case 'announcement':
+          setSubject("[Announcement] ");
+          break;
+        case 'event':
+          setSubject("[Event] ");
+          break;
+        case 'reminder':
+          setSubject("[Reminder] ");
+          break;
+      }
+    }
+    
+    // Show toast notification
+    toast.success(`${templateKey.charAt(0).toUpperCase() + templateKey.slice(1)} template inserted`, {
+      description: "You can now edit the template with your content."
+    });
   }
 
   const handleRecipientChange = (recipientId: string, checked: boolean) => {
@@ -140,6 +165,9 @@ export default function ComposeNew() {
   const handleSubmit = async (action: 'request' | 'cancel') => {
     if (action === 'request') {
       try {
+        // Debug log to verify HTML content
+        console.log('HTML content being submitted:', mailDraft);
+        
         let response;
         
         if (attachedFiles.length > 0) {
@@ -323,6 +351,7 @@ export default function ComposeNew() {
                   variant="outline"
                   size="sm"
                   onClick={() => insertTemplate('announcement')}
+                  className="hover:bg-primary/10 transition-colors duration-200"
                 >
                   📢 Announcement
                 </Button>
@@ -331,6 +360,7 @@ export default function ComposeNew() {
                   variant="outline"
                   size="sm"
                   onClick={() => insertTemplate('event')}
+                  className="hover:bg-primary/10 transition-colors duration-200"
                 >
                   📅 Event
                 </Button>
@@ -339,13 +369,14 @@ export default function ComposeNew() {
                   variant="outline"
                   size="sm"
                   onClick={() => insertTemplate('reminder')}
+                  className="hover:bg-primary/10 transition-colors duration-200"
                 >
                   ⏰ Reminder
                 </Button>
               </div>
             </div>
             <div className="border rounded-md overflow-hidden">
-              <CkEditor
+              <Editor
                 value={mailDraft}
                 onChange={setMailDraft}
                 placeholder="Compose your email message here... You can use rich text formatting, add images, tables, and links. Or start with a template using the buttons above."

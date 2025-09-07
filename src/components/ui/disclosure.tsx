@@ -114,25 +114,39 @@ export function DisclosureTrigger({
   return (
     <>
       {React.Children.map(children, (child) => {
-        return React.isValidElement(child)
-          ? React.cloneElement(child, {
-              onClick: toggle,
-              role: 'button',
-              'aria-expanded': open,
-              tabIndex: 0,
-              onKeyDown: (e: { key: string; preventDefault: () => void }) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  toggle();
-                }
-              },
-              className: cn(
-                className,
-                (child as React.ReactElement).props.className
-              ),
-              ...(child as React.ReactElement).props,
-            })
-          : child;
+        if (!React.isValidElement(child)) {
+          return child;
+        }
+
+        // Cast to React.ReactElement with any to handle all prop types
+        const element = child as React.ReactElement<any>;
+        
+        return React.cloneElement(element, {
+          onClick: (e: React.MouseEvent) => {
+            // Preserve original onClick if it exists
+            if (typeof element.props.onClick === 'function') {
+              element.props.onClick(e);
+            }
+            toggle();
+          },
+          role: 'button',
+          'aria-expanded': open,
+          tabIndex: 0,
+          onKeyDown: (e: React.KeyboardEvent) => {
+            // Preserve original onKeyDown if it exists
+            if (typeof element.props.onKeyDown === 'function') {
+              element.props.onKeyDown(e);
+            }
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggle();
+            }
+          },
+          className: cn(
+            className,
+            element.props.className
+          ),
+        });
       })}
     </>
   );
