@@ -1,35 +1,52 @@
 "use server";
-import { CodeXml, Inbox } from "lucide-react";
+import { Inbox } from "lucide-react";
 import PageTitle from "@/components/page-title";
 import OutboxTable from "./OutboxTable";
 import { OutboxEmail } from "./columns";
-import {strapiGet} from "@/lib/apis/strapi";
 
-async function getData(userEmail:string){
-  if(!userEmail) return null;
-  const data = await strapiGet(
-    `/users?filters[email][$eqi]=${userEmail}&populate=sg_mails`
-  );
-  const mails = data[0]?.sg_mails;
-  if(!mails) return null;
-  return mails.map((mail:any)=>mapToOutboxEmail(mail));
+async function getData(){
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sg-compose/outbox`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store', // Ensure we get fresh data
+    });
+    
+    if (!response.ok) {
+      console.error('Failed to fetch emails:', response.statusText);
+      return null;
+    }
+    
+    const result = await response.json();
+    
+    if (!result.data || !Array.isArray(result.data)) {
+      return null;
+    }
+    
+    return result.data.map((mail: any) => mapToOutboxEmail(mail));
+  } catch (error) {
+    console.error('Error fetching emails:', error);
+    return null;
+  }
 }
 
 function mapToOutboxEmail(data:any):OutboxEmail{
-  console.log(data.alias);
   return {
     id: data.id,
-    category: data.alias.toString(),
-    recipient: data.recipients,
-    subject: data.subject,
-    status: data.status,
-    createdAt: data.createdAt,
-    sentAt: data.sentAt,
+    category: data.attributes.alias.toString(),
+    recipient: data.attributes.recipients,
+    subject: data.attributes.subject,
+    status: data.attributes.status,
+    createdAt: data.attributes.createdAt,
+    sentAt: data.attributes.sentAt,
+    mailBody: data.attributes.mail_body,
   }
 }
 
 export default async function ComposeOutboxPage() {
-  const data = await getData("ibrahim.khalil_ug25@ashoka.edu.in"); //TODO: Replace with actual user email from session
+  const data = await getData(); //TODO: User ID will be handled securely on the backend via JWT session
   if(!data) return <div className="container mx-auto p-6">No emails found</div>;
 
   return (

@@ -3,13 +3,12 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Upload, Send, X, MailPlus } from "lucide-react"
-
+import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import {
   Select,
   SelectContent,
@@ -18,27 +17,23 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
 import PageTitle from "@/components/page-title"
+const CkEditor = dynamic(() => import("@/components/editor"), { ssr: false });
 
 // Sample data for categories and recipients
 const mailCategories = [
-  { value: "inductions", label: "Inductions" },
-  { value: "lost-and-found", label: "Lost and Found" },
-  { value: "jobs-and-internships", label: "Jobs and Internships" },
-  { value: "surveys", label: "Surveys" },
-  { value: "campaigns", label: "Campaigns" },
-  { value: "fundraisers", label: "Fundraisers" },
-  { value: "events-and-invitations", label: "Events and Invitations" },
-  { value: "promotions", label: "Promotions" }
+  { value: "Inductions", label: "Inductions" },
+  { value: "Lost and Found", label: "Lost and Found" },
+  { value: "Jobs and Internships", label: "Jobs and Internships" },
+  { value: "Surveys", label: "Surveys" },
+  { value: "Campaigns", label: "Campaigns" },
+  { value: "Fundraisers", label: "Fundraisers" },
+  { value: "Events and Invitations", label: "Events and Invitations" },
+  { value: "Promotions", label: "Promotions" }
 ];
 
 const recipients = [
-  {
-    id: "all-students",
-    label: "All Students",
-    email: "students@ashoka.edu.in",
-  },
+  { id: "all-students", label: "All Students", email: "students@ashoka.edu.in" },
   { id: "asp25", label: "ASP25", email: "asp25@ashoka.edu.in" },
   { id: "ug26", label: "UG26", email: "ug26@ashoka.edu.in" },
   { id: "ug2023", label: "UG2023", email: "ug2023@ashoka.edu.in" },
@@ -56,6 +51,47 @@ export default function ComposeNew() {
   const [attachedFiles, setAttachedFiles] = React.useState<File[]>([])
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
+  // Email templates for quick insertion
+  const emailTemplates = {
+    event: `<p>Dear Students,</p>
+<p>We are excited to announce our upcoming event:</p>
+<ul>
+<li><strong>Event Name:</strong> [Event Name]</li>
+<li><strong>Date & Time:</strong> [Date and Time]</li>
+<li><strong>Venue:</strong> [Location]</li>
+<li><strong>Registration:</strong> [Registration Details]</li>
+</ul>
+<p>For more information, please contact us.</p>
+<p>Best regards,<br>[Your Name]</p>`,
+    
+    announcement: `<p>Dear Students,</p>
+<p>[Your announcement message here]</p>
+<p><strong>Key Points:</strong></p>
+<ul>
+<li>[Point 1]</li>
+<li>[Point 2]</li>
+<li>[Point 3]</li>
+</ul>
+<p>If you have any questions, please don't hesitate to reach out.</p>
+<p>Best regards,<br>[Your Name]</p>`,
+    
+    reminder: `<p>Dear Students,</p>
+<p>This is a friendly reminder about [Event/Deadline/Activity].</p>
+<p><strong>Important Details:</strong></p>
+<ul>
+<li><strong>What:</strong> [Description]</li>
+<li><strong>When:</strong> [Date and Time]</li>
+<li><strong>Where:</strong> [Location if applicable]</li>
+<li><strong>Action Required:</strong> [What students need to do]</li>
+</ul>
+<p>Thank you for your attention.</p>
+<p>Best regards,<br>[Your Name]</p>`
+  }
+
+  const insertTemplate = (templateKey: keyof typeof emailTemplates) => {
+    setMailDraft(emailTemplates[templateKey])
+  }
+
   const handleRecipientChange = (recipientId: string, checked: boolean) => {
     if (checked) {
       setSelectedRecipients(prev => [...prev, recipientId])
@@ -65,9 +101,35 @@ export default function ComposeNew() {
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
+    const files = event.target.files;
     if (files) {
-      setAttachedFiles(prev => [...prev, ...Array.from(files)])
+      const newFiles = Array.from(files);
+      
+      // Validate file size (10MB per file)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+      const invalidFiles = newFiles.filter(file => file.size > MAX_FILE_SIZE);
+      
+      if (invalidFiles.length > 0) {
+        alert(`The following files exceed the 10MB limit:\n${invalidFiles.map(f => f.name).join('\n')}`);
+        return;
+      }
+      
+      // Check total size limit
+      const currentTotalSize = attachedFiles.reduce((sum, file) => sum + file.size, 0);
+      const newTotalSize = newFiles.reduce((sum, file) => sum + file.size, 0);
+      const totalSize = currentTotalSize + newTotalSize;
+      
+      if (totalSize > MAX_FILE_SIZE) {
+        alert(`Total file size would exceed 10MB limit. Current: ${(currentTotalSize / 1024 / 1024).toFixed(2)}MB, Adding: ${(newTotalSize / 1024 / 1024).toFixed(2)}MB`);
+        return;
+      }
+      
+      setAttachedFiles(prev => [...prev, ...newFiles]);
+    }
+    
+    // Reset the input value so the same file can be selected again if needed
+    if (event.target) {
+      event.target.value = '';
     }
   }
 
@@ -75,23 +137,71 @@ export default function ComposeNew() {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleSubmit = (action: 'request' | 'cancel') => {
+  const handleSubmit = async (action: 'request' | 'cancel') => {
     if (action === 'request') {
-      // Handle form submission
-      console.log({
-        category: selectedCategory,
-        recipients: selectedRecipients,
-        subject,
-        mailDraft,
-        additionalNotes,
-        attachedFiles,
-      })
-      // You can add form validation and submission logic here
-      alert('Email request submitted successfully!')
+      try {
+        let response;
+        
+        if (attachedFiles.length > 0) {
+          // Use FormData for file uploads
+          const formData = new FormData();
+          formData.append('selectedCategory', selectedCategory);
+          formData.append('selectedRecipients', JSON.stringify(selectedRecipients));
+          formData.append('subject', subject);
+          formData.append('mailDraft', mailDraft);
+          formData.append('additionalNotes', additionalNotes);
+          
+          // Append all files
+          attachedFiles.forEach((file) => {
+            formData.append('files', file);
+          });
+          
+          console.log('Submitting form data with files');
+          
+          // Submit FormData (no Content-Type header needed, browser sets it automatically)
+          response = await fetch('/api/sg-compose/new', {
+            method: 'POST',
+            body: formData
+          });
+        } else {
+          // Use JSON for requests without files
+          const jsonData = {
+            selectedCategory,
+            selectedRecipients,
+            subject,
+            mailDraft,
+            additionalNotes
+          };
+          
+          console.log('Submitting JSON data:', jsonData);
+          
+          response = await fetch('/api/sg-compose/new', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData)
+          });
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('Email request submitted successfully! It will be reviewed by the administrators.');
+          // Navigate to outbox
+          router.push('/sg-compose/outbox');
+        } else {
+          alert(`Error: ${result.error || 'Failed to submit email request'}`);
+        }
+        
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Failed to submit email request. Please try again.');
+      }
+    } else {
+      // Cancel action - just navigate back
+      router.push('/sg-compose/outbox');
     }
-    
-    // Navigate back to outbox
-    router.push('/sg-compose/outbox')
   }
 
   return (
@@ -203,15 +313,48 @@ export default function ComposeNew() {
 
           {/* Mail Draft */}
           <div className="space-y-2">
-            <Label htmlFor="mail-draft" className="text-sm font-medium">
-              Mail Draft <span className="text-destructive">*</span>
-            </Label>
-            <RichTextEditor
-              value={mailDraft}
-              onChange={setMailDraft}
-              placeholder=""
-              className="w-full"
-            />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="mail-draft" className="text-sm font-medium">
+                Mail Draft <span className="text-destructive">*</span>
+              </Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => insertTemplate('announcement')}
+                >
+                  📢 Announcement
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => insertTemplate('event')}
+                >
+                  📅 Event
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => insertTemplate('reminder')}
+                >
+                  ⏰ Reminder
+                </Button>
+              </div>
+            </div>
+            <div className="border rounded-md overflow-hidden">
+              <CkEditor
+                value={mailDraft}
+                onChange={setMailDraft}
+                placeholder="Compose your email message here... You can use rich text formatting, add images, tables, and links. Or start with a template using the buttons above."
+                className="min-h-[300px]"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Use the rich text editor to format your email. You can add headings, bold/italic text, links, images, and tables. Use the template buttons above for quick starts.
+            </p>
           </div>
 
           {/* File Attachment */}
@@ -231,7 +374,7 @@ export default function ComposeNew() {
                   Choose Files
                 </Button>
                 <span className="text-xs text-muted-foreground">
-                  Maximum file size: 10MB per file
+                  Maximum total size: 10MB | Supported: Images, Documents, Presentations, Archives
                 </span>
               </div>
               <input
@@ -246,18 +389,28 @@ export default function ComposeNew() {
               {/* Display attached files */}
               {attachedFiles.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium text-muted-foreground">
-                    Attached Files:
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      Attached Files ({attachedFiles.length}):
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      Total: {(attachedFiles.reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB
+                    </span>
+                  </div>
                   <div className="space-y-1">
                     {attachedFiles.map((file, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
                       >
-                        <span className="text-sm truncate flex-1">
-                          {file.name}
-                        </span>
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">
+                            {file.type.split('/')[0] || 'file'}
+                          </span>
+                          <span className="text-sm truncate flex-1">
+                            {file.name}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
                             {(file.size / 1024 / 1024).toFixed(2)} MB
@@ -300,7 +453,10 @@ export default function ComposeNew() {
               onClick={() => handleSubmit("request")}
               className="gap-2"
               disabled={
-                !selectedCategory || selectedRecipients.length === 0 || !subject
+                !selectedCategory || 
+                selectedRecipients.length === 0 || 
+                !subject || 
+                !mailDraft.trim()
               }
             >
               <Send className="h-4 w-4" />
