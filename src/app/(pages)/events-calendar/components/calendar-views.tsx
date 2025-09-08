@@ -72,7 +72,7 @@ export function MonthView({
             <div
               key={index}
               className={cn(
-                "min-h-32 p-2 border-r border-b border-border last:border-r-0",
+                "min-h-24 p-2 border-r border-b border-border last:border-r-0",
                 !isCurrentMonth && "bg-muted/30 text-muted-foreground",
                 isToday && "bg-primary/5",
                 index >= 35 && "border-b-0" // Remove bottom border for last row
@@ -80,7 +80,7 @@ export function MonthView({
             >
               <div
                 className={cn(
-                  "text-sm font-medium mb-2",
+                  "text-sm font-medium mb-1",
                   isToday && "text-primary font-bold"
                 )}
               >
@@ -93,7 +93,7 @@ export function MonthView({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEventClick(event)}
-                    className="w-full h-auto p-1 text-xs justify-start hover:shadow-sm"
+                    className="w-full h-auto p-0.5 text-xs justify-start hover:shadow-sm"
                     style={{
                       backgroundColor: categoryColors[event.category] + "30",
                     }}

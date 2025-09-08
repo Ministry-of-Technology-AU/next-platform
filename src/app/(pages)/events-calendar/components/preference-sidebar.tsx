@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -17,8 +17,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Search, Save } from "lucide-react";
-import { organizations, defaultColors } from "../data/calendar-data";
-import type { Preferences } from "../types/calendar";
+import { defaultColors } from "../data/calendar-data";
+import type { Preferences, Organization } from "../types/calendar";
 import { Button } from "@/components/ui/button";
 import { TourStep } from "@/components/guided-tour";
 import {
@@ -35,6 +35,8 @@ interface PreferencesSidebarProps {
   onPreferencesChange: (preferences: Preferences) => void;
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
+  apiEndpoint?: string;
+  organizations: Organization[];
 }
 
 export function PreferencesSidebar({
@@ -44,8 +46,17 @@ export function PreferencesSidebar({
   onPreferencesChange,
   selectedDate,
   onDateSelect,
+  apiEndpoint = "/api/events/preferences",
+  organizations = []
 }: PreferencesSidebarProps) {
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
+  const [mounted, setMounted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Handle client-side only rendering
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const categories = [
     "clubs",
@@ -57,6 +68,7 @@ export function PreferencesSidebar({
 
   const getFilteredOrganizations = (category: string) => {
     const searchTerm = searchTerms[category] || "";
+    
     return organizations
       .filter((org) => org.category === category)
       .filter((org) =>
@@ -76,9 +88,28 @@ export function PreferencesSidebar({
   };
 
   const handleCategoryToggle = (category: string) => {
-    const newSelected = preferences.selectedCategories.includes(category)
-      ? preferences.selectedCategories.filter((cat) => cat !== category)
-      : [...preferences.selectedCategories, category];
+    // Simply toggle the current category
+    const isCurrentlySelected = preferences.selectedCategories.includes(category);
+    let newSelected: string[];
+    
+    if (isCurrentlySelected) {
+      // If deselecting, remove from the list
+      newSelected = preferences.selectedCategories.filter(cat => cat !== category);
+      
+      // Make sure we have at least one category selected
+      if (newSelected.length === 0) {
+        // If we're removing the last category, ensure we keep it selected
+        newSelected = [category];
+      }
+    } else {
+      // If selecting, add to the list
+      newSelected = [...preferences.selectedCategories, category];
+      
+      // Remove "all" if it exists and we have specific categories
+      if (newSelected.includes("all") && newSelected.length > 1) {
+        newSelected = newSelected.filter(cat => cat !== "all");
+      }
+    }
 
     onPreferencesChange({
       ...preferences,
@@ -96,8 +127,38 @@ export function PreferencesSidebar({
     });
   };
 
-  const handleSavePreferences = () => {
-    alert("Preferences saved successfully!");
+  const handleSavePreferences = async () => {
+    try {
+      setIsSaving(true);
+      
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ preferences }) // Wrap preferences in an object
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to save preferences: ${response.statusText}`);
+      }
+      
+      // Get response data
+      const data = await response.json();
+      
+      // Update preferences with the saved data if it's returned
+      if (data && data.data) {
+        onPreferencesChange(data.data);
+      }
+      
+      // Show success message
+      alert("Preferences saved successfully!");
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      alert(`Error saving preferences: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -116,12 +177,14 @@ export function PreferencesSidebar({
             content="Select a date to view events for that date."
             position="right"
           >
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && onDateSelect(date)}
-              className="rounded-md border mx-auto max-w-full w-85"
-            />
+            {mounted && (
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && onDateSelect(date)}
+                className="rounded-md border mx-auto max-w-full w-85"
+              />
+            )}
           </TourStep>
 
           {/* Organization Preferences with Category Checkboxes */}
@@ -139,7 +202,8 @@ export function PreferencesSidebar({
                   value={category}
                   className="flex flex-col justify-start !w-full"
                 >
-                  <Accordion11Trigger className="capitalize text-sm text-left flex items-center w-full">
+                  {/* Custom header instead of Accordion11Trigger */}
+                  <div className="capitalize text-sm text-left flex items-center w-full py-2 border-b">
                     {/* Left: Checkbox + Category */}
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -153,7 +217,7 @@ export function PreferencesSidebar({
                       <span className="font-semibold text-sm">{category}</span>
                     </div>
 
-                    {/* Right: Palette + Chevron */}
+                    {/* Right: Palette */}
                     <div className="flex items-center space-x-2 ml-auto">
                       <Popover>
                         <PopoverTrigger asChild>
@@ -185,9 +249,13 @@ export function PreferencesSidebar({
                           ))}
                         </PopoverContent>
                       </Popover>
-                      {/* Chevron will still render automatically as part of AccordionTrigger */}
                     </div>
-                  </Accordion11Trigger>
+                    
+                    {/* Separate accordion trigger with just the chevron */}
+                    <Accordion11Trigger className="ml-2 p-0">
+                      <span className="sr-only">Toggle {category}</span>
+                    </Accordion11Trigger>
+                  </div>
 
                   <Accordion11Content>
                     <div className="space-y-3">
@@ -206,26 +274,32 @@ export function PreferencesSidebar({
                         />
                       </div>
                       <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {getFilteredOrganizations(category).map((org) => (
-                          <div
-                            key={org.id}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={org.id}
-                              checked={preferences.selectedOrganizations.includes(
-                                org.id
-                              )}
-                              onCheckedChange={() =>
-                                handleOrganizationToggle(org.id)
-                              }
-                              className="rounded-md w-5 h-5 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
-                            />
-                            <label htmlFor={org.id} className="text-sm">
-                              {org.name}
-                            </label>
+                        {getFilteredOrganizations(category).length > 0 ? (
+                          getFilteredOrganizations(category).map((org) => (
+                            <div
+                              key={org.id}
+                              className="flex items-center space-x-2"
+                            >
+                              <Checkbox
+                                id={org.id}
+                                checked={preferences.selectedOrganizations.includes(
+                                  org.id
+                                )}
+                                onCheckedChange={() =>
+                                  handleOrganizationToggle(org.id)
+                                }
+                                className="rounded-md w-5 h-5 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
+                              />
+                              <label htmlFor={org.id} className="text-sm">
+                                {org.name}
+                              </label>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-sm text-muted-foreground py-2 text-center">
+                            No organizations found
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
                   </Accordion11Content>
@@ -239,6 +313,7 @@ export function PreferencesSidebar({
           <div className="pt-4 border-t">
             <Button
               onClick={handleSavePreferences}
+              disabled={isSaving}
               className={`
                 fixed
                 bottom-6
@@ -260,12 +335,13 @@ export function PreferencesSidebar({
                 hover:justify-start
                 px-4
                 overflow-hidden
+                ${isSaving ? 'opacity-70' : ''}
               `}
               style={{ minWidth: "3.5rem" }}
             >
               <span className="flex items-center w-full justify-center group-hover:justify-start">
                 <Save
-                  className="w-15 h-15 flex-shrink-0 text-center"
+                  className={`w-15 h-15 flex-shrink-0 text-center ${isSaving ? 'animate-pulse' : ''}`}
                   strokeWidth={2.5}
                 />
                 <span
@@ -280,7 +356,7 @@ export function PreferencesSidebar({
       duration-300
     `}
                 >
-                  Save Preferences
+                  {isSaving ? 'Saving...' : 'Save Preferences'}
                 </span>
               </span>
             </Button>

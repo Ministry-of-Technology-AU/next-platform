@@ -6,6 +6,7 @@ import { Sidebar, SidebarProvider, SidebarTrigger } from "@/components/ui/sideba
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {TourProvider} from "@/components/guided-tour";
+import { Suspense } from "react";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -41,9 +42,11 @@ export default function RootLayout({
                 <AppSidebar />
                 <div className="flex flex-1 flex-col">
                   <Navbar />
+                  <Suspense>
                   <main className="flex-1 overflow-auto p-4 sm:p-6">
                     {children}
                   </main>
+                  </Suspense>
                 </div>
               </div>
             </SidebarProvider>
