@@ -1,16 +1,15 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useIsMac } from "@/hooks/useIsMac";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, User, Newspaper, HelpCircle, LogOut, UserPen } from "lucide-react";
+import { User, Newspaper, HelpCircle, LogOut, UserPen, LogIn } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -31,6 +30,95 @@ import { TourTrigger } from "./guided-tour";
 import { SidebarTrigger } from "./ui/sidebar";
 import ThemeToggle from "@/components/ui/theme-toggle";
 
+
+// Authentication Section Component
+function AuthSection() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <Button variant="ghost" size="icon" disabled>
+        <User className="size-5 animate-pulse" />
+      </Button>
+    );
+  }
+
+  if (!session) {
+    // Show login button when not authenticated
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => signIn("google")}
+            className="gap-2"
+          >
+            <LogIn className="size-4" />
+            Sign In
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-sm">Sign in with your Ashoka email</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  // Show user avatar and dropdown when authenticated
+  return (
+    <Tooltip>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" aria-label="User profile">
+            <Avatar>
+              <TooltipTrigger asChild>
+                <AvatarImage
+                  src={session.user?.image || ""}
+                  alt="User Avatar"
+                />
+              </TooltipTrigger>
+              <AvatarFallback>
+                <User className="size-5" />
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <div className="flex items-center space-x-2 p-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={session.user?.image || ""} alt="Avatar" />
+              <AvatarFallback>
+                <User className="size-4" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">
+                {session.user?.name}
+              </p>
+              <p className="text-xs leading-none text-muted-foreground">
+                {session.user?.email}
+              </p>
+            </div>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>
+            <UserPen className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => signOut()}
+            className="text-red-600 dark:text-red-400"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Sign Out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </Tooltip>
+  );
+}
 
 export default function Navbar() {
 const isMac = useIsMac();
@@ -132,37 +220,8 @@ const isMac = useIsMac();
           </TooltipContent>
         </Tooltip>
 
-        {/* Profile Avatar button - Launches a dropdown */}
-        <Tooltip>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="User profile">
-                <Avatar>
-                  <TooltipTrigger asChild>
-                    <AvatarImage
-                      src="https://github.com/sohamtulsyan.png"
-                      alt="User Avatar"
-                    />
-                  </TooltipTrigger>
-                  <AvatarFallback>
-                    <User className="size-5" />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>
-                <UserPen />
-                <span className="ml-2">Visit Profile Page</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut />
-                <span className="ml-2">Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </Tooltip>
+        {/* Authentication Section */}
+        <AuthSection />
       </div>
     </nav>
   );

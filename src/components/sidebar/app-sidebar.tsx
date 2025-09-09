@@ -126,7 +126,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2">
               <div className="flex-shrink-0 cursor-pointer">
                 <Image
-                  src="/MoT logo.png"
+                  src="public/MoT logo.png"
                   alt="Ministry of Technology"
                   width={48}
                   height={48}
