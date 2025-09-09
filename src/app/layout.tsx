@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Nunito, Nunito_Sans} from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
-import { Sidebar, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {TourProvider} from "@/components/guided-tour";
 import { Suspense } from "react";
+import { SessionProvider } from "next-auth/react";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -33,25 +34,27 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
-        <TooltipProvider>
-          <TourProvider
-            autoStart={false}
-          >
-            <SidebarProvider defaultOpen={false}>
-              <div className="flex min-h-screen w-full">
-                <AppSidebar />
-                <div className="flex flex-1 flex-col">
-                  <Navbar />
-                  <Suspense>
-                  <main className="flex-1 overflow-auto p-4 sm:p-6">
-                    {children}
-                  </main>
-                  </Suspense>
+        <SessionProvider>
+          <TooltipProvider>
+            <TourProvider
+              autoStart={false}
+            >
+              <SidebarProvider defaultOpen={false}>
+                <div className="flex min-h-screen w-full">
+                  <AppSidebar />
+                  <div className="flex flex-1 flex-col">
+                    <Navbar />
+                    <Suspense>
+                    <main className="flex-1 overflow-auto p-4 sm:p-6">
+                      {children}
+                    </main>
+                    </Suspense>
+                  </div>
                 </div>
-              </div>
-            </SidebarProvider>
-          </TourProvider>
-        </TooltipProvider>
+              </SidebarProvider>
+            </TourProvider>
+          </TooltipProvider>
+        </SessionProvider>
       </body>
     </html>
   );
