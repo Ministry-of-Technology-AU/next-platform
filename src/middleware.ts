@@ -6,15 +6,16 @@ const ROUTE_ACCESS = {
   '/platform': ['platform'],
   '/sg-compose': ['platform'],
   '/organization': ['organization'],
-  '/api/sg-compose': ['platform'], // Specific API routes that need auth
-  '/api/drive': ['platform'],
-  '/api/mail': ['platform'],
 }
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
   
   if (pathname.startsWith('/api/auth')) {
+    return NextResponse.next()
+  }
+
+  if (pathname.endsWith('jpg') || pathname.endsWith('png') || pathname.endsWith('svg') || pathname.endsWith('ico')) {
     return NextResponse.next()
   }
 

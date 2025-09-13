@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { strapiPost, strapiGet } from '@/lib/apis/strapi'
+import { getUserIdByEmail } from '@/lib/userid'
+import { auth } from '@/auth'
 
 // Helper function to validate phone number
 function validatePhoneNumber(phone: string): boolean {
@@ -67,34 +69,38 @@ function convertTo24HourFormat(hour: string, minute: string, period: string): st
   return `${hour24.toString().padStart(2, '0')}:${sanitizeInput(minute)}:00`
 }
 
-// GET /api/pools - Fetch pools
-export async function GET(request: NextRequest) {
+// GET /api/pools - Fetch pools of current user in past 5 days and also check if the status of that pool is available then return true else false
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    
-    // Build query parameters from URL search params
-    const queryParams: any = {}
-    
-    // Add pagination
-    if (searchParams.get('page')) {
-      queryParams.pagination = { page: parseInt(searchParams.get('page')!) }
+    const session = await auth()
+    const userId = getUserIdByEmail(session?.user?.email || '')    
+    if (!userId) {
+      return NextResponse.json({
+        success: false,
+        error: 'User not found'
+      }, { status: 404 })
     }
-    if (searchParams.get('pageSize')) {
-      queryParams.pagination = { ...queryParams.pagination, pageSize: parseInt(searchParams.get('pageSize')!) }
+    const getPastDate = (days: number): string => {
+      const date = new Date()
+      date.setDate(date.getDate() - days)
+      return date.toISOString().split('T')[0]
     }
-    
-    // Add filters
-    if (searchParams.get('journey')) {
-      queryParams.filters = { journey: { $eq: searchParams.get('journey') } }
+    const response = await strapiGet(`/pools?user=${userId}&date_gte=${getPastDate(5)}`)
+    const pools = response.data || []
+
+    // Check if any pool is available
+    const hasAvailablePool = pools.some((pool: any) => pool.status === "available")
+
+    if (hasAvailablePool) {
+      return NextResponse.json({
+        success: true,        
+      })
+    } else {
+      return NextResponse.json({
+        success: false,
+        error: 'No available pools found'
+      })
     }
-    
-    const response = await strapiGet('/pools', queryParams)
-    
-    return NextResponse.json({
-      success: true,
-      data: response
-    }, { status: 200 })
-    
   } catch (error) {
     console.error("Error fetching pools:", error)
     return NextResponse.json({
@@ -107,6 +113,16 @@ export async function GET(request: NextRequest) {
 // POST /api/pools - Create a new pool
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth()
+    
+    const userId = getUserIdByEmail(session?.user?.email || '')
+    if (!userId) {
+      return NextResponse.json({
+        success: false,
+        error: 'User not found'
+      }, { status: 404 })
+    }
+
     const body = await request.json()
     
     // Extract and validate required fields
@@ -180,7 +196,7 @@ export async function POST(request: NextRequest) {
         time: time24,
         day: selectedDate,
         status: "available",
-        pooler: 1 // Note: This should be set based on authenticated user
+        pooler: userId // Use actual authenticated user ID
       }
     }
     
