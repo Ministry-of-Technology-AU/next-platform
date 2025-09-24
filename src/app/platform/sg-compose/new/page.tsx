@@ -333,30 +333,20 @@ export default function ComposeNew() {
           />
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <div className="flex-1">
-              <SubmitButton
-                text="Request Email"
-                disabled={
-                  !selectedCategory || 
-                  selectedRecipients.length === 0 || 
-                  !subject || 
-                  !mailDraft.trim()
-                }
-                description="Submit your email request for administrative review"
-                className="w-full"
-              />
-            </div>
-            <div className="flex-shrink-0">
-              <Button 
-                variant="outline" 
-                onClick={() => handleSubmit("cancel")}
-                className="w-full sm:w-auto px-6"
-                type="button"
-              >
-                Cancel Email
-              </Button>
-            </div>
+          <div className="flex gap-3 pt-4">
+            <SubmitButton
+              text="Request Email"
+              disabled={
+                !selectedCategory || 
+                selectedRecipients.length === 0 || 
+                !subject || 
+                !mailDraft.trim()
+              }
+              description="Submit your email request for administrative review"
+            />
+            <Button variant="outline" onClick={() => handleSubmit("cancel")}>
+              Cancel Email
+            </Button>
           </div>
         </FormContainer>
       </Card>
