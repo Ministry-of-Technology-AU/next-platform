@@ -38,10 +38,6 @@ const Editor: FC<EditorProps> = ({
     }
   };
 
-  useEffect(() => {
-    console.log("Editor data: ", currentValue);
-  }, [currentValue]);
-
   // Using useState and useEffect to ensure client-side rendering only
   const [isMounted, setIsMounted] = useState(false);
   

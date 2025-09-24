@@ -2,23 +2,22 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Upload, Send, X, MailPlus } from "lucide-react"
+import { ArrowLeft, MailPlus, Send } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import PageTitle from "@/components/page-title"
 import { toast } from "sonner"
+import {
+  TextInput,
+  SingleSelect,
+  MultiSelectCheckbox,
+  FileUpload,
+  SubmitButton,
+  FormContainer,
+  InstructionsField
+} from "@/components/form"
 // Use dynamic import with ssr: false to avoid hydration issues with the editor
 const Editor = dynamic(() => import("@/components/editor"), { 
   ssr: false,
@@ -38,12 +37,12 @@ const mailCategories = [
 ];
 
 const recipients = [
-  { id: "all-students", label: "All Students", email: "students@ashoka.edu.in" },
-  { id: "asp25", label: "ASP25", email: "asp25@ashoka.edu.in" },
-  { id: "ug26", label: "UG26", email: "ug26@ashoka.edu.in" },
-  { id: "ug2023", label: "UG2023", email: "ug2023@ashoka.edu.in" },
-  { id: "ug2024", label: "UG2024", email: "ug2024@ashoka.edu.in" },
-  { id: "ug2025", label: "UG2025", email: "ug2025@ashoka.edu.in" }
+  { value: "all-students", label: "All Students", description: "students@ashoka.edu.in" },
+  { value: "asp25", label: "ASP25", description: "asp25@ashoka.edu.in" },
+  { value: "ug26", label: "UG26", description: "ug26@ashoka.edu.in" },
+  { value: "ug2023", label: "UG2023", description: "ug2023@ashoka.edu.in" },
+  { value: "ug2024", label: "UG2024", description: "ug2024@ashoka.edu.in" },
+  { value: "ug2025", label: "UG2025", description: "ug2025@ashoka.edu.in" }
 ];
 
 export default function ComposeNew() {
@@ -54,7 +53,6 @@ export default function ComposeNew() {
   const [mailDraft, setMailDraft] = React.useState("")
   const [additionalNotes, setAdditionalNotes] = React.useState("")
   const [attachedFiles, setAttachedFiles] = React.useState<File[]>([])
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   // Email templates for quick insertion
   const emailTemplates = {
@@ -117,50 +115,9 @@ export default function ComposeNew() {
     });
   }
 
-  const handleRecipientChange = (recipientId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedRecipients(prev => [...prev, recipientId])
-    } else {
-      setSelectedRecipients(prev => prev.filter(id => id !== recipientId))
-    }
-  }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const newFiles = Array.from(files);
-      
-      // Validate file size (10MB per file)
-      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-      const invalidFiles = newFiles.filter(file => file.size > MAX_FILE_SIZE);
-      
-      if (invalidFiles.length > 0) {
-        alert(`The following files exceed the 10MB limit:\n${invalidFiles.map(f => f.name).join('\n')}`);
-        return;
-      }
-      
-      // Check total size limit
-      const currentTotalSize = attachedFiles.reduce((sum, file) => sum + file.size, 0);
-      const newTotalSize = newFiles.reduce((sum, file) => sum + file.size, 0);
-      const totalSize = currentTotalSize + newTotalSize;
-      
-      if (totalSize > MAX_FILE_SIZE) {
-        alert(`Total file size would exceed 10MB limit. Current: ${(currentTotalSize / 1024 / 1024).toFixed(2)}MB, Adding: ${(newTotalSize / 1024 / 1024).toFixed(2)}MB`);
-        return;
-      }
-      
-      setAttachedFiles(prev => [...prev, ...newFiles]);
-    }
-    
-    // Reset the input value so the same file can be selected again if needed
-    if (event.target) {
-      event.target.value = '';
-    }
-  }
 
-  const removeFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index))
-  }
+
 
   const handleSubmit = async (action: 'request' | 'cancel') => {
     if (action === 'request') {
@@ -232,12 +189,14 @@ export default function ComposeNew() {
     }
   }
 
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleSubmit("request");
+  };
+
   return (
-    <div className="space-y-6 max-w-4xl">
-      {/* Header Section */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Button
+    <>
+              <Button
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
@@ -245,104 +204,69 @@ export default function ComposeNew() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          {/* <h1 className="text-3xl font-bold tracking-tight">
-            Compose New Mail
-          </h1> */}
+    <div className="space-y-6 max-w-6xl mx-auto p-6">
+      {/* Header Section */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
           <PageTitle
             text="Compose a new mail"
-            subheading=" Moving Forward; Not Just Forwards - SG Compose is a streamlined email
-          management platform designed for Student Government, allowing students
-          to submit requests that can be quickly approved and automatically sent
-          to targeted groups. The system includes rich text editing, alias-based
-          organization, and options for directing emails to specific audiences
-          within Ashoka University."
-          icon={MailPlus}
+            subheading="Moving Forward; Not Just Forwards - SG Compose is a streamlined email management platform designed for Student Government, allowing students to submit requests that can be quickly approved and automatically sent to targeted groups. The system includes rich text editing, alias-based organization, and options for directing emails to specific audiences within Ashoka University."
+            icon={MailPlus}
           />
         </div>
       </div>
 
+
       {/* Form Card */}
-      <Card>
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle>Email Details</CardTitle>
+         <InstructionsField
+          heading="Email Composition Guidelines"
+          subheading="Please follow these guidelines for effective email composition"
+          body={[
+            "Select appropriate category and recipients for your email",
+            "Write a clear and descriptive subject line",
+            "Use the rich text editor to format your message professionally",
+            "Add attachments if necessary (max 10MB total)",
+            "Include any additional notes for the administrators"
+          ]}
+        />
         </CardHeader>
-        <CardContent className="space-y-6">
+
+        <FormContainer onSubmit={handleFormSubmit} className="w-full">
           {/* Category Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="category" className="text-sm font-medium">
-              Select Your Category of Mail{" "}
-              <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-            >
-              <SelectTrigger id="category">
-                <SelectValue placeholder="Choose a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {mailCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SingleSelect
+            title="Select Your Category of Mail"
+            placeholder="Choose a category"
+            items={mailCategories}
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            isRequired={true}
+          />
 
           {/* Recipients Selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">
-              Select Recipients <span className="text-destructive">*</span>
-            </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border rounded-md bg-muted/20">
-              {recipients.map((recipient) => (
-                <div key={recipient.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={recipient.id}
-                    checked={selectedRecipients.includes(recipient.id)}
-                    onCheckedChange={(checked) =>
-                      handleRecipientChange(recipient.id, checked as boolean)
-                    }
-                  />
-                  <Label
-                    htmlFor={recipient.id}
-                    className="text-sm font-normal cursor-pointer flex-1"
-                  >
-                    <div>
-                      <div className="font-medium">{recipient.label}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {recipient.email}
-                      </div>
-                    </div>
-                  </Label>
-                </div>
-              ))}
-            </div>
-            {selectedRecipients.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                {selectedRecipients.length} recipient(s) selected
-              </p>
-            )}
-          </div>
+          <MultiSelectCheckbox
+            title="Select Recipients"
+            description={selectedRecipients.length > 0 ? `${selectedRecipients.length} recipient(s) selected` : undefined}
+            items={recipients}
+            value={selectedRecipients}
+            onChange={setSelectedRecipients}
+            isRequired={true}
+          />
 
           {/* Subject */}
-          <div className="space-y-2">
-            <Label htmlFor="subject" className="text-sm font-medium">
-              Subject <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="subject"
-              placeholder="Enter email subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-            />
-          </div>
+          <TextInput
+            title="Subject"
+            placeholder="Enter email subject"
+            value={subject}
+            onChange={setSubject}
+            isRequired={true}
+          />
 
-          {/* Mail Draft */}
-          <div className="space-y-2">
+          {/* Mail Draft with Template Buttons */}
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="mail-draft" className="text-sm font-medium">
+              <Label className="text-base font-medium">
                 Mail Draft <span className="text-destructive">*</span>
               </Label>
               <div className="flex gap-2">
@@ -383,122 +307,60 @@ export default function ComposeNew() {
                 className="min-h-[300px]"
               />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Use the rich text editor to format your email. You can add headings, bold/italic text, links, images, and tables. Use the template buttons above for quick starts.
             </p>
           </div>
 
           {/* File Attachment */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">
-              File Attachment (if any)
-            </Label>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="gap-2"
-                >
-                  <Upload className="h-4 w-4" />
-                  Choose Files
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  Maximum total size: 10MB | Supported: Images, Documents, Presentations, Archives
-                </span>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={handleFileUpload}
-                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
-              />
-
-              {/* Display attached files */}
-              {attachedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium text-muted-foreground">
-                      Attached Files ({attachedFiles.length}):
-                    </Label>
-                    <span className="text-xs text-muted-foreground">
-                      Total: {(attachedFiles.reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    {attachedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
-                      >
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">
-                            {file.type.split('/')[0] || 'file'}
-                          </span>
-                          <span className="text-sm truncate flex-1">
-                            {file.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => removeFile(index)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <FileUpload
+            title="File Attachment (if any)"
+            description="Maximum total size: 10MB | Supported: Images, Documents, Presentations, Archives"
+            accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+            multiple={true}
+            maxSize={10}
+            value={attachedFiles}
+            onChange={setAttachedFiles}
+          />
 
           {/* Additional Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="additional-notes" className="text-sm font-medium">
-              Additional Notes (if any)
-            </Label>
-            <Textarea
-              id="additional-notes"
-              placeholder="Any additional notes or special instructions..."
-              className="min-h-[80px] resize-y"
-              value={additionalNotes}
-              onChange={(e) => setAdditionalNotes(e.target.value)}
-            />
-          </div>
+          <TextInput
+            title="Additional Notes (if any)"
+            placeholder="Any additional notes or special instructions..."
+            isParagraph={true}
+            value={additionalNotes}
+            onChange={setAdditionalNotes}
+          />
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              onClick={() => handleSubmit("request")}
-              className="gap-2"
-              disabled={
-                !selectedCategory || 
-                selectedRecipients.length === 0 || 
-                !subject || 
-                !mailDraft.trim()
-              }
-            >
-              <Send className="h-4 w-4" />
-              Request Email
-            </Button>
-            <Button variant="outline" onClick={() => handleSubmit("cancel")}>
-              Cancel Email
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <div className="flex-1">
+              <SubmitButton
+                text="Request Email"
+                disabled={
+                  !selectedCategory || 
+                  selectedRecipients.length === 0 || 
+                  !subject || 
+                  !mailDraft.trim()
+                }
+                description="Submit your email request for administrative review"
+                className="w-full"
+              />
+            </div>
+            <div className="flex-shrink-0">
+              <Button 
+                variant="outline" 
+                onClick={() => handleSubmit("cancel")}
+                className="w-full sm:w-auto px-6"
+                type="button"
+              >
+                Cancel Email
+              </Button>
+            </div>
           </div>
-        </CardContent>
+        </FormContainer>
       </Card>
     </div>
+    </>
   );
 }
