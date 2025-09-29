@@ -3,6 +3,7 @@ import { BookOpen } from "lucide-react";
 import CourseReviewsClient from "./course-reviews-client";
 import PageTitle from "@/components/page-title";
 import DeveloperCredits from "@/components/developer-credits";
+import { cookies } from "next/headers";
 
 const maxCoursesToLoad = 100;
 
@@ -13,12 +14,14 @@ function calculateRating(ratings: number[]){
 }
 
 async function getData(){
+  const cookieStore = await cookies();
   try {
     // For local development, just use localhost
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
     const response = await fetch(`${baseUrl}/api/platform/courses?year=2024&page=1&pageSize=${maxCoursesToLoad}`, {
-      cache: 'no-store'
+      cache: 'no-store',
+      headers: { 'Cookie': cookieStore.toString() },
     });
     
     if (!response.ok) {

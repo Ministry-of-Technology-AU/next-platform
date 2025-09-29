@@ -1,8 +1,11 @@
 import EventsCalendar from "./events-calendar";
 import { Suspense } from "react";
 import { Event, Organization } from "./types/calendar";
+import { cookies } from "next/headers";
 
 export default async function Page() {
+  const cookieStore = await cookies();
+  
   async function fetchEvents() {
     try {
       // Calculate date range for current month and next month
@@ -21,6 +24,7 @@ export default async function Page() {
       const response = await fetch(apiUrl, {
         cache: 'no-store',
         next: { revalidate: 0 }, // Ensure fresh data on each request
+        headers: { 'Cookie': cookieStore.toString() },
       });
       
       if (!response.ok) {
@@ -55,6 +59,7 @@ export default async function Page() {
       const response = await fetch(apiUrl, {
         cache: 'no-store',
         next: { revalidate: 0 },
+        headers: { 'Cookie': cookieStore.toString() },
       });
       
       if (!response.ok) {
@@ -82,6 +87,7 @@ export default async function Page() {
       const response = await fetch(apiUrl, {
         cache: 'no-store',
         next: { revalidate: 0 },
+        headers: { 'Cookie': cookieStore.toString() },
       });
       
       if (!response.ok) {

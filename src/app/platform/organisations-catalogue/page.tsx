@@ -1,15 +1,26 @@
 import { GalleryHorizontalEnd } from "lucide-react";
 import PageTitle from "@/components/page-title";
 import OrganisationsCatalogueClient from "./client";
-import { apiGet } from "@/lib/apis";
+import { cookies } from "next/headers";
 
 export default async function OrganisationsCataloguePage() {
   let organisations: any[] = [];
   let error: string | null = null;
 
   try {
-    const json = await apiGet("/api/platform/organisation-catalogue");
-    organisations = json.organisations || [];
+    const cookieStore = await cookies();
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/platform/organisation-catalogue`, {
+      cache: 'no-store',
+      headers: { 'Cookie': cookieStore.toString() },
+    });
+    
+    if (response.ok) {
+      const json = await response.json();
+      organisations = json.organisations || [];
+    } else {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
   } catch (e: any) {
     error = e.message;
   }

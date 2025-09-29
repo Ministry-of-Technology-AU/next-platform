@@ -1,0 +1,32 @@
+[
+  {
+    "ticketId": "WIFI-29WUMJLK",
+    "user": "soham.tulsyan_ug2023@ashoka.edu.in",
+    "networkStatus": "Not on Ashoka WiFi",
+    "downloadSpeed": "N/A",
+    "complaintType": "speed",
+    "location": "hostel_b"
+  },
+  {
+    "ticketId": "WIFI-H62794AB",
+    "user": "soham.tulsyan_ug2023@ashoka.edu.in",
+    "phone": "6291579424",
+    "networkStatus": "On Ashoka WiFi",
+    "downloadSpeed": "120 Mbps",
+    "complaintType": "unblock_service",
+    "location": "academic_block",
+    "specificLocation": "006",
+    "additionalDetails": "This is a test submission. Please do not respond to this. ",
+    "submissionTimestamp": "2025-09-29T08:48:42.983Z",
+    "rawFormData": {
+      "phone": "6291579424",
+      "wifiStatus": "onWifi",
+      "downloadSpeed": "120",
+      "complaintType": "unblock_service",
+      "location": "academic_block",
+      "specificLocation": "006",
+      "message": "This is a test submission. Please do not respond to this. ",
+      "submissionTimestamp": "2025-09-29T08:48:42.983Z"
+    }
+  }
+]

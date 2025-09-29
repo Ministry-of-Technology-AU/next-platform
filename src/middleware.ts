@@ -19,8 +19,8 @@ export default auth((req) => {
     return NextResponse.next()
   }
 
-  // Allow root path - let it through to the page
-  if (pathname === '/') {
+  // Allow root path and login page - let them through
+  if (pathname === '/' || pathname === '/login') {
     return NextResponse.next()
   }
 
@@ -35,11 +35,13 @@ export default auth((req) => {
   if (!req.auth?.user) {
     console.log('❌ User not authenticated, redirecting to signin from:', pathname)
 
-    const signInUrl = new URL('/api/auth/signin/google', req.url)
-    return NextResponse.redirect(signInUrl)
+    // Create a login page URL with return URL as parameter
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(loginUrl)
   }
   
-  console.log('User:', req.auth.user)
+  // console.log('User:', req.auth.user)
 
   // Check route access permissions
   const userAccess = req.auth.user?.access || []
