@@ -12,7 +12,7 @@
         {
           "title": "SG Compose",
           "icon": "MailPlus",
-          "href": "/platform/sg-compose/outbox"
+          "href": "/sg-compose/outbox"
         }
       ]
     },

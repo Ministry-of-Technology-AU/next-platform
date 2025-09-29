@@ -177,7 +177,7 @@ export function AppSidebar() {
                         tooltip={iconCollapse ? item.title : undefined}
                       >
                         <Link
-                          href={item.href}
+                          href={`/platform${item.href}`}
                           className="flex items-center w-full"
                         >
                           <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto" />

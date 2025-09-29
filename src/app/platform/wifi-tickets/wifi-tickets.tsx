@@ -19,13 +19,32 @@ export default function WifiTickets1(){
     { value: "forgot_password", label: "Forgot Password" },
     { value: "unblock_service", label: "Unblock Service" },
     { value: "damaged_hardware", label: "Damaged Hardware" },
+    { value: "low_router_density", label: "Low Router Density" },
+    { value: "other", label: "Other (Write in additional notes)" },
   ]
   const locationOptions = [
-    { value: "hostel_a", label: "Hostel A" },
-    { value: "hostel_b", label: "Hostel B" },
-    { value: "academic_block", label: "Academic Block" },
+    { value: "rh1", label: "RH-01" },
+    { value: "rh2", label: "RH-02" },
+    { value: "rh3", label: "RH-03" },
+    { value: "rh4", label: "RH-04" },
+    { value: "rh5", label: "RH-05" },
+    { value: "rh6", label: "RH-06" },
+    { value: "rh7", label: "RH-07" },
+    { value: "admin_block", label: "Admin Block" },
+    { value: "ac1", label: "AC-01" },
+    { value: "ac2", label: "AC-02" },
+    { value: "ac3", label: "AC-03" },
+    { value: "ac4", label: "AC-04" },
+    { value: "ac5", label: "AC-05" },
     { value: "mess", label: "Mess" },
+    { value: "fuel_zone", label: "Fuel Zone" },
+    { value: "sanghvi", label: "Sanghvi Library" },
+    { value: "libcaf", label: "Library Cafe" },
+    { value: "libcaf", label: "Library Cafe" },
+    { value: "library", label: "Library" },
+    { value: "sports_complex", label: "Sports Complex" },
     { value: "other", label: "Other" },
+
   ];
   const [location, setLocation] = useState("");
   const [roomFloor, setRoomFloor] = useState("");
