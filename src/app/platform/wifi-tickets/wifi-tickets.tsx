@@ -40,7 +40,6 @@ export default function WifiTickets1(){
     { value: "fuel_zone", label: "Fuel Zone" },
     { value: "sanghvi", label: "Sanghvi Library" },
     { value: "libcaf", label: "Library Cafe" },
-    { value: "libcaf", label: "Library Cafe" },
     { value: "library", label: "Library" },
     { value: "sports_complex", label: "Sports Complex" },
     { value: "other", label: "Other" },
@@ -58,7 +57,7 @@ export default function WifiTickets1(){
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const response = await fetch('/api/wifi-tickets');
+        const response = await fetch('/api/platform/wifi-tickets');
         if (response.ok) {
           const data = await response.json();
           if (data.phone) {

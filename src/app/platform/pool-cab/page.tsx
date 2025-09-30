@@ -1,7 +1,9 @@
-import { Car } from "lucide-react"
+import { Car, Loader } from "lucide-react"
 import PoolCabForm from "./PoolCabForm"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation";
+import PageTitle from "@/components/page-title";
+import { Suspense } from "react";
 
 async function existPoolRequest() {
     const cookieStore = await cookies();
@@ -22,26 +24,22 @@ async function existPoolRequest() {
 
 export default async function PoolCab() {
     const existingRequest = await existPoolRequest();
-    if (existingRequest) {
+    if (existingRequest.success) {
         redirect('/platform/pool-cab/results');
     }
     return (
         <div className="flex justify-center px-4 sm:px-6 lg:px-8">
-            <div className="w-full max-w-4xl space-y-6">
+            <div className="w-full space-y-6">
                 {/* Header Section */}
                 <div className="space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-3">
-                        <Car className="h-8 w-8 text-primary" />
-                        Pool a Cab
-                    </h1>
-                    <p className="text-muted-foreground text-center">
-                        Find others traveling on the same route and share a cab to save money and reduce environmental impact.
-                        Fill in your travel details below to find potential cab partners or create a new pool request.
-                    </p>
+                    <PageTitle text="Pool a Cab" subheading="Find others traveling on the same route and share a cab to save money and reduce environmental impact.
+                        Fill in your travel details below to find potential cab partners or create a new pool request." icon={Car}/>
                 </div>
 
                 {/* Form Component */}
+                <Suspense fallback={<Loader />}>
                 <PoolCabForm />
+                </Suspense>
             </div>
         </div>
     )

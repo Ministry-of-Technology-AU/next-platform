@@ -13,7 +13,7 @@ export default async function OutboxTable({ data }: { data: OutboxEmail[] }) {
       {/* New Mail Button */}
       <div className="flex justify-start">
         <Button asChild className="gap-2" variant="animated">
-          <Link href="/sg-compose/new">
+          <Link href="/platform/sg-compose/new">
             <MailPlus className="h-4 w-4" />
             Compose New Mail
           </Link>

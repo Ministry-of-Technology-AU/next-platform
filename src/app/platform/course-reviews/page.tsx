@@ -110,23 +110,6 @@ async function getData(){
 
 export default async function CourseReviewsPage() {
   const data = await getData();
-  return (
-    <div className="min-h-screen bg-neutral-extralight">
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Header */}
-        <PageTitle
-          text="Course Reviews"
-          icon={BookOpen}
-          subheading='We request that you add your own reviews to help your peers make more informed choices!
-          Note: All course and faculty names are taken directly from AMS.'
-        />
-
-        {/* Client-side interactive part */}
-        <CourseReviewsClient courses={data} />
-
-        {/* Credits */}
-        <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Lead Developer"}]}/>
-      </div>
-    </div>
+  return (        <CourseReviewsClient courses={data} />
   );
 }

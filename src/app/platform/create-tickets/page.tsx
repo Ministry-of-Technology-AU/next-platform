@@ -1,11 +1,12 @@
 import CreateTickets from "./create-tickets";
 import { Card } from "@/components/ui/card";
+import PageTitle from "@/components/page-title";
+import { Ticket } from "lucide-react";
 
 export default function CreateTicketsPage(){
     return (
       <div className="mx-4">
-        <h1>Create a Ticket</h1>
-        <p className="text-center">Raise a ticket to contact any set of the minsitries of AUSG!</p>
+        <PageTitle text="Create a Ticket" subheading="Raise a ticket to contact any set of the ministries of AUSG!" icon={Ticket}/>
         <Card className="mt-5">
             <CreateTickets/>
         </Card>

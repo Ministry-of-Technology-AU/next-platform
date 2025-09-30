@@ -4,6 +4,8 @@ import PageTitle from "@/components/page-title";
 import OutboxTable from "./OutboxTable";
 import { OutboxEmail } from "./columns";
 import { cookies } from "next/headers";
+import { redirect, RedirectType } from "next/navigation";
+import { Suspense } from "react";
 
 async function getData(){
   try {
@@ -50,8 +52,9 @@ function mapToOutboxEmail(data:any):OutboxEmail{
 
 export default async function ComposeOutboxPage() {
   const data = await getData(); //TODO: User ID will be handled securely on the backend via JWT session
-  if(!data) return <div className="container mx-auto p-6">No emails found</div>;
-
+  if(!data) {
+    redirect('/platform/sg-compose/new', RedirectType.replace)
+  }
   return (
     <div className="container mx-auto p-6 space-y-6">
       <PageTitle
@@ -59,7 +62,11 @@ export default async function ComposeOutboxPage() {
         icon={Inbox}
         subheading="View the status of all your email requests here. If your outbox contains a pending request, do not raise new requests till an approval or a rejection from the SG. Repeated spam requests will be blocked from the service or from the platform. In case of any queries, write directly to sg@ashoka.edu.in"
       />
+      <Suspense>
+      { data && (
       <OutboxTable data={data} />
+      )}
+      </Suspense>
     </div>
   );
 }

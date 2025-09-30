@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { strapiPost } from '@/lib/apis/strapi'
 import { uploadToDrive } from '@/lib/apis/drive'
+import { auth } from '@/auth'
+import { getUserIdByEmail } from '@/lib/userid'
 
 // Helper function to sanitize input
 function sanitizeInput(input: string): string {
@@ -39,6 +41,24 @@ function processRecipients(recipients: string[]): string {
 // POST /api/sg-compose/new - Create a new SG mail request
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({
+        success: false,
+        error: 'Authentication required'
+      }, { status: 401 });
+    }
+    
+    // Get user ID from email
+    const userId = await getUserIdByEmail(session.user.email);
+    if (!userId) {
+      return NextResponse.json({
+        success: false,
+        error: 'User not found'
+      }, { status: 404 });
+    }
+    
     const contentType = request.headers.get('content-type') || '';
     
     let selectedCategory: string;
@@ -160,7 +180,7 @@ export async function POST(request: NextRequest) {
     // Prepare data for Strapi according to the schema
     const sgMailData = {
       data: {
-        sender: 1, // Using hardcoded user ID as specified (in production, extract from JWT)
+        sender: userId,
         alias: selectedCategory,
         mail_body: sanitizeRichText(mailDraft), // Use sanitizeRichText to preserve HTML
         subject: sanitizeInput(subject),
