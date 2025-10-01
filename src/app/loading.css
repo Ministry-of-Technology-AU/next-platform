@@ -195,28 +195,8 @@
     transition: opacity 0.3s ease;
 }
 
-<<<<<<< Updated upstream:src/app/platform/loading.css
-/* Animations */
-@keyframes rotate {
-  0% { transform: rotate(-0.08turn); }
-  100% { transform: rotate(-1.08turn); }
-}
-
-@keyframes hideEye {
-  0%, 10%, 85% { margin-top: 0; height: 50px; }
-  30%, 65% { margin-top: 20px; height: 30px; }
-}
-
-@keyframes blink {
-  0%, 10%, 85% { bottom: 0; }
-  30%, 65% { bottom: 20px; }
-  0% { transform: rotate(-0.08turn); }
-  100% { transform: rotate(-1.08turn); }
-}
-=======
 .page-shell.is-loading {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
 }
->>>>>>> Stashed changes:src/app/loading.css
