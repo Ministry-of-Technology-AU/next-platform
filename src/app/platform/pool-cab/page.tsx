@@ -33,14 +33,15 @@ export default async function PoolCab() {
         <div className="flex justify-center px-4 sm:px-6 lg:px-8">
             <div className="w-full space-y-6">
                 {/* Header Section */}
-                <div className="space-y-2">
+                <div className="max-w-7xl container mx-auto p-6 space-y-6">
                     <PageTitle text="Pool a Cab" subheading="Find others traveling on the same route and share a cab to save money and reduce environmental impact.
-                        Fill in your travel details below to find potential cab partners or create a new pool request." icon={Car}/>
+                        Fill in your travel details below to find potential cab partners or create a new pool request." icon={Car} />
+                    <div className="my-4 border-t border-gray-300"></div>
                 </div>
 
                 {/* Form Component */}
                 <Suspense fallback={<Loader />}>
-                <PoolCabForm />
+                    <PoolCabForm />
                 </Suspense>
             </div>
         </div>

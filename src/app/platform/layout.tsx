@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Nunito, Nunito_Sans} from "next/font/google";
+import { Nunito, Nunito_Sans } from "next/font/google";
 import "../globals.css";
 import Navbar from "@/components/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import {TourProvider} from "@/components/guided-tour";
+import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
 
@@ -17,7 +17,7 @@ const nunito = Nunito({
 
 const nunitoSans = Nunito_Sans({
   variable: "--font-body",
-  weight: ["200","300", "400", "500", "600", "700", "800", "900"],
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
 });
 
@@ -48,9 +48,9 @@ export default function RootLayout({
                   <div className="flex flex-1 flex-col">
                     <Navbar />
                     <Suspense>
-                    <main className="flex-1 overflow-auto p-4 sm:p-6">
-                      {children}
-                    </main>
+                      <main className="flex-1 overflow-auto pt-4 pb-4 pl-14 sm:pl-16 pr-12 sm:pr-14">
+                        {children}
+                      </main>
                     </Suspense>
                   </div>
                 </div>

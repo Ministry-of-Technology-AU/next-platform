@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
 import { Suspense } from "react";
 
-async function getData(){
+async function getData() {
   try {
     const cookieStore = await cookies();
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/sg-compose/outbox`, {
@@ -18,18 +18,18 @@ async function getData(){
       },
       cache: 'no-store', // Ensure we get fresh data
     });
-    
+
     if (!response.ok) {
       console.error('Failed to fetch emails:', response.statusText);
       return null;
     }
-    
+
     const result = await response.json();
-    
+
     if (!result.data || !Array.isArray(result.data)) {
       return null;
     }
-    
+
     return result.data.map((mail: any) => mapToOutboxEmail(mail));
   } catch (error) {
     console.error('Error fetching emails:', error);
@@ -37,7 +37,7 @@ async function getData(){
   }
 }
 
-function mapToOutboxEmail(data:any):OutboxEmail{
+function mapToOutboxEmail(data: any): OutboxEmail {
   return {
     id: data.id,
     category: data.attributes.alias.toString(),
@@ -52,21 +52,23 @@ function mapToOutboxEmail(data:any):OutboxEmail{
 
 export default async function ComposeOutboxPage() {
   const data = await getData(); //TODO: User ID will be handled securely on the backend via JWT session
-  if(!data) {
+  if (!data) {
     redirect('/platform/sg-compose/new', RedirectType.replace)
   }
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="max-w-7xl container mx-auto p-6 space-y-6">
       <PageTitle
         text="SG Compose - My Outbox"
         icon={Inbox}
         subheading="View the status of all your email requests here. If your outbox contains a pending request, do not raise new requests till an approval or a rejection from the SG. Repeated spam requests will be blocked from the service or from the platform. In case of any queries, write directly to sg@ashoka.edu.in"
       />
+      <div className="my-4 border-t border-gray-300"></div>
       <Suspense>
-      { data && (
-      <OutboxTable data={data} />
-      )}
+        {data && (
+          <OutboxTable data={data} />
+        )}
       </Suspense>
     </div>
+
   );
 }
