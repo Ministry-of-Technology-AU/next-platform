@@ -39,7 +39,17 @@ interface PhoneInputProps {
   errorMessage?: string;
   value?: string;
   onChange?: (value: string) => void;
+  validateOnChange?: boolean;
+  customValidation?: (value: string) => string | null;
 }
+
+// Phone validation function
+const isValidIndianPhoneNumber = (phone: string): boolean => {
+  // Remove any non-digit characters
+  const cleaned = phone.replace(/\D/g, '');
+  // Check if it's exactly 10 digits and starts with 6, 7, 8, or 9
+  return cleaned.length === 10 && /^[6-9]/.test(cleaned);
+};
 
 export function PhoneInput({
   title = "Contact Number",
@@ -52,7 +62,51 @@ export function PhoneInput({
   errorMessage,
   value = "",
   onChange,
+  validateOnChange = true,
+  customValidation,
 }: PhoneInputProps) {
+  const [internalError, setInternalError] = useState<string>("");
+  
+  const handleInputChange = (inputValue: string) => {
+    // Only allow digits
+    const digitsOnly = inputValue.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    const limitedValue = digitsOnly.slice(0, 10);
+    
+    // Call parent onChange with the cleaned value
+    onChange?.(limitedValue);
+    
+    // Validate if enabled
+    if (validateOnChange && limitedValue.length > 0) {
+      let error = "";
+      
+      if (customValidation) {
+        const customError = customValidation(limitedValue);
+        if (customError) {
+          error = customError;
+        }
+      } else {
+        if (!isValidIndianPhoneNumber(limitedValue)) {
+          if (limitedValue.length < 10) {
+            error = "Phone number must be 10 digits";
+          } else if (!/^[6-9]/.test(limitedValue)) {
+            error = "Phone number must start with 6, 7, 8, or 9";
+          } else {
+            error = "Invalid phone number";
+          }
+        }
+      }
+      
+      setInternalError(error);
+    } else if (limitedValue.length === 0) {
+      setInternalError("");
+    }
+  };
+  
+  // Use external error message if provided, otherwise use internal validation
+  const displayError = errorMessage || internalError;
+  
   return (
     <div className={`space-y-2 ${className}`}>
       <Label htmlFor="phoneNumber" className="text-base font-medium">
@@ -71,14 +125,15 @@ export function PhoneInput({
           type="tel"
           placeholder={placeholder}
           value={value}
-          onChange={(e) => onChange?.(e.target.value)}
+          onChange={(e) => handleInputChange(e.target.value)}
           className={`rounded-l-none ${
-            errorMessage ? "border-destructive" : ""
+            displayError ? "border-destructive" : ""
           }`}
+          maxLength={10}
         />
       </div>
-      {errorMessage && (
-        <p className="text-sm text-destructive">{errorMessage}</p>
+      {displayError && (
+        <p className="text-sm text-destructive">{displayError}</p>
       )}
     </div>
   );

@@ -22,7 +22,6 @@ import {
   Home,
   CalendarSync,
   Award,
-  ListPlus,
   WifiPen,
   Library,
   Users,
@@ -53,7 +52,6 @@ const iconMap = {
   ClipboardPenLine,
   CalendarSync,
   Award,
-  ListPlus,
   WifiPen,
   Library,
   Users,
@@ -126,7 +124,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2">
               <div className="flex-shrink-0 cursor-pointer">
                 <Image
-                  src="public/MoT logo.png"
+                  src="/MoT logo.png"
                   alt="Ministry of Technology"
                   width={48}
                   height={48}
@@ -179,7 +177,7 @@ export function AppSidebar() {
                         tooltip={iconCollapse ? item.title : undefined}
                       >
                         <Link
-                          href={item.href}
+                          href={`/platform${item.href}`}
                           className="flex items-center w-full"
                         >
                           <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto" />

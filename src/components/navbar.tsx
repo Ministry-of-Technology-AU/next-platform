@@ -32,7 +32,7 @@ import ThemeToggle from "@/components/ui/theme-toggle";
 
 
 // Authentication Section Component
-function AuthSection() {
+const AuthSection = React.memo(function AuthSection() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
@@ -118,7 +118,7 @@ function AuthSection() {
       </DropdownMenu>
     </Tooltip>
   );
-}
+});
 
 export default function Navbar() {
 const isMac = useIsMac();

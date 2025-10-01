@@ -34,11 +34,6 @@
           "title": "CGPA Planner",
           "icon": "Award",
           "href": "/cgpa-planner"
-        },
-        {
-          "title": "Degree Tracker",
-          "icon": "ListPlus",
-          "href": "/degree-tracker"
         }
       ]
     },

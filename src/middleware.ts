@@ -6,9 +6,6 @@ const ROUTE_ACCESS = {
   '/platform': ['platform'],
   '/sg-compose': ['platform'],
   '/organization': ['organization'],
-  '/api/sg-compose': ['platform'], // Specific API routes that need auth
-  '/api/drive': ['platform'],
-  '/api/mail': ['platform'],
 }
 
 export default auth((req) => {
@@ -18,8 +15,12 @@ export default auth((req) => {
     return NextResponse.next()
   }
 
-  // Allow root path - let it through to the page
-  if (pathname === '/') {
+  if (pathname.endsWith('jpg') || pathname.endsWith('png') || pathname.endsWith('svg') || pathname.endsWith('ico')) {
+    return NextResponse.next()
+  }
+
+  // Allow root path and login page - let them through
+  if (pathname === '/' || pathname === '/login') {
     return NextResponse.next()
   }
 
@@ -34,11 +35,13 @@ export default auth((req) => {
   if (!req.auth?.user) {
     console.log('❌ User not authenticated, redirecting to signin from:', pathname)
 
-    const signInUrl = new URL('/api/auth/signin/google', req.url)
-    return NextResponse.redirect(signInUrl)
+    // Create a login page URL with return URL as parameter
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(loginUrl)
   }
   
-  console.log('User:', req.auth.user)
+  // console.log('User:', req.auth.user)
 
   // Check route access permissions
   const userAccess = req.auth.user?.access || []
