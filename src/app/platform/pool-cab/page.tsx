@@ -15,6 +15,7 @@ async function existPoolRequest() {
         });
         if (res.ok) {
             const data = await res.json();
+            console.log("Pool Request Check Response:", data);
             return data;
         }
     } catch (error) {
@@ -24,6 +25,7 @@ async function existPoolRequest() {
 
 export default async function PoolCab() {
     const existingRequest = await existPoolRequest();
+    console.log("Existing Pool Request:", existingRequest);
     if (existingRequest.success) {
         redirect('/platform/pool-cab/results');
     }

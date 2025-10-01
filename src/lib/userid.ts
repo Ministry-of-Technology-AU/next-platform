@@ -6,11 +6,17 @@ export async function getUserIdByEmail(email: string): Promise<number | null> {
         return null;
     }
     try {
-    const response = await strapiGet(`/users?email=${encodeURIComponent(email)}`)
-    const users = response.data || []
-    return users.length > 0 ? users[0].id : null
-  } catch (error) {
-    console.error("Error fetching user by email:", error)
-    return null
-  }
+        const response = await strapiGet('/users', {
+            filters: {
+                email: {
+                    $eq: email
+                }
+            }
+        })
+        const users = response || []
+        return users.length > 0 ? users[0].id : null
+    } catch (error) {
+        console.error("Error fetching user by email:", error)
+        return null
+    }
 }
