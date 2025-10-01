@@ -67,5 +67,13 @@ export default auth((req) => {
 
 // Configure middleware to run on specific paths
 export const config = {
-  matcher: ['/sg-compose/:path*', '/platform/:path*', '/organization/:path*', '/api/sg-compose/:path*', '/api/drive/:path*', '/api/mail/:path*', '/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/sg-compose/:path*', 
+    '/platform/:path*', 
+    '/organization/:path*', 
+    '/api/sg-compose/:path*', 
+    '/api/drive/:path*', 
+    '/api/mail/:path*',
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|login|$).*)'
+  ],
 }
