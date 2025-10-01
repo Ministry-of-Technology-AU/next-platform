@@ -40,7 +40,7 @@ export default function HeroCarousel() {
   };
 
   return (
-    <div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl mb-8 sm:mb-12">
+    <div className="relative w-full h-56 sm:h-72 md:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-2xl mb-6 sm:mb-8">
       {/* Carousel Images */}
       <div className="relative w-full h-full overflow-hidden">
         <div 
