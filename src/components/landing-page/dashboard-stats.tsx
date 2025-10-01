@@ -1,15 +1,12 @@
 "use client";
 
 import React from 'react';
-import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
-import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Users, 
-  Calendar, 
-  BookOpen, 
+import {
+  Users,
+  Calendar,
+  BookOpen,
   TrendingUp,
   Activity,
-  Clock,
   Star,
   Zap
 } from 'lucide-react';
@@ -30,6 +27,7 @@ export default function DashboardStats() {
         <Activity className="size-5 sm:size-6 text-primary" />
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Platform Insights</h2>
       </div>
+<<<<<<< Updated upstream
       
       <BentoGrid className="max-w-6xl mx-auto px-4">
         {/* Active Users - Large card */}
@@ -52,44 +50,41 @@ export default function DashboardStats() {
             </div>
           }
         />
+=======
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        {/* Active Users */}
+        <div className="bg-primary dark:bg-gradient-to-br dark:from-primary/70 dark:to-primary/60 text-white rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-shadow">
+          <Users className="size-8 mx-auto mb-3 opacity-80" />
+          <div className="text-4xl sm:text-5xl font-bold mb-2">{stats.activeUsers}</div>
+          <div className="text-sm opacity-90">Active Users</div>
+          <div className="flex items-center justify-center gap-1 mt-2 text-xs bg-white/20 rounded-full px-3 py-1 w-fit mx-auto">
+            <TrendingUp className="size-3" />
+            <span>{stats.weeklyGrowth}</span>
+          </div>
+        </div>
+>>>>>>> Stashed changes
 
         {/* Events This Month */}
-        <BentoGridItem
-          className="bg-gradient-to-br from-green-500 to-teal-600 text-white border-0"
-          title={
-            <div className="text-white">
-              <div className="text-3xl font-bold mb-2">{stats.totalEvents}</div>
-              <div className="text-base opacity-90">Events This Month</div>
-            </div>
-          }
-          header={
-            <div className="flex justify-between items-start mb-4">
-              <Calendar className="size-6 text-white/80" />
-              <div className="w-3 h-3 rounded-full bg-green-300 animate-pulse" />
-            </div>
-          }
-        />
+        <div className="bg-primary-light dark:bg-gradient-to-br dark:from-primary/60 dark:to-primary/50 text-white rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-shadow">
+          <Calendar className="size-8 mx-auto mb-3 opacity-80" />
+          <div className="text-4xl sm:text-5xl font-bold mb-2">{stats.totalEvents}</div>
+          <div className="text-sm opacity-90">Events This Month</div>
+          <div className="w-3 h-3 rounded-full bg-green-300 animate-pulse mx-auto mt-2" />
+        </div>
 
         {/* Course Reviews */}
-        <BentoGridItem
-          className="bg-gradient-to-br from-orange-500 to-red-500 text-white border-0"
-          title={
-            <div className="text-white">
-              <div className="text-3xl font-bold mb-2">{stats.coursesReviewed}</div>
-              <div className="text-base opacity-90">Course Reviews</div>
-            </div>
-          }
-          header={
-            <div className="flex justify-between items-start mb-4">
-              <BookOpen className="size-6 text-white/80" />
-              <div className="flex items-center gap-1">
-                <Star className="size-4 fill-current" />
-                <span className="text-sm font-medium">{stats.avgRating}</span>
-              </div>
-            </div>
-          }
-        />
+        <div className="bg-primary-extralight dark:bg-gradient-to-br dark:from-primary/60 dark:to-primary/50 text-white rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-shadow">
+          <BookOpen className="size-8 mx-auto mb-3 opacity-80" />
+          <div className="text-4xl sm:text-5xl font-bold mb-2">{stats.coursesReviewed}</div>
+          <div className="text-sm opacity-90">Course Reviews</div>
+          <div className="flex items-center justify-center gap-1 mt-2 text-xs">
+            <Star className="size-4 fill-current" />
+            <span>{stats.avgRating}</span>
+          </div>
+        </div>
 
+<<<<<<< Updated upstream
         {/* System Uptime - Wide card */}
         <BentoGridItem
           className="md:col-span-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0"
@@ -137,6 +132,18 @@ export default function DashboardStats() {
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Tools & Features</p>
           </CardContent>
         </Card>
+=======
+        {/* System Uptime */}
+        <div className="bg-secondary dark:bg-gradient-to-br dark:from-primary/50 dark:to-primary/40 text-white rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-shadow">
+          <Zap className="size-8 mx-auto mb-3 opacity-80" />
+          <div className="text-4xl sm:text-5xl font-bold mb-2">{stats.uptime}</div>
+          <div className="text-sm opacity-90">System Uptime</div>
+          <div className="flex items-center justify-center gap-1 mt-2 text-xs opacity-90">
+            <div className="w-2 h-2 rounded-full bg-green-300 animate-pulse" />
+            <span>Operational</span>
+          </div>
+        </div>
+>>>>>>> Stashed changes
       </div>
     </div>
   );

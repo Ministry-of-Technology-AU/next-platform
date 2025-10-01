@@ -73,14 +73,9 @@ export default function QuickAccessCards() {
         {quickAccessItems.map((item, index) => {
           const Icon = item.icon;
           return (
-            <Card 
+            <Card
               key={item.id}
-              className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/80 dark:bg-black/80 backdrop-blur-sm ${
-                index === 0 ? 'lg:transform lg:rotate-1' : 
-                index === 1 ? 'lg:transform lg:-rotate-1' :
-                index === 2 ? 'lg:transform lg:rotate-1' : 
-                'lg:transform lg:-rotate-1'
-              } hover:rotate-0`}
+              className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/80 dark:bg-black/80 backdrop-blur-sm"
             >
               <Button 
                 variant="ghost" 
