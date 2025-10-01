@@ -84,7 +84,7 @@ const AuthSection = React.memo(function AuthSection() {
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-72">
           <div className="flex items-center space-x-2 p-2">
             <Avatar className="h-8 w-8">
               <AvatarImage src={session.user?.image || ""} alt="Avatar" />
@@ -121,7 +121,7 @@ const AuthSection = React.memo(function AuthSection() {
 });
 
 export default function Navbar() {
-const isMac = useIsMac();
+  const isMac = useIsMac();
   return (
     <nav className="w-full flex sticky top-0 items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-background backdrop-blur-md z-50">
       {/* Left: Logo and text */}
