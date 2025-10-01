@@ -1,6 +1,6 @@
 import { WritingText } from "./ui/shadcn-io/writing-text";
 import { TypingText } from "./ui/shadcn-io/typing-text";
-
+import { ExpandableText } from "./expandable-text";
 
 function PageTitle({
   text,
@@ -14,24 +14,30 @@ function PageTitle({
   className?: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      {Icon && <Icon className="h-8 w-8 text-primary" />}
-      <div className="flex flex-col">
+    <div className="flex items-start gap-3">
+      {Icon && (
+        <div className="flex-shrink-0">
+          <Icon className="h-8 w-8 text-primary" />
+        </div>
+      )}
+      <div className="flex flex-col min-w-0 flex-1">
         <WritingText
           className="text-3xl font-bold"
           text={text}
           spacing={9}
           transition={{ type: "spring", bounce: 0, duration: 1, delay: 0.25 }}
         />
-        {subheading && <p className="text-muted-foreground">{subheading}</p>}
-        {/* {subheading && <TypingText
-          text={subheading}
-          duration={20}
-          cursor={false}
-          loop={false}
-          holdDelay={2000}
-          className="text-muted-foreground"
-        />} */}
+        {subheading && (
+          <div className="mt-1">
+            {/* Desktop view - always show full text */}
+            <p className="text-muted-foreground hidden md:block">{subheading}</p>
+            
+            {/* Mobile view - truncated with dropdown */}
+            <div className="md:hidden">
+              <ExpandableText text={subheading} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
