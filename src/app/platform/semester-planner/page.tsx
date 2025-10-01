@@ -11,7 +11,7 @@ async function fetchDraftsAndCourses() {
   const email = 'soham.tulsyan_ug2023@ashoka.edu.in'; //TODO: Change this to get from session
   let drafts = [];
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/semester-planner/${email}`, { 
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/semester-planner/${email}`, {
       cache: 'no-store',
       headers: { 'Cookie': cookieStore.toString() },
     });
@@ -33,7 +33,7 @@ async function fetchDraftsAndCourses() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/semester-planner`, {
       cache: 'no-store',
       headers: { 'Cookie': cookieStore.toString() },
-     });
+    });
     if (response.ok) {
       const data = await response.json();
       if (data.success) {
@@ -53,9 +53,10 @@ export default async function SemesterPlannerPage() {
   const { drafts, courses, syncInfo } = await fetchDraftsAndCourses();
   return (
     <>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="max-w-7xl container mx-auto p-6 space-y-6">
         <OrientationDialog />
         <PageTitle text="Semester Planner" icon={Calendar} subheading="Plan and organize your course schedule" />
+        <div className="my-4 border-t border-gray-300"></div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
           <span>

@@ -8,7 +8,7 @@ import { InstructionsField } from "@/components/form";
 export default function WifiTicketsPage() {
 
   return (
-    <div className="mx-8">
+    <div className="max-w-7xl container mx-auto p-6 space-y-6">
       <PageTitle
         text="Wifi Tickets"
         subheading="Your complaint will be sent to IT and used for WiFi analytics to
@@ -17,6 +17,7 @@ export default function WifiTicketsPage() {
         your complaint over the email."
         icon={WifiPen}
       />
+      <div className="my-4 border-t border-gray-300"></div>
       <Card className="p-4 mt-4">
         <CardHeader>
           <InstructionsField
