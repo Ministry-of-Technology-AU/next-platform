@@ -41,7 +41,7 @@ export default function DashboardStats() {
               <div className="text-lg opacity-90">Active Users</div>
             </div>
           }
-          description="Students currently using the platform"
+          description={<span className="text-white/90">Students currently using the platform</span>}
           header={
             <div className="flex items-center justify-between mb-4">
               <Users className="size-8 text-white/80" />
@@ -99,7 +99,7 @@ export default function DashboardStats() {
               <div className="text-lg opacity-90">System Uptime</div>
             </div>
           }
-          description="Reliable service you can count on"
+          description={<span className="text-white/90">Reliable service you can count on</span>}
           header={
             <div className="flex items-center justify-between mb-4">
               <Zap className="size-8 text-white/80" />
