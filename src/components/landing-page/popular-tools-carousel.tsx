@@ -137,7 +137,7 @@ const popularTools = [
 export default function PopularToolsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
-  
+
   // Update items per view based on screen size
   React.useEffect(() => {
     const updateItemsPerView = () => {
@@ -193,9 +193,9 @@ export default function PopularToolsCarousel() {
                   className="flex-shrink-0 px-2 sm:px-3 min-w-0"
                   style={{ width: `${100 / popularTools.length}%` }}
                 >
-                  <Card className="group h-[260px] overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/90 dark:bg-black/90 backdrop-blur-sm min-w-0">
-                    <Button 
-                      variant="ghost" 
+                  <Card className="group h-[260px] overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/90 dark:bg-black/90 backdrop-blur-sm min-w-0">
+                    <Button
+                      variant="ghost"
                       className="w-full h-full p-0 bg-transparent hover:bg-transparent"
                       asChild
                     >
@@ -260,11 +260,10 @@ export default function PopularToolsCarousel() {
           {Array.from({ length: maxIndex + 1 }).map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex 
-                  ? 'bg-primary scale-125' 
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex
+                  ? 'bg-primary scale-125'
                   : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-              }`}
+                }`}
               onClick={() => goToSlide(index)}
             />
           ))}
