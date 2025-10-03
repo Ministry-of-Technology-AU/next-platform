@@ -43,10 +43,14 @@ export function ReviewsTable({paginatedCourses, sortField, sortDirection, handle
             </TableHeader>
             <TableBody>
               {paginatedCourses.length > 0 ? (
-                paginatedCourses.map((course: CourseWithReviews) => (
+                paginatedCourses.map((course: CourseWithReviews) => {
+                  const hasReviews = course.reviews && course.reviews.length > 0;
+                  const greyedOutClasses = hasReviews ? "" : "opacity-60 bg-gray-50 dark:bg-gray-800/30";
+                  
+                  return (
                   <Dialog key={course.id}>
                     <DialogTrigger asChild>
-                      <TableRow className="cursor-pointer hover:bg-neutral-extralight transition-colors">
+                      <TableRow className={`cursor-pointer hover:bg-neutral-extralight transition-colors ${greyedOutClasses}`}>
                         <TableCell className="text-xs sm:text-sm">{course.courseCode}</TableCell>
                         <TableCell>
                           <div>
@@ -68,7 +72,8 @@ export function ReviewsTable({paginatedCourses, sortField, sortDirection, handle
                       </Button>
                     </DialogContent>
                   </Dialog>
-                ))
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-neutral-primary">

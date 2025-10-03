@@ -33,6 +33,15 @@ export function sortAndFilterCourses(courses: CourseWithReviews[], searchTerm: s
 
   // Sort the filtered results
   filtered.sort((a, b) => {
+    // First, prioritize courses with reviews over those without
+    const aHasReviews = a.reviews && a.reviews.length > 0;
+    const bHasReviews = b.reviews && b.reviews.length > 0;
+    
+    // If one has reviews and the other doesn't, prioritize the one with reviews
+    if (aHasReviews && !bHasReviews) return -1;
+    if (!aHasReviews && bHasReviews) return 1;
+    
+    // If both have reviews or both don't have reviews, sort by the selected field
     let aValue = a[sortField];
     let bValue = b[sortField];
 
