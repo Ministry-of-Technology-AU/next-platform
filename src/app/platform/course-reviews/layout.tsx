@@ -2,7 +2,7 @@ import PageTitle from "@/components/page-title";
 import { Suspense } from "react";
 import { BookOpen } from "lucide-react";
 import DeveloperCredits from "@/components/developer-credits";
-import Loader from "../loading";
+import {ReviewsTableSkeleton} from "./_components/table";
 
 export default function CourseReviewsLayout({
   children,
@@ -17,10 +17,9 @@ export default function CourseReviewsLayout({
           subheading='We request that you add your own reviews to help your peers make more informed choices!
           Note: All course and faculty names are taken directly from AMS.'
         />
-    <Suspense fallback={<Loader />}>
+        <Suspense fallback={<ReviewsTableSkeleton entriesPerPage={10} />}>
       {children}
-    </Suspense>
-        
+      </Suspense>
     <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Lead Developer"}]}/>
 
   </div>

@@ -78,14 +78,13 @@ export function DraftTabs({
 
     setIsSaving(true);
     try {
-      const email = 'soham.tulsyan_ug2023@ashoka.edu.in';
       // Update the active draft's name and updatedAt before saving
       const updatedDrafts = drafts.map((d) =>
         d.id === activeDraft.id
           ? { ...activeDraft, name: saveName.trim(), updatedAt: new Date().toISOString() }
           : d
       );
-      const response = await fetch(`/api/semester-planner/${email}`, {
+      const response = await fetch(`/api/platform/semester-planner/drafts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

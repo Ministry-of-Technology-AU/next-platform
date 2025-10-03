@@ -57,6 +57,7 @@
     "date-fns": "^4.1.0",
     "fs-extra": "^11.3.1",
     "googleapis": "^159.0.0",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "inquirer": "^12.9.3",
     "lucide-react": "^0.525.0",

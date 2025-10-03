@@ -8,10 +8,9 @@ import { cookies } from "next/headers";
 
 async function fetchDraftsAndCourses() {
   const cookieStore = await cookies();
-  const email = 'soham.tulsyan_ug2023@ashoka.edu.in'; //TODO: Change this to get from session
   let drafts = [];
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/semester-planner/${email}`, { 
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/semester-planner/drafts`, { 
       cache: 'no-store',
       headers: { 'Cookie': cookieStore.toString() },
     });
