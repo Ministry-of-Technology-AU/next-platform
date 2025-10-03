@@ -25,6 +25,7 @@ interface DraftTabsProps {
   onDeleteDraft: (draftId: string) => void;
   onSwitchDraft: (draftId: string) => void;
   onDownloadTimetable: (draftId: string) => void;
+  onRenameDraft: (draftId: string, newName: string) => void;
   children: React.ReactNode;
 }
 
@@ -36,16 +37,17 @@ export function DraftTabs({
   onDeleteDraft,
   onSwitchDraft,
   onDownloadTimetable,
+  onRenameDraft,
   children,
 }: DraftTabsProps) {
   const [newDraftName, setNewDraftName] = useState("");
   const [duplicateName, setDuplicateName] = useState("");
-  const [saveName, setSaveName] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDuplicateOpen, setIsDuplicateOpen] = useState(false);
-  const [isSaveOpen, setIsSaveOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [duplicateSourceId, setDuplicateSourceId] = useState("");
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
   const handleCreateDraft = () => {
     if (newDraftName.trim()) {
@@ -65,46 +67,52 @@ export function DraftTabs({
   };
 
   const handleSaveDraft = async () => {
-    if (!saveName.trim()) {
-      toast.error("Please enter a draft name");
+    const activeDraft = drafts.find(d => d.id === activeDraftId);
+    if (!activeDraft) {
+      toast.error("Active draft not found");
       return;
     }
-
-    const activeDraft = drafts.find(d => d.id === activeDraftId);
-    if (!activeDraft || activeDraft.courses.length === 0) {
+    if (activeDraft.courses.length === 0) {
       toast.error("No courses to save in the current draft");
       return;
     }
-
     setIsSaving(true);
     try {
-      // Update the active draft's name and updatedAt before saving
-      const updatedDrafts = drafts.map((d) =>
-        d.id === activeDraft.id
-          ? { ...activeDraft, name: saveName.trim(), updatedAt: new Date().toISOString() }
-          : d
-      );
+      const updatedDrafts = drafts.map(d => d.id === activeDraft.id ? { ...activeDraft, updatedAt: new Date().toISOString() } : d);
       const response = await fetch(`/api/platform/semester-planner/drafts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ drafts: updatedDrafts }),
       });
       const result = await response.json();
       if (result.success) {
-        toast.success(`Draft "${saveName.trim()}" saved successfully!`);
-        setSaveName("");
-        setIsSaveOpen(false);
+        toast.success(`Draft "${activeDraft.name}" saved successfully!`);
       } else {
-        toast.error(result.error || "Failed to save draft");
+        toast.error(result.error || 'Failed to save draft');
       }
     } catch (error) {
-      console.error("Error saving draft:", error);
-      toast.error("Failed to save draft. Please try again.");
+      console.error('Error saving draft:', error);
+      toast.error('Failed to save draft. Please try again.');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const startEditing = (draftId: string, currentName: string) => {
+    setEditingDraftId(draftId);
+    setEditingName(currentName);
+  };
+
+  const cancelEditing = () => {
+    setEditingDraftId(null);
+    setEditingName("");
+  };
+
+  const commitEditing = () => {
+    if (editingDraftId && editingName.trim()) {
+      onRenameDraft(editingDraftId, editingName.trim());
+    }
+    cancelEditing();
   };
 
   return (
@@ -114,32 +122,64 @@ export function DraftTabs({
         <div className="flex-1 min-w-0">
           <ScrollArea className="w-full rounded-md border whitespace-nowrap">
             <div className="flex w-max gap-1 p-2">
-              {drafts.map((draft) => (
-                <button
-                  key={draft.id}
-                  onClick={() => onSwitchDraft(draft.id)}
-                  className={`h-fit relative group px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                    activeDraftId === draft.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted hover:bg-muted/80"
-                  }`}
-                >
-                  {draft.name}
-                  {drafts.length > 1 && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="ml-2 h-4 w-4 p-0 opacity-0 group-hover:opacity-100 hover:bg-background/20"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteDraft(draft.id);
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  )}
-                </button>
-              ))}
+              {drafts.map((draft) => {
+                const isActive = activeDraftId === draft.id;
+                const isEditing = editingDraftId === draft.id;
+                return (
+                  <div
+                    key={draft.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isActive}
+                    onClick={() => !isEditing && onSwitchDraft(draft.id)}
+                    onKeyDown={(e) => {
+                      if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        onSwitchDraft(draft.id);
+                      }
+                      if (e.key === 'F2' && !isEditing) {
+                        startEditing(draft.id, draft.name);
+                      }
+                    }}
+                    onDoubleClick={() => startEditing(draft.id, draft.name)}
+                    className={`h-fit relative group px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 cursor-pointer select-none ${
+                      isActive ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {isEditing ? (
+                      <input
+                        autoFocus
+                        className="bg-transparent border-b border-border focus:outline-none focus:ring-0 text-sm w-28"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onBlur={commitEditing}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            commitEditing();
+                          } else if (e.key === 'Escape') {
+                            cancelEditing();
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span>{draft.name}</span>
+                    )}
+                    {drafts.length > 1 && !isEditing && (
+                      <button
+                        type="button"
+                        aria-label="Delete draft"
+                        className="ml-2 h-4 w-4 p-0 inline-flex items-center justify-center rounded opacity-0 group-hover:opacity-100 hover:bg-background/20 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteDraft(draft.id);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <ScrollBar orientation="horizontal" className="absolute" />
           </ScrollArea>
@@ -204,39 +244,16 @@ export function DraftTabs({
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isSaveOpen} onOpenChange={setIsSaveOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="flex-1 sm:flex-none">
-                <Save className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Save Draft</span>
-                <span className="sm:hidden">Save</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Save Draft to Profile</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Save this draft to your profile so you can access it later.
-                </p>
-                <Input
-                  placeholder="Enter draft name"
-                  value={saveName}
-                  onChange={(e) => setSaveName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !isSaving && handleSaveDraft()}
-                  disabled={isSaving}
-                />
-                <Button 
-                  onClick={handleSaveDraft} 
-                  className="w-full"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Saving..." : "Save Draft"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 sm:flex-none"
+            onClick={handleSaveDraft}
+            disabled={isSaving}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {isSaving ? 'Saving...' : <><span className="hidden sm:inline">Save Draft</span><span className="sm:hidden">Save</span></>}
+          </Button>
 
           <Button
             size="sm"

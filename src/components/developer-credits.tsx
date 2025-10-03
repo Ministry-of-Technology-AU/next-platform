@@ -17,6 +17,7 @@ export default function DeveloperCredits({developers}: DeveloperProps) {
             <span key={dev.name}>
               <a
                 href={dev.profileUrl || "#"}
+                target="_blank"
                 className="text-primary hover:underline font-medium"
               >
                 <span className="font-bold">{dev.name}</span> - {dev.role}

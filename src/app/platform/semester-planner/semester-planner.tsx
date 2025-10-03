@@ -276,6 +276,11 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     [drafts]
   );
 
+  const handleRenameDraft = useCallback((draftId: string, newName: string) => {
+    if (!newName.trim()) return;
+    setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, name: newName.trim(), updatedAt: new Date() } : d));
+  }, []);
+
   const handleDeleteDraft = useCallback(
     (draftId: string) => {
       if (drafts.length <= 1) {
@@ -429,6 +434,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onDeleteDraft={handleDeleteDraft}
             onSwitchDraft={setActiveDraftId}
             onDownloadTimetable={handleDownloadTimetable}
+              onRenameDraft={handleRenameDraft}
           >
             <div id="timetable-grid" className="min-w-0">
               <TimetableGrid
