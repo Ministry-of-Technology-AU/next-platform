@@ -4,6 +4,7 @@ import { WifiPen } from "lucide-react";
 import PageTitle from "@/components/page-title";
 import WifiTickets1 from "./wifi-tickets";
 import { InstructionsField } from "@/components/form";
+import DeveloperCredits from "@/components/developer-credits";
 
 export default function WifiTicketsPage() {
 
@@ -32,6 +33,7 @@ export default function WifiTicketsPage() {
         </CardHeader>
         <WifiTickets1 />
       </Card>
+      <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Lead Developer", profileUrl: "https://www.linkedin.com/in/soham-tulsyan-0902482a7/"}, {"name": "Previous Teams"}]}/>
     </div>
   );
 }

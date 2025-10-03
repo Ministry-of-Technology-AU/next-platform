@@ -1,11 +1,9 @@
 "use client";
 import GradePlanner from "./_components/grade-planner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Calculator, BookOpen, Upload, Target, TrendingUp, RotateCcw, ArrowUpCircle } from "lucide-react";
-import { PFCreditsComponent } from "./_components/pf-credits";
+import { Calculator, BookOpen, Upload, Target, TrendingUp, ArrowUpCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent, TabsContents } from "@/components/ui/shadcn-io/tabs";
 import { Input } from "@/components/ui/input";
 import { useCalculations } from "./useCalculations";
@@ -16,8 +14,8 @@ import CGPAForm from "./_components/cgpa-form";
 import CGPAOverview from "./_components/cgpa-overview";
 import SemesterNavigation from "./_components/semester-navigation";
 
-export default function CGPAPlanner(){
-    const calculations = useCalculations();
+export default function CGPAPlanner({ data }: { data: any }) {
+    const calculations = useCalculations(data);
     const {
         isFormView,
         setIsFormView,
@@ -66,9 +64,15 @@ export default function CGPAPlanner(){
         getCurrentCGPA,
         resetActiveTab,
     } = calculations;
+    // If data exists, skip the form and show results
+    if (!isFormView && data && data.semesters && data.semesters.length > 0) {
+        // ...existing code for results view...
+        // (leave the rest of the file unchanged)
+    }
+    // Otherwise, show the form
     if (isFormView) {
         return (
-            <div className="max-w-6xl mx-auto p-4">
+            <div className="max-w-8xl mx-auto p-4">
                 <div className="space-y-6">
                     {/* Form Card */}
                     <CGPAForm 

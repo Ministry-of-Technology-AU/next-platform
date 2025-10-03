@@ -11,7 +11,7 @@ export default function CGPALayout({
   children: React.ReactNode
 }) {
   return (
-<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+<div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
     <PageTitle
       text="CGPA Planner"
       icon={Calculator}
@@ -20,7 +20,7 @@ export default function CGPALayout({
     <div className="my-4 border-t border-gray-300"></div>
 
   <Suspense fallback={<Loader />}>{children}</Suspense>
-  <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Lead Developer"}]}/>
+  <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Backend Developer", 'profileUrl': 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/'}, {"name": "Previous Teams"}]}/>
   </div>
 )
 }

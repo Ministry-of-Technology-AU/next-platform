@@ -1,8 +1,19 @@
+
+"use client";
+
 import { BookOpen, RotateCcw, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ParsedSemester } from "../types";
+import { useState } from "react";
+
+import type { ParsedCGPAData, ParsedSemester } from "../types";
+
+type CGPAApiResponse = {
+    success: boolean;
+    message?: string;
+    error?: string;
+};
 
 interface SemesterNavigationProps {
     resetActiveTab: () => void;
@@ -15,6 +26,57 @@ interface SemesterNavigationProps {
     setSelectedSemester: (value: number | null) => void;
 }
 
+// API functions for CGPA operations
+export async function saveCGPAData(cgpaData: ParsedCGPAData): Promise<CGPAApiResponse> {
+    try {
+        const response = await fetch('/api/platform/cgpa-planner', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(cgpaData),
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || `HTTP error! status: ${response.status}`);
+        }
+        return result;
+    } catch (error) {
+        console.error('Error saving CGPA data:', error);
+        return {
+            success: false,
+            error: 'Failed to save CGPA data'
+        };
+    }
+}
+
+async function clearCGPAData(): Promise<{success: boolean; message?: string; error?: string}> {
+  try {
+    const response = await fetch('/api/platform/cgpa-planner', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error clearing CGPA data:', error);
+    return {
+      success: false,
+      error: 'Failed to clear CGPA data'
+    };
+  }
+}
+
 export default function SemesterNavigation({
     resetActiveTab,
     setIsFormView,
@@ -25,6 +87,55 @@ export default function SemesterNavigation({
     selectedSemester,
     setSelectedSemester,
 }: SemesterNavigationProps) {
+    const [isClearing, setIsClearing] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const handleResyncFromAMS = async () => {
+        setIsSyncing(true);
+        try {
+            // First clear existing data
+            const clearResult = await clearCGPAData();
+            if (clearResult.success) {
+                console.log('CGPA data cleared successfully');
+                // Then redirect to form view to input new data
+                setIsFormView(true);
+            } else {
+                console.error('Failed to clear CGPA data:', clearResult.error);
+                alert('Failed to clear existing data. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error during resync:', error);
+            alert('An error occurred during resync. Please try again.');
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleResetData = async () => {
+        if (!confirm('Are you sure you want to reset all CGPA data? This action cannot be undone.')) {
+            return;
+        }
+        
+        setIsClearing(true);
+        try {
+            const result = await clearCGPAData();
+            if (result.success) {
+                console.log('CGPA data reset successfully');
+                resetActiveTab();
+                // Optionally refresh the page to reflect changes
+                window.location.reload();
+            } else {
+                console.error('Failed to reset CGPA data:', result.error);
+                alert('Failed to reset data. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error during reset:', error);
+            alert('An error occurred during reset. Please try again.');
+        } finally {
+            setIsClearing(false);
+        }
+    };
+
     return (
                                     <div className="lg:col-span-1">
                                 <Card>
@@ -37,22 +148,24 @@ export default function SemesterNavigation({
                                                 variant="outline"
                                                 size="lg"
                                                 className="w-full h-12 justify-between"
-                                                onClick={resetActiveTab}
+                                                onClick={handleResetData}
+                                                disabled={isClearing}
                                             >
                                                 <span className="flex items-center gap-2 text-sm font-semibold">
-                                                    <RotateCcw className="h-4 w-4" />
-                                                    Reset Data
+                                                    <RotateCcw className={`h-4 w-4 ${isClearing ? 'animate-spin' : ''}`} />
+                                                    {isClearing ? 'Resetting...' : 'Reset Data'}
                                                 </span>
                                             </Button>
                                             <Button
                                                 variant="outline"
                                                 size="lg"
                                                 className="w-full h-12 justify-between"
-                                                onClick={() => setIsFormView(true)}
+                                                onClick={handleResyncFromAMS}
+                                                disabled={isSyncing}
                                             >
                                                 <span className="flex items-center gap-2 text-sm font-semibold">
-                                                    <Upload className="h-4 w-4" />
-                                                    Re-sync from AMS
+                                                    <Upload className={`h-4 w-4 ${isSyncing ? 'animate-pulse' : ''}`} />
+                                                    {isSyncing ? 'Syncing...' : 'Re-sync from AMS'}
                                                 </span>
                                             </Button>
                                             <Button

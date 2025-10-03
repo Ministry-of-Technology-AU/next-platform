@@ -22,7 +22,7 @@ export default function SemesterPlannerLayout({
         <Suspense fallback={<Loader />}>
       {children}
       </Suspense>
-    <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Lead Developer", 'profileUrl': 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/'}]}/>
+    <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Lead Developer", 'profileUrl': 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/'}, {"name": "Previous Teams"}]}/>
 
   </div>
 );
