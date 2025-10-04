@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito, Nunito_Sans} from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
+import { SessionProvider } from "next-auth/react";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -28,11 +29,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
-                    <Suspense>
-                    <main>
-                      {children}
-                    </main>
-                    </Suspense>
+        <SessionProvider>
+          <Suspense>
+            <main>
+              {children}
+            </main>
+          </Suspense>
+        </SessionProvider>
       </body>
     </html>
   );

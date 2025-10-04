@@ -261,15 +261,7 @@ export default function EventsCalendar({
       <div className="container mx-auto p-6 space-y-6">
         {/* Header with integrated controls for larger screens */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          {/* <div className="flex items-center gap-4">
-            <Calendar className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-bold">Events Calendar</h1>
-              <p className="text-muted-foreground">
-                Discover and manage campus events
-              </p>
-            </div>
-          </div> */}
+
           <PageTitle text="Events Calendar" icon={Calendar} subheading="Discover events happening around campus"/>
           
           

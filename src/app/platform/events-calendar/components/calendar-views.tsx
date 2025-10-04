@@ -87,28 +87,27 @@ export function MonthView({
                 {day.getDate()}
               </div>
               <div className="space-y-1">
-                {dayEvents.slice(0, 3).map((event) => (
+                {dayEvents.map((event) => (
                   <Button
                     key={event.id}
                     variant="ghost"
                     size="sm"
                     onClick={() => onEventClick(event)}
-                    className="w-full h-auto p-0.5 text-xs justify-start hover:shadow-sm"
+                    className="w-full h-auto p-0.5 text-xs justify-start hover:shadow-sm min-w-0"
                     style={{
                       backgroundColor: categoryColors[event.category] + "30",
+                      maxWidth: '100%',
+                      minWidth: 0,
+                      wordBreak: 'break-word',
+                      whiteSpace: 'normal',
                     }}
                   >
-                    <div className="truncate text-left">
+                    <div className="text-left w-full break-words">
                       <div className="font-medium">{event.time}</div>
-                      <div>{event.title}</div>
+                      <div className="truncate whitespace-nowrap overflow-hidden">{event.title}</div>
                     </div>
                   </Button>
                 ))}
-                {dayEvents.length > 3 && (
-                  <div className="text-xs text-muted-foreground px-1">
-                    +{dayEvents.length - 3} more
-                  </div>
-                )}
               </div>
             </div>
           );
@@ -153,7 +152,7 @@ export function ListView({
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="font-medium">{event.title}</h4>
+                      <h4 className="font-medium text-left">{event.title}</h4>
                       <p className="text-sm text-muted-foreground mt-1">
                         {event.time} • {event.venue}
                       </p>
@@ -247,15 +246,19 @@ export function WeekView({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEventClick(event)}
-                    className="w-full h-auto p-2 text-xs justify-start flex-col items-start hover:shadow-sm"
+                    className="w-full h-auto p-2 text-xs justify-start flex-col items-start hover:shadow-sm min-w-0"
                     style={{
                       backgroundColor: categoryColors[event.category] + "30",
+                      maxWidth: '100%',
+                      minWidth: 0,
+                      wordBreak: 'break-word',
+                      whiteSpace: 'normal',
                     }}
                   >
-                    <div className="font-medium text-left w-full">
+                    <div className="font-medium text-left w-full break-words">
                       {event.time}
                     </div>
-                    <div className="text-left w-full">{event.title}</div>
+                    <div className="text-left w-full break-words">{event.title}</div>
                   </Button>
                 ))}
               </div>
@@ -300,7 +303,7 @@ export function TodayView({
               <CardContent className="p-4" onClick={() => onEventClick(event)}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h4 className="font-medium">{event.title}</h4>
+                    <h4 className="font-medium text-left">{event.title}</h4>
                     <p className="text-sm text-muted-foreground mt-1">
                       {event.time} • {event.venue}
                     </p>
