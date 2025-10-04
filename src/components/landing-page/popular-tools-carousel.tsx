@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   Star,
   ClipboardPenLine,
   CalendarSync,
@@ -15,7 +15,6 @@ import {
   ShoppingBag,
   Boxes,
   GalleryHorizontalEnd,
-  Building2,
   UserCog,
   MailPlus,
   ChevronLeft,
@@ -138,7 +137,7 @@ const popularTools = [
 export default function PopularToolsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
-  
+
   // Update items per view based on screen size
   React.useEffect(() => {
     const updateItemsPerView = () => {
@@ -178,10 +177,10 @@ export default function PopularToolsCarousel() {
       </div>
       <div className="relative overflow-hidden">
         {/* Carousel Container */}
-        <div className="overflow-hidden rounded-2xl min-w-0">
-          <div 
+        <div className="overflow-hidden rounded-2xl min-w-0 h-[280px] sm:h-[300px]">
+          <div
             className="flex transition-transform duration-500 ease-in-out min-w-0"
-            style={{ 
+            style={{
               transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
               width: `${(popularTools.length / itemsPerView) * 100}%`
             }}
@@ -194,35 +193,35 @@ export default function PopularToolsCarousel() {
                   className="flex-shrink-0 px-2 sm:px-3 min-w-0"
                   style={{ width: `${100 / popularTools.length}%` }}
                 >
-                  <Card className="group h-40 sm:h-48 overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/90 dark:bg-black/90 backdrop-blur-sm min-w-0">
-                    <Button 
-                      variant="ghost" 
+                  <Card className="group h-[260px] overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/90 dark:bg-black/90 backdrop-blur-sm min-w-0">
+                    <Button
+                      variant="ghost"
                       className="w-full h-full p-0 bg-transparent hover:bg-transparent"
                       asChild
                     >
                       <Link href={tool.href}>
-                        <CardContent className="p-4 sm:p-6 h-full flex flex-col justify-between min-w-0">
+                        <CardContent className="p-4 h-full flex flex-col min-w-0">
                           {/* Header with icon and rating */}
-                          <div className="flex items-start justify-between mb-2 sm:mb-4">
-                            <div className={`${tool.bgColor} dark:bg-opacity-20 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 min-w-0`}>
-                              <Icon className={`size-5 sm:size-6 ${tool.color} dark:opacity-90`} />
+                          <div className="flex items-start justify-between mb-3">
+                            <div className={`${tool.bgColor} dark:bg-opacity-20 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 min-w-0`}>
+                              <Icon className={`size-5 ${tool.color} dark:opacity-90`} />
                             </div>
                             <div className="flex items-center gap-1">
-                              <Star className="size-3 sm:size-4 text-yellow-500 fill-yellow-500" />
-                              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{tool.rating}</span>
+                              <Star className="size-4 text-yellow-500 fill-yellow-500" />
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{tool.rating}</span>
                             </div>
                           </div>
                           {/* Content */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 group-hover:text-primary transition-colors min-w-0">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-primary transition-colors min-w-0">
                               {tool.title}
                             </h3>
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 leading-relaxed line-clamp-2 min-w-0">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed line-clamp-2 min-w-0">
                               {tool.description}
                             </p>
                           </div>
                           {/* Usage stats */}
-                          <div className="flex items-center justify-between min-w-0">
+                          <div className="flex items-center justify-between mt-auto pt-2 min-w-0">
                             <Badge variant="outline" className="text-xs bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                               {tool.usage}
                             </Badge>
@@ -261,11 +260,10 @@ export default function PopularToolsCarousel() {
           {Array.from({ length: maxIndex + 1 }).map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex 
-                  ? 'bg-primary scale-125' 
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex
+                  ? 'bg-primary scale-125'
                   : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-              }`}
+                }`}
               onClick={() => goToSlide(index)}
             />
           ))}

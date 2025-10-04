@@ -1,5 +1,6 @@
 "use client"
 
+import PageTitle from "@/components/page-title";
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Users, Calendar, Phone, Hash, Tv, ChevronUp, ChevronDown } from "lucide-react"
@@ -58,12 +59,12 @@ export default function PoolSubscription() {
   const handlePhoneChange = (value: string) => {
     // Remove any non-numeric characters
     const numericValue = value.replace(/[^0-9]/g, '')
-    
+
     // Limit to 10 digits
     const limitedValue = numericValue.slice(0, 10)
-    
+
     setContactNumber(limitedValue)
-    
+
     // Validate and set error
     if (limitedValue.length > 0 && !validatePhoneNumber(limitedValue)) {
       if (limitedValue.length < 10) {
@@ -85,7 +86,7 @@ export default function PoolSubscription() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!selectedService || !numberOfPeople || !startDate || !endDate || !contactNumber) {
       alert("Please fill in all required fields")
       return
@@ -115,7 +116,7 @@ export default function PoolSubscription() {
       endDate: endDate,
       contact: contactNumber,
     })
-    
+
     router.push(`/pool-subscription/results?${searchParams.toString()}`)
   }
 
@@ -123,16 +124,15 @@ export default function PoolSubscription() {
     <div className="flex justify-center px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-4xl space-y-6">
         {/* Header Section */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
-            Pool a Subscription
-          </h1>
-          <p className="text-muted-foreground text-center">
-            Share subscription costs with others and save money on your favorite services! 
-            Fill in your subscription details below to find potential partners or create a new pool request.
-          </p>
+        <div className="max-w-7xl container mx-auto p-6 space-y-6">
+          <PageTitle
+            text="Pool A Subscription"
+            icon={PoolSubscription}
+            subheading='Share subscription costs with others and save money on your favorite services! 
+            Fill in your subscription details below to find potential partners or create a new pool request.'
+          />
         </div>
+        <div className="my-4 border-t border-gray-300"></div>
 
         {/* Form Card */}
         <Card>
@@ -315,15 +315,15 @@ export default function PoolSubscription() {
 
               {/* Submit Button */}
               <div className="pt-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full gap-2 text-lg py-6"
                   disabled={
-                    !selectedService || 
-                    !numberOfPeople || 
-                    !startDate || 
-                    !endDate || 
-                    !contactNumber || 
+                    !selectedService ||
+                    !numberOfPeople ||
+                    !startDate ||
+                    !endDate ||
+                    !contactNumber ||
                     !!phoneError ||
                     !validatePhoneNumber(contactNumber) ||
                     parseInt(numberOfPeople) < 1
