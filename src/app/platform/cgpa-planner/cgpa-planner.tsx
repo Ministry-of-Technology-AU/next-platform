@@ -98,9 +98,9 @@ export default function CGPAPlanner(){
                     {/* Added mb-4 to add space between the tabs list and content */}
                     <TabsList className="grid w-full grid-cols-3 mb-4 h-12 gap-1 rounded-lg border border-primary/30">
                         <TabsTrigger
-                            className="px-4 py-2 text-sm font-medium transition-colors 
+                            className="px-4 py-2 text-sm font-medium transition-colors
                  data-[state=active]:bg-primary data-[state=active]:text-white
-                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary
+                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary/70 dark:data-[state=inactive]:text-gray-300
                  hover:bg-primary/20"
                             value="upcoming"
                         >
@@ -109,9 +109,9 @@ export default function CGPAPlanner(){
                         </TabsTrigger>
 
                         <TabsTrigger
-                            className="px-4 py-2 text-sm font-medium transition-colors 
+                            className="px-4 py-2 text-sm font-medium transition-colors
                  data-[state=active]:bg-primary data-[state=active]:text-white
-                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary
+                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary/70 dark:data-[state=inactive]:text-gray-300
                  hover:bg-primary/20"
                             value="grade-planner"
                         >
@@ -120,9 +120,9 @@ export default function CGPAPlanner(){
                         </TabsTrigger>
 
                         <TabsTrigger
-                            className="px-4 py-2 text-sm font-medium transition-colors 
+                            className="px-4 py-2 text-sm font-medium transition-colors
                  data-[state=active]:bg-primary data-[state=active]:text-white
-                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary
+                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary/70 dark:data-[state=inactive]:text-gray-300
                  hover:bg-primary/20"
                             value="calculator"
                         >
@@ -135,8 +135,22 @@ export default function CGPAPlanner(){
                     {/* Upcoming Semester Tab */}
                     <TabsContent value="upcoming" className="space-y-6">
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                            {/* Left Column - Main Table */}
-                            <div className="lg:col-span-3">
+                            {/* Left Column - Semester Navigation */}
+                            <div className="lg:order-1">
+                            <SemesterNavigation
+                                resetActiveTab={resetActiveTab}
+                                setIsFormView={setIsFormView}
+                                pfCredits={pfCredits}
+                                setPfCredits={setPfCredits}
+                                upcomingSemesters={upcomingSemesters}
+                                pastSemesters={pastSemesters}
+                                selectedSemester={selectedSemester}
+                                setSelectedSemester={setSelectedSemester}
+                            />
+                            </div>
+
+                            {/* Right Column - Main Table */}
+                            <div className="lg:col-span-3 lg:order-2">
                                 {displaySemester ? (
                                     <Card>
                                         <CardContent className="p-6 overflow-x-auto">
@@ -232,20 +246,20 @@ export default function CGPAPlanner(){
                                                         <div className="flex flex-col gap-4">
                                                             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                                                                 {/* Metrics container (auto width) */}
-                                                                <div className="bg-slate-50/50 border border-primary/20 rounded-lg px-4 py-3 inline-flex items-center gap-6">
+                                                                <div className="bg-slate-50/50 dark:bg-slate-800/40 border border-primary/20 rounded-lg px-4 py-3 inline-flex items-center gap-6">
                                                                     <div>
                                                                         <div className="text-xs font-medium text-muted-foreground tracking-wide uppercase">Sem GPA</div>
-                                                                        <div className="text-xl font-bold text-primary tabular-nums">{calculatedCGPA ? calculatedCGPA.semesterGPA : '--'}</div>
+                                                                        <div className="text-xl font-bold text-primary dark:text-slate-200 tabular-nums">{calculatedCGPA ? calculatedCGPA.semesterGPA : '--'}</div>
                                                                     </div>
-                                                                    <div className="w-px h-8 bg-primary/10"></div>
+                                                                    <div className="w-px h-8 bg-primary/10 dark:bg-slate-600"></div>
                                                                     <div>
                                                                         <div className="text-xs font-medium text-muted-foreground tracking-wide uppercase">New CGPA</div>
-                                                                        <div className="text-xl font-bold text-primary tabular-nums">{calculatedCGPA ? calculatedCGPA.newCGPA : '--'}</div>
+                                                                        <div className="text-xl font-bold text-primary dark:text-slate-200 tabular-nums">{calculatedCGPA ? calculatedCGPA.newCGPA : '--'}</div>
                                                                     </div>
-                                                                    <div className="w-px h-8 bg-primary/10"></div>
+                                                                    <div className="w-px h-8 bg-primary/10 dark:bg-slate-600"></div>
                                                                     <div>
                                                                         <div className="text-xs font-medium text-muted-foreground tracking-wide uppercase">Credits</div>
-                                                                        <div className="text-xl font-bold text-primary tabular-nums">{calculatedCGPA ? calculatedCGPA.creditsEarned : '--'}</div>
+                                                                        <div className="text-xl font-bold text-primary dark:text-slate-200 tabular-nums">{calculatedCGPA ? calculatedCGPA.creditsEarned : '--'}</div>
                                                                     </div>
                                                                 </div>
                                                                 {/* Button aligned far right with padding from card border */}
@@ -274,18 +288,6 @@ export default function CGPAPlanner(){
                                     </Alert>
                                 )}
                             </div>
-
-                            {/* Right Column - Semester Navigation */}
-                            <SemesterNavigation
-                                resetActiveTab={resetActiveTab}
-                                setIsFormView={setIsFormView}
-                                pfCredits={pfCredits}
-                                setPfCredits={setPfCredits}
-                                upcomingSemesters={upcomingSemesters}
-                                pastSemesters={pastSemesters}
-                                selectedSemester={selectedSemester}
-                                setSelectedSemester={setSelectedSemester}
-                            />
                         </div>
                     </TabsContent>
 
@@ -301,9 +303,9 @@ export default function CGPAPlanner(){
                             {/* Feature 1: Calculate Required Semester Average */}
                             <Card className="flex flex-col h-full">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Target className="h-5 w-5" />
-                                        Calculate Required GPA This Semester
+                                    <CardTitle className="flex items-start gap-2 text-left min-h-[56px] text-gray-900 dark:text-gray-100">
+                                        <Target className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                                        <span className="text-left">Calculate Required GPA This Semester</span>
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex flex-col gap-4 flex-1">
@@ -334,12 +336,12 @@ export default function CGPAPlanner(){
                                             placeholder="e.g., 3.5"
                                         />
                                     </div>
-                                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground items-start">
                                         <span>Current CGPA: {getCurrentCGPA().toFixed(2)}</span>
                                         <span>Current Credits: {getCurrentCredits()}</span>
                                     </div>
                                     <div className="mt-auto rounded-lg border bg-green-50 p-4">
-                                        <Label className="text-sm font-medium">Required GPA this semester:</Label>
+                                        <Label className="text-sm font-medium text-gray-900">Required GPA this semester:</Label>
                                         <div className="text-2xl font-bold text-green-700 mt-1">
                                             {requiredSemesterAverage
                                                 ? (/^\d+(?:\.\d+)?$/.test(requiredSemesterAverage)
@@ -354,9 +356,9 @@ export default function CGPAPlanner(){
                             {/* Feature 2: Calculate Future CGPA */}
                             <Card className="flex flex-col h-full">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="flex items-center gap-2">
-                                        <TrendingUp className="h-5 w-5" />
-                                        Calculate Future CGPA
+                                    <CardTitle className="flex items-start gap-2 text-left min-h-[56px] text-gray-900 dark:text-gray-100">
+                                        <TrendingUp className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                                        <span className="text-left">Calculate Future CGPA</span>
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex flex-col gap-4 flex-1">
@@ -387,12 +389,12 @@ export default function CGPAPlanner(){
                                             placeholder="e.g., 16"
                                         />
                                     </div>
-                                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground items-start">
                                         <span>Current CGPA: {getCurrentCGPA().toFixed(2)}</span>
                                         <span>Current Credits: {getCurrentCredits()}</span>
                                     </div>
                                     <div className="mt-auto rounded-lg border bg-blue-50 p-4">
-                                        <Label className="text-sm font-medium">Your CGPA would be:</Label>
+                                        <Label className="text-sm font-medium text-gray-900">Your CGPA would be:</Label>
                                         <div className="text-2xl font-bold text-blue-700 mt-1">
                                             {projectedCGPA
                                                 ? (/^\d+(?:\.\d+)?$/.test(projectedCGPA)
@@ -407,9 +409,9 @@ export default function CGPAPlanner(){
                             {/* Feature 3: Credits Needed to Reach Target CGPA */}
                             <Card className="flex flex-col h-full">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="flex items-center gap-2">
-                                        <ArrowUpCircle className="h-5 w-5" />
-                                        Credits Needed to Reach Target CGPA
+                                    <CardTitle className="flex items-start gap-2 text-left min-h-[56px] text-gray-900 dark:text-gray-100">
+                                        <ArrowUpCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                                        <span className="text-left">Credits Needed to Reach Target CGPA</span>
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex flex-col gap-4 flex-1">
@@ -441,12 +443,12 @@ export default function CGPAPlanner(){
                                             placeholder="e.g., 3.8"
                                         />
                                     </div>
-                                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground items-start">
                                         <span>Current CGPA: {getCurrentCGPA().toFixed(2)}</span>
                                         <span>Current Credits: {getCurrentCredits()}</span>
                                     </div>
                                     <div className="mt-auto rounded-lg border bg-amber-50 p-4">
-                                        <Label className="text-sm font-medium">Credits required:</Label>
+                                        <Label className="text-sm font-medium text-gray-900">Credits required:</Label>
                                         <div className="text-2xl font-bold text-amber-700 mt-1">
                                             {requiredCreditsToRaise
                                                 ? (/^\d+(?:\.\d+)?$/.test(requiredCreditsToRaise)
@@ -455,7 +457,7 @@ export default function CGPAPlanner(){
                                                 : '--'}
                                         </div>
                                         {requiredCreditsToRaise && /^\d+(?:\.\d+)?$/.test(requiredCreditsToRaise) && (
-                                            <p className="text-xs text-muted-foreground mt-1">
+                                            <p className="text-xs text-gray-600 mt-1">
                                                 Round up to {Math.ceil(parseFloat(requiredCreditsToRaise))} credits
                                             </p>
                                         )}
