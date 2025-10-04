@@ -170,6 +170,7 @@ export default function PopularToolsCarousel() {
   };
 
   return (
+    <div className="mb-8 sm:mb-12 w-full overflow-hidden">
       <div className="flex items-center gap-3 mb-4 sm:mb-6">
         <Star className="size-5 sm:size-6 text-primary fill-primary" />
         <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">Or use our most popular tools</h2>
