@@ -170,16 +170,15 @@ export default function PopularToolsCarousel() {
   };
 
   return (
-    <div className="mb-8 sm:mb-12 overflow-hidden">
       <div className="flex items-center gap-3 mb-4 sm:mb-6">
         <Star className="size-5 sm:size-6 text-primary fill-primary" />
         <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">Or use our most popular tools</h2>
       </div>
-      <div className="relative overflow-hidden">
+      <div className="relative w-full px-8 sm:px-10 md:px-12">
         {/* Carousel Container */}
-        <div className="overflow-hidden rounded-2xl min-w-0 h-[280px] sm:h-[300px]">
+        <div className="overflow-hidden rounded-2xl w-full h-[280px] sm:h-[300px]">
           <div
-            className="flex transition-transform duration-500 ease-in-out min-w-0"
+            className="flex transition-transform duration-500 ease-in-out"
             style={{
               transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
               width: `${(popularTools.length / itemsPerView) * 100}%`
@@ -190,42 +189,42 @@ export default function PopularToolsCarousel() {
               return (
                 <div
                   key={tool.id}
-                  className="flex-shrink-0 px-2 sm:px-3 min-w-0"
+                  className="flex-shrink-0 px-2 sm:px-3 box-border"
                   style={{ width: `${100 / popularTools.length}%` }}
                 >
-                  <Card className="group h-[260px] overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/90 dark:bg-black/90 backdrop-blur-sm min-w-0">
+                  <Card className="group h-[260px] overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/90 dark:bg-black/90 backdrop-blur-sm w-full">
                     <Button
                       variant="ghost"
                       className="w-full h-full p-0 bg-transparent hover:bg-transparent"
                       asChild
                     >
                       <Link href={tool.href}>
-                        <CardContent className="p-4 h-full flex flex-col min-w-0">
+                        <CardContent className="p-4 h-full flex flex-col w-full">
                           {/* Header with icon and rating */}
                           <div className="flex items-start justify-between mb-3">
-                            <div className={`${tool.bgColor} dark:bg-opacity-20 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 min-w-0`}>
+                            <div className={`${tool.bgColor} dark:bg-opacity-20 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 flex-shrink-0`}>
                               <Icon className={`size-5 ${tool.color} dark:opacity-90`} />
                             </div>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 flex-shrink-0">
                               <Star className="size-4 text-yellow-500 fill-yellow-500" />
                               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{tool.rating}</span>
                             </div>
                           </div>
                           {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-primary transition-colors min-w-0">
+                          <div className="flex-1 w-full overflow-hidden">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-primary transition-colors truncate">
                               {tool.title}
                             </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed line-clamp-2 min-w-0">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed line-clamp-2">
                               {tool.description}
                             </p>
                           </div>
                           {/* Usage stats */}
-                          <div className="flex items-center justify-between mt-auto pt-2 min-w-0">
-                            <Badge variant="outline" className="text-xs bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                          <div className="flex items-center justify-between mt-auto pt-2 w-full">
+                            <Badge variant="outline" className="text-xs bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 flex-shrink-0">
                               {tool.usage}
                             </Badge>
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
                           </div>
                         </CardContent>
                       </Link>
@@ -240,27 +239,27 @@ export default function PopularToolsCarousel() {
         <Button
           variant="ghost"
           size="icon"
-          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-black/90 text-gray-700 dark:text-gray-300 border-0 shadow-lg z-10"
+          className="absolute left-0 sm:left-1 md:left-2 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 backdrop-blur-sm hover:bg-white dark:hover:bg-black text-gray-700 dark:text-gray-300 border shadow-lg z-20 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           onClick={prevSlide}
           disabled={currentIndex === 0}
         >
-          <ChevronLeft className="size-4 sm:size-6" />
+          <ChevronLeft className="size-5 sm:size-6 md:size-7" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-black/90 text-gray-700 dark:text-gray-300 border-0 shadow-lg z-10"
+          className="absolute right-0 sm:right-1 md:right-2 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 backdrop-blur-sm hover:bg-white dark:hover:bg-black text-gray-700 dark:text-gray-300 border shadow-lg z-20 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           onClick={nextSlide}
           disabled={currentIndex === maxIndex}
         >
-          <ChevronRight className="size-4 sm:size-6" />
+          <ChevronRight className="size-5 sm:size-6 md:size-7" />
         </Button>
         {/* Dots Indicator */}
-        <div className="flex justify-center mt-2 sm:mt-6 space-x-2 min-w-0">
+        <div className="flex justify-center mt-2 sm:mt-6 space-x-2 w-full overflow-x-auto">
           {Array.from({ length: maxIndex + 1 }).map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex
+              className={`w-2 h-2 rounded-full transition-all duration-300 flex-shrink-0 ${index === currentIndex
                   ? 'bg-primary scale-125'
                   : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
                 }`}
