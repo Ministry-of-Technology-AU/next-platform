@@ -182,7 +182,6 @@ export default function PopularToolsCarousel() {
             className="flex transition-transform duration-500 ease-in-out"
             style={{
               transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
-              width: `${(popularTools.length / itemsPerView) * 100}%`
             }}
           >
             {popularTools.map((tool) => {
@@ -191,7 +190,7 @@ export default function PopularToolsCarousel() {
                 <div
                   key={tool.id}
                   className="flex-shrink-0 px-2 sm:px-3 box-border"
-                  style={{ width: `${100 / popularTools.length}%` }}
+                  style={{ width: `${100 / itemsPerView}%` }}
                 >
                   <Card className="group h-[260px] overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/90 dark:bg-black/90 backdrop-blur-sm w-full">
                     <Button
