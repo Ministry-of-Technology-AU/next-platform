@@ -1,42 +1,64 @@
 "use client";
+
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface ExpandableTextProps {
   text: string;
-  maxLength?: number;
+  className?: string;
+  truncateLength?: number;
 }
 
-export function ExpandableText({ text, maxLength = 80 }: ExpandableTextProps) {
+export function ExpandableText({ 
+  text, 
+  className = "", 
+  truncateLength = 100 
+}: ExpandableTextProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   
-  const shouldTruncate = text && text.length > maxLength;
-  const truncatedText = shouldTruncate ? text.slice(0, maxLength) + "..." : text;
-
+  // Check if text is long enough to need truncation
+  const needsTruncation = text.length > truncateLength;
+  const shouldShowTruncated = needsTruncation && !isExpanded;
+  
   return (
-    <p className="text-muted-foreground text-sm inline">
-      {isExpanded ? text : truncatedText}
-      {shouldTruncate && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="h-auto p-0 ml-1 text-xs text-muted-foreground hover:text-foreground inline-flex items-center"
-        >
-          {isExpanded ? (
-            <>
-              <ChevronUp className="h-3 w-3 mr-1" />
-              Show less
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-3 w-3 mr-1" />
-              Show more
-            </>
-          )}
-        </Button>
-      )}
-    </p>
+    <div className={`text-muted-foreground text-sm sm:text-base ${className}`}>
+      {/* On small screens: show truncation, on large screens: always show full text */}
+      <div className="block sm:hidden">
+        {shouldShowTruncated ? (
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="line-clamp-1">
+              {text.slice(0, truncateLength)}...
+            </span>
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => setIsExpanded(true)}
+              className="h-auto p-0 text-xs text-primary hover:text-primary/80 underline"
+            >
+              read more
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            <p>{text}</p>
+            {needsTruncation && isExpanded && (
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setIsExpanded(false)}
+                className="h-auto p-0 text-xs text-primary hover:text-primary/80 underline"
+              >
+                show less
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* On large screens: always show full text */}
+      <div className="hidden sm:block">
+        <p>{text}</p>
+      </div>
+    </div>
   );
 }

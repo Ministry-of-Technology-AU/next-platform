@@ -1,8 +1,5 @@
 // app/course-reviews/page.tsx
-import { BookOpen } from "lucide-react";
 import CourseReviewsClient from "./course-reviews-client";
-import PageTitle from "@/components/page-title";
-import DeveloperCredits from "@/components/developer-credits";
 import { cookies } from "next/headers";
 
 const maxCoursesToLoad = 100;

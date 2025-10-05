@@ -204,7 +204,7 @@ export default function ComposeNew() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-    <div className="space-y-6 max-w-6xl mx-auto p-6">
+    <div className="space-y-6 max-w-8xl mx-auto p-6">
       {/* Header Section */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">

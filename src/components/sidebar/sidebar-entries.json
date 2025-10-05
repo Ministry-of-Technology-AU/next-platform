@@ -50,21 +50,6 @@
           "title": "Pool a Cab",
           "icon": "Car",
           "href": "/pool-cab"
-        },
-        {
-          "title": "Pool a Subscription",
-          "icon": "Tv",
-          "href": "/pool-subscription"
-        },
-        {
-          "title": "Borrow Assets",
-          "icon": "ShoppingBag",
-          "href": "/borrow-assets"
-        },
-        {
-          "title": "Resources",
-          "icon": "Boxes",
-          "href": "/resources"
         }
       ]
     },
@@ -73,19 +58,9 @@
       "title": "Cultural Life",
       "items": [
         {
-          "title": "Organisations Catalogue",
-          "icon": "GalleryHorizontalEnd",
-          "href": "/organisations-catalogue"
-        },
-        {
           "title": "Events Calendar",
           "icon": "CalendarDays",
           "href": "/events-calendar"
-        },
-        {
-          "title": "Intercollegiate Events",
-          "icon": "Building2",
-          "href": "/intercollegiate-events"
         }
       ]
     },
@@ -93,11 +68,6 @@
       "id": "my-resources",
       "title": "My Resources",
       "items": [
-        {
-          "title": "Create a Ticket",
-          "icon": "Ticket",
-          "href": "/create-tickets"
-        },
         {
           "title": "My Profile",
           "icon": "UserCog",

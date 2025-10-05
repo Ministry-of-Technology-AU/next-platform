@@ -3,13 +3,29 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Mock components for demonstration
-const Label = ({ htmlFor, className, children }) => (
+interface LabelProps {
+    htmlFor?: string;
+    className?: string;
+    children?: React.ReactNode;
+}
+
+const Label = ({ htmlFor, className, children }: LabelProps) => (
     <label htmlFor={htmlFor} className={className}>
         {children}
     </label>
 );
 
-const Input = ({ id, type, placeholder, value, onChange, className }) => (
+
+interface InputProps {
+    id?: string;
+    type?: string;
+    placeholder?: string;
+    value?: string | number;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    className?: string;
+}
+
+const Input = ({ id, type, placeholder, value, onChange, className }: InputProps) => (
     <input
         id={id}
         type={type}
@@ -21,7 +37,12 @@ const Input = ({ id, type, placeholder, value, onChange, className }) => (
 );
 
 
-const PFCreditsComponent = ({ pfCredits, setPfCredits }) => {
+interface PFCreditsComponentProps {
+    pfCredits: string;
+    setPfCredits: (value: string) => void;
+}
+
+const PFCreditsComponent = ({ pfCredits, setPfCredits }: PFCreditsComponentProps) => {
     const [showInput, setShowInput] = useState(false);
 
     return (
@@ -46,7 +67,7 @@ const PFCreditsComponent = ({ pfCredits, setPfCredits }) => {
                         type="number"
                         placeholder="credits"
                         value={pfCredits}
-                        onChange={(e) => setPfCredits(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPfCredits(e.target.value)}
                         className="max-w-xs block"
                     />
                 </>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search, ChevronUp, ChevronDown, CirclePlus } from "lucide-react";
+import { useState, Suspense, useMemo } from "react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,21 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { CourseDialog } from "./course-dialog";
+import { ReviewsTable, ReviewsTableSkeleton } from "./_components/table";
+import { SortField, SortDirection, CourseWithReviews } from "./types";
+import { sortAndFilterCourses, uniqueSems, uniqueYears, getPageNumbers } from "./data";
 
-type SortField = "courseCode" | "courseName" | "faculty" | "semester" | "year";
-type SortDirection = "asc" | "desc";
-
-export default function CourseReviewsClient({ courses }: { courses: any[] }) {
+export default function CourseReviewsClient({ courses }: { courses: CourseWithReviews[] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
@@ -34,53 +24,16 @@ export default function CourseReviewsClient({ courses }: { courses: any[] }) {
   const [sortField, setSortField] = useState<SortField>("courseCode");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  // Get unique years and semesters for filter options
-  const uniqueYears = useMemo(() => {
-    const years = [...new Set(courses.map(course => course.year))].sort((a, b) => b - a);
-    return years;
-  }, [courses]);
+  // Get unique years and semesters for filter options using useMemo at component level
+  const availableYears = useMemo(() => uniqueYears(courses), [courses]);
+  const availableSemesters = useMemo(() => uniqueSems(courses), [courses]);
 
-  const uniqueSemesters = useMemo(() => {
-    const semesters = [...new Set(courses.map(course => course.semester))];
-    return semesters;
-  }, [courses]);
 
   // Client-side filtering, searching, and sorting
-  const filteredAndSortedCourses = useMemo(() => {
-    let filtered = courses.filter((course) => {
-      // Search filter
-      const matchesSearch = !searchTerm || 
-        course.courseCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.faculty.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Semester filter
-      const matchesSemester = semesterFilter === "all" || course.semester === semesterFilter;
-
-      // Year filter
-      const matchesYear = yearFilter === "all" || course.year.toString() === yearFilter;
-
-      return matchesSearch && matchesSemester && matchesYear;
-    });
-
-    // Sort the filtered results
-    filtered.sort((a, b) => {
-      let aValue = a[sortField];
-      let bValue = b[sortField];
-
-      // Handle string comparisons
-      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-
-      if (sortDirection === "asc") {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
-
-    return filtered;
-  }, [courses, searchTerm, semesterFilter, yearFilter, sortField, sortDirection]);
+  const filteredAndSortedCourses = useMemo(() => 
+    sortAndFilterCourses(courses, searchTerm, semesterFilter, yearFilter, sortField, sortDirection),
+    [courses, searchTerm, semesterFilter, yearFilter, sortField, sortDirection]
+  );
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedCourses.length / entriesPerPage);
@@ -110,36 +63,6 @@ export default function CourseReviewsClient({ courses }: { courses: any[] }) {
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ChevronUp className="w-4 h-4 opacity-30" />;
-    return sortDirection === "asc" ? (
-      <ChevronUp className="w-4 h-4" />
-    ) : (
-      <ChevronDown className="w-4 h-4" />
-    );
-  };
-
-  // Generate page numbers for pagination
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      const start = Math.max(1, currentPage - 2);
-      const end = Math.min(totalPages, start + maxVisiblePages - 1);
-      
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-    }
-    
-    return pages;
-  };
 
   return (
     <>
@@ -151,7 +74,7 @@ export default function CourseReviewsClient({ courses }: { courses: any[] }) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Semesters</SelectItem>
-            {uniqueSemesters.map(semester => (
+            {availableSemesters.map(semester => (
               <SelectItem key={semester} value={semester}>{semester}</SelectItem>
             ))}
           </SelectContent>
@@ -163,7 +86,7 @@ export default function CourseReviewsClient({ courses }: { courses: any[] }) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Years</SelectItem>
-            {uniqueYears.map(year => (
+            {availableYears.map(year => (
               <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
             ))}
           </SelectContent>
@@ -218,66 +141,9 @@ export default function CourseReviewsClient({ courses }: { courses: any[] }) {
       {/* Table */}
       <div className="bg-white dark:bg-gray-dark/15 rounded-lg border border-neutral-light overflow-hidden">
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-primary-light/40 dark:bg-primary-dark/40 z-10">
-              <TableRow>
-                {[
-                  { field: "courseCode", label: "Course Code" },
-                  { field: "courseName", label: "Course Name" },
-                  { field: "faculty", label: "Faculty" },
-                  { field: "semester", label: "Semester", hideOnMobile: true },
-                  { field: "year", label: "Year", hideOnMobile: true },
-                ].map(({ field, label, hideOnMobile }) => (
-                  <TableHead
-                    key={field}
-                    className={`cursor-pointer hover:bg-neutral-light ${hideOnMobile ? 'hidden sm:table-cell' : ''}`}
-                    onClick={() => handleSort(field as SortField)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs sm:text-sm">{label}</span>
-                      <SortIcon field={field as SortField} />
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedCourses.length > 0 ? (
-                paginatedCourses.map((course: any) => (
-                  <Dialog key={course.id}>
-                    <DialogTrigger asChild>
-                      <TableRow className="cursor-pointer hover:bg-neutral-extralight transition-colors">
-                        <TableCell className="text-xs sm:text-sm">{course.courseCode}</TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-xs sm:text-sm">{course.courseName}</div>
-                            <div className="text-xs text-gray sm:hidden">
-                              {course.semester} {course.year}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">{course.faculty}</TableCell>
-                        <TableCell className="hidden sm:table-cell text-xs sm:text-sm">{course.semester}</TableCell>
-                        <TableCell className="hidden sm:table-cell text-xs sm:text-sm">{course.year}</TableCell>
-                      </TableRow>
-                    </DialogTrigger>
-                    <DialogContent className="w-[95vw] sm:w-4/5 max-w-[95vw] sm:max-w-[80vw] max-h-[90vh] p-3 sm:p-4 lg:p-6">
-                      <CourseDialog course={course} />
-                      <Button variant="animated" className="mt-2 sm:mt-3 w-full sm:w-auto text-xs sm:text-sm" onClick={()=>{window.location.href=`/course-reviews/add/${course.id}`}}>
-                        <CirclePlus className="w-4 h-4" /> Add Review
-                      </Button>
-                    </DialogContent>
-                  </Dialog>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-neutral-primary">
-                    No courses found matching your criteria.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <Suspense fallback={<ReviewsTableSkeleton entriesPerPage={entriesPerPage} />}>
+            <ReviewsTable paginatedCourses={paginatedCourses} sortField={sortField} sortDirection={sortDirection} handleSort={handleSort} />
+          </Suspense>
         </div>
       </div>
 
@@ -299,7 +165,7 @@ export default function CourseReviewsClient({ courses }: { courses: any[] }) {
             </Button>
             
             {/* Dynamic pagination buttons */}
-            {getPageNumbers().map((pageNum) => (
+            {getPageNumbers(totalPages, currentPage).map((pageNum) => (
               <Button
                 key={pageNum}
                 variant={currentPage === pageNum ? "default" : "outline"}
