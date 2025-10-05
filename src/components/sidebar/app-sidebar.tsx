@@ -25,26 +25,19 @@ import {
   WifiPen,
   Library,
   Users,
-  Tv,
   Car,
-  Boxes,
-  GalleryHorizontalEnd,
   CalendarDays,
-  Building2,
   PartyPopper,
   UserCog,
-  Ticket,
   Settings,
   HelpCircle,
   ClipboardPenLine,
   MailPlus,
   Clock,
   User,
-  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Icon mapping
 const iconMap = {
@@ -55,21 +48,15 @@ const iconMap = {
   WifiPen,
   Library,
   Users,
-  Tv,
   Car,
-  Boxes,
-  GalleryHorizontalEnd,
   CalendarDays,
-  Building2,
   PartyPopper,
   UserCog,
-  Ticket,
   Settings,
   HelpCircle,
   MailPlus,
   Clock,
   User,
-  ShoppingBag
 };
 
 interface SidebarItem {

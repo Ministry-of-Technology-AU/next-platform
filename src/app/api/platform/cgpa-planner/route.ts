@@ -1,182 +1,175 @@
-"use server";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { strapiGet, strapiPut } from "@/lib/apis/strapi";
-import { NextResponse } from "next/server";
-import { getAuthenticatedUser } from "@/lib/auth";
 import { getUserIdByEmail } from "@/lib/userid";
-import { ParsedCGPAData } from "@/app/platform/cgpa-planner/types";
-import {auth} from "@/auth";
+import { CGPAData } from "./utils";
 
-// export async function GET() {
-//   try {
-//     console.log('CGPA API: GET request received');
+/**
+ * GET handler for /api/platform/cgpa-planner
+ * Returns CGPA data for the authenticated user
+ */
+export async function GET(request: NextRequest) {
+  try {
+    // Get the authenticated session
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Get user ID from Strapi
+    const userId = await getUserIdByEmail(session.user.email);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Fetch CGPA data from user's cgpa_data field
+    const response = await strapiGet(`/users/${userId}`, {
+      populate: {
+        cgpa_data: true
+      }
+    });
+
+    if (!response || !response.cgpa_data) {
+      return NextResponse.json({
+        success: true,
+        data: null,
+        message: "No CGPA data found"
+      });
+    }
+
+    // Return the CGPA data from user's cgpa_data field
+    const cgpaData: CGPAData = response.cgpa_data;
+
+    return NextResponse.json({
+      success: true,
+      data: cgpaData,
+      lastUpdated: response.updatedAt
+    });
+
+  } catch (error) {
+    console.error("Error fetching CGPA data:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to fetch CGPA data",
+        details: (error as Error).message 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST handler for /api/platform/cgpa-planner
+ * Creates or updates CGPA data for the authenticated user
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Get the authenticated session
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Parse request body
+    const cgpaData = await request.json() as CGPAData;
     
-//     // Get authenticated user
-//     const user = await getAuthenticatedUser();
-//     console.log('CGPA API: User authenticated:', !!user);
-    
-//     if (!user) {
-//       console.log('CGPA API: No authenticated user');
-//       return NextResponse.json(
-//         { error: "Authentication required" },
-//         { status: 401 }
-//       );
-//     }
+    // Validate required fields
+    if (!cgpaData.semesters || !Array.isArray(cgpaData.semesters)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid CGPA data format" },
+        { status: 400 }
+      );
+    }
 
-//     // Get user ID from email
-//     console.log('CGPA API: Getting user ID for email:', user.email);
-//     const userId = await getUserIdByEmail(user.email);
-//     console.log('CGPA API: User ID found:', userId);
-    
-//     if (!userId) {
-//       console.log('CGPA API: User not found in Strapi');
-//       return NextResponse.json(
-//         { error: "User not found" },
-//         { status: 404 }
-//       );
-//     }
+    // Get user ID from Strapi
+    const userId = await getUserIdByEmail(session.user.email);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 404 }
+      );
+    }
 
-//     // Fetch user data with CGPA data
-//     console.log('CGPA API: Fetching user data from Strapi...');
-//     const userData = await strapiGet(`/users/${userId}`, {
-//       fields: ["id", "email", "cgpa_data"]
-//     });
-//     console.log('CGPA API: User data received:', !!userData.data);
+    // Update user's cgpa_data field
+    const updatedResponse = await strapiPut(`/users/${userId}`, {
+      cgpa_data: cgpaData
+    });
 
-//     if (!userData.data) {
-//       console.log('CGPA API: No user data found in Strapi');
-//       return NextResponse.json(
-//         { error: "User data not found" },
-//         { status: 404 }
-//       );
-//     }
+    return NextResponse.json({
+      success: true,
+      data: cgpaData,
+      message: "CGPA data updated successfully",
+      userId: userId,
+      strapiResponse: updatedResponse
+    });
 
-//     // Return CGPA data if it exists, otherwise return empty structure
-//     const cgpaData = userData.data.cgpa_data || {
-//       degreeCGPA: 0,
-//       majorCGPA: 0,
-//       totalCredits: 0,
-//       semesters: []
-//     };
+  } catch (error) {
+    console.error("Error saving CGPA data:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to save CGPA data",
+        details: (error as Error).message 
+      },
+      { status: 500 }
+    );
+  }
+}
 
-//     return NextResponse.json({
-//       success: true,
-//       data: cgpaData
-//     });
+/**
+ * DELETE handler for /api/platform/cgpa-planner
+ * Clears all CGPA data for the authenticated user (used for AMS resync)
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    // Get the authenticated session
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
 
-//   } catch (error) {
-//     console.error("Error fetching CGPA data:", error);
-//     return NextResponse.json(
-//       { error: "Internal server error" },
-//       { status: 500 }
-//     );
-//   }
-// }
+    // Get user ID from Strapi
+    const userId = await getUserIdByEmail(session.user.email);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 404 }
+      );
+    }
 
-// export async function POST() {
-//   try {
-//     // Get authenticated user
-//     const user = await getAuthenticatedUser();
-//     if (!user) {
-//       return NextResponse.json(
-//         { error: "Authentication required" },
-//         { status: 401 }
-//       );
-//     }
+    // Clear user's cgpa_data field
+    await strapiPut(`/users/${userId}`, {
+      cgpa_data: null
+    });
 
-//     // Get user ID from email
-//     const userId = await getUserIdByEmail(user.email);
-//     if (!userId) {
-//       return NextResponse.json(
-//         { error: "User not found" },
-//         { status: 404 }
-//       );
-//     }
+    return NextResponse.json({
+      success: true,
+      message: "CGPA data cleared successfully",
+      deletedCount: 1
+    });
 
-//     // Clear CGPA data by setting it to null
-//     await strapiPut(`/users/${userId}`, {
-//       cgpa_data: null
-//     });
-
-//     return NextResponse.json({
-//       success: true,
-//       message: "CGPA data cleared successfully"
-//     });
-
-//   } catch (error) {
-//     console.error("Error clearing CGPA data:", error);
-//     return NextResponse.json(
-//       { error: "Internal server error" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-// export async function PUT(request: Request) {
-//   try {
-//     // Get authenticated user
-//     const user = await getAuthenticatedUser();
-//     if (!user) {
-//       return NextResponse.json(
-//         { error: "Authentication required" },
-//         { status: 401 }
-//       );
-//     }
-
-//     // Get user ID from email
-//     const userId = await getUserIdByEmail(user.email);
-//     if (!userId) {
-//       return NextResponse.json(
-//         { error: "User not found" },
-//         { status: 404 }
-//       );
-//     }
-
-//     // Parse request body
-//     const body = await request.json();
-//     const cgpaData: ParsedCGPAData = body.cgpa_data;
-
-//     if (!cgpaData) {
-//       return NextResponse.json(
-//         { error: "CGPA data is required" },
-//         { status: 400 }
-//       );
-//     }
-
-//     // Save CGPA data to Strapi
-//     await strapiPut(`/users/${userId}`, {
-//       cgpa_data: cgpaData
-//     });
-
-//     return NextResponse.json({
-//       success: true,
-//       message: "CGPA data saved successfully"
-//     });
-
-//   } catch (error) {
-//     console.error("Error saving CGPA data:", error);
-//     return NextResponse.json(
-//       { error: "Internal server error" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-export async function GET(){
-        const session = await auth();
-        if (!session?.user?.email) {
-          return Response.json(
-            { error: "Authentication required" },
-            { status: 401 }
-          );
-        }
-
-        // Get user ID from email
-        const userId = await getUserIdByEmail(session.user.email);
-        if (!userId) {
-          return Response.json({ error: "User not found" }, { status: 404 });
-        }
-        const userData = await strapiGet(`users/${userId}`);
-        return (NextResponse.json({
-            message: "CGPA data cleared successfully"
-        }));
+  } catch (error) {
+    console.error("Error deleting CGPA data:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to delete CGPA data",
+        details: (error as Error).message 
+      },
+      { status: 500 }
+    );
+  }
 }

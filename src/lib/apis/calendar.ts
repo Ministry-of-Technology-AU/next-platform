@@ -3,8 +3,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 // Initialize Google Calendar API with OAuth2
 const calendarOAuth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.DRIVE_CLIENT_ID,
+  process.env.DRIVE_CLIENT_SECRET,
   process.env.GOOGLE_REDIRECT_URI
 );
 
@@ -112,6 +112,7 @@ async function getEvents(
         // Ensure we get all fields
         fields: "*"
       });
+      console.log('Fetched single event:', response.data);
       return response.data;
     } else {
       // List events within the specified time range
@@ -124,6 +125,7 @@ async function getEvents(
         // Ensure we get all fields for each event
         fields: "items(*),nextPageToken,nextSyncToken"
       });
+      console.log('Fetched events:', response.data);
       return response.data.items;
     }
   } catch (error) {

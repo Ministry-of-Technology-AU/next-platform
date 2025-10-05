@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { CourseSelection } from "./components/course-selection";
 import { TimetableGrid } from "./components/timetable-grid";
 import { DraftTabs } from "./components/draft-tabs";
@@ -276,6 +276,11 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     [drafts]
   );
 
+  const handleRenameDraft = useCallback((draftId: string, newName: string) => {
+    if (!newName.trim()) return;
+    setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, name: newName.trim(), updatedAt: new Date() } : d));
+  }, []);
+
   const handleDeleteDraft = useCallback(
     (draftId: string) => {
       if (drafts.length <= 1) {
@@ -298,24 +303,53 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
   const handleDownloadTimetable = useCallback(
     async (draftId: string) => {
       const element = document.getElementById("timetable-grid");
-      if (!element) return;
+      if (!element) {
+        console.error("Timetable element not found");
+        toast.error("Timetable element not found. Please try again.", { duration: 3000 });
+        return;
+      }
 
       try {
-        const canvas = await html2canvas(element, {
+        toast.info("Generating screenshot...", { duration: 2000 });
+        
+        // Wait a bit to ensure the element is fully rendered
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const dataUrl = await toPng(element, {
           backgroundColor: "#ffffff",
-          scale: 2,
+          pixelRatio: 2,
+          width: element.scrollWidth,
+          height: element.scrollHeight,
+          style: {
+            transform: "none",
+            transformOrigin: "top left",
+          },
+          filter: (node) => {
+            // Skip script and style nodes that might cause issues
+            return node.tagName !== "SCRIPT" && node.tagName !== "STYLE";
+          }
         });
 
-        const link = document.createElement("a");
-        link.download = `timetable-${
-          drafts.find((d) => d.id === draftId)?.name || "draft"
-        }.png`;
-        link.href = canvas.toDataURL();
-        link.click();
+        if (!dataUrl || dataUrl === "data:,") {
+          throw new Error("Failed to generate image data");
+        }
 
-        toast.success("Timetable downloaded successfully", { duration: 2000 });
+        const link = document.createElement("a");
+        const draftName = drafts.find((d) => d.id === draftId)?.name || "draft";
+        link.download = `timetable-${draftName.replace(/[^a-zA-Z0-9]/g, '-')}.png`;
+        link.href = dataUrl;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success("Timetable downloaded successfully! 📸", { duration: 3000 });
       } catch (error) {
-        toast.error("Failed to download timetable", { duration: 2000 });
+        console.error("Download error:", error);
+        toast.error(`Failed to download timetable: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
+          duration: 4000 
+        });
       }
     },
     [drafts]
@@ -400,6 +434,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onDeleteDraft={handleDeleteDraft}
             onSwitchDraft={setActiveDraftId}
             onDownloadTimetable={handleDownloadTimetable}
+              onRenameDraft={handleRenameDraft}
           >
             <div id="timetable-grid" className="min-w-0">
               <TimetableGrid

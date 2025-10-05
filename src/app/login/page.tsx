@@ -1,9 +1,13 @@
+
 'use client'
 
 import { signIn, useSession } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+
+export const dynamic = 'force-dynamic';
+
 
 export default function LoginPage() {
   const { data: session, status } = useSession()

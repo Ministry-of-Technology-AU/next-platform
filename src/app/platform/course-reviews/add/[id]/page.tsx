@@ -4,31 +4,7 @@ import PageTitle from "@/components/page-title";
 import { CirclePlus } from "lucide-react";
 import { useState, useEffect, use } from "react";
 import { majors, batches } from "@/data/data";
-
-interface SearchParams {
-  name: string;
-  code: string;
-  year: number;
-  semester: string;
-}
-
-interface FormData {
-  reviewExperience: string;
-  grading_transparent: string;
-  strict: string;
-  fair: string;
-  lecturer: string;
-  relatable: string;
-  overall: string;
-  mode: string;
-  grading: string;
-  extracredit: string;
-  taInfluence: string;
-  batch: string;
-  major: string;
-  grade: string;
-  isAnonymous: boolean;
-}
+import { FormData } from "../../types";
 
 export default function AddReview({ params }: { params: Promise<{ id: string }> }) {
   // Unwrap the params Promise using React.use()
@@ -73,7 +49,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
         console.log('Fetching course details for ID:', id);
         
         // Use the dedicated course API endpoint
-        const response = await fetch(`/api/courses/${id}`);
+        const response = await fetch(`/api/platform/courses/${id}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -206,7 +182,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
     console.log("Submitting review with data:", apiData);
 
     try {
-      const response = await fetch(`/api/courses/${courseDetails.id}`, {
+      const response = await fetch(`/api/platform/courses/${courseDetails.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +200,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
       if (result.success) {
         alert("Review submitted successfully!");
         // Optionally redirect back to course reviews page
-        window.location.href = "/course-reviews";
+        window.location.href = "/platform/course-reviews";
       } else {
         throw new Error(result.error || "Unknown error occurred");
       }
@@ -248,15 +224,18 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
   
   return (
     <div className="min-h-screen container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-      <PageTitle
-        text="Add Course Review"
-        subheading={subheading}
-        icon={CirclePlus}
-      />
       <Form.FormContainer
         onSubmit={handleSubmit}
         className="max-w-6xl mt-4 sm:mt-6 bg-gray-light-90 p-3 sm:p-4 lg:p-6 rounded-lg shadow-md"
       >
+      <div className="space-y-3 sm:space-y-4">
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
+          <CirclePlus className="text-primary w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+          <p className="text-lg sm:text-xl font-bold text-center">
+            Add a Course Review - <span className="font-normal text-primary"> {courseDetails.name} ({courseDetails.code}),{courseDetails.semester} {courseDetails.year}</span>
+          </p>
+        </div>
+      </div>
         <div className="space-y-4">
           <h3 className="text-xl font-bold">SECTION 1 - Review</h3>
           <Form.TextInput

@@ -1,17 +1,25 @@
 import { useState, useMemo, useEffect } from "react";
 import { gradePointsMap, gradeOptions } from "./data";
 import { ParsedCGPAData, ParsedSemester, ParsedCourse, GradeKey, AttemptSource, CourseAttempt } from "./types";
+import { saveCGPAData } from "./_components/semester-navigation";
 
-export const useCalculations = () => {
+export const useCalculations = (initialData?: ParsedCGPAData) => {
     // State management
-    const [isFormView, setIsFormView] = useState(true);
-    const [gradeInput, setGradeInput] = useState<string>('');
-    const [cgpaData, setCgpaData] = useState<ParsedCGPAData>({
-        degreeCGPA: 0,
-        majorCGPA: 0,
-        totalCredits: 0,
-        semesters: [] as ParsedSemester[],
+    const [isFormView, setIsFormView] = useState(() => {
+        if (initialData && initialData.semesters && initialData.semesters.length > 0) {
+            return false;
+        }
+        return true;
     });
+    const [gradeInput, setGradeInput] = useState<string>('');
+    const [cgpaData, setCgpaData] = useState<ParsedCGPAData>(
+        initialData ?? {
+            degreeCGPA: 0,
+            majorCGPA: 0,
+            totalCredits: 0,
+            semesters: [] as ParsedSemester[],
+        }
+    );
 
     // Selected semester for viewing (null means current semester)
     const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
@@ -367,7 +375,7 @@ export const useCalculations = () => {
         return data;
     };
 
-    const handleCalculate = () => {
+    const handleCalculate = async () => {
         if (!gradeInput.trim()) {
             alert('Please paste your grade data first.');
             return;
@@ -376,6 +384,18 @@ export const useCalculations = () => {
         const parsedData = parseGradeData(gradeInput);
         setCgpaData(parsedData);
         setIsFormView(false);
+
+        // Post to Strapi
+        try {
+            const result = await saveCGPAData(parsedData);
+            if (!result.success) {
+                console.error('Failed to save CGPA data:', result.error);
+                alert('Failed to save CGPA data.');
+            }
+        } catch (error) {
+            console.error('Error posting CGPA data:', error);
+            alert('Error posting CGPA data.');
+        }
     };
 
     // Handle grade selection for current semester

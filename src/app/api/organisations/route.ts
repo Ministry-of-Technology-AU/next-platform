@@ -1,11 +1,14 @@
 import { strapiGet } from "@/lib/apis/strapi";
 import { NextResponse } from "next/server";
-import { organizations as dummyOrganizations } from "@/app/(pages)/events-calendar/data/calendar-data";
+import { organizations as dummyOrganizations } from "@/app/platform/events-calendar/data/calendar-data";
 
 export async function GET(request: Request) {
   try {
     // Fetch organizations from Strapi
-    const strapiResponse = await strapiGet('organisations');
+    const strapiResponse = await strapiGet('organisations', {
+      pagination: { page: 1, pageSize: 200 },
+    });
+    console.log('Fetched organizations from Strapi:', strapiResponse?.data);
     
     // Return the full Strapi data without mapping
     // This allows other components to use the complete data

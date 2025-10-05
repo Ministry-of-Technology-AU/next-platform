@@ -2,6 +2,7 @@ import EventsCalendar from "./events-calendar";
 import { Suspense } from "react";
 import { Event, Organization } from "./types/calendar";
 import { cookies } from "next/headers";
+import DeveloperCredits from "@/components/developer-credits";
 
 export default async function Page() {
   const cookieStore = await cookies();
@@ -10,10 +11,10 @@ export default async function Page() {
     try {
       // Calculate date range for current month and next month
       const now = new Date();
-      const startTime = now.toISOString();
       
       const nextMonth = new Date();
       nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const startTime = now.toISOString();
       const endTime = nextMonth.toISOString();
       const base_url = process.env.BASE_URL || 'http://localhost:3000';
       
@@ -82,7 +83,7 @@ export default async function Page() {
   async function fetchOrganizations(): Promise<Organization[]> {
     try {
       const base_url = process.env.BASE_URL || 'http://localhost:3000';
-      const apiUrl = `${base_url}/api/platform/organisations`;
+      const apiUrl = `${base_url}/api/organisations`;
       
       const response = await fetch(apiUrl, {
         cache: 'no-store',
@@ -231,11 +232,6 @@ export default async function Page() {
     fetchOrganizations()
   ]);
   
-  // Log for debugging
-  console.log('User preferences fetched:', userPreferences);
-  console.log('Organizations fetched:', organizations.length);
-  console.log('Sample organizations:', organizations.slice(0, 3));
-  
   // Now that we have organizations, we can match events with them
   const mappedEvents = events.map(event => {
     // Check if event can be linked to an organization
@@ -269,6 +265,7 @@ export default async function Page() {
           apiEndpoint="/api/platform/events/preferences"
           organizations={organizations}
         />
+        <DeveloperCredits developers={[{"name": "Soham Tulsyan", "profileUrl": "https://www.linkedin.com/in/soham-tulsyan-0902482a7/"}, {"name": "Vaani Goenka"}, {"name": "Previous Teams"}]}/>
       </Suspense>
     </div>
   );
