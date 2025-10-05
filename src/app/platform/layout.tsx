@@ -7,7 +7,6 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
-import { SessionProvider } from "next-auth/react";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -31,34 +30,27 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
-        <SessionProvider
-          refetchInterval={5 * 60} // Refetch session every 5 minutes instead of 30 seconds
-          refetchOnWindowFocus={false} // Don't refetch when window gains focus
-        >
-          <TooltipProvider>
-            <TourProvider
-              autoStart={false}
-            >
-              <SidebarProvider defaultOpen={false}>
-                <div className="flex min-h-screen w-full">
-                  <AppSidebar />
-                  <div className="flex flex-1 flex-col">
-                    <Navbar />
-                    <Suspense>
-                      <main className="flex-1 overflow-auto pt-4 pb-4 pl-14 sm:pl-16 pr-12 sm:pr-14">
-                        {children}
-                      </main>
-                    </Suspense>
-                  </div>
+  return (    
+    <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>     
+        <TooltipProvider>
+          <TourProvider
+            autoStart={false}
+          >
+            <SidebarProvider defaultOpen={false}>
+              <div className="flex min-h-screen w-full">
+                <AppSidebar />
+                <div className="flex flex-1 flex-col">
+                  <Navbar />
+                  <Suspense>
+                    <main className="flex-1 overflow-auto pt-4 pb-4 pl-14 sm:pl-16 pr-12 sm:pr-14">
+                      {children}
+                    </main>
+                  </Suspense>
                 </div>
-              </SidebarProvider>
-            </TourProvider>
-          </TooltipProvider>
-        </SessionProvider>
-      </body>
-    </html>
+              </div>
+            </SidebarProvider>
+          </TourProvider>
+        </TooltipProvider>    
+    </div>    
   );
 }
