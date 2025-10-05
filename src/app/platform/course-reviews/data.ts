@@ -15,7 +15,7 @@ export function uniqueYears(courses: (Course | CourseWithReviews)[]): number[] {
 }
 
 export function sortAndFilterCourses(courses: CourseWithReviews[], searchTerm: string, semesterFilter: string, yearFilter: number | string, sortField: SortField, sortDirection: "asc" | "desc") {
-  let filtered = courses.filter((course) => {
+  const filtered = courses.filter((course) => {
     // Search filter
     const matchesSearch = !searchTerm || 
       course.courseCode.toLowerCase().includes(searchTerm.toLowerCase()) ||

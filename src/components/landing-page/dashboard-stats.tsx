@@ -49,7 +49,7 @@ export default function DashboardStats() {
         </div>
 
         {/* Course Reviews */}
-        <div className="bg-primary-extralight dark:bg-gradient-to-br dark:from-primary/60 dark:to-primary/50 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg hover:shadow-xl transition-shadow w-full overflow-hidden">
+        <div className="bg-gradient-to-br from-red-600 to-red-700 dark:bg-gradient-to-br dark:from-primary/60 dark:to-primary/50 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg hover:shadow-xl transition-shadow w-full overflow-hidden">
           <BookOpen className="size-5 sm:size-6 mx-auto mb-2 opacity-80" />
           <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 truncate">{stats.coursesReviewed}</div>
           <div className="text-xs opacity-90 truncate">Course Reviews</div>
@@ -60,7 +60,7 @@ export default function DashboardStats() {
         </div>
 
         {/* System Uptime */}
-        <div className="bg-secondary dark:bg-gradient-to-br dark:from-primary/50 dark:to-primary/40 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg hover:shadow-xl transition-shadow w-full overflow-hidden">
+        <div className="bg-gradient-to-br from-amber-500 to-amber-600 dark:bg-gradient-to-br dark:from-primary/50 dark:to-primary/40 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg hover:shadow-xl transition-shadow w-full overflow-hidden">
           <Zap className="size-5 sm:size-6 mx-auto mb-2 opacity-80" />
           <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 truncate">{stats.uptime}</div>
           <div className="text-xs opacity-90 truncate">System Uptime</div>
