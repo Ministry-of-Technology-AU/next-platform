@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { banners } from './data/platform-data';
-import { BannerButton, ButtonVariant } from './data/types';
+import { ButtonVariant } from './data/types';
+import Image from 'next/image';
 
 interface PlatformCarouselProps {
   className?: string;
@@ -55,10 +56,14 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
               key={banner.id}
               className="relative w-full h-full flex-shrink-0"
             >
-              <img
+              <Image
                 src={banner.image}
                 alt={banner.alt}
+                width={1200}
+                height={720}
                 className="w-full h-full object-cover"
+                sizes="(max-width: 768px) 100vw, 1200px"
+                priority={index === 0}
               />
               <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
               

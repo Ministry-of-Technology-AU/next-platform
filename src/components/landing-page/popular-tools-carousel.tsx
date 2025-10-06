@@ -42,66 +42,18 @@ const popularTools = [
   {
     id: 3,
     title: "Wifi Tickets",
-    description: "Report wifi connectivity issues",
+    description: "COMING SOON",
     icon: WifiPen,
-    href: "/platform/wifi-tickets",
+    href: "/platform",
     color: "text-purple-400",
   },
   {
     id: 4,
     title: "Pool a Cab",
-    description: "Share rides with fellow students",
+    description: "COMING SOON",
     icon: Car,
-    href: "/platform/pool-cab",
+    href: "/platform",
     color: "text-orange-400",
-  },
-  {
-    id: 5,
-    title: "Pool Subscription",
-    description: "Share streaming subscriptions",
-    icon: Tv,
-    href: "/platform/pool-subscription",
-    color: "text-red-400",
-  },
-  {
-    id: 6,
-    title: "Borrow Assets",
-    description: "Borrow equipment and resources",
-    icon: ShoppingBag,
-    href: "/platform/borrow-assets",
-    color: "text-indigo-400",
-  },
-  {
-    id: 7,
-    title: "Resources",
-    description: "Access academic resources",
-    icon: Boxes,
-    href: "/platform/resources",
-    color: "text-teal-400",
-  },
-  {
-    id: 8,
-    title: "Organizations",
-    description: "Explore student organizations",
-    icon: GalleryHorizontalEnd,
-    href: "/platform/organisations-catalogue",
-    color: "text-pink-400",
-  },
-  {
-    id: 9,
-    title: "SG Compose",
-    description: "Send messages to student government",
-    icon: MailPlus,
-    href: "/platform/sg-compose/outbox",
-    color: "text-cyan-400",
-  },
-  {
-    id: 10,
-    title: "My Profile",
-    description: "Manage your profile settings",
-    icon: UserCog,
-    href: "/platform/profile",
-    color: "text-violet-400",
   }
 ];
 
@@ -148,7 +100,7 @@ export default function PopularToolsCarousel() {
       </div>
       <div className="relative min-w-0">
         {/* Carousel Container */}
-        <div className="overflow-hidden rounded-2xl min-w-0">
+        <div className="overflow-visible rounded-2xl min-w-0">
           <div 
             className="flex transition-transform duration-500 ease-in-out min-w-0"
             style={{ 
@@ -164,7 +116,7 @@ export default function PopularToolsCarousel() {
                   className="flex-shrink-0 px-2 sm:px-3 min-w-0"
                   style={{ width: `${100 / popularTools.length}%` }}
                 >
-                  <Card className="group h-40 sm:h-48 overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-background shadow-lg min-w-0">
+                  <Card className="group h-48 sm:h-56 overflow-visible border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-background shadow-lg min-w-0">
                     <Button 
                       variant="ghost" 
                       className="w-full h-full p-0 bg-transparent hover:bg-transparent"

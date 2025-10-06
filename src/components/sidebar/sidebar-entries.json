@@ -38,17 +38,6 @@
       ]
     },
     {
-      "id": "campus-life",
-      "title": "Campus Life",
-      "items": [
-        {
-          "title": "Pool a Cab",
-          "icon": "Car",
-          "href": "/pool-cab"
-        }
-      ]
-    },
-    {
       "id": "cultural-life",
       "title": "Cultural Life",
       "items": [

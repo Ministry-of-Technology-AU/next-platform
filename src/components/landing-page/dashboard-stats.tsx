@@ -2,25 +2,23 @@
 
 import React from 'react';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
-import { Card, CardContent } from '@/components/ui/card';
 import { 
   Users, 
   Calendar, 
   BookOpen, 
   TrendingUp,
   Activity,
-  Clock,
-  Star,
-  Zap
+  Zap,
+  Car
 } from 'lucide-react';
 
 const stats = {
-  activeUsers: "2,847",
-  totalEvents: "156",
-  coursesReviewed: "423",
+  activeUsers: "4,442",
+  totalEvents: "154",
+  coursesReviewed: "1,093",
   avgRating: "4.6",
   weeklyGrowth: "+12%",
-  uptime: "99.9%"
+  uptime: "1793"
 };
 
 export default function DashboardStats() {
@@ -34,7 +32,7 @@ export default function DashboardStats() {
       <BentoGrid className="max-w-6xl mx-auto px-4">
         {/* Active Users - Large card */}
         <BentoGridItem
-          className="md:col-span-2 bg-neutral-900 text-white border-0"
+          className="md:col-span-2 border-0 bg-gradient-to-r from-[#60150a] via-[#87281b] to-[#9b4e43]"
           title={
             <div className="text-white">
               <div className="text-4xl font-bold mb-2">{stats.activeUsers}</div>
@@ -51,15 +49,16 @@ export default function DashboardStats() {
               </div>
             </div>
           }
-        />
+        >
+        </BentoGridItem>
 
         {/* Events This Month */}
         <BentoGridItem
-          className="bg-neutral-900 text-white border-0"
+          className="bg-gradient-to-r from-[#60150a] via-[#87281b] to-[#9b4e43] text-white border-0"
           title={
             <div className="text-white">
               <div className="text-3xl font-bold mb-2">{stats.totalEvents}</div>
-              <div className="text-base opacity-90">Events This Month</div>
+              <div className="text-base opacity-90">Pools Requested</div>
             </div>
           }
           header={
@@ -72,7 +71,7 @@ export default function DashboardStats() {
 
         {/* Course Reviews */}
         <BentoGridItem
-          className="bg-neutral-900 text-white border-0"
+          className="bg-gradient-to-r from-[#60150a] via-[#87281b] to-[#9b4e43] text-white border-0"
           title={
             <div className="text-white">
               <div className="text-3xl font-bold mb-2">{stats.coursesReviewed}</div>
@@ -82,31 +81,22 @@ export default function DashboardStats() {
           header={
             <div className="flex justify-between items-start mb-4">
               <BookOpen className="size-6 text-orange-400" />
-              <div className="flex items-center gap-1">
-                <Star className="size-4 fill-current text-yellow-400" />
-                <span className="text-sm font-medium">{stats.avgRating}</span>
-              </div>
             </div>
           }
         />
 
         {/* System Uptime - Wide card */}
         <BentoGridItem
-          className="md:col-span-2 bg-neutral-900 text-white border-0"
+          className="md:col-span-2 bg-gradient-to-r from-[#60150a] via-[#87281b] to-[#9b4e43] text-white border-0"
           title={
             <div className="text-white">
               <div className="text-4xl font-bold mb-2">{stats.uptime}</div>
-              <div className="text-lg opacity-90">System Uptime</div>
+              <div className="text-lg opacity-90">Cabs Requested</div>
             </div>
           }
-          description="Reliable service you can count on"
           header={
             <div className="flex items-center justify-between mb-4">
-              <Zap className="size-8 text-purple-400" />
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-sm opacity-90">All systems operational</span>
-              </div>
+              <Car className="size-8 text-purple-400" />
             </div>
           }
         />
