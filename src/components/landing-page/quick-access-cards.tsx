@@ -41,26 +41,26 @@ const quickAccessItems = [
 
 export default function QuickAccessCards() {
   return (
-    <div className="mb-12 sm:mb-16">
-      <div className="flex items-center gap-3 mb-6 sm:mb-8">
-        <Clock className="size-5 sm:size-6 text-primary" />
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Pick up where you left off:</h2>
+    <div className="mb-8 sm:mb-12 w-full overflow-visible">
+      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <Clock className="size-5 sm:size-6 text-primary flex-shrink-0" />
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">Pick up where you left off:</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 max-w-6xl mx-auto w-full overflow-visible">
         {/* First row - 2 cards side by side */}
-        <Card className="group relative overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+        <Card className="group relative overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:z-10 bg-white/80 dark:bg-black/80 backdrop-blur-sm w-full">
           <Button
             variant="ghost"
             className="w-full h-full p-0 bg-transparent hover:bg-transparent"
             asChild
           >
             <Link href={quickAccessItems[0].href}>
-              <CardContent className="p-6 sm:p-8 h-48 sm:h-56 flex flex-col items-center align-center justify-center">
+              <CardContent className="p-4 sm:p-6 md:p-8 h-48 sm:h-56 flex flex-col items-center align-center justify-center w-full">
                 {quickAccessItems[0].isLastUsed && (
                   <Badge
                     variant="secondary"
-                    className="absolute top-3 sm:top-4 left-6 sm:left-2 text-xs border"
+                    className="absolute top-2 sm:top-3 md:top-4 left-2 sm:left-3 md:left-4 text-xs border"
                     style={{
                       backgroundColor: "var(--color-primary-light)",
                       color: "white",
@@ -96,17 +96,17 @@ export default function QuickAccessCards() {
           </Button>
         </Card>
 
-        <Card className="group relative overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+        <Card className="group relative overflow-hidden border-2-var(--color-primary) shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:z-10 bg-white/80 dark:bg-black/80 backdrop-blur-sm w-full">
           <Button
             variant="ghost"
             className="w-full h-full p-0 bg-transparent hover:bg-transparent"
             asChild
           >
             <Link href={quickAccessItems[1].href}>
-              <CardContent className="p-6 sm:p-8 h-48 sm:h-56 flex flex-col items-center align-center justify-center relative">
-                <div className={`${quickAccessItems[0].bgColor} dark:bg-opacity-20 ${quickAccessItems[0].hoverColor} w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 transition-all duration-300 group-hover:scale-110`}>
-                  {React.createElement(quickAccessItems[0].icon, {
-                    className: `size-8 sm:size-10 ${quickAccessItems[0].color} dark:opacity-90`
+              <CardContent className="p-4 sm:p-6 md:p-8 h-48 sm:h-56 flex flex-col items-center align-center justify-center relative w-full">
+                <div className={`${quickAccessItems[1].bgColor} dark:bg-opacity-20 ${quickAccessItems[1].hoverColor} w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 transition-all duration-300 group-hover:scale-110`}>
+                  {React.createElement(quickAccessItems[1].icon, {
+                    className: `size-8 sm:size-10 ${quickAccessItems[1].color} dark:opacity-90`
                   })}
                 </div>
 

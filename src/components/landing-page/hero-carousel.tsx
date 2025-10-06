@@ -40,9 +40,9 @@ export default function HeroCarousel() {
   };
 
   return (
-    <div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl mb-8 sm:mb-12">
+    <div className="relative w-full h-56 sm:h-72 md:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-2xl mb-6 sm:mb-8 max-w-full">
       {/* Carousel Images */}
-      <div className="relative w-full h-full overflow-hidden">
+      <div className="relative w-full h-full overflow-hidden max-w-full">
         <div 
           className="flex w-full h-full transition-transform duration-1000 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -95,19 +95,19 @@ export default function HeroCarousel() {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0 z-10"
+        className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0 z-20 w-8 h-8 sm:w-10 sm:h-10"
         onClick={prevSlide}
       >
-        <ChevronLeft className="size-4 sm:size-6" />
+        <ChevronLeft className="size-4 sm:size-5 md:size-6" />
       </Button>
-      
+
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0 z-10"
+        className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0 z-20 w-8 h-8 sm:w-10 sm:h-10"
         onClick={nextSlide}
       >
-        <ChevronRight className="size-4 sm:size-6" />
+        <ChevronRight className="size-4 sm:size-5 md:size-6" />
       </Button>
 
       {/* Dots Indicator */}

@@ -138,11 +138,11 @@ export default function SemesterNavigation({
 
     return (
                                     <div className="lg:col-span-1">
-                                <Card>
-                                    <CardHeader>
+                                <Card className="h-fit">
+                                    <CardHeader className="pb-3">
                                         <CardTitle className="text-lg">Semester Navigation</CardTitle>
                                     </CardHeader>
-                                    <CardContent className="space-y-4">
+                                    <CardContent className="space-y-3">
                                         <div className="space-y-2">
                                             <Button
                                                 variant="outline"
@@ -193,7 +193,7 @@ export default function SemesterNavigation({
                                                 </div>
                                             </Button>
                                         </div>
-                                        <div className="max-h-60 overflow-y-auto space-y-2">
+                                        <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
                                             {/* Current Semester Button */}
                                             {upcomingSemesters.length > 0 && (
                                                 <Button
