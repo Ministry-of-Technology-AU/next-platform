@@ -32,7 +32,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
-        <SessionProvider>
+        <SessionProvider
+          refetchInterval={5 * 60} // Refetch session every 5 minutes instead of 30 seconds
+          refetchOnWindowFocus={false} // Don't refetch when window gains focus
+        >
           <Suspense>
             <main>
               {children}

@@ -189,7 +189,7 @@ export default function ProfilePage() {
             <CardContent className="flex flex-col items-center space-y-6 pt-6">
               <div className="relative w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80">
                 <Image
-                  src={userData.profile_image || "/default-avatar.png"}
+                  src={userData.profile_image?.replace('s96', 's512') || "/default-avatar.png"}
                   alt={userData.username || "User"}
                   fill
                   className="rounded-full object-cover"

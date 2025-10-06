@@ -20,7 +20,7 @@ export default auth((req) => {
   }
 
   // Allow root path and login page - let them through
-  if (pathname === '/' || pathname === '/login') {
+  if (pathname === '/' || pathname === '/login' || pathname === '/unauthorized') {
     return NextResponse.next()
   }
 
@@ -51,12 +51,8 @@ export default auth((req) => {
       const hasAccess = requiredAccess.some(access => userAccess.includes(access))
       
       if (!hasAccess) {
-        // Redirect to appropriate page based on user's access
-        if (userAccess.includes('platform')) {
-          return NextResponse.redirect(new URL('/platform', req.url))
-        } else {
-          return NextResponse.redirect(new URL('/api/auth/signin/google', req.url))
-        }
+        // Authenticated but unauthorized for this route -> show unauthorized page
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
       }
       break
     }
