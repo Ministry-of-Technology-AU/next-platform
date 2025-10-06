@@ -301,7 +301,7 @@ export default function ProfilePage() {
                         <Button
                           variant="destructive"
                           disabled={!deleteConfirm}
-                          className="flex-1"
+                          className="flex-1 bg-primary"
                         >
                           Permanently Delete
                         </Button>
