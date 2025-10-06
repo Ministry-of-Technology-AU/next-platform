@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger, TabsContents } from "@/components/ui/shadcn-io/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UserData, validatePhoneNumber as validatePhone, ProfileApiResponse } from "./types";
+import { UserData, validatePhoneNumber as validatePhone } from "./types";
 import PageTitle from "@/components/page-title";
 
 export default function ProfilePage() {

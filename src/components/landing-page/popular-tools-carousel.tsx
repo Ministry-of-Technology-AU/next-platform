@@ -28,110 +28,80 @@ const popularTools = [
     title: "Course Reviews",
     description: "Read and write course reviews",
     icon: ClipboardPenLine,
-    href: "/course-reviews",
-    usage: "2.4k users",
-    rating: 4.8,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50"
+    href: "/platform/course-reviews",
+    color: "text-blue-400",
   },
   {
     id: 2,
-    title: "Semester Planner",
+    title: "Semester Planner", 
     description: "Plan your academic semester",
     icon: CalendarSync,
-    href: "/semester-planner",
-    usage: "1.8k users",
-    rating: 4.6,
-    color: "text-green-600",
-    bgColor: "bg-green-50"
+    href: "/platform/semester-planner",
+    color: "text-green-400",
   },
   {
     id: 3,
     title: "Wifi Tickets",
     description: "Report wifi connectivity issues",
     icon: WifiPen,
-    href: "/wifi-tickets",
-    usage: "3.2k users",
-    rating: 4.2,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50"
+    href: "/platform/wifi-tickets",
+    color: "text-purple-400",
   },
   {
     id: 4,
     title: "Pool a Cab",
     description: "Share rides with fellow students",
     icon: Car,
-    href: "/pool-cab",
-    usage: "1.5k users",
-    rating: 4.7,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50"
+    href: "/platform/pool-cab",
+    color: "text-orange-400",
   },
   {
     id: 5,
     title: "Pool Subscription",
     description: "Share streaming subscriptions",
     icon: Tv,
-    href: "/pool-subscription",
-    usage: "980 users",
-    rating: 4.5,
-    color: "text-red-600",
-    bgColor: "bg-red-50"
+    href: "/platform/pool-subscription",
+    color: "text-red-400",
   },
   {
     id: 6,
     title: "Borrow Assets",
     description: "Borrow equipment and resources",
     icon: ShoppingBag,
-    href: "/borrow-assets",
-    usage: "1.2k users",
-    rating: 4.4,
-    color: "text-indigo-600",
-    bgColor: "bg-indigo-50"
+    href: "/platform/borrow-assets",
+    color: "text-indigo-400",
   },
   {
     id: 7,
     title: "Resources",
     description: "Access academic resources",
     icon: Boxes,
-    href: "/resources",
-    usage: "2.1k users",
-    rating: 4.6,
-    color: "text-teal-600",
-    bgColor: "bg-teal-50"
+    href: "/platform/resources",
+    color: "text-teal-400",
   },
   {
     id: 8,
     title: "Organizations",
     description: "Explore student organizations",
     icon: GalleryHorizontalEnd,
-    href: "/organisations-catalogue",
-    usage: "1.7k users",
-    rating: 4.3,
-    color: "text-pink-600",
-    bgColor: "bg-pink-50"
+    href: "/platform/organisations-catalogue",
+    color: "text-pink-400",
   },
   {
     id: 9,
     title: "SG Compose",
     description: "Send messages to student government",
     icon: MailPlus,
-    href: "/sg-compose/outbox",
-    usage: "890 users",
-    rating: 4.1,
-    color: "text-cyan-600",
-    bgColor: "bg-cyan-50"
+    href: "/platform/sg-compose/outbox",
+    color: "text-cyan-400",
   },
   {
     id: 10,
     title: "My Profile",
     description: "Manage your profile settings",
     icon: UserCog,
-    href: "/profile",
-    usage: "2.8k users",
-    rating: 4.5,
-    color: "text-violet-600",
-    bgColor: "bg-violet-50"
+    href: "/platform/profile",
+    color: "text-violet-400",
   }
 ];
 
@@ -194,39 +164,26 @@ export default function PopularToolsCarousel() {
                   className="flex-shrink-0 px-2 sm:px-3 min-w-0"
                   style={{ width: `${100 / popularTools.length}%` }}
                 >
-                  <Card className="group h-40 sm:h-48 overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/90 dark:bg-black/90 backdrop-blur-sm min-w-0">
+                  <Card className="group h-40 sm:h-48 overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-background shadow-lg min-w-0">
                     <Button 
                       variant="ghost" 
                       className="w-full h-full p-0 bg-transparent hover:bg-transparent"
                       asChild
                     >
                       <Link href={tool.href}>
-                        <CardContent className="p-4 sm:p-6 h-full flex flex-col justify-between min-w-0">
-                          {/* Header with icon and rating */}
-                          <div className="flex items-start justify-between mb-2 sm:mb-4">
-                            <div className={`${tool.bgColor} dark:bg-opacity-20 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 min-w-0`}>
-                              <Icon className={`size-5 sm:size-6 ${tool.color} dark:opacity-90`} />
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Star className="size-3 sm:size-4 text-yellow-500 fill-yellow-500" />
-                              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{tool.rating}</span>
-                            </div>
+                        <CardContent className="p-4 sm:p-6 h-full flex flex-col items-center justify-center min-w-0">
+                          {/* Icon */}
+                          <div className="w-12 h-12 mb-3 flex items-center justify-center">
+                            <Icon className={`size-8 ${tool.color}`} />
                           </div>
                           {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 group-hover:text-primary transition-colors min-w-0">
+                          <div className="text-center min-w-0">
+                            <h3 className="text-base font-medium mb-2 group-hover:text-primary dark:group-hover:text-secondary transition-colors">
                               {tool.title}
                             </h3>
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 leading-relaxed line-clamp-2 min-w-0">
+                            <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
                               {tool.description}
                             </p>
-                          </div>
-                          {/* Usage stats */}
-                          <div className="flex items-center justify-between min-w-0">
-                            <Badge variant="outline" className="text-xs bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                              {tool.usage}
-                            </Badge>
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                           </div>
                         </CardContent>
                       </Link>
