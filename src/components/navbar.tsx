@@ -29,6 +29,8 @@ import {
 import { TourTrigger } from "./guided-tour";
 import { SidebarTrigger } from "./ui/sidebar";
 import ThemeToggle from "@/components/ui/theme-toggle";
+import ClientOnly from "./client-only";
+import Link from "next/link";
 
 
 // Authentication Section Component
@@ -104,7 +106,7 @@ const AuthSection = React.memo(function AuthSection() {
           <DropdownMenuSeparator />
           <DropdownMenuItem>
             <UserPen className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <Link href="/platform/profile">Profile</Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -222,7 +224,15 @@ export default function Navbar() {
         </Tooltip>
 
         {/* Authentication Section */}
-        <AuthSection />
+        <ClientOnly 
+          fallback={
+            <Button variant="ghost" size="icon" disabled>
+              <User className="size-5 animate-pulse" />
+            </Button>
+          }
+        >
+          <AuthSection />
+        </ClientOnly>
       </div>
     </nav>
   );
