@@ -3,6 +3,8 @@ import { Nunito, Nunito_Sans} from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -36,6 +38,8 @@ export default function RootLayout({
           <Suspense>
             <main>
               {children}
+              <Analytics />
+              <SpeedInsights />
             </main>
           </Suspense>
         </SessionProvider>

@@ -167,12 +167,13 @@ export default function Navbar() {
                   variant="animatedGhost"
                   size="icon"
                   aria-label="Feedback"
+                  onClick={() => window.open('https://www.notion.so/ministry-of-technology/2844ae85dc2c80a484bdd94abe7ceecc?v=2844ae85dc2c802a9d79000c2f255fe8&source=copy_link', '_blank')}
                 >
                   <Newspaper className="size-5" />
                 </Button>
               </TooltipTrigger>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            {/* <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Your Feedback</DialogTitle>
                 <DialogDescription>
@@ -190,7 +191,7 @@ export default function Navbar() {
                   </div>
                 </form>
               </DialogHeader>
-            </DialogContent>
+            </DialogContent> */}
           </Dialog>
           <TooltipContent>
             <p className="text-sm">Give us your feedback!</p>
