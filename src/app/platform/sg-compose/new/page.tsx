@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, MailPlus, Send } from "lucide-react"
+import { ArrowLeft, MailPlus, Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import PageTitle from "@/components/page-title"
 import { toast } from "sonner"
@@ -14,7 +14,6 @@ import {
   SingleSelect,
   MultiSelectCheckbox,
   FileUpload,
-  SubmitButton,
   FormContainer,
   InstructionsField
 } from "@/components/form"
@@ -53,6 +52,7 @@ export default function ComposeNew() {
   const [mailDraft, setMailDraft] = React.useState("")
   const [additionalNotes, setAdditionalNotes] = React.useState("")
   const [attachedFiles, setAttachedFiles] = React.useState<File[]>([])
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   // Email templates for quick insertion
   const emailTemplates = {
@@ -121,6 +121,7 @@ export default function ComposeNew() {
 
   const handleSubmit = async (action: 'request' | 'cancel') => {
     if (action === 'request') {
+      setIsSubmitting(true);
       try {
         // Debug log to verify HTML content
         console.log('HTML content being submitted:', mailDraft);
@@ -174,7 +175,7 @@ export default function ComposeNew() {
         if (result.success) {
           alert('Email request submitted successfully! It will be reviewed by the administrators.');
           // Navigate to outbox
-          router.push('/sg-compose/outbox');
+          router.push('/platform/sg-compose/outbox');
         } else {
           alert(`Error: ${result.error || 'Failed to submit email request'}`);
         }
@@ -182,6 +183,8 @@ export default function ComposeNew() {
       } catch (error) {
         console.error('Error submitting form:', error);
         alert('Failed to submit email request. Please try again.');
+      } finally {
+        setIsSubmitting(false);
       }
     } else {
       // Cancel action - just navigate back
@@ -334,17 +337,33 @@ export default function ComposeNew() {
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
-            <SubmitButton
-              text="Request Email"
+            <Button
+              type="submit"
+              className="flex-1"
               disabled={
+                isSubmitting ||
                 !selectedCategory || 
                 selectedRecipients.length === 0 || 
                 !subject || 
                 !mailDraft.trim()
               }
-              description="Submit your email request for administrative review"
-            />
-            <Button variant="outline" onClick={() => handleSubmit("cancel")}>
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Request Email"
+              )}
+            </Button>
+            <Button 
+              type="button"
+              variant="outline" 
+              className="flex-1"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("cancel")}
+            >
               Cancel Email
             </Button>
           </div>
