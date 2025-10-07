@@ -10,19 +10,19 @@ interface RecentlyVisitedProps {
 
 export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
   return (
-    <div className={`flex flex-col gap-4 ${className}`}>
+    <div className={`flex flex-col gap-3 sm:gap-4 ${className}`}>
       <h3 className="text-lg font-semibold !text-left text-primary dark:text-secondary">Recently Visited</h3>
-      <div className="flex md:flex-col gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 sm:gap-3">
         {recentlyVisited.slice(0, 4).map((item) => (
           <Link
             key={item.id}
             href={item.href}
-            className="flex items-center gap-3 shadow-lg bg-card rounded-xl px-3 py-2 hover:bg-neutral-extralight transition-colors duration-200 group min-w-0 w-full flex-1 md:flex-none h-14 md:h-16"
+            className="flex items-center gap-2 sm:gap-3 shadow-lg bg-card rounded-xl px-2 sm:px-3 py-2 hover:bg-neutral-extralight transition-colors duration-200 group min-w-0 w-full h-12 sm:h-14 lg:h-16"
           >
-            <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center flex-shrink-0">
-              {item.icon && <item.icon className="w-6 h-6 text-primary dark:text-secondary group-hover:scale-110 transition-transform duration-200" />}
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-card flex items-center justify-center flex-shrink-0">
+              {item.icon && <item.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary dark:text-secondary group-hover:scale-110 transition-transform duration-200" />}
             </div>
-            <span className="text-sm font-medium group-hover:text-primary dark:group-hover:text-secondary transition-colors truncate">
+            <span className="text-xs sm:text-sm font-medium group-hover:text-primary dark:group-hover:text-secondary transition-colors truncate">
               {item.name}
             </span>
           </Link>

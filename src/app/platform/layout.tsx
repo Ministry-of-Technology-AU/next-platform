@@ -42,7 +42,7 @@ export default function RootLayout({
                 <div className="flex flex-1 flex-col">
                   <Navbar />
                   <Suspense>
-                  <main className="flex-1 overflow-auto p-8 sm:p-6">
+                  <main className="flex-1 overflow-auto p-4 sm:p-6">
                     {children}
                   </main>
                   </Suspense>
