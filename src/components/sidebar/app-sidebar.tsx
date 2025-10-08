@@ -71,13 +71,15 @@ interface SidebarCategory {
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { state, open, isMobile, openMobile } = useSidebar();
+  const isDrawerOpen = isMobile ? openMobile : open;
   const isCollapsed = state === "collapsed";
 
   // Icon collapse state
   const [iconCollapse, setIconCollapse] = React.useState(isCollapsed);
+  const hideLabels = !isDrawerOpen;
   const collapseDelay = 2500; // ms, adjust as needed
-  const collapseTimeout = React.useRef<NodeJS.Timeout | null>(null);
+  const collapseTimeout = React.useRef<NodeJS.Timeout | null>(null);  
 
   React.useEffect(() => {
     if (isCollapsed) {
@@ -168,7 +170,7 @@ export function AppSidebar() {
                           <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto" />
                           <span className={cn(
                             "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap",
-                            iconCollapse && "w-0 opacity-0"
+                            hideLabels && "w-0 opacity-0"
                           )}>
                             {item.title}
                           </span>
