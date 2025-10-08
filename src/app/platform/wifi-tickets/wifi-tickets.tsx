@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Wifi } from "lucide-react";
 import SpeedTest from "./_components/speedtest";
 import { Drawer } from "@/components/ui/drawer";
+import { toast } from "sonner";
 
 export default function WifiTickets1(){
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -88,12 +89,16 @@ export default function WifiTickets1(){
     
     // Validate required fields
     if (!phoneNumber || phoneNumber.length !== 10) {
-      alert("Please enter a valid 10-digit phone number");
+      toast.error("Validation Error", {
+        description: "Please enter a valid 10-digit phone number"
+      });
       return;
     }
     
     if (!onAshokaWifi || !complaintType || !location || !roomFloor || !additionalDetails) {
-      alert("Please fill in all required fields");
+      toast.error("Validation Error", {
+        description: "Please fill in all required fields"
+      });
       return;
     }
     
@@ -124,7 +129,9 @@ export default function WifiTickets1(){
       const result = await response.json();
       
       if (response.ok && result.success) {
-        alert(`WiFi ticket submitted successfully! Ticket ID: ${result.ticketId}`);
+        toast.success("WiFi Ticket Submitted Successfully!", {
+          description: `Your ticket has been created with ID: ${result.ticketId}. You will receive a confirmation email shortly.`
+        });
         // Reset form fields after successful submission
         setPhoneNumber("");
         setOnAshokaWifi("");
@@ -138,7 +145,9 @@ export default function WifiTickets1(){
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Error submitting WiFi ticket. Please try again.');
+      toast.error("Submission Failed", {
+        description: error instanceof Error ? error.message : 'Error submitting WiFi ticket. Please try again.'
+      });
     } finally {
       setIsSubmitting(false);
     }

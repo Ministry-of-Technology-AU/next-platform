@@ -33,6 +33,7 @@ import {
   ClipboardPenLine,
   MailPlus,
   Clock,
+  WifiPen,
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ const iconMap = {
   HelpCircle,
   MailPlus,
   Clock,
+  WifiPen,
   User,
 };
 

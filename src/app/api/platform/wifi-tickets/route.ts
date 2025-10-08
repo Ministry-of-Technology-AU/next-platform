@@ -108,18 +108,6 @@ export async function POST(request: NextRequest) {
     const { user } = authResult;
     const formData = await request.json();
     
-    // Debug: Log the received form data
-    console.log('=== WiFi Ticket Form Data ===');
-    console.log('Full form data:', JSON.stringify(formData, null, 2));
-    console.log('Phone:', formData.phone);
-    console.log('Download Speed:', formData.downloadSpeed);
-    console.log('Additional Details:', formData.message);
-    console.log('Location:', formData.location);
-    console.log('Specific Location:', formData.specificLocation);
-    console.log('Submission Timestamp:', formData.submissionTimestamp);
-    console.log('WiFi Status:', formData.wifiStatus);
-    console.log('=============================');
-    
     // Update user phone number in Strapi
     if (formData.phone) {
       try {

@@ -49,6 +49,17 @@
       ]
     },
     {
+      "id": "campus-life",
+      "title": "Campus Life",
+      "items": [
+        {
+          "title": "Wifi Tickets",
+          "icon": "WifiPen",
+          "href": "/wifi-tickets"
+        }
+      ]
+    },
+    {
       "id": "my-resources",
       "title": "My Resources",
       "items": [
