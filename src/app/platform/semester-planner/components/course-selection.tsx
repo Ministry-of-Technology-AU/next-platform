@@ -122,7 +122,8 @@ export function CourseSelection({
                       Prof. {course.professor}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {course.department} • {course.credits} credits
+                      {course.department}
+                      {/* {course.department} • {course.credits} credits */}
                     </p>
                   </div>
                   <Button
