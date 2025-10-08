@@ -72,8 +72,8 @@ export default function CGPAPlanner({ data }: { data: any }) {
     // Otherwise, show the form
     if (isFormView) {
         return (
-            <div className="max-w-8xl mx-auto p-4">
-                <div className="space-y-6">
+            <div className="max-w-8xl mx-auto p-2 xs:p-3 sm:p-4">
+                <div className="space-y-4 xs:space-y-5 sm:space-y-6">
                     {/* Form Card */}
                     <CGPAForm 
                         gradeInput={gradeInput}
@@ -88,8 +88,8 @@ export default function CGPAPlanner({ data }: { data: any }) {
     }
 
     return (
-        <div className="max-w-7xl mx-auto p-4">
-            <div className="space-y-6">
+        <div className="max-w-7xl mx-auto p-2 xs:p-3 sm:p-4 pb-4 xs:pb-6 sm:pb-8">
+            <div className="space-y-4 xs:space-y-5 sm:space-y-6">
                 {/* CGPA Overview Card */}
                 <CGPAOverview
                     calculatedCGPA={calculatedCGPA}
@@ -100,38 +100,38 @@ export default function CGPAPlanner({ data }: { data: any }) {
                 {/* Main Tabs */}
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'upcoming' | 'grade-planner' | 'calculator')} className="w-full">
                     {/* Added mb-4 to add space between the tabs list and content */}
-                    <TabsList className="grid w-full grid-cols-3 mb-4 h-12 gap-1 rounded-lg border border-primary/30">
+                    <TabsList className="grid w-full grid-cols-3 mb-4 h-auto sm:h-12 gap-0.5 xs:gap-1 rounded-lg border border-primary/30 p-1">
                         <TabsTrigger
-                            className="px-4 py-2 text-sm font-medium transition-colors
+                            className="px-1.5 xs:px-2 sm:px-3 md:px-4 py-2 sm:py-2 text-[10px] xs:text-xs sm:text-sm font-medium transition-colors
                  data-[state=active]:bg-primary data-[state=active]:text-white
                  data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary/70 dark:data-[state=inactive]:text-gray-300
-                 hover:bg-primary/20"
+                 hover:bg-primary/20 flex flex-col xs:flex-row items-center justify-center gap-0.5 xs:gap-1 sm:gap-2 min-h-[44px]"
                             value="upcoming"
                         >
-                            <BookOpen className="h-4 w-4 mr-2" />
-                            Upcoming Semester
+                            <BookOpen className="h-3 w-3 xs:h-4 xs:w-4 shrink-0" />
+                            <span className="leading-tight text-center">Upcoming Semester</span>
                         </TabsTrigger>
 
                         <TabsTrigger
-                            className="px-4 py-2 text-sm font-medium transition-colors
+                            className="px-1.5 xs:px-2 sm:px-3 md:px-4 py-2 sm:py-2 text-[10px] xs:text-xs sm:text-sm font-medium transition-colors
                  data-[state=active]:bg-primary data-[state=active]:text-white
                  data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary/70 dark:data-[state=inactive]:text-gray-300
-                 hover:bg-primary/20"
+                 hover:bg-primary/20 flex flex-col xs:flex-row items-center justify-center gap-0.5 xs:gap-1 sm:gap-2 min-h-[44px]"
                             value="grade-planner"
                         >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Grade Planner
+                            <Upload className="h-3 w-3 xs:h-4 xs:w-4 shrink-0" />
+                            <span className="leading-tight text-center">Grade Planner</span>
                         </TabsTrigger>
 
                         <TabsTrigger
-                            className="px-4 py-2 text-sm font-medium transition-colors
+                            className="px-1.5 xs:px-2 sm:px-3 md:px-4 py-2 sm:py-2 text-[10px] xs:text-xs sm:text-sm font-medium transition-colors
                  data-[state=active]:bg-primary data-[state=active]:text-white
                  data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary/70 dark:data-[state=inactive]:text-gray-300
-                 hover:bg-primary/20"
+                 hover:bg-primary/20 flex flex-col xs:flex-row items-center justify-center gap-0.5 xs:gap-1 sm:gap-2 min-h-[44px]"
                             value="calculator"
                         >
-                            <Target className="h-4 w-4 mr-2" />
-                            Raise GPA Calculator
+                            <Target className="h-3 w-3 xs:h-4 xs:w-4 shrink-0" />
+                            <span className="leading-tight text-center">Raise GPA Calculator</span>
                         </TabsTrigger>
                     </TabsList>
 

@@ -74,19 +74,20 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
-  // Icon collapse state
+  // Icon collapse state - only hide text when truly collapsed
+  // On mobile, when sidebar is open, we want to show the text
   const [iconCollapse, setIconCollapse] = React.useState(isCollapsed);
-  const collapseDelay = 2500; // ms, adjust as needed
+  const collapseDelay = 150; // Reduced delay for faster response
   const collapseTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     if (isCollapsed) {
-      // Set iconCollapse to true after a delay
+      // Set iconCollapse to true after a minimal delay when collapsed
       collapseTimeout.current = setTimeout(() => {
         setIconCollapse(true);
       }, collapseDelay);
     } else {
-      // Immediately set iconCollapse to false and clear timeout
+      // Immediately set iconCollapse to false when expanded
       setIconCollapse(false);
       if (collapseTimeout.current) {
         clearTimeout(collapseTimeout.current);
@@ -165,10 +166,10 @@ export function AppSidebar() {
                           href={`/platform${item.href}`}
                           className="flex items-center w-full"
                         >
-                          <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto" />
+                          <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0" />
                           <span className={cn(
-                            "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap",
-                            iconCollapse && "w-0 opacity-0"
+                            "truncate text-sm font-medium transition-all duration-200 ease-in-out overflow-hidden whitespace-nowrap",
+                            isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
                           )}>
                             {item.title}
                           </span>
