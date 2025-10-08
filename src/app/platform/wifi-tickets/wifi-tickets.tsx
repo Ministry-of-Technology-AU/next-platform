@@ -4,9 +4,9 @@ import { FormContainer, PhoneInput, TextInput, SingleSelect, SubmitButton} from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Wifi } from "lucide-react";
+import { Wifi } from "lucide-react";
 import SpeedTest from "./_components/speedtest";
-import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer } from "@/components/ui/drawer";
 
 export default function WifiTickets1(){
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -113,7 +113,7 @@ export default function WifiTickets1(){
       
       console.log('Submitting form data:', formData);
 
-      const response = await fetch('/api/wifi-tickets', {
+      const response = await fetch('/api/platform/wifi-tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,28 +157,28 @@ export default function WifiTickets1(){
       />
       {/* Conditional Speed Test Section - Only show when user is on Ashoka WiFi */}
       {onAshokaWifi === "yes" && (
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Download Speed Test (Optional)</Label>
+        <div className="space-y-3 sm:space-y-4">
+          <Label className="text-base font-medium">Download Speed Test (Optional)</Label>
           <p className="text-sm text-muted-foreground">
             Test your current download speed. This helps us better understand your connectivity issues.
           </p>
-          <div className="flex items-center space-x-2">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <div className="relative flex-1 w-full">
               <Input
                 type="text"
                 value={downloadSpeed}
                 onChange={(e) => setDownloadSpeed(e.target.value)}
                 placeholder="Enter your download speed (Mbps)"
-                className="pr-10"
+                className="w-full"
               />
             </div>
             <Button
               type="button"
               variant="outline"
               onClick={() => setDrawerOpen(true)}
-              className="whitespace-nowrap"
+              className="w-full sm:w-auto whitespace-nowrap"
             >
-              <Wifi className="mr-2 h-4 w-4" />
+              <Wifi className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
               Re-test Speed
             </Button>
           </div>
