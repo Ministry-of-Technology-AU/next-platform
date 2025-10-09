@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, Car, Clock, MapPin, Phone, MessageCircle, Filter, Search, Users, Calendar, RefreshCw } from "lucide-react"
+import { ArrowLeft, Car, Clock, MapPin, Phone, MessageCircle, Filter, Search, Users, Calendar, RefreshCw, Mail } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,8 @@ interface PoolData {
     status: string
     createdAt: string
     updatedAt: string
+    useEmailContact: boolean
+    contactNumber: string | null
     pooler: {
       data: UserData
     }
@@ -57,7 +59,6 @@ export default function PoolCabResults() {
   const [loading, setLoading] = React.useState(true)
   const [userPool, setUserPool] = React.useState<PoolData | null>(null)
   const [updating, setUpdating] = React.useState(false)
-  const [newTime, setNewTime] = React.useState("")
 
   // Get pagination from URL
   const page = searchParams.get('page') || '1'
@@ -97,7 +98,6 @@ export default function PoolCabResults() {
         setPools(data.pools || [])
         if (data.userPool) {
           setUserPool(data.userPool)
-          setNewTime(data.userPool.attributes.time)
         }
       } else {
         toast.error(data.error || 'Failed to fetch pools')
@@ -115,10 +115,8 @@ export default function PoolCabResults() {
     let filtered = pools.filter(pool => pool.attributes.status === 'available')
 
     if (searchTerm) {
-      filtered = filtered.filter(pool => 
-        pool.attributes.pooler.data.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pool.attributes.journey.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pool.attributes.pooler.data.email.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(pool =>
+        pool.attributes.journey.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -153,42 +151,30 @@ export default function PoolCabResults() {
     setCurrentPage(parseInt(page))
   }, [page])
 
-  const handleWhatsAppContact = (email: string, name: string) => {
-    const message = encodeURIComponent(`Hi ${name}, I found your cab pool request on the Platform. I'm interested in joining your trip. Please contact me at your convenience!`)
-    // Since we don't have phone numbers, we'll show a toast with the email
-    toast.info(`Contact ${name} at: ${email}`)
+  const handleWhatsAppContact = (phoneNumber: string, pool: PoolData) => {
+    const message = encodeURIComponent(
+      `Hi! I found your cab pool request on the Platform.\n\n` +
+      `Route: ${pool.attributes.journey}\n` +
+      `Date: ${formatDate(pool.attributes.day)}\n` +
+      `Time: ${formatTime(pool.attributes.time)}\n\n` +
+      `I'm interested in joining your trip!`
+    )
+    window.open(`https://wa.me/+91${phoneNumber}?text=${message}`, '_blank')
   }
 
-  const handleUpdateTime = async () => {
-    if (!userPool || !newTime) {
-      toast.error('Please select a new time')
-      return
-    }
-
-    try {
-      setUpdating(true)
-      const response = await fetch('/api/platform/pool-cab', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          poolId: userPool.id,
-          time: newTime
-        })
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        toast.success('Time updated successfully!')
-        fetchPools() // Refresh data
-      } else {
-        toast.error(data.error || 'Failed to update time')
-      }
-    } catch (error) {
-      console.error('Error updating time:', error)
-      toast.error('Failed to update time')
-    } finally {
-      setUpdating(false)
-    }
+  const handleEmailContact = (email: string, pool: PoolData) => {
+    const subject = encodeURIComponent('Cab Pool Request - Platform')
+    const body = encodeURIComponent(
+      `Hi,\n\n` +
+      `I found your cab pool request on the Platform and I'm interested in joining your trip.\n\n` +
+      `Details:\n` +
+      `Route: ${pool.attributes.journey}\n` +
+      `Date: ${formatDate(pool.attributes.day)}\n` +
+      `Time: ${formatTime(pool.attributes.time)}\n\n` +
+      `Please let me know if you're still looking for someone to share the cab.\n\n` +
+      `Thanks!`
+    )
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
   }
 
   const handleCancelRequest = async () => {
@@ -197,14 +183,17 @@ export default function PoolCabResults() {
     try {
       setUpdating(true)
       const response = await fetch('/api/platform/pool-cab', {
-        method: 'DELETE',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ poolId: userPool.id })
+        body: JSON.stringify({
+          poolId: userPool.id,
+          status: 'cancelled'
+        })
       })
 
       const data = await response.json()
       if (data.success) {
-        toast.success('Request cancelled successfully!')
+        toast.success('Pool request cancelled successfully!')
         router.push('/platform/pool-cab')
       } else {
         toast.error(data.error || 'Failed to cancel request')
@@ -227,14 +216,14 @@ export default function PoolCabResults() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           poolId: userPool.id,
-          status: 'full'
+          status: 'pooled'
         })
       })
 
       const data = await response.json()
       if (data.success) {
-        toast.success('Pool marked as full!')
-        fetchPools() // Refresh data
+        toast.success('Pool marked as completed!')
+        router.push('/platform/pool-cab')
       } else {
         toast.error(data.error || 'Failed to update status')
       }
@@ -352,7 +341,7 @@ export default function PoolCabResults() {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search name, route, contact..."
+                  placeholder="Search route..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -413,15 +402,27 @@ export default function PoolCabResults() {
                     <Badge variant="default">
                       Available
                     </Badge>
-                    
-                    <Button
-                      size="sm"
-                      onClick={() => handleWhatsAppContact(pool.attributes.pooler.data.email, pool.attributes.pooler.data.username)}
-                      className="gap-2"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Contact
-                    </Button>
+
+                    {pool.attributes.useEmailContact ? (
+                      <Button
+                        size="sm"
+                        onClick={() => handleEmailContact(pool.attributes.pooler.data.email, pool)}
+                        className="gap-2"
+                      >
+                        <Mail className="h-4 w-4" />
+                        Email
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => handleWhatsAppContact(pool.attributes.contactNumber || '', pool)}
+                        className="gap-2"
+                        disabled={!pool.attributes.contactNumber}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        WhatsApp
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -476,8 +477,7 @@ export default function PoolCabResults() {
           <CardHeader>
             <CardTitle>Your Trip Details</CardTitle>
             <p className="text-sm text-muted-foreground">
-              If you found a person to pool a cab with, or wish to change your estimated time of arrival, 
-              you can update your details below so that others can contact you for the right trips.
+              Below are your current pool request details. You can mark it as pooled when you've found someone, or cancel if you no longer need it.
             </p>
           </CardHeader>
           <CardContent>
@@ -485,41 +485,30 @@ export default function PoolCabResults() {
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-                  <div className="mt-1 p-3 bg-muted rounded-md">
+                  <div className="mt-1 p-3 bg-muted rounded-md flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
                     {formatDate(userPool.attributes.day)}
                   </div>
                 </div>
-                
+
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Current Time</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">Time</Label>
                   <div className="mt-1 p-3 bg-muted rounded-md flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     {formatTime(userPool.attributes.time)}
                   </div>
                 </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Update Time</Label>
-                  <Input
-                    type="time"
-                    value={newTime}
-                    onChange={(e) => setNewTime(e.target.value)}
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Select your new trip time and click &quot;Update My Time&quot; button below
-                  </p>
-                </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Route</Label>
-                  <div className="mt-1 p-3 bg-muted rounded-md">
+                  <div className="mt-1 p-3 bg-muted rounded-md flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
                     {userPool.attributes.journey}
                   </div>
                 </div>
-                
+
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Status</Label>
                   <div className="mt-1 p-3 bg-muted rounded-md">
@@ -530,28 +519,21 @@ export default function PoolCabResults() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:justify-end">
-              <Button 
+              <Button
                 className="bg-green-600 hover:bg-green-700"
                 onClick={handleFoundCab}
                 disabled={updating || userPool.attributes.status !== 'available'}
               >
-                Found a Cab Pool
+                {updating ? 'Processing...' : 'Found a Pool'}
               </Button>
-              <Button 
-                variant="secondary"
-                onClick={handleUpdateTime}
-                disabled={updating || !newTime || newTime === userPool.attributes.time}
-              >
-                {updating ? 'Updating...' : 'Update My Time'}
-              </Button>
-              <Button 
+              <Button
                 variant="destructive"
                 onClick={handleCancelRequest}
-                disabled={updating}
+                disabled={updating || userPool.attributes.status !== 'available'}
               >
-                {updating ? 'Cancelling...' : 'Cancel My Request'}
+                {updating ? 'Cancelling...' : 'Cancel Pool Request'}
               </Button>
             </div>
           </CardContent>

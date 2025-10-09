@@ -2,14 +2,16 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Car, ChevronDownIcon, MapPin } from "lucide-react"
+import { Car, ChevronDownIcon, MapPin, Mail } from "lucide-react"
 import { toast } from "sonner"
+import { useSession } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Popover,
   PopoverContent,
@@ -23,17 +25,49 @@ import {
 
 export default function PoolCabForm() {
   const router = useRouter()
-  
+  const { data: session } = useSession()
+
   // Form state
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined)
   const [selectedTime, setSelectedTime] = React.useState("")
   const [fromLocation, setFromLocation] = React.useState("")
   const [toLocation, setToLocation] = React.useState("")
   const [contactNumber, setContactNumber] = React.useState("")
+  const [useEmail, setUseEmail] = React.useState(false)
+  const [userEmail, setUserEmail] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  
+  const [isLoadingProfile, setIsLoadingProfile] = React.useState(true)
+
   // Date picker state
   const [datePickerOpen, setDatePickerOpen] = React.useState(false)
+
+  // Fetch user profile data on mount
+  React.useEffect(() => {
+    async function fetchProfile() {
+      try {
+        setIsLoadingProfile(true)
+        const response = await fetch('/api/platform/profile', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.data) {
+            setContactNumber(result.data.phone_number || "")
+            setUserEmail(result.data.email || session?.user?.email || "")
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error)
+        setUserEmail(session?.user?.email || "")
+      } finally {
+        setIsLoadingProfile(false)
+      }
+    }
+
+    fetchProfile()
+  }, [session?.user?.email])
 
   // Location options
   const locationOptions = [
@@ -56,8 +90,14 @@ export default function PoolCabForm() {
     e.preventDefault()
 
     // Validate required fields
-    if (!selectedDate || !fromLocation || !toLocation || !selectedTime || !contactNumber) {
+    if (!selectedDate || !fromLocation || !toLocation || !selectedTime) {
       toast.error("Please fill in all required fields")
+      return
+    }
+
+    // Validate contact method
+    if (!useEmail && !contactNumber) {
+      toast.error("Please provide a contact number or select use email")
       return
     }
 
@@ -73,12 +113,12 @@ export default function PoolCabForm() {
     try {
       // Convert date to YYYY-MM-DD format
       const formattedDate = selectedDate.toISOString().split('T')[0]
-      
+
       // Parse time to get hour, minute, and period
       const [hourStr, minuteStr] = selectedTime.split(':')
       const hour24 = parseInt(hourStr)
       const minute = parseInt(minuteStr)
-      
+
       // Convert to 12-hour format for API compatibility
       const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24
       const period = hour24 >= 12 ? 'PM' : 'AM'
@@ -91,7 +131,8 @@ export default function PoolCabForm() {
         selectedHour: hour12.toString(),
         selectedMinute: minuteStr,
         selectedPeriod: period,
-        contactNumber
+        contactNumber: useEmail ? null : contactNumber,
+        useEmailContact: useEmail
       }
 
       console.log("Form data to be submitted:", poolData)
@@ -201,15 +242,46 @@ export default function PoolCabForm() {
           />
         </div>
 
-        {/* Contact Number */}
-        <PhoneInput
-          title="Contact Number"
-          description="Provide a valid 10-digit mobile number"
-          placeholder="9876543210"
-          value={contactNumber}
-          onChange={setContactNumber}
-          isRequired={true}
-        />
+        {/* Contact Information */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="use-email"
+              checked={useEmail}
+              onCheckedChange={(checked) => setUseEmail(checked as boolean)}
+            />
+            <Label
+              htmlFor="use-email"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              Use email for contact instead
+            </Label>
+          </div>
+
+          {useEmail ? (
+            <div className="flex flex-col gap-3">
+              <Label className="px-1 text-base font-medium">
+                Contact Email <span className="text-destructive">*</span>
+              </Label>
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{userEmail}</span>
+              </div>
+              <p className="text-xs text-muted-foreground px-1">
+                Others will contact you via email
+              </p>
+            </div>
+          ) : (
+            <PhoneInput
+              title="Contact Number"
+              description="Provide a valid 10-digit mobile number"
+              placeholder="9876543210"
+              value={contactNumber}
+              onChange={setContactNumber}
+              isRequired={true}
+            />
+          )}
+        </div>
 
         {/* Submit Button */}
         <div className="pt-4">
@@ -218,11 +290,12 @@ export default function PoolCabForm() {
             className="w-full gap-2 text-lg py-6"
             disabled={
               isSubmitting ||
+              isLoadingProfile ||
               !selectedDate ||
               !selectedTime ||
               !fromLocation ||
               !toLocation ||
-              !contactNumber
+              (!useEmail && !contactNumber)
             }
           >
             <Car className="h-5 w-5" />

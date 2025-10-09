@@ -374,10 +374,10 @@ export async function PUT(request: NextRequest) {
     }
 
     if (status) {
-      if (!['available', 'full', 'cancelled'].includes(status)) {
+      if (!['available', 'full', 'cancelled', 'pooled'].includes(status)) {
         return NextResponse.json({
           success: false,
-          error: 'Invalid status. Must be available, full, or cancelled'
+          error: 'Invalid status. Must be available, full, cancelled, or pooled'
         }, { status: 400 })
       }
       updateData.data.status = status
