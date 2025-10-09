@@ -26,7 +26,7 @@ export const banners: Array<{
     gradient: "",
     buttons: [
       { variant: "default", children: "Join Now", onClick: () => alert("Join Now") },
-      { variant: "animatedGhost", children: "Learn More", onClick: () => alert("Learn More") },
+      { variant: "default", children: "Learn More", onClick: () => alert("Learn More") },
     ],
   },
   {
@@ -38,7 +38,7 @@ export const banners: Array<{
     gradient: "from-green-500/80 to-teal-500/80",
     buttons: [
       { variant: "default", children: "View Events", onClick: () => alert("View Events") },
-      { variant: "outline", children: "Learn More", onClick: () => alert("Learn More") },
+      { variant: "default", children: "Learn More", onClick: () => alert("Learn More") },
     ],
   }
 ];

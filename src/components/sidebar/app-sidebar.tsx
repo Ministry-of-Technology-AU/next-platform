@@ -77,7 +77,8 @@ export function AppSidebar() {
   const isDrawerOpen = isMobile ? openMobile : open;
   const isCollapsed = state === "collapsed";
 
-  // Icon collapse state
+  // Icon collapse state - only hide text when truly collapsed
+  // On mobile, when sidebar is open, we want to show the text
   const [iconCollapse, setIconCollapse] = React.useState(isCollapsed);
   const hideLabels = !isDrawerOpen;
   const collapseDelay = 2500; // ms, adjust as needed
@@ -85,12 +86,12 @@ export function AppSidebar() {
 
   React.useEffect(() => {
     if (isCollapsed) {
-      // Set iconCollapse to true after a delay
+      // Set iconCollapse to true after a minimal delay when collapsed
       collapseTimeout.current = setTimeout(() => {
         setIconCollapse(true);
       }, collapseDelay);
     } else {
-      // Immediately set iconCollapse to false and clear timeout
+      // Immediately set iconCollapse to false when expanded
       setIconCollapse(false);
       if (collapseTimeout.current) {
         clearTimeout(collapseTimeout.current);
@@ -169,7 +170,7 @@ export function AppSidebar() {
                           href={`/platform${item.href}`}
                           className="flex items-center w-full"
                         >
-                          <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto" />
+                          <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0" />
                           <span className={cn(
                             "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap",
                             hideLabels && "w-0 opacity-0"

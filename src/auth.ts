@@ -36,16 +36,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.log(`Rejected sign-in attempt from: ${user.email}`);
         return false;
       }
-      
+
       console.log(`Successful sign-in: ${user.email}`);
       return true;
     },
-    
+
     async jwt({ token, user }: any) {
       // Initial sign in
       if (user) {
         const email = user.email!;
-        
+
         // Determine user role based on email patterns
         // if (ORGANIZATION_EMAILS.includes(email)) {
         //   token.role = 'organization';
@@ -71,17 +71,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.role = 'user';
           token.access = ['none']; // Default access
         }
-        
+
         token.email = email;
         token.name = user.name;
         token.picture = user.image;
-        
+
         console.log(`JWT created for ${email} with role: ${token.role}`);
       }
-      
+
       return token;
     },
-    
+
     async session({ session, token }: any) {
       if (session.user && token) {
         session.user.role = token.role as string;
@@ -90,16 +90,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.name = token.name as string;
         session.user.image = token.picture as string;
       }
-      
+
       return session;
     }
   },
-  
+
   pages: {
     signIn: '/api/auth/signin',
     error: '/api/auth/error',
   },
-  
+
   events: {
     async signIn(message: any) {
       console.log('Sign in event:', message.user?.email);

@@ -30,7 +30,7 @@ async function fetchDraftsAndCourses() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/semester-planner`, {
       cache: 'no-store',
       headers: { 'Cookie': cookieStore.toString() },
-     });
+    });
     if (response.ok) {
       const data = await response.json();
       if (data.success) {

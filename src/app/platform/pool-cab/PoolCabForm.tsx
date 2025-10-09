@@ -25,10 +25,10 @@ const generateDates = () => {
     date.setDate(today.getDate() + i)
     dates.push({
       value: date.toISOString().split('T')[0],
-      label: date.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric' 
+      label: date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
       })
     })
   }
@@ -76,12 +76,12 @@ export default function PoolCabForm() {
   const handlePhoneChange = (value: string) => {
     // Remove any non-numeric characters
     const numericValue = value.replace(/[^0-9]/g, '')
-    
+
     // Limit to 10 digits
     const limitedValue = numericValue.slice(0, 10)
-    
+
     setContactNumber(limitedValue)
-    
+
     // Validate and set error
     if (limitedValue.length > 0 && !validatePhoneNumber(limitedValue)) {
       if (limitedValue.length < 10) {
@@ -96,7 +96,7 @@ export default function PoolCabForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!selectedDate || !fromLocation || !toLocation || !selectedHour || !selectedMinute || !selectedPeriod || !contactNumber) {
       alert("Please fill in all required fields")
       return
@@ -125,20 +125,20 @@ export default function PoolCabForm() {
       const response = await fetch('/api/platform/pool-cab', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',          
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(poolData)
       })
 
       const result = await response.json()
-      
+
       if (!result.success) {
         alert(result.error || "Failed to create pool")
       } else {
         // Success - navigate to results page
         router.push('platform/pool-cab/results')
       }
-      
+
     } catch (error) {
       console.error("Error creating pool:", error)
       const errorMessage = "Failed to create pool. Please try again."
@@ -149,7 +149,7 @@ export default function PoolCabForm() {
   }
 
   return (
-    <Card>
+    <Card className="max-w-7xl ml-auto mr-auto">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-2">
           <MapPin className="h-5 w-5" />
@@ -321,18 +321,18 @@ export default function PoolCabForm() {
 
           {/* Submit Button */}
           <div className="pt-4">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full gap-2 text-lg py-6"
               disabled={
                 isSubmitting ||
-                !selectedDate || 
-                !fromLocation || 
-                !toLocation || 
-                !selectedHour || 
-                !selectedMinute || 
-                !selectedPeriod || 
-                !contactNumber || 
+                !selectedDate ||
+                !fromLocation ||
+                !toLocation ||
+                !selectedHour ||
+                !selectedMinute ||
+                !selectedPeriod ||
+                !contactNumber ||
                 !!phoneError ||
                 !validatePhoneNumber(contactNumber)
               }

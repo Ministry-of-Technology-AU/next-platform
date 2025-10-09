@@ -323,7 +323,7 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
         let currentSemester: ParsedSemester | null = null;
         let courseSection = false;
 
-        for (let line of lines) {
+        for (const line of lines) {
             if (line.includes('Degree/Diploma CGPA')) {
                 const parts = line.match(/Degree\/Diploma CGPA: (\d+\.\d+).*CGPA for Major: (\d+\.\d+).*Total counted credits: (\d+)/);
                 if (parts) {

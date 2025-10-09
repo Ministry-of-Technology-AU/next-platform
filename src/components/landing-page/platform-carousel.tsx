@@ -46,7 +46,7 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
   return (
     <div className={`relative w-full max-w-4xl aspect-[16/7] sm:aspect-[16/7] md:aspect-[16/7] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ${className}`}>
       {/* Carousel Images */}
-      <div className="relative w-full h-full overflow-hidden">
+      <div className="relative w-full h-full overflow-hidden max-w-full">
         <div 
           className="flex w-full h-full transition-transform duration-1000 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -54,7 +54,7 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
           {banners.map((banner, index) => (
             <div
               key={banner.id}
-              className="relative w-full h-full flex-shrink-0"
+              className="relative w-full h-full flex-shrink-0 min-w-full"
             >
               <Image
                 src={banner.image}
@@ -125,7 +125,7 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
       >
         <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
       </Button>
-      
+
       <Button
         variant="ghost"
         size="icon"

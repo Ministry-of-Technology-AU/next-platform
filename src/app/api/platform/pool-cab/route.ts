@@ -73,23 +73,50 @@ function convertTo24HourFormat(hour: string, minute: string, period: string): st
 export async function GET() {
   try {
     const session = await auth()
-    const userId = getUserIdByEmail(session?.user?.email || '')    
+    const userId = await getUserIdByEmail(session?.user?.email || '')    
+    console.log("User ID fetched for email:", session?.user?.email, "->", userId)
+    
     if (!userId) {
       return NextResponse.json({
         success: false,
         error: 'User not found'
       }, { status: 404 })
     }
+    
     const getPastDate = (days: number): string => {
       const date = new Date()
       date.setDate(date.getDate() - days)
       return date.toISOString().split('T')[0]
     }
-    const response = await strapiGet(`/pools?user=${userId}&date_gte=${getPastDate(5)}`)
+    
+    const pastDate = getPastDate(5)
+    console.log("Fetching pools for userId:", userId, "since date:", pastDate)
+    
+    // Try with populate to get related data and check field names
+    const response = await strapiGet('/pools', {
+      filters: {
+        pooler: {
+          id: {
+            $eq: userId
+          }
+        },
+        day: {
+          $gte: pastDate
+        }
+      },
+      populate: ['pooler']
+    })
+    
+    console.log("Strapi response:", JSON.stringify(response, null, 2))
     const pools = response.data || []
 
     // Check if any pool is available
-    const hasAvailablePool = pools.some((pool: any) => pool.status === "available")
+    const hasAvailablePool = pools.some((pool: any) => {
+      console.log("Pool status check:", pool.attributes?.status)
+      return pool.attributes?.status === "available"
+    })
+
+    console.log("Available pools found:", hasAvailablePool, "Total pools:", pools.length)
 
     if (hasAvailablePool) {
       return NextResponse.json({
@@ -103,6 +130,48 @@ export async function GET() {
     }
   } catch (error) {
     console.error("Error fetching pools:", error)
+    
+    // If the relational filter fails, try a simpler approach
+    if (error instanceof Error && error.message.includes('500')) {
+      try {
+        console.log("Trying fallback query without relational filter...")
+        const session = await auth()
+        const userId = await getUserIdByEmail(session?.user?.email || '')
+        
+        if (!userId) {
+          return NextResponse.json({
+            success: false,
+            error: 'User not found'
+          }, { status: 404 })
+        }
+        
+        const response = await strapiGet('/pools', {
+          populate: ['pooler']
+        })
+        
+        const pools = (response.data || []).filter((pool: any) => {
+          return pool.attributes?.pooler?.data?.id === userId
+        })
+        
+        const hasAvailablePool = pools.some((pool: any) => pool.attributes?.status === "available")
+        
+        if (hasAvailablePool) {
+          return NextResponse.json({ success: true })
+        } else {
+          return NextResponse.json({
+            success: false,
+            error: 'No available pools found'
+          })
+        }
+      } catch (fallbackError) {
+        console.error("Fallback query also failed:", fallbackError)
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to fetch pools'
+        }, { status: 500 })
+      }
+    }
+    
     return NextResponse.json({
       success: false,
       error: 'Failed to fetch pools'
@@ -115,7 +184,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
     
-    const userId = getUserIdByEmail(session?.user?.email || '')
+    const userId = await getUserIdByEmail(session?.user?.email || '')
     if (!userId) {
       return NextResponse.json({
         success: false,

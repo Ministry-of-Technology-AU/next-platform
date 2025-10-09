@@ -39,8 +39,8 @@ const AuthSection = React.memo(function AuthSection() {
 
   if (status === "loading") {
     return (
-      <Button variant="ghost" size="icon" disabled>
-        <User className="size-5 animate-pulse" />
+      <Button variant="ghost" size="icon" disabled className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
+        <User className="size-4 xs:size-4.5 sm:size-5 animate-pulse" />
       </Button>
     );
   }
@@ -54,13 +54,13 @@ const AuthSection = React.memo(function AuthSection() {
             variant="default"
             size="sm"
             onClick={() => signIn("google")}
-            className="gap-2"
+            className="gap-1 xs:gap-1.5 sm:gap-2 h-8 xs:h-9 sm:h-10 px-2 xs:px-3 sm:px-4 text-xs xs:text-sm"
           >
-            <LogIn className="size-4" />
-            Sign In
+            <LogIn className="size-3 xs:size-3.5 sm:size-4" />
+            <span className="hidden xs:inline">Sign In</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className="hidden sm:block">
           <p className="text-sm">Sign in with your Ashoka email</p>
         </TooltipContent>
       </Tooltip>
@@ -72,8 +72,8 @@ const AuthSection = React.memo(function AuthSection() {
     <Tooltip>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="User profile">
-            <Avatar>
+          <Button variant="ghost" size="icon" aria-label="User profile" className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
+            <Avatar className="h-full w-full">
               <TooltipTrigger asChild>
                 <AvatarImage
                   src={session.user?.image || ""}
@@ -81,12 +81,12 @@ const AuthSection = React.memo(function AuthSection() {
                 />
               </TooltipTrigger>
               <AvatarFallback>
-                <User className="size-5" />
+                <User className="size-4 xs:size-4.5 sm:size-5" />
               </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-64 xs:w-72">
           <div className="flex items-center space-x-2 p-2">
             <Avatar className="h-8 w-8">
               <AvatarImage src={session.user?.image || ""} alt="Avatar" />
@@ -94,11 +94,11 @@ const AuthSection = React.memo(function AuthSection() {
                 <User className="size-4" />
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">
+            <div className="flex flex-col space-y-1 min-w-0 flex-1">
+              <p className="text-sm font-medium leading-none truncate">
                 {session.user?.name}
               </p>
-              <p className="text-xs leading-none text-muted-foreground">
+              <p className="text-xs leading-none text-muted-foreground truncate">
                 {session.user?.email}
               </p>
             </div>
@@ -123,16 +123,16 @@ const AuthSection = React.memo(function AuthSection() {
 });
 
 export default function Navbar() {
-const isMac = useIsMac();
+  const isMac = useIsMac();
   return (
-    <nav className="w-full flex sticky top-0 items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-background backdrop-blur-md z-50">
+    <nav className="w-full flex sticky top-0 items-center justify-between px-2 xs:px-3 sm:px-4 md:px-6 py-2 sm:py-3 border-b border-border bg-background backdrop-blur-md z-50">
       {/* Left: Logo and text */}
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center gap-1 sm:gap-2 min-w-0">
         <Tooltip>
           <TooltipTrigger asChild>
             <SidebarTrigger className="hover:text-primary-extralight dark:hover:text-primary-light" />
           </TooltipTrigger>
-          <TooltipContent side="right" align="center" className="text-white">
+          <TooltipContent side="right" align="center" className="text-white hidden sm:block">
             Toggle Sidebar
             <div className="text-xs text-white/80 mt-1">
               Shortcut:{" "}
@@ -145,17 +145,17 @@ const isMac = useIsMac();
       </div>
 
       {/* Right: Help, Feedback, theme toggle, profile */}
-      <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+      <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 ml-auto">
         {/* Help button - Launches global tooltips */}
         <Tooltip>
           <TourTrigger>
             <TooltipTrigger asChild>
-              <Button variant="animatedGhost" size="icon" aria-label="Help">
-                <HelpCircle className="size-5" />
+              <Button variant="animatedGhost" size="icon" aria-label="Help" className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
+                <HelpCircle className="size-4 xs:size-4.5 sm:size-5" />
               </Button>
             </TooltipTrigger>
           </TourTrigger>
-          <TooltipContent>
+          <TooltipContent className="hidden sm:block">
             <p className="text-sm">Need help? See tooltips!</p>
           </TooltipContent>
         </Tooltip>
@@ -169,9 +169,10 @@ const isMac = useIsMac();
                   variant="animatedGhost"
                   size="icon"
                   aria-label="Feedback"
+                  className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10"
                   onClick={() => window.open('https://www.notion.so/ministry-of-technology/2844ae85dc2c80a484bdd94abe7ceecc?v=2844ae85dc2c802a9d79000c2f255fe8&source=copy_link', '_blank')}
                 >
-                  <Newspaper className="size-5" />
+                  <Newspaper className="size-4 xs:size-4.5 sm:size-5" />
                 </Button>
               </TooltipTrigger>
             </DialogTrigger>
@@ -195,7 +196,7 @@ const isMac = useIsMac();
               </DialogHeader>
             </DialogContent> */}
           </Dialog>
-          <TooltipContent>
+          <TooltipContent className="hidden sm:block">
             <p className="text-sm">Give us your feedback!</p>
           </TooltipContent>
         </Tooltip>
@@ -209,7 +210,7 @@ const isMac = useIsMac();
               document.documentElement.classList.toggle("dark", next);
             }}
           />
-          <TooltipContent>
+          <TooltipContent className="hidden sm:block">
             <p className="text-sm text-white">
               Toggle dark/light mode
               <br />
@@ -226,8 +227,8 @@ const isMac = useIsMac();
         {/* Authentication Section */}
         <ClientOnly 
           fallback={
-            <Button variant="ghost" size="icon" disabled>
-              <User className="size-5 animate-pulse" />
+            <Button variant="ghost" size="icon" disabled className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
+              <User className="size-4 xs:size-4.5 sm:size-5 animate-pulse" />
             </Button>
           }
         >
