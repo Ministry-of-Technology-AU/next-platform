@@ -26,7 +26,8 @@ async function existPoolRequest() {
 export default async function PoolCab() {
     const existingRequest = await existPoolRequest();
     console.log("Existing Pool Request:", existingRequest);
-    if (existingRequest.success) {
+    if (existingRequest?.success && existingRequest?.userPool) {
+        console.log("User has existing pool, redirecting to results");
         redirect('/platform/pool-cab/results');
     }
     return (

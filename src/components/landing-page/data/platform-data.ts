@@ -14,11 +14,11 @@ export const banners: Array<{
 }> = [
         {
     id: 1,
-    title: "Thank you for being part of the beta program!",
-    subtitle: "[BETA VERSION]",
+    title: "Thank you for being part of the early access program!",
+    subtitle: "[EARLY ACCESS]",
     description: "Please go through as many pages as you can, test out any feature as you like, and most importantly - make sure to drop your feedback!",
     image: "/yyh4iiocug5dnctfkd5t.webp",
-    alt: "Thank you for being part of the beta program! Please go through as many pages as you can, test out any feature as you like, and most importantly - make sure to drop your feedback!",
+    alt: "Thank you for being part of the early access program! Please go through as many pages as you can, test out any feature as you like, and most importantly - make sure to drop your feedback!",
     gradient: "",
     buttons:[
         {

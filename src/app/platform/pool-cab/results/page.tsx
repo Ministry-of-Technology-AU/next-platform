@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, Car, Clock, MapPin, Phone, MessageCircle, Filter, Search, Users, Calendar } from "lucide-react"
+import { ArrowLeft, Car, Clock, MapPin, Phone, MessageCircle, Filter, Search, Users, Calendar, RefreshCw } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,70 +19,50 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import PageTitle from "@/components/page-title"
 
-// Sample data for existing cab pools
-const samplePools = [
-  {
-    id: "1",
-    name: "Soham Tulsyan",
-    contact: "+916291579424",
-    time: "03:28 AM",
-    route: "Campus to New Delhi",
-    day: "Jul 22",
-    status: "Available",
-    avatar: "https://github.com/sohamtulsyan.png"
-  },
-  {
-    id: "2",
-    name: "Priya Sharma",
-    contact: "+919876543210",
-    time: "08:15 AM",
-    route: "Campus to Gurgaon",
-    day: "Jul 22",
-    status: "Available",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150"
-  },
-  {
-    id: "3",
-    name: "Rahul Kumar",
-    contact: "+918765432109",
-    time: "06:30 PM",
-    route: "New Delhi to Campus",
-    day: "Jul 23",
-    status: "Full",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
-  },
-  {
-    id: "4",
-    name: "Ananya Gupta",
-    contact: "+917654321098",
-    time: "02:45 PM",
-    route: "Campus to Airport",
-    day: "Jul 22",
-    status: "Available",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150"
+interface UserData {
+  id: string
+  username: string
+  email: string
+}
+
+interface PoolData {
+  id: string
+  attributes: {
+    journey: string
+    time: string
+    day: string
+    status: string
+    createdAt: string
+    updatedAt: string
+    pooler: {
+      data: UserData
+    }
   }
-]
+}
 
 export default function PoolCabResults() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  // Get form data from URL params
-  const userDate = searchParams.get('date')
-  const userFrom = searchParams.get('from')
-  const userTo = searchParams.get('to')
-  const userTime = searchParams.get('time')
-  const userContact = searchParams.get('contact')
-
-  const [filteredPools, setFilteredPools] = React.useState(samplePools)
+  // State management
+  const [pools, setPools] = React.useState<PoolData[]>([])
+  const [filteredPools, setFilteredPools] = React.useState<PoolData[]>([])
   const [searchTerm, setSearchTerm] = React.useState("")
   const [dayFilter, setDayFilter] = React.useState("all")
   const [routeFilter, setRouteFilter] = React.useState("all")
   const [entriesPerPage, setEntriesPerPage] = React.useState("10")
   const [currentPage, setCurrentPage] = React.useState(1)
+  const [loading, setLoading] = React.useState(true)
+  const [userPool, setUserPool] = React.useState<PoolData | null>(null)
+  const [updating, setUpdating] = React.useState(false)
+  const [newTime, setNewTime] = React.useState("")
 
-  // Format user's trip details
+  // Get pagination from URL
+  const page = searchParams.get('page') || '1'
+  
+  // Helper functions
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', { 
@@ -96,37 +77,173 @@ export default function PoolCabResults() {
     const hour = parseInt(hours)
     const ampm = hour >= 12 ? 'PM' : 'AM'
     const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
-    return `${hour12}:${minutes} ${ampm}`
+    return `${hour12}:${minutes.padStart(2, '0')} ${ampm}`
   }
 
-  const userRoute = `${userFrom} to ${userTo}`
+  const getInitials = (username: string) => {
+    return username.split(' ').map(n => n[0]).join('').toUpperCase()
+  }
+
+  // Fetch pools from API
+  const fetchPools = React.useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/platform/pool-cab?page=${currentPage}&limit=${entriesPerPage}`, {
+        method: 'GET',
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        setPools(data.pools || [])
+        if (data.userPool) {
+          setUserPool(data.userPool)
+          setNewTime(data.userPool.attributes.time)
+        }
+      } else {
+        toast.error(data.error || 'Failed to fetch pools')
+      }
+    } catch (error) {
+      console.error('Error fetching pools:', error)
+      toast.error('Failed to fetch pools')
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPage, entriesPerPage])
 
   // Filter pools based on search and filters
   React.useEffect(() => {
-    let filtered = samplePools
+    let filtered = pools.filter(pool => pool.attributes.status === 'available')
 
     if (searchTerm) {
       filtered = filtered.filter(pool => 
-        pool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pool.route.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pool.contact.includes(searchTerm)
+        pool.attributes.pooler.data.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pool.attributes.journey.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pool.attributes.pooler.data.email.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
     if (dayFilter && dayFilter !== "all") {
-      filtered = filtered.filter(pool => pool.day === dayFilter)
+      filtered = filtered.filter(pool => pool.attributes.day === dayFilter)
     }
 
     if (routeFilter && routeFilter !== "all") {
-      filtered = filtered.filter(pool => pool.route === routeFilter)
+      filtered = filtered.filter(pool => pool.attributes.journey === routeFilter)
     }
 
     setFilteredPools(filtered)
-  }, [searchTerm, dayFilter, routeFilter])
+  }, [pools, searchTerm, dayFilter, routeFilter])
 
-  const handleWhatsAppContact = (contact: string, name: string) => {
-    const message = encodeURIComponent(`Hi ${name}, I found your cab pool request on the Platform. I'm interested in joining your trip.`)
-    window.open(`https://wa.me/${contact.replace(/[^0-9]/g, '')}?text=${message}`, '_blank')
+  // Get unique routes and days for filters
+  const uniqueRoutes = React.useMemo(() => {
+    const routes = [...new Set(pools.map(pool => pool.attributes.journey))]
+    return routes.sort()
+  }, [pools])
+
+  const uniqueDays = React.useMemo(() => {
+    const days = [...new Set(pools.map(pool => pool.attributes.day))]
+    return days.sort()
+  }, [pools])
+
+  // Fetch pools on component mount and when page changes
+  React.useEffect(() => {
+    fetchPools()
+  }, [fetchPools])
+
+  React.useEffect(() => {
+    setCurrentPage(parseInt(page))
+  }, [page])
+
+  const handleWhatsAppContact = (email: string, name: string) => {
+    const message = encodeURIComponent(`Hi ${name}, I found your cab pool request on the Platform. I'm interested in joining your trip. Please contact me at your convenience!`)
+    // Since we don't have phone numbers, we'll show a toast with the email
+    toast.info(`Contact ${name} at: ${email}`)
+  }
+
+  const handleUpdateTime = async () => {
+    if (!userPool || !newTime) {
+      toast.error('Please select a new time')
+      return
+    }
+
+    try {
+      setUpdating(true)
+      const response = await fetch('/api/platform/pool-cab', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          poolId: userPool.id,
+          time: newTime
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        toast.success('Time updated successfully!')
+        fetchPools() // Refresh data
+      } else {
+        toast.error(data.error || 'Failed to update time')
+      }
+    } catch (error) {
+      console.error('Error updating time:', error)
+      toast.error('Failed to update time')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const handleCancelRequest = async () => {
+    if (!userPool) return
+
+    try {
+      setUpdating(true)
+      const response = await fetch('/api/platform/pool-cab', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ poolId: userPool.id })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        toast.success('Request cancelled successfully!')
+        router.push('/platform/pool-cab')
+      } else {
+        toast.error(data.error || 'Failed to cancel request')
+      }
+    } catch (error) {
+      console.error('Error cancelling request:', error)
+      toast.error('Failed to cancel request')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const handleFoundCab = async () => {
+    if (!userPool) return
+
+    try {
+      setUpdating(true)
+      const response = await fetch('/api/platform/pool-cab', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          poolId: userPool.id,
+          status: 'full'
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        toast.success('Pool marked as full!')
+        fetchPools() // Refresh data
+      } else {
+        toast.error(data.error || 'Failed to update status')
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+      toast.error('Failed to update status')
+    } finally {
+      setUpdating(false)
+    }
   }
 
   const totalPages = Math.ceil(filteredPools.length / parseInt(entriesPerPage))
@@ -135,9 +252,9 @@ export default function PoolCabResults() {
   const currentPools = filteredPools.slice(startIndex, endIndex)
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      {/* Header */}
-      <div className="space-y-2">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header with Page Title */}
+      <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -147,16 +264,24 @@ export default function PoolCabResults() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Car className="h-8 w-8 text-primary" />
-            Pool a Cab
-          </h1>
+          <div className="flex-1">
+            <PageTitle 
+              text="Pool a Cab Results"
+              icon={Car}
+              subheading="Find available cab pools and manage your requests. Contact other users to share rides and save money on transportation."
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchPools}
+            disabled={loading}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
-        <p className="text-muted-foreground">
-          Click on the WhatsApp icon to message the person. Below is the list of all people using the service. 
-          Please find a person closest to your arrival time and route, and reach out to them using their contact details. 
-          Please make sure that they are available for pooling under the status bar before contacting them.
-        </p>
       </div>
 
       {/* Filters and Search */}
@@ -178,9 +303,11 @@ export default function PoolCabResults() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Days</SelectItem>
-                  <SelectItem value="Jul 22">Jul 22</SelectItem>
-                  <SelectItem value="Jul 23">Jul 23</SelectItem>
-                  <SelectItem value="Jul 24">Jul 24</SelectItem>
+                  {uniqueDays.map((day) => (
+                    <SelectItem key={day} value={day}>
+                      {formatDate(day)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -194,10 +321,11 @@ export default function PoolCabResults() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Routes</SelectItem>
-                  <SelectItem value="Campus to New Delhi">Campus to New Delhi</SelectItem>
-                  <SelectItem value="Campus to Gurgaon">Campus to Gurgaon</SelectItem>
-                  <SelectItem value="New Delhi to Campus">New Delhi to Campus</SelectItem>
-                  <SelectItem value="Campus to Airport">Campus to Airport</SelectItem>
+                  {uniqueRoutes.map((route) => (
+                    <SelectItem key={route} value={route}>
+                      {route}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -244,58 +372,56 @@ export default function PoolCabResults() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {currentPools.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">Loading cab pools...</p>
+            </div>
+          ) : currentPools.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No cab pools found matching your criteria.
             </div>
           ) : (
             <div className="space-y-3">
               {currentPools.map((pool) => (
-                <div key={pool.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div key={pool.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={pool.avatar} alt={pool.name} />
-                      <AvatarFallback>{pool.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                      <AvatarFallback>{getInitials(pool.attributes.pooler.data.username)}</AvatarFallback>
                     </Avatar>
                     
-                    <div className="space-y-1">
-                      <div className="font-medium">{pool.name}</div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {pool.contact}
-                        </span>
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="font-medium">{pool.attributes.pooler.data.username}</div>
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {pool.time}
+                          {formatTime(pool.attributes.time)}
                         </span>
                         <span className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
-                          {pool.route}
+                          {pool.attributes.journey}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {pool.day}
+                          {formatDate(pool.attributes.day)}
                         </span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <Badge variant={pool.status === "Available" ? "default" : "secondary"}>
-                      {pool.status}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <Badge variant="default">
+                      Available
                     </Badge>
                     
-                    {pool.status === "Available" && (
-                      <Button
-                        size="sm"
-                        onClick={() => handleWhatsAppContact(pool.contact, pool.name)}
-                        className="gap-2 bg-green hover:bg-green-dark"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        WhatsApp
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      onClick={() => handleWhatsAppContact(pool.attributes.pooler.data.email, pool.attributes.pooler.data.username)}
+                      className="gap-2"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Contact
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -304,7 +430,7 @@ export default function PoolCabResults() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
               <div className="text-sm text-muted-foreground">
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredPools.length)} of {filteredPools.length} entries
               </div>
@@ -312,18 +438,26 @@ export default function PoolCabResults() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() => {
+                    const newPage = Math.max(1, currentPage - 1)
+                    setCurrentPage(newPage)
+                    router.push(`?page=${newPage}`)
+                  }}
                   disabled={currentPage === 1}
                 >
                   Previous
                 </Button>
                 <span className="px-3 py-1 bg-primary text-primary-foreground rounded text-sm">
-                  {currentPage}
+                  {currentPage} of {totalPages}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() => {
+                    const newPage = Math.min(totalPages, currentPage + 1)
+                    setCurrentPage(newPage)
+                    router.push(`?page=${newPage}`)
+                  }}
                   disabled={currentPage === totalPages}
                 >
                   Next
@@ -336,74 +470,93 @@ export default function PoolCabResults() {
 
       <Separator />
 
-      {/* Trip Details Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Trip Details</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            If you found a person to pool a cab with, or wish to change your estimated time of arrival, 
-            you can update your details below so that others can contact you for the right trips.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-                <div className="mt-1 p-3 bg-muted rounded-md">
-                  {userDate ? formatDate(userDate) : 'Not specified'}
+      {/* Trip Details Section - Only show if user has a pool */}
+      {userPool && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Trip Details</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              If you found a person to pool a cab with, or wish to change your estimated time of arrival, 
+              you can update your details below so that others can contact you for the right trips.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Date</Label>
+                  <div className="mt-1 p-3 bg-muted rounded-md">
+                    {formatDate(userPool.attributes.day)}
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Current Time</Label>
+                  <div className="mt-1 p-3 bg-muted rounded-md flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {formatTime(userPool.attributes.time)}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Update Time</Label>
+                  <Input
+                    type="time"
+                    value={newTime}
+                    onChange={(e) => setNewTime(e.target.value)}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select your new trip time and click &quot;Update My Time&quot; button below
+                  </p>
                 </div>
               </div>
               
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Time</Label>
-                <div className="mt-1 p-3 bg-muted rounded-md flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  {userTime ? formatTime(userTime) : 'Not specified'}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Route</Label>
+                  <div className="mt-1 p-3 bg-muted rounded-md">
+                    {userPool.attributes.journey}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  If you wish to change the time of your trip, please select your new time here and click &quot;Update My Time&quot; button below
-                </p>
+                
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                  <div className="mt-1 p-3 bg-muted rounded-md">
+                    <Badge variant={userPool.attributes.status === 'available' ? 'default' : 'secondary'}>
+                      {userPool.attributes.status}
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Route</Label>
-                <div className="mt-1 p-3 bg-muted rounded-md">
-                  {userRoute}
-                </div>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                <Select defaultValue="Available">
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Available">Available</SelectItem>
-                    <SelectItem value="Full">Full</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:justify-end">
+              <Button 
+                className="bg-green-600 hover:bg-green-700"
+                onClick={handleFoundCab}
+                disabled={updating || userPool.attributes.status !== 'available'}
+              >
+                Found a Cab Pool
+              </Button>
+              <Button 
+                variant="secondary"
+                onClick={handleUpdateTime}
+                disabled={updating || !newTime || newTime === userPool.attributes.time}
+              >
+                {updating ? 'Updating...' : 'Update My Time'}
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleCancelRequest}
+                disabled={updating}
+              >
+                {updating ? 'Cancelling...' : 'Cancel My Request'}
+              </Button>
             </div>
-          </div>
-          
-          <div className="flex gap-3 mt-6 justify-end">
-            <Button className="bg-green-600 hover:bg-green-700">
-              Found a Cab Pool
-            </Button>
-            <Button variant="secondary">
-              Update My Time
-            </Button>
-            <Button variant="destructive">
-              Cancel My Request
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

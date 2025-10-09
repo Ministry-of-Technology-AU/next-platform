@@ -32,9 +32,9 @@ const popularTools = [
   {
     id: 3,
     title: "Wifi Tickets",
-    description: "COMING SOON",
+    description: "Raise a ticket about wifi issues",
     icon: WifiPen,
-    href: "/platform",
+    href: "/platform/wifi-tickets",
     color: "text-purple-400",
   },
   {
