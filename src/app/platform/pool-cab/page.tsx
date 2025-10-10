@@ -8,7 +8,7 @@ import { Suspense } from "react";
 async function existPoolRequest() {
     const cookieStore = await cookies();
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/pool-cab`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:1337'}/platform/pool-cab`, {
             method: 'GET',
             cache: 'no-store',
             headers: { 'Cookie': cookieStore.toString() },
@@ -32,21 +32,23 @@ export default async function PoolCab() {
         console.log("User has existing available pool, redirecting to results");
         redirect('/platform/pool-cab/results');
     }
-    return (
-        <div className="flex justify-center px-4 sm:px-6 lg:px-8">
-            <div className="w-full space-y-6">
-                {/* Header Section */}
-                <div className="max-w-7xl container mx-auto p-6 space-y-6">
-                    <PageTitle text="Pool a Cab" subheading="Find others traveling on the same route and share a cab to save money and reduce environmental impact.
+    else {
+        return (
+            <div className="flex justify-center px-4 sm:px-6 lg:px-8">
+                <div className="w-full space-y-6">
+                    {/* Header Section */}
+                    <div className="max-w-7xl container mx-auto p-6 space-y-6">
+                        <PageTitle text="Pool a Cab" subheading="Find others traveling on the same route and share a cab to save money and reduce environmental impact.
                         Fill in your travel details below to find potential cab partners or create a new pool request." icon={Car} />
-                    <div className="my-4 border-t border-gray-300"></div>
-                </div>
+                        <div className="my-4 border-t border-gray-300"></div>
+                    </div>
 
-                {/* Form Component */}
-                <Suspense fallback={<Loader />}>
-                    <PoolCabForm />
-                </Suspense>
+                    {/* Form Component */}
+                    <Suspense fallback={<Loader />}>
+                        <PoolCabForm />
+                    </Suspense>
+                </div>
             </div>
-        </div>
-    )
+        )
+    }
 }

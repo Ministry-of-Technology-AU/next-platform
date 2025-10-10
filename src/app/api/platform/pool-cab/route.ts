@@ -18,12 +18,28 @@ function sanitizeInput(input: string): string {
 function mapToJourneyEnum(from: string, to: string): string {
   const fromLower = sanitizeInput(from).toLowerCase()
   const toLower = sanitizeInput(to).toLowerCase()
-  
+
   const journey = `${fromLower} to ${toLower}`
-  
+
   const mappings: Record<string, string> = {
-    "airport to campus": "airport to campus",
-    "campus to airport": "campus to airport",
+    "airport (t1) to campus": "airport(T1) to campus",
+    "airport (t2) to campus": "airport(T2) to campus",
+    "airport (t3) to campus": "airport(T3) to campus",
+    "campus to airport (t1)": "campus to airport(T1)",
+    "campus to airport (t2)": "campus to airport(T2)",
+    "campus to airport (t3)": "campus to airport(T3)",
+    "airport (t1) to jahangirpuri": "airport to jahangirpuri",
+    "airport (t2) to jahangirpuri": "airport to jahangirpuri",
+    "airport (t3) to jahangirpuri": "airport to jahangirpuri",
+    "jahangirpuri to airport (t1)": "jahangirpuri to airport",
+    "jahangirpuri to airport (t2)": "jahangirpuri to airport",
+    "jahangirpuri to airport (t3)": "jahangirpuri to airport",
+    "airport (t1) to azadpur": "airport to azadpur",
+    "airport (t2) to azadpur": "airport to azadpur",
+    "airport (t3) to azadpur": "airport to azadpur",
+    "azadpur to airport (t1)": "azadpur to airport",
+    "azadpur to airport (t2)": "azadpur to airport",
+    "azadpur to airport (t3)": "azadpur to airport",
     "airport to jahangirpuri": "airport to jahangirpuri",
     "jahangirpuri to airport": "jahangirpuri to airport",
     "jahangirpuri to campus": "jahangirpuri to campus",
@@ -51,7 +67,7 @@ function mapToJourneyEnum(from: string, to: string): string {
     "campus to agra": "campus to agra",
     "agra to campus": "agra to campus"
   }
-  
+
   return mappings[journey] || journey
 }
 
@@ -59,13 +75,13 @@ function mapToJourneyEnum(from: string, to: string): string {
 function convertTo24HourFormat(hour: string, minute: string, period: string): string {
   let hour24 = parseInt(sanitizeInput(hour))
   const sanitizedPeriod = sanitizeInput(period).toUpperCase()
-  
+
   if (sanitizedPeriod === "AM" && hour24 === 12) {
     hour24 = 0
   } else if (sanitizedPeriod === "PM" && hour24 !== 12) {
     hour24 += 12
   }
-  
+
   return `${hour24.toString().padStart(2, '0')}:${sanitizeInput(minute)}:00`
 }
 
@@ -78,19 +94,19 @@ export async function GET(request: NextRequest) {
     const start = (page - 1) * limit
 
     const session = await auth()
-    const userId = await getUserIdByEmail(session?.user?.email || '')    
+    const userId = await getUserIdByEmail(session?.user?.email || '')
     console.log("User ID fetched for email:", session?.user?.email, "->", userId)
-    
+
     if (!userId) {
       return NextResponse.json({
         success: false,
         error: 'User not found'
       }, { status: 404 })
     }
-    
+
     // Get current date to filter future or recent pools
     const today = new Date().toISOString().split('T')[0]
-    
+
     try {
       // Fetch all available pools with pagination
       const poolsResponse = await strapiGet('/pools', {
@@ -107,9 +123,9 @@ export async function GET(request: NextRequest) {
         },
         sort: ['day:asc', 'time:asc']
       })
-      
+
       console.log("Pools response:", JSON.stringify(poolsResponse, null, 2))
-      
+
       // Fetch user's pool separately
       const userPoolResponse = await strapiGet('/pools', {
         filters: {
@@ -124,7 +140,7 @@ export async function GET(request: NextRequest) {
         },
         populate: ['pooler']
       })
-      
+
       console.log("User pool response:", JSON.stringify(userPoolResponse, null, 2))
 
       return NextResponse.json({
@@ -133,32 +149,32 @@ export async function GET(request: NextRequest) {
         userPool: userPoolResponse.data?.[0] || null,
         pagination: poolsResponse.meta?.pagination || {}
       })
-      
+
     } catch (strapiError) {
       console.error("Strapi query failed, trying fallback:", strapiError)
-      
+
       // Fallback: fetch all pools and filter in code
       const response = await strapiGet('/pools', {
         populate: ['pooler']
       })
-      
+
       const allPools = response.data || []
-      
+
       // Filter available pools
-      const availablePools = allPools.filter((pool: any) => 
-        pool.attributes?.status === 'available' && 
+      const availablePools = allPools.filter((pool: any) =>
+        pool.attributes?.status === 'available' &&
         pool.attributes?.day >= today
       )
-      
+
       // Find user's pool
-      const userPool = allPools.find((pool: any) => 
+      const userPool = allPools.find((pool: any) =>
         pool.attributes?.pooler?.data?.id === userId &&
         pool.attributes?.day >= today
       )
-      
+
       // Apply pagination
       const paginatedPools = availablePools.slice(start, start + limit)
-      
+
       return NextResponse.json({
         success: true,
         pools: paginatedPools,
@@ -171,7 +187,7 @@ export async function GET(request: NextRequest) {
         }
       })
     }
-    
+
   } catch (error) {
     console.error("Error fetching pools:", error)
     return NextResponse.json({
@@ -186,7 +202,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('=== POST /api/platform/pool-cab called ===')
     const session = await auth()
-    
+
     const userId = await getUserIdByEmail(session?.user?.email || '')
     if (!userId) {
       console.log('User not found for email:', session?.user?.email)
@@ -197,7 +213,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log('Received request body:', JSON.stringify(body, null, 2))    
+    console.log('Received request body:', JSON.stringify(body, null, 2))
     // Extract and validate required fields
     const {
       date,
@@ -215,20 +231,20 @@ export async function POST(request: NextRequest) {
       selectedMinute,
       selectedPeriod
     } = body
-    
+
     // Server-side validation - handle both new and old formats
     const actualDate = date || selectedDate
     const actualTime = time
     const actualFromLocation = fromLocation
     const actualToLocation = toLocation
-    
+
     const requiredFields = {
       date: actualDate,
       fromLocation: actualFromLocation,
       toLocation: actualToLocation,
       time: actualTime || (selectedHour && selectedMinute && selectedPeriod)
     }
-    
+
     for (const [field, value] of Object.entries(requiredFields)) {
       if (!value || value.toString().trim() === '') {
         return NextResponse.json({
@@ -237,7 +253,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 })
       }
     }
-    
+
     // Validate phone number only if not using email contact
     if (!useEmailContact) {
       if (!contactNumber || !validatePhoneNumber(contactNumber)) {
@@ -247,7 +263,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 })
       }
     }
-    
+
     // Validate date format (YYYY-MM-DD)
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/
     if (!dateRegex.test(actualDate)) {
@@ -256,7 +272,7 @@ export async function POST(request: NextRequest) {
         error: 'Invalid date format'
       }, { status: 400 })
     }
-    
+
     // Handle time conversion for both formats
     let time24: string
     if (actualTime) {
@@ -281,10 +297,10 @@ export async function POST(request: NextRequest) {
       }
       time24 = convertTo24HourFormat(selectedHour, selectedMinute, selectedPeriod)
     }
-    
+
     // Map locations to journey enum
     const journey = mapToJourneyEnum(actualFromLocation, actualToLocation)
-    
+
     // Prepare data for Strapi
     const poolData = {
       data: {
@@ -297,19 +313,19 @@ export async function POST(request: NextRequest) {
         pooler: userId // Use actual authenticated user ID
       }
     }
-    
+
     console.log("Submitting pool data:", poolData)
-    
+
     // Submit to Strapi
     const response = await strapiPost('/pools', poolData)
-    
+
     console.log("Pool created successfully:", response)
-    
+
     return NextResponse.json({
       success: true,
       data: response
     }, { status: 201 })
-    
+
   } catch (error) {
     console.error("Error creating pool:", error)
     return NextResponse.json({
@@ -324,7 +340,7 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await auth()
     const userId = await getUserIdByEmail(session?.user?.email || '')
-    
+
     if (!userId) {
       return NextResponse.json({
         success: false,
@@ -334,9 +350,9 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
     console.log("Received update data:", JSON.stringify(body, null, 2))
-    
+
     const { poolId, time, status } = body
-    
+
     if (!poolId) {
       return NextResponse.json({
         success: false,
@@ -348,7 +364,7 @@ export async function PUT(request: NextRequest) {
     const poolResponse = await strapiGet(`/pools/${poolId}`, {
       populate: ['pooler']
     })
-    
+
     if (!poolResponse.data || poolResponse.data.attributes?.pooler?.data?.id !== userId) {
       return NextResponse.json({
         success: false,
@@ -387,14 +403,14 @@ export async function PUT(request: NextRequest) {
 
     // Update the pool
     const response = await strapiPut(`/pools/${poolId}`, updateData)
-    
+
     console.log("Pool updated successfully:", response)
-    
+
     return NextResponse.json({
       success: true,
       data: response
     })
-    
+
   } catch (error) {
     console.error("Error updating pool:", error)
     return NextResponse.json({
@@ -409,7 +425,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
     const userId = await getUserIdByEmail(session?.user?.email || '')
-    
+
     if (!userId) {
       return NextResponse.json({
         success: false,
@@ -419,9 +435,9 @@ export async function DELETE(request: NextRequest) {
 
     const body = await request.json()
     console.log("Received delete data:", JSON.stringify(body, null, 2))
-    
+
     const { poolId } = body
-    
+
     if (!poolId) {
       return NextResponse.json({
         success: false,
@@ -433,7 +449,7 @@ export async function DELETE(request: NextRequest) {
     const poolResponse = await strapiGet(`/pools/${poolId}`, {
       populate: ['pooler']
     })
-    
+
     if (!poolResponse.data || poolResponse.data.attributes?.pooler?.data?.id !== userId) {
       return NextResponse.json({
         success: false,
@@ -445,14 +461,14 @@ export async function DELETE(request: NextRequest) {
 
     // Delete the pool from Strapi
     const response = await strapiDelete(`/pools/${poolId}`)
-    
+
     console.log("Pool deleted successfully:", response)
-    
+
     return NextResponse.json({
       success: true,
       message: 'Pool cancelled successfully'
     })
-    
+
   } catch (error) {
     console.error("Error deleting pool:", error)
     return NextResponse.json({

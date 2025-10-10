@@ -47,7 +47,7 @@ interface PoolData {
 export default function PoolCabResults() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   // State management
   const [pools, setPools] = React.useState<PoolData[]>([])
   const [filteredPools, setFilteredPools] = React.useState<PoolData[]>([])
@@ -62,14 +62,14 @@ export default function PoolCabResults() {
 
   // Get pagination from URL
   const page = searchParams.get('page') || '1'
-  
+
   // Helper functions
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
     })
   }
 
@@ -93,7 +93,7 @@ export default function PoolCabResults() {
         method: 'GET',
       })
       const data = await response.json()
-      
+
       if (data.success) {
         setPools(data.pools || [])
         if (data.userPool) {
@@ -187,13 +187,13 @@ export default function PoolCabResults() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           poolId: userPool.id,
-          status: 'cancelled'
+          status: 'canceled'
         })
       })
 
       const data = await response.json()
       if (data.success) {
-        toast.success('Pool request cancelled successfully!')
+        toast.success('Pool request canceled successfully!')
         router.push('/platform/pool-cab')
       } else {
         toast.error(data.error || 'Failed to cancel request')
@@ -254,7 +254,7 @@ export default function PoolCabResults() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <PageTitle 
+            <PageTitle
               text="Pool a Cab Results"
               icon={Car}
               subheading="Find available cab pools and manage your requests. Contact other users to share rides and save money on transportation."
@@ -378,7 +378,7 @@ export default function PoolCabResults() {
                     <Avatar className="h-12 w-12">
                       <AvatarFallback>{getInitials(pool.attributes.pooler.data.username)}</AvatarFallback>
                     </Avatar>
-                    
+
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="font-medium">{pool.attributes.pooler.data.username}</div>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -397,7 +397,7 @@ export default function PoolCabResults() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <Badge variant="default">
                       Available

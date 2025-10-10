@@ -75,7 +75,9 @@ export default function PoolCabForm() {
     { value: "New Delhi", label: "New Delhi" },
     { value: "Gurgaon", label: "Gurgaon" },
     { value: "Noida", label: "Noida" },
-    { value: "Airport", label: "Airport" },
+    { value: "Airport (T1)", label: "Airport (T1)" },
+    { value: "Airport (T2)", label: "Airport (T2)" },
+    { value: "Airport (T3)", label: "Airport (T3)" },
     { value: "Jahangirpuri", label: "Jahangirpuri" },
     { value: "Azadpur", label: "Azadpur" },
     { value: "Chandigarh", label: "Chandigarh" },
@@ -205,7 +207,7 @@ export default function PoolCabForm() {
               </PopoverContent>
             </Popover>
           </div>
-          
+
           {/* Time Selection */}
           <div className="flex-1 flex flex-col gap-3">
             <Label htmlFor="time-picker" className="px-1 text-base font-medium">
@@ -231,7 +233,7 @@ export default function PoolCabForm() {
             onChange={setFromLocation}
             isRequired={true}
           />
-          
+
           <SingleSelect
             title="To"
             placeholder="Select destination"
