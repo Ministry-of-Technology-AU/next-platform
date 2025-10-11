@@ -39,7 +39,7 @@ interface PoolData {
     status: string
     createdAt: string
     updatedAt: string
-    useEmail: boolean
+    use_email: boolean
     pooler: {
       data: UserData
     }
@@ -161,7 +161,7 @@ export default function PoolCabResults() {
 
   const handleWhatsAppContact = (phoneNumber: string, pool: PoolData) => {
     const message = encodeURIComponent(
-      `Hi! I found your cab pool request on the Platform.\n\n` +
+      `Hi! I found your cab pool request on the Platform by Techmin.\n\n` +
       `Route: ${pool.attributes.journey}\n` +
       `Date: ${formatDate(pool.attributes.day)}\n` +
       `Time: ${formatTime(pool.attributes.time)}\n\n` +
@@ -174,7 +174,7 @@ export default function PoolCabResults() {
     const subject = encodeURIComponent('Cab Pool Request - Platform')
     const body = encodeURIComponent(
       `Hi,\n\n` +
-      `I found your cab pool request on the Platform and I'm interested in joining your trip.\n\n` +
+      `I found your cab pool request on the Platform by Techmin, and I'm interested in joining your trip.\n\n` +
       `Details:\n` +
       `Route: ${pool.attributes.journey}\n` +
       `Date: ${formatDate(pool.attributes.day)}\n` +
@@ -251,7 +251,7 @@ export default function PoolCabResults() {
   return (
     <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header with Page Title */}
-      <div className="space-y-4">
+      <div className="space-y-4 sm:mt-8 mt-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
           <div className="flex items-center gap-2 flex-1">
             <Button
@@ -427,7 +427,7 @@ export default function PoolCabResults() {
                       Available
                     </Badge>
 
-                    {pool.attributes.useEmail ? (
+                    {pool.attributes.use_email ? (
                       <Button
                         size="sm"
                         onClick={() => handleEmailContact(pool.attributes.pooler.data.attributes.email, pool)}

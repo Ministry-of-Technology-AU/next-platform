@@ -410,7 +410,7 @@ export async function POST(request: NextRequest) {
         time: time24,
         day: actualDate,
         status: "available",
-        useEmail: useEmailContact || false,
+        use_email: useEmailContact || false,
         pooler: userId // Use actual authenticated user ID
       }
     }
