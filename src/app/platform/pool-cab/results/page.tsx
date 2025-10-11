@@ -400,7 +400,7 @@ export default function PoolCabResults() {
                 <div key={pool.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3 sm:gap-4">
                   <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
                     <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
-                      <AvatarFallback>{getInitials(pool.attributes.pooler.data.attributes.username)}</AvatarFallback>
+                      <AvatarFallback className="bg-primary-light/70 text-white">{getInitials(pool.attributes.pooler.data.attributes.username)}</AvatarFallback>
                     </Avatar>
 
                     <div className="space-y-1 min-w-0 flex-1">
@@ -440,7 +440,7 @@ export default function PoolCabResults() {
                       <Button
                         size="sm"
                         onClick={() => handleWhatsAppContact(pool.attributes.pooler.data.attributes.phone || '', pool)}
-                        className="gap-2 flex-1 sm:flex-initial"
+                        className="gap-2 flex-1 sm:flex-initial dark:bg-green dark:hover:bg-green/70"
                         disabled={!pool.attributes.pooler.data.attributes.phone}
                         variant="destructive"
                       >

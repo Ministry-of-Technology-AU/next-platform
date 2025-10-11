@@ -29,11 +29,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { ButtonGroup } from "@/components/ui/button-group"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 export default function PoolCabForm() {
   const router = useRouter()
   const { data: session } = useSession()
+
+  // Helper function to get current IST date
+  const getISTDate = () => {
+    const now = new Date()
+    const istOffset = 5.5 * 60 * 60 * 1000 // IST is UTC+5:30
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60 * 1000)
+    return new Date(utc + istOffset)
+  }
 
   // Form state
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined)
@@ -116,8 +125,9 @@ export default function PoolCabForm() {
     setIsSubmitting(true)
 
     try {
-      // Convert date to YYYY-MM-DD format
-      const formattedDate = selectedDate.toISOString().split('T')[0]
+      // Convert date to YYYY-MM-DD format in IST
+      const istDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000)
+      const formattedDate = istDate.toISOString().split('T')[0]
 
       // Prepare data for API call
       const poolData = {
@@ -169,102 +179,103 @@ export default function PoolCabForm() {
         </CardTitle>
       </CardHeader>
       <FormContainer onSubmit={handleSubmit}>
-        {/* Date and Time Selection - Inline Responsive */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Date Selection */}
-          <div className="flex-1 flex flex-col gap-3">
-            <Label htmlFor="date-picker" className="px-1 text-base font-medium">
-              Date <span className="text-destructive">*</span>
-            </Label>
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  id="date-picker"
-                  className="w-full justify-between font-normal"
-                >
-                  {selectedDate ? selectedDate.toLocaleDateString() : "Select date"}
-                  <ChevronDownIcon className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  captionLayout="dropdown"
-                  onSelect={(date) => {
-                    setSelectedDate(date)
-                    setDatePickerOpen(false)
-                  }}
-                  fromDate={new Date()} // Only allow future dates
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+        {/* Date and Time - unified label with all inline controls */}
+        <div className="flex flex-col gap-3">
+          <Label htmlFor="date-picker" className="px-1 text-base font-medium">
+            Date and Time <span className="text-destructive">*</span>
+          </Label>
+          
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            {/* Date Selection */}
+            <div className="flex-1 min-w-0">
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    id="date-picker"
+                    className="w-full justify-between font-normal"
+                  >
+                    {selectedDate ? selectedDate.toLocaleDateString() : "Select date"}
+                    <ChevronDownIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    captionLayout="dropdown"
+                    onSelect={(date) => {
+                      setSelectedDate(date)
+                      setDatePickerOpen(false)
+                    }}
+                    fromDate={getISTDate()} // Allow today and future dates in IST
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          {/* Time Selection */}
-          <div className="flex-1 flex flex-col gap-3">
-            <Label className="px-1 text-base font-medium">
-              Time <span className="text-destructive">*</span>
-            </Label>
-            <div className="flex w-full items-center gap-1.5 sm:gap-2 border rounded-md bg-white px-2.5 sm:px-3 h-10 focus-within:ring-2 focus-within:ring-primary transition-all">
-              {/* Hour */}
-              <Select value={selectedHour} onValueChange={setSelectedHour}>
-                <SelectTrigger className="w-16 sm:w-20 h-8 text-sm">
-                  <SelectValue placeholder="HH" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
-                    <SelectItem key={hour} value={hour.toString()}>
-                      {hour.toString().padStart(2, '0')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Time Selection with ButtonGroup */}
+            <div className="flex-1 min-w-0">
+              <ButtonGroup className="w-full h-10">
+                {/* Hour Selection */}
+                <Select value={selectedHour} onValueChange={setSelectedHour}>
+                  <SelectTrigger className="w-45 sm:w-60 border border-input shadow-sm">
+                    <SelectValue placeholder="HH" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                      <SelectItem key={hour} value={hour.toString()}>
+                        {hour.toString().padStart(2, '0')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              <span className="text-sm sm:text-base font-medium text-muted-foreground">:</span>
+                {/* Colon separator */}
+                <div className="flex items-center justify-center px-2 text-sm font-medium text-muted-foreground">
+                  :
+                </div>
 
-              {/* Minute */}
-              <Select value={selectedMinute} onValueChange={setSelectedMinute}>
-                <SelectTrigger className="w-16 sm:w-20 h-8 text-sm">
-                  <SelectValue placeholder="MM" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    { value: '00', label: '0' },
-                    { value: '15', label: '15' },
-                    { value: '30', label: '30' },
-                    { value: '45', label: '45' }
-                  ].map((min) => (
-                    <SelectItem key={min.value} value={min.value}>
-                      {min.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {/* Minute Selection */}
+                <Select value={selectedMinute} onValueChange={setSelectedMinute}>
+                  <SelectTrigger className="w-45 sm:w-60 border border-input rounded-lg shadow-sm">
+                    <SelectValue placeholder="MM" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      { value: '00', label: '00' },
+                      { value: '15', label: '15' },
+                      { value: '30', label: '30' },
+                      { value: '45', label: '45' }
+                    ].map((min) => (
+                      <SelectItem key={min.value} value={min.value}>
+                        {min.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {/* AM/PM Toggle */}
-              <div className="flex-1 flex justify-end">
+                {/* AM/PM Toggle - smaller width */}
                 <ToggleGroup
                   type="single"
                   value={selectedPeriod}
                   onValueChange={(value) => value && setSelectedPeriod(value as "AM" | "PM")}
-                  className="border rounded-md h-8"
+                  className="w-30 border-1 shadow-none"
                 >
                   <ToggleGroupItem
                     value="AM"
-                    className="h-8 px-2 sm:px-2.5 text-xs sm:text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                    className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-none text-xs"
                   >
                     AM
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value="PM"
-                    className="h-8 px-2 sm:px-2.5 text-xs sm:text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                    className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-none text-xs"
                   >
                     PM
                   </ToggleGroupItem>
                 </ToggleGroup>
-              </div>
+              </ButtonGroup>
             </div>
           </div>
         </div>
