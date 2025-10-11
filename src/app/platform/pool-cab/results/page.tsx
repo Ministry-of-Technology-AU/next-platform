@@ -423,7 +423,7 @@ export default function PoolCabResults() {
                   </div>
 
                   <div className="flex items-center gap-2 sm:gap-3 sm:flex-shrink-0">
-                    <Badge variant="default" className="text-xs">
+                    <Badge variant="default" className="text-xs bg-green-600">
                       Available
                     </Badge>
 
@@ -442,6 +442,7 @@ export default function PoolCabResults() {
                         onClick={() => handleWhatsAppContact(pool.attributes.pooler.data.attributes.phone || '', pool)}
                         className="gap-2 flex-1 sm:flex-initial"
                         disabled={!pool.attributes.pooler.data.attributes.phone}
+                        variant="destructive"
                       >
                         <MessageCircle className="h-4 w-4" />
                         <span className="hidden sm:inline">WhatsApp</span>
@@ -538,7 +539,7 @@ export default function PoolCabResults() {
                 <div>
                   <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Status</Label>
                   <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md">
-                    <Badge variant={userPool.attributes.status === 'available' ? 'default' : 'secondary'} className="text-xs">
+                    <Badge variant={userPool.attributes.status === 'available' ? 'default' : 'secondary'} className={`text-xs ${userPool.attributes.status === 'available' ? 'bg-green-600' : 'bg-primary'}`}>
                       {userPool.attributes.status}
                     </Badge>
                   </div>
@@ -558,7 +559,7 @@ export default function PoolCabResults() {
                 variant="destructive"
                 onClick={handleCancelRequest}
                 disabled={updating || userPool.attributes.status !== 'available'}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto bg-primary hover:bg-primary/80 dark:hover:bg-primary-light"
               >
                 {updating ? 'Cancelling...' : 'Cancel Pool Request'}
               </Button>
