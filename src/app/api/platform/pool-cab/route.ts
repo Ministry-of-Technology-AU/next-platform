@@ -14,8 +14,48 @@ function sanitizeInput(input: string): string {
   return input.trim().replace(/[<>]/g, '')
 }
 
+// Valid journey values from Strapi enum
+const VALID_JOURNEYS = [
+  "airport to campus",
+  "airport(T1) to campus",
+  "airport(T2) to campus",
+  "airport(T3) to campus",
+  "campus to airport",
+  "campus to airport(T1)",
+  "campus to airport(T2)",
+  "campus to airport(T3)",
+  "airport to jahangirpuri",
+  "jahangirpuri to airport",
+  "airport to azadpur",
+  "azadpur to airport",
+  "jahangirpuri to campus",
+  "azadpur to campus",
+  "campus to jahangirpuri",
+  "campus to azadpur",
+  "campus to new delhi",
+  "new delhi to campus",
+  "new delhi to jahangirpuri",
+  "jahangirpuri to new delhi",
+  "gurgaon to campus",
+  "campus to gurgaon",
+  "campus to chandigarh",
+  "chandigarh to campus",
+  "campus to jaipur",
+  "jaipur to campus",
+  "campus to ludhiana",
+  "ludhiana to campus",
+  "campus to noida",
+  "noida to campus",
+  "campus to ghaziabad",
+  "ghaziabad to campus",
+  "campus to nizamuddin",
+  "nizamuddin to campus",
+  "campus to agra",
+  "agra to campus"
+];
+
 // Helper function to map locations to Strapi journey enum values
-function mapToJourneyEnum(from: string, to: string): string {
+function mapToJourneyEnum(from: string, to: string): string | null {
   const fromLower = sanitizeInput(from).toLowerCase()
   const toLower = sanitizeInput(to).toLowerCase()
 
@@ -68,7 +108,14 @@ function mapToJourneyEnum(from: string, to: string): string {
     "agra to campus": "agra to campus"
   }
 
-  return mappings[journey] || journey
+  const mapped = mappings[journey] || journey
+
+  // Validate against allowed journeys
+  if (!VALID_JOURNEYS.includes(mapped)) {
+    return null
+  }
+
+  return mapped
 }
 
 // Helper function to convert 12-hour time to 24-hour format
@@ -126,7 +173,7 @@ export async function GET(request: NextRequest) {
 
       console.log("Pools response:", JSON.stringify(poolsResponse, null, 2))
 
-      // Fetch user's pool separately
+      // Fetch user's pool separately (only show if status is 'available')
       const userPoolResponse = await strapiGet('/pools', {
         filters: {
           pooler: {
@@ -134,11 +181,16 @@ export async function GET(request: NextRequest) {
               $eq: userId
             }
           },
+          status: 'available',
           day: {
             $gte: today
           }
         },
-        populate: ['pooler']
+        populate: ['pooler'],
+        sort: ['day:asc', 'time:asc'],
+        pagination: {
+          limit: 1
+        }
       })
 
       console.log("User pool response:", JSON.stringify(userPoolResponse, null, 2))
@@ -166,11 +218,17 @@ export async function GET(request: NextRequest) {
         pool.attributes?.day >= today
       )
 
-      // Find user's pool
-      const userPool = allPools.find((pool: any) =>
+      // Find user's pool (only available, future/current date)
+      const userPools = allPools.filter((pool: any) =>
         pool.attributes?.pooler?.data?.id === userId &&
+        pool.attributes?.status === 'available' &&
         pool.attributes?.day >= today
-      )
+      ).sort((a: any, b: any) => {
+        const dateCompare = a.attributes.day.localeCompare(b.attributes.day)
+        if (dateCompare !== 0) return dateCompare
+        return a.attributes.time.localeCompare(b.attributes.time)
+      })
+      const userPool = userPools[0] || null
 
       // Apply pagination
       const paginatedPools = availablePools.slice(start, start + limit)
@@ -273,6 +331,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Validate date is not in the past
+    const today = new Date().toISOString().split('T')[0]
+    if (actualDate < today) {
+      return NextResponse.json({
+        success: false,
+        error: 'Cannot create pool request for a past date. Please select today or a future date.'
+      }, { status: 400 })
+    }
+
     // Handle time conversion for both formats
     let time24: string
     if (actualTime) {
@@ -292,14 +359,49 @@ export async function POST(request: NextRequest) {
       if (hourNum < 1 || hourNum > 12 || ![0, 15, 30, 45].includes(minuteNum) || !['AM', 'PM'].includes(selectedPeriod)) {
         return NextResponse.json({
           success: false,
-          error: 'Invalid time format'
+          error: 'Invalid time format. Please select a time with minutes ending in 00, 15, 30, or 45 (e.g., 12:00 PM, 12:15 PM, 12:30 PM, 12:45 PM).'
         }, { status: 400 })
       }
       time24 = convertTo24HourFormat(selectedHour, selectedMinute, selectedPeriod)
     }
 
+    // Check if user already has an available pool
+    const existingPoolResponse = await strapiGet('/pools', {
+      filters: {
+        pooler: {
+          id: {
+            $eq: userId
+          }
+        },
+        status: 'available',
+        day: {
+          $gte: today
+        }
+      },
+      pagination: {
+        limit: 1
+      }
+    })
+
+    if (existingPoolResponse.data && existingPoolResponse.data.length > 0) {
+      console.log('User already has an available pool')
+      return NextResponse.json({
+        success: false,
+        error: 'You already have an active pool request. Please cancel or complete it before creating a new one.'
+      }, { status: 400 })
+    }
+
     // Map locations to journey enum
     const journey = mapToJourneyEnum(actualFromLocation, actualToLocation)
+
+    // Validate journey
+    if (!journey) {
+      console.log(`Invalid journey combination: ${actualFromLocation} to ${actualToLocation}`)
+      return NextResponse.json({
+        success: false,
+        error: `Invalid journey combination: ${actualFromLocation} to ${actualToLocation}. Please select a valid route.`
+      }, { status: 400 })
+    }
 
     // Prepare data for Strapi
     const poolData = {
@@ -308,8 +410,7 @@ export async function POST(request: NextRequest) {
         time: time24,
         day: actualDate,
         status: "available",
-        useEmailContact: useEmailContact || false,
-        contactNumber: useEmailContact ? null : contactNumber,
+        useEmail: useEmailContact || false,
         pooler: userId // Use actual authenticated user ID
       }
     }
@@ -319,7 +420,7 @@ export async function POST(request: NextRequest) {
     // Submit to Strapi
     const response = await strapiPost('/pools', poolData)
 
-    console.log("Pool created successfully:", response)
+    console.log("Pool created successfully:", JSON.stringify(response, null, 2))
 
     return NextResponse.json({
       success: true,
@@ -390,10 +491,10 @@ export async function PUT(request: NextRequest) {
     }
 
     if (status) {
-      if (!['available', 'full', 'cancelled', 'pooled'].includes(status)) {
+      if (!['available', 'canceled', 'pooled'].includes(status)) {
         return NextResponse.json({
           success: false,
-          error: 'Invalid status. Must be available, full, cancelled, or pooled'
+          error: 'Invalid status. Must be available, canceled, or pooled'
         }, { status: 400 })
       }
       updateData.data.status = status

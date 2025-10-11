@@ -22,9 +22,12 @@ import { Separator } from "@/components/ui/separator"
 import PageTitle from "@/components/page-title"
 
 interface UserData {
-  id: string
-  username: string
-  email: string
+  id: number
+  attributes: {
+    username: string
+    email: string
+    phone: string | null
+  }
 }
 
 interface PoolData {
@@ -36,8 +39,7 @@ interface PoolData {
     status: string
     createdAt: string
     updatedAt: string
-    useEmailContact: boolean
-    contactNumber: string | null
+    useEmail: boolean
     pooler: {
       data: UserData
     }
@@ -59,6 +61,7 @@ export default function PoolCabResults() {
   const [loading, setLoading] = React.useState(true)
   const [userPool, setUserPool] = React.useState<PoolData | null>(null)
   const [updating, setUpdating] = React.useState(false)
+  const [showFilters, setShowFilters] = React.useState(false)
 
   // Get pagination from URL
   const page = searchParams.get('page') || '1'
@@ -81,8 +84,13 @@ export default function PoolCabResults() {
     return `${hour12}:${minutes.padStart(2, '0')} ${ampm}`
   }
 
-  const getInitials = (username: string) => {
-    return username.split(' ').map(n => n[0]).join('').toUpperCase()
+  const getInitials = (username?: string) => {
+    if (!username) return '??'
+    const parts = username.split(/[_\s]+/)
+    if (parts.length === 1) {
+      return username.substring(0, 2).toUpperCase()
+    }
+    return parts.slice(0, 2).map(n => n[0]).join('').toUpperCase()
   }
 
   // Fetch pools from API
@@ -241,53 +249,69 @@ export default function PoolCabResults() {
   const currentPools = filteredPools.slice(startIndex, endIndex)
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header with Page Title */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            className="h-8 w-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <PageTitle
-              text="Pool a Cab Results"
-              icon={Car}
-              subheading="Find available cab pools and manage your requests. Contact other users to share rides and save money on transportation."
-            />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
+          <div className="flex items-center gap-2 flex-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              className="h-8 w-8 flex-shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <PageTitle
+                text="Pool a Cab Results"
+                icon={Car}
+                subheading="Find available cab pools and manage your requests. Contact other users to share rides and save money on transportation."
+              />
+            </div>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={fetchPools}
             disabled={loading}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            <span className="sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
 
       {/* Filters and Search */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Find Your Cab Pool
-          </CardTitle>
+        <CardHeader className="cursor-pointer lg:cursor-default" onClick={() => setShowFilters(!showFilters)}>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
+              Find Your Cab Pool
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowFilters(!showFilters)
+              }}
+            >
+              {showFilters ? 'Hide' : 'Show'}
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CardContent className={`space-y-4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          {/* Mobile: Stacked layout, Tablet: 2 columns, Desktop: 4 columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Day Filter */}
             <div className="space-y-2">
-              <Label>Filter by Day</Label>
+              <Label className="text-sm">Filter by Day</Label>
               <Select value={dayFilter} onValueChange={setDayFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Days" />
                 </SelectTrigger>
                 <SelectContent>
@@ -303,9 +327,9 @@ export default function PoolCabResults() {
 
             {/* Route Filter */}
             <div className="space-y-2">
-              <Label>Filter by Route</Label>
+              <Label className="text-sm">Filter by Route</Label>
               <Select value={routeFilter} onValueChange={setRouteFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Routes" />
                 </SelectTrigger>
                 <SelectContent>
@@ -321,9 +345,9 @@ export default function PoolCabResults() {
 
             {/* Entries per page */}
             <div className="space-y-2">
-              <Label>Show entries</Label>
+              <Label className="text-sm">Show entries</Label>
               <Select value={entriesPerPage} onValueChange={setEntriesPerPage}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -337,14 +361,14 @@ export default function PoolCabResults() {
 
             {/* Search */}
             <div className="space-y-2">
-              <Label>Search</Label>
+              <Label className="text-sm">Search</Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search route..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
+                  className="pl-8 w-full"
                 />
               </div>
             </div>
@@ -373,54 +397,54 @@ export default function PoolCabResults() {
           ) : (
             <div className="space-y-3">
               {currentPools.map((pool) => (
-                <div key={pool.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback>{getInitials(pool.attributes.pooler.data.username)}</AvatarFallback>
+                <div key={pool.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3 sm:gap-4">
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                      <AvatarFallback>{getInitials(pool.attributes.pooler.data.attributes.username)}</AvatarFallback>
                     </Avatar>
 
                     <div className="space-y-1 min-w-0 flex-1">
-                      <div className="font-medium">{pool.attributes.pooler.data.username}</div>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                      <div className="font-medium text-sm sm:text-base truncate">{pool.attributes.pooler.data.attributes.username}</div>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1 whitespace-nowrap">
+                          <Clock className="h-3 w-3 flex-shrink-0" />
                           {formatTime(pool.attributes.time)}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {pool.attributes.journey}
+                        <span className="flex items-center gap-1 min-w-0">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{pool.attributes.journey}</span>
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
+                        <span className="flex items-center gap-1 whitespace-nowrap">
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
                           {formatDate(pool.attributes.day)}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <Badge variant="default">
+                  <div className="flex items-center gap-2 sm:gap-3 sm:flex-shrink-0">
+                    <Badge variant="default" className="text-xs">
                       Available
                     </Badge>
 
-                    {pool.attributes.useEmailContact ? (
+                    {pool.attributes.useEmail ? (
                       <Button
                         size="sm"
-                        onClick={() => handleEmailContact(pool.attributes.pooler.data.email, pool)}
-                        className="gap-2"
+                        onClick={() => handleEmailContact(pool.attributes.pooler.data.attributes.email, pool)}
+                        className="gap-2 flex-1 sm:flex-initial"
                       >
                         <Mail className="h-4 w-4" />
-                        Email
+                        <span className="hidden sm:inline">Email</span>
                       </Button>
                     ) : (
                       <Button
                         size="sm"
-                        onClick={() => handleWhatsAppContact(pool.attributes.contactNumber || '', pool)}
-                        className="gap-2"
-                        disabled={!pool.attributes.contactNumber}
+                        onClick={() => handleWhatsAppContact(pool.attributes.pooler.data.attributes.phone || '', pool)}
+                        className="gap-2 flex-1 sm:flex-initial"
+                        disabled={!pool.attributes.pooler.data.attributes.phone}
                       >
                         <MessageCircle className="h-4 w-4" />
-                        WhatsApp
+                        <span className="hidden sm:inline">WhatsApp</span>
                       </Button>
                     )}
                   </div>
@@ -431,8 +455,8 @@ export default function PoolCabResults() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-3 sm:gap-4">
+              <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredPools.length)} of {filteredPools.length} entries
               </div>
               <div className="flex items-center gap-2">
@@ -445,10 +469,11 @@ export default function PoolCabResults() {
                     router.push(`?page=${newPage}`)
                   }}
                   disabled={currentPage === 1}
+                  className="text-xs sm:text-sm"
                 >
                   Previous
                 </Button>
-                <span className="px-3 py-1 bg-primary text-primary-foreground rounded text-sm">
+                <span className="px-2.5 sm:px-3 py-1 bg-primary text-primary-foreground rounded text-xs sm:text-sm whitespace-nowrap">
                   {currentPage} of {totalPages}
                 </span>
                 <Button
@@ -460,6 +485,7 @@ export default function PoolCabResults() {
                     router.push(`?page=${newPage}`)
                   }}
                   disabled={currentPage === totalPages}
+                  className="text-xs sm:text-sm"
                 >
                   Next
                 </Button>
@@ -475,44 +501,44 @@ export default function PoolCabResults() {
       {userPool && (
         <Card>
           <CardHeader>
-            <CardTitle>Your Trip Details</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="text-base sm:text-lg">Your Trip Details</CardTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Below are your current pool request details. You can mark it as pooled when you've found someone, or cancel if you no longer need it.
             </p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-                  <div className="mt-1 p-3 bg-muted rounded-md flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {formatDate(userPool.attributes.day)}
+                  <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Date</Label>
+                  <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md flex items-center gap-2">
+                    <Calendar className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm sm:text-base">{formatDate(userPool.attributes.day)}</span>
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Time</Label>
-                  <div className="mt-1 p-3 bg-muted rounded-md flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    {formatTime(userPool.attributes.time)}
+                  <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Time</Label>
+                  <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md flex items-center gap-2">
+                    <Clock className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm sm:text-base">{formatTime(userPool.attributes.time)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Route</Label>
-                  <div className="mt-1 p-3 bg-muted rounded-md flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    {userPool.attributes.journey}
+                  <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Route</Label>
+                  <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md flex items-center gap-2">
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm sm:text-base truncate">{userPool.attributes.journey}</span>
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                  <div className="mt-1 p-3 bg-muted rounded-md">
-                    <Badge variant={userPool.attributes.status === 'available' ? 'default' : 'secondary'}>
+                  <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Status</Label>
+                  <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md">
+                    <Badge variant={userPool.attributes.status === 'available' ? 'default' : 'secondary'} className="text-xs">
                       {userPool.attributes.status}
                     </Badge>
                   </div>
@@ -520,9 +546,9 @@ export default function PoolCabResults() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:justify-end">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4 sm:mt-6 sm:justify-end">
               <Button
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                 onClick={handleFoundCab}
                 disabled={updating || userPool.attributes.status !== 'available'}
               >
@@ -532,6 +558,7 @@ export default function PoolCabResults() {
                 variant="destructive"
                 onClick={handleCancelRequest}
                 disabled={updating || userPool.attributes.status !== 'available'}
+                className="w-full sm:w-auto"
               >
                 {updating ? 'Cancelling...' : 'Cancel Pool Request'}
               </Button>

@@ -22,6 +22,14 @@ import {
   SingleSelect,
   PhoneInput,
 } from "@/components/form"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 export default function PoolCabForm() {
   const router = useRouter()
@@ -29,7 +37,9 @@ export default function PoolCabForm() {
 
   // Form state
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined)
-  const [selectedTime, setSelectedTime] = React.useState("")
+  const [selectedHour, setSelectedHour] = React.useState("12")
+  const [selectedMinute, setSelectedMinute] = React.useState("00")
+  const [selectedPeriod, setSelectedPeriod] = React.useState<"AM" | "PM">("PM")
   const [fromLocation, setFromLocation] = React.useState("")
   const [toLocation, setToLocation] = React.useState("")
   const [contactNumber, setContactNumber] = React.useState("")
@@ -92,7 +102,7 @@ export default function PoolCabForm() {
     e.preventDefault()
 
     // Validate required fields
-    if (!selectedDate || !fromLocation || !toLocation || !selectedTime) {
+    if (!selectedDate || !fromLocation || !toLocation || !selectedHour || !selectedMinute) {
       toast.error("Please fill in all required fields")
       return
     }
@@ -103,36 +113,20 @@ export default function PoolCabForm() {
       return
     }
 
-    // Validate time format (HH:MM)
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/
-    if (!timeRegex.test(selectedTime)) {
-      toast.error("Please enter a valid time")
-      return
-    }
-
     setIsSubmitting(true)
 
     try {
       // Convert date to YYYY-MM-DD format
       const formattedDate = selectedDate.toISOString().split('T')[0]
 
-      // Parse time to get hour, minute, and period
-      const [hourStr, minuteStr] = selectedTime.split(':')
-      const hour24 = parseInt(hourStr)
-      const minute = parseInt(minuteStr)
-
-      // Convert to 12-hour format for API compatibility
-      const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24
-      const period = hour24 >= 12 ? 'PM' : 'AM'
-
       // Prepare data for API call
       const poolData = {
         selectedDate: formattedDate,
         fromLocation,
         toLocation,
-        selectedHour: hour12.toString(),
-        selectedMinute: minuteStr,
-        selectedPeriod: period,
+        selectedHour,
+        selectedMinute,
+        selectedPeriod,
         contactNumber: useEmail ? null : contactNumber,
         useEmailContact: useEmail
       }
@@ -210,16 +204,68 @@ export default function PoolCabForm() {
 
           {/* Time Selection */}
           <div className="flex-1 flex flex-col gap-3">
-            <Label htmlFor="time-picker" className="px-1 text-base font-medium">
+            <Label className="px-1 text-base font-medium">
               Time <span className="text-destructive">*</span>
             </Label>
-            <Input
-              type="time"
-              id="time-picker"
-              value={selectedTime}
-              onChange={(e) => setSelectedTime(e.target.value)}
-              className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-            />
+            <div className="flex w-full items-center gap-1.5 sm:gap-2 border rounded-md bg-white px-2.5 sm:px-3 h-10 focus-within:ring-2 focus-within:ring-primary transition-all">
+              {/* Hour */}
+              <Select value={selectedHour} onValueChange={setSelectedHour}>
+                <SelectTrigger className="w-16 sm:w-20 h-8 text-sm">
+                  <SelectValue placeholder="HH" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                    <SelectItem key={hour} value={hour.toString()}>
+                      {hour.toString().padStart(2, '0')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <span className="text-sm sm:text-base font-medium text-muted-foreground">:</span>
+
+              {/* Minute */}
+              <Select value={selectedMinute} onValueChange={setSelectedMinute}>
+                <SelectTrigger className="w-16 sm:w-20 h-8 text-sm">
+                  <SelectValue placeholder="MM" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { value: '00', label: '0' },
+                    { value: '15', label: '15' },
+                    { value: '30', label: '30' },
+                    { value: '45', label: '45' }
+                  ].map((min) => (
+                    <SelectItem key={min.value} value={min.value}>
+                      {min.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* AM/PM Toggle */}
+              <div className="flex-1 flex justify-end">
+                <ToggleGroup
+                  type="single"
+                  value={selectedPeriod}
+                  onValueChange={(value) => value && setSelectedPeriod(value as "AM" | "PM")}
+                  className="border rounded-md h-8"
+                >
+                  <ToggleGroupItem
+                    value="AM"
+                    className="h-8 px-2 sm:px-2.5 text-xs sm:text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
+                    AM
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="PM"
+                    className="h-8 px-2 sm:px-2.5 text-xs sm:text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
+                    PM
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -294,7 +340,8 @@ export default function PoolCabForm() {
               isSubmitting ||
               isLoadingProfile ||
               !selectedDate ||
-              !selectedTime ||
+              !selectedHour ||
+              !selectedMinute ||
               !fromLocation ||
               !toLocation ||
               (!useEmail && !contactNumber)
