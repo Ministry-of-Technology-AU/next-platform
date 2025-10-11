@@ -148,8 +148,8 @@ export default function ActivePoolRequest({ userPool }: ActivePoolRequestProps) 
         {/* Status */}
         <div className="space-y-2">
           <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-          <div className="p-3 bg-muted rounded-md inline-flex">
-            <Badge variant={userPool.attributes.status === 'available' ? 'default' : 'secondary'}>
+          <div className="p-3 rounded-md inline-flex">
+            <Badge variant={userPool.attributes.status === 'available' ? 'default' : 'secondary'} className={userPool.attributes.status === 'available' ? 'bg-green' : 'bg-red-500'}>  
               {userPool.attributes.status.charAt(0).toUpperCase() + userPool.attributes.status.slice(1)}
             </Badge>
           </div>
@@ -176,7 +176,7 @@ export default function ActivePoolRequest({ userPool }: ActivePoolRequestProps) 
             variant="destructive"
             onClick={handleCancelRequest}
             disabled={updating || userPool.attributes.status !== 'available'}
-            className="flex-1 sm:flex-initial"
+            className="flex-1 sm:flex-initial bg-primary hover:bg-primary/90 dark:hover:bg-primary-light"
           >
             {updating ? 'Cancelling...' : 'Cancel Request'}
           </Button>
