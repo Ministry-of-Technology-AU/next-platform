@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import { toPng } from "html-to-image";
 import { CourseSelection } from "./components/course-selection";
 import { TimetableGrid } from "./components/timetable-grid";
 import { DraftTabs } from "./components/draft-tabs";
@@ -18,6 +17,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { COURSE_COLORS } from "./types";
+
+const DEPARTMENT_COLOR_MAP: Record<string, string> = {
+  "Computer Science": COURSE_COLORS[0],
+  "Mathematics": COURSE_COLORS[1],
+  "Physics": COURSE_COLORS[2],
+  "English": COURSE_COLORS[3],
+  "History": COURSE_COLORS[4],
+  "Economics": COURSE_COLORS[5],
+  "Biology": COURSE_COLORS[6],
+  "Chemistry": COURSE_COLORS[7],
+};
 
 
 interface SemesterPlannerClientProps {
@@ -97,19 +107,6 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     },
     []
   );
-
-  // Default color mapping for departments/majors
-  const DEPARTMENT_COLOR_MAP: Record<string, string> = {
-    "Computer Science": COURSE_COLORS[0],
-    "Mathematics": COURSE_COLORS[1],
-    "Physics": COURSE_COLORS[2],
-    "English": COURSE_COLORS[3],
-    "History": COURSE_COLORS[4],
-    "Economics": COURSE_COLORS[5],
-    "Biology": COURSE_COLORS[6],
-    "Chemistry": COURSE_COLORS[7],
-    // Add more as needed
-  };
 
   const handleAddCourse = useCallback(
     (course: Course) => {
@@ -315,7 +312,9 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         // Wait a bit to ensure the element is fully rendered
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        const dataUrl = await toPng(element, {
+  const { toPng } = await import("html-to-image");
+
+  const dataUrl = await toPng(element, {
           backgroundColor: "#ffffff",
           pixelRatio: 2,
           width: element.scrollWidth,
@@ -423,9 +422,9 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-col lg:grid lg:grid-cols-[350px_1fr] gap-6 min-w-0">
+      <div className="flex flex-col gap-8 xl:grid xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] xl:items-start 2xl:grid-cols-[minmax(340px,420px)_minmax(0,1fr)] 2xl:gap-10">
         {/* Timetable - shows first on mobile, second on desktop */}
-        <div className="order-1 lg:order-2 space-y-4 min-w-0">
+        <div className="order-1 xl:order-2 space-y-6 min-w-0">
           <DraftTabs
             drafts={drafts}
             activeDraftId={activeDraftId}
@@ -436,7 +435,10 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onDownloadTimetable={handleDownloadTimetable}
               onRenameDraft={handleRenameDraft}
           >
-            <div id="timetable-grid" className="min-w-0">
+            <div
+              id="timetable-grid"
+              className="min-w-0 rounded-3xl border border-border/50 bg-card/80 p-3 shadow-lg transition-all duration-300 dark:bg-card/60 md:p-6"
+            >
               <TimetableGrid
                 courses={activeDraft.courses}
                 onRemoveCourse={handleRemoveCourse}
@@ -449,8 +451,12 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         </div>
 
         {/* Course Selection - shows second on mobile, first on desktop */}
-        <div className="order-2 lg:order-1 space-y-4 min-w-0">
-          <CourseSelection courses={courses} onAddCourse={handleAddCourse} />
+        <div className="order-2 w-full xl:order-1 xl:sticky xl:top-6 xl:self-stretch 2xl:top-8">
+          <CourseSelection
+            courses={courses}
+            onAddCourse={handleAddCourse}
+            className="w-full xl:max-w-[380px] 2xl:max-w-[420px]"
+          />
         </div>
       </div>
     </>

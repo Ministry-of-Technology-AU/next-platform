@@ -4,20 +4,12 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   Star,
   ClipboardPenLine,
   CalendarSync,
   WifiPen,
   Car,
-  Tv,
-  ShoppingBag,
-  Boxes,
-  GalleryHorizontalEnd,
-  Building2,
-  UserCog,
-  MailPlus,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -102,7 +94,7 @@ export default function PopularToolsCarousel() {
         {/* Carousel Container */}
         <div className="overflow-visible rounded-2xl min-w-0">
           <div 
-            className="flex transition-transform duration-500 ease-in-out min-w-0"
+            className="flex transition-transform duration-300 ease-out min-w-0"
             style={{ 
               transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
               width: `${(popularTools.length / itemsPerView) * 100}%`
@@ -116,7 +108,7 @@ export default function PopularToolsCarousel() {
                   className="flex-shrink-0 px-2 sm:px-3 min-w-0"
                   style={{ width: `${100 / popularTools.length}%` }}
                 >
-                  <Card className="group h-48 sm:h-56 overflow-visible border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-background shadow-lg min-w-0">
+                  <Card className="group h-48 sm:h-56 overflow-visible border-0 shadow-lg hover:shadow-xl transition-transform duration-200 ease-out hover:scale-105 bg-background min-w-0">
                     <Button 
                       variant="ghost" 
                       className="w-full h-full p-0 bg-transparent hover:bg-transparent"
@@ -130,10 +122,10 @@ export default function PopularToolsCarousel() {
                           </div>
                           {/* Content */}
                           <div className="text-center min-w-0">
-                            <h3 className="text-base font-medium mb-2 group-hover:text-primary dark:group-hover:text-secondary transition-colors">
+                            <h3 className="text-base font-medium mb-2 text-foreground group-hover:text-primary dark:group-hover:text-secondary transition-colors">
                               {tool.title}
                             </h3>
-                            <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
+                            <p className="text-xs text-gray-800 dark:text-gray-200 leading-relaxed line-clamp-2">
                               {tool.description}
                             </p>
                           </div>
@@ -173,7 +165,7 @@ export default function PopularToolsCarousel() {
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 index === currentIndex 
                   ? 'bg-primary scale-125' 
-                  : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                  : 'bg-neutral-300 dark:bg-background/60 hover:bg-neutral-400 dark:hover:bg-primary/30'
               }`}
               onClick={() => goToSlide(index)}
             />

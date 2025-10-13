@@ -15,7 +15,7 @@ export const ExtraCreditCard = memo(function ExtraCreditCard({
   const ec = course.extraCredit!;
   const { pctStr, letter } = computeRow(ec);
   return (
-    <Card className="border-dashed">
+    <Card className="border-dashed border-gray-200 dark:border-gray-800 shadow-lg hover:shadow-2xl dark:shadow-2xl transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2"><Star className="h-4 w-4 text-amber-500" /> Extra Credit (does not count toward 100% cap)</CardTitle>
       </CardHeader>

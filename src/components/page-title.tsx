@@ -1,5 +1,6 @@
 import { WritingText } from "./ui/shadcn-io/writing-text";
 import { ExpandableText } from "./expandable-text";
+import { cn } from "@/lib/utils";
 
 function PageTitle({
   text,
@@ -13,7 +14,7 @@ function PageTitle({
   className?: string;
 }) {
   return (
-    <div className="flex items-start gap-3">
+    <div className={cn("flex items-start gap-3", className)}>
       {Icon && (
         <div className="flex-shrink-0">
           <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary dark:text-secondary-dark" />

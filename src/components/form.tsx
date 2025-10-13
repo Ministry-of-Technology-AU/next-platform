@@ -116,7 +116,7 @@ export function PhoneInput({
         <p className="text-sm text-muted-foreground">{description}</p>
       )}
       <div className="flex">
-        <div className="flex items-center px-3 bg-muted border border-r-0 rounded-l-md">
+        <div className="flex items-center px-3 bg-background border border-r-0 rounded-l-md dark:bg-transparent dark:border-border">
           <Phone className="w-4 h-4 mr-2" />
           <span className="text-sm font-medium">{defaultCountryCode}</span>
         </div>
@@ -247,7 +247,11 @@ export function SingleSelect({
         </SelectTrigger>
         <SelectContent>
           {items.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              disabled={option.disable}
+            >
               {option.label}
             </SelectItem>
           ))}

@@ -45,18 +45,16 @@
 
     --color-bg: #f7f4f2;
     --color-text: #1c1917;
-
-    /* Fonts */
-    --font-body: 'Nunito Sans', sans-serif;
-    --font-heading: 'Nunito';
 }
 
 
 body{
-  @apply font-body text-left;
+  @apply text-left;
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 h1, h2, h3, h4, h5, h6{
-  @apply font-heading text-center;
+  @apply text-center;
+  font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
 }
 h1{
   @apply text-4xl font-bold;
@@ -162,14 +160,14 @@ h3{
      --primary-foreground: var(--color-white);
   --secondary: #4e342e;
   --secondary-foreground: #fff8f0;
-  --muted: #4e342e;
-  --muted-foreground: #bdbdbd;
-  --accent: #4e342e;
+  --muted: rgba(135, 40, 27, 0.35);
+  --muted-foreground: #ffffff;
+  --accent: rgba(135, 40, 27, 0.25);
   --accent-foreground: #fff8f0;
   --destructive: #c0392b;
-  --border: #e0e0e0;
-  --input: #e0e0e0;
-  --ring: #bdbdbd;
+  --border: rgba(255, 248, 240, 0.18);
+  --input: rgba(255, 248, 240, 0.12);
+  --ring: rgba(135, 40, 27, 0.45);
   --chart-1: #7cb342;
   --chart-2: #42a5f5;
   --chart-3: #ff7043;
@@ -193,18 +191,29 @@ h3{
     @apply bg-background text-foreground;
   }
 
-  /* Smooth transitions for dark mode */
-  html {
-    transition: color-scheme 0.9s ease;
+  :root {
+    --theme-transition-duration: 75ms;
   }
 
-  html * {
-    transition: 
-      background-color 0.4s ease,
-      border-color 0.4s ease,
-      color 0.4s ease,
-      fill 0.4s ease,
-      stroke 0.4s ease;
+  /* Smooth but restrained transitions for dark mode */
+  html {
+    transition: color-scheme var(--theme-transition-duration) ease-out;
+  }
+
+  :is(body, body *) {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: var(--theme-transition-duration);
+    transition-timing-function: ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      transition: none !important;
+    }
+
+    :is(body, body *) {
+      transition: none !important;
+    }
   }
 }
 
@@ -224,7 +233,7 @@ h3{
 
   /* 3. Hover state */
   *::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500 dark:bg-gray-400;
+    @apply bg-gray-500 dark:bg-primary/30;
   }
 
   /* 4. Firefox fallback */

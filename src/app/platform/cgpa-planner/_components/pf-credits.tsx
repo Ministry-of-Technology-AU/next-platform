@@ -14,7 +14,7 @@ export const PFCreditsComponent = ({ pfCredits, setPfCredits }: { pfCredits: str
                 value={pfCredits}
                 onChange={(e) => setPfCredits(e.target.value)}
                 placeholder="Enter P/F credits"
-                className="w-full"
+                className="w-full bg-transparent dark:bg-transparent dark:border-border"
             />
         </div>
     );

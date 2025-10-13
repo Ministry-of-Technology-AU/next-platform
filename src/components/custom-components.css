@@ -25,7 +25,7 @@
   right: 0;
   bottom: 0;
   background-color: var(--background);
-  transition: .5s;
+  transition: .075s ease-out;
   border-radius: 30px;
 }
 
@@ -39,7 +39,7 @@
   bottom: 15%;
   box-shadow: inset 8px -4px 0px 0px #f7f4f2;
   background: var(--background);
-  transition: .5s;
+  transition: .075s ease-out;
 }
 
 input:checked + .slider {

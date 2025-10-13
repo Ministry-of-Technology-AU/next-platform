@@ -39,8 +39,8 @@ const AuthSection = React.memo(function AuthSection() {
 
   if (status === "loading") {
     return (
-      <Button variant="ghost" size="icon" disabled className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
-        <User className="size-4 xs:size-4.5 sm:size-5 animate-pulse" />
+      <Button variant="ghost" size="icon" disabled className="h-9 w-9 sm:h-10 sm:w-10">
+        <User className="size-4.5 sm:size-5 animate-pulse" />
       </Button>
     );
   }
@@ -54,9 +54,9 @@ const AuthSection = React.memo(function AuthSection() {
             variant="default"
             size="sm"
             onClick={() => signIn("google")}
-            className="gap-1 xs:gap-1.5 sm:gap-2 h-8 xs:h-9 sm:h-10 px-2 xs:px-3 sm:px-4 text-xs xs:text-sm"
+            className="gap-1.5 sm:gap-2 h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm"
           >
-            <LogIn className="size-3 xs:size-3.5 sm:size-4" />
+            <LogIn className="size-3.5 sm:size-4" />
             <span className="hidden xs:inline">Sign In</span>
           </Button>
         </TooltipTrigger>
@@ -72,7 +72,7 @@ const AuthSection = React.memo(function AuthSection() {
     <Tooltip>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="User profile" className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
+          <Button variant="ghost" size="icon" aria-label="User profile" className="h-9 w-9 sm:h-10 sm:w-10">
             <Avatar className="h-full w-full">
               <TooltipTrigger asChild>
                 <AvatarImage
@@ -144,14 +144,14 @@ export default function Navbar() {
         </Tooltip>
       </div>
 
-      {/* Right: Help, Feedback, theme toggle, profile */}
-      <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 ml-auto">
+      {/* Right: Help, Feedback, profile, theme toggle */}
+      <div className="flex items-center gap-1 sm:gap-2 ml-auto">
         {/* Help button - Launches global tooltips */}
         <Tooltip>
           <TourTrigger>
             <TooltipTrigger asChild>
-              <Button variant="animatedGhost" size="icon" aria-label="Help" className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
-                <HelpCircle className="size-4 xs:size-4.5 sm:size-5" />
+              <Button variant="animatedGhost" size="icon" aria-label="Help" className="h-9 w-9 sm:h-10 sm:w-10">
+                <HelpCircle className="size-4.5 sm:size-5" />
               </Button>
             </TooltipTrigger>
           </TourTrigger>
@@ -169,10 +169,10 @@ export default function Navbar() {
                   variant="animatedGhost"
                   size="icon"
                   aria-label="Feedback"
-                  className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10"
+                  className="h-9 w-9 sm:h-10 sm:w-10"
                   onClick={() => window.open('https://www.notion.so/ministry-of-technology/2844ae85dc2c80a484bdd94abe7ceecc?v=2844ae85dc2c802a9d79000c2f255fe8&source=copy_link', '_blank')}
                 >
-                  <Newspaper className="size-4 xs:size-4.5 sm:size-5" />
+                  <Newspaper className="size-4.5 sm:size-5" />
                 </Button>
               </TooltipTrigger>
             </DialogTrigger>
@@ -201,6 +201,20 @@ export default function Navbar() {
           </TooltipContent>
         </Tooltip>
 
+        {/* Authentication Section */}
+        <ClientOnly
+          fallback={
+            <Button variant="ghost" size="icon" disabled className="h-9 w-9 sm:h-10 sm:w-10">
+              <User className="size-4.5 sm:size-5 animate-pulse" />
+            </Button>
+          }
+        >
+          <AuthSection />
+        </ClientOnly>
+
+        {/* Separator for visual grouping */}
+        <div className="h-6 w-px bg-border mx-1" />
+
         {/* Dark/Light Mode Toggle button */}
         <Tooltip>
           <ThemeToggle
@@ -223,17 +237,6 @@ export default function Navbar() {
             </p>
           </TooltipContent>
         </Tooltip>
-
-        {/* Authentication Section */}
-        <ClientOnly 
-          fallback={
-            <Button variant="ghost" size="icon" disabled className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
-              <User className="size-4 xs:size-4.5 sm:size-5 animate-pulse" />
-            </Button>
-          }
-        >
-          <AuthSection />
-        </ClientOnly>
       </div>
     </nav>
   );

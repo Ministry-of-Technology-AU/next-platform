@@ -1,7 +1,8 @@
-import { Clock } from "lucide-react";
+import { CalendarCheck2, Clock } from "lucide-react";
 import { Toaster } from "sonner";
 import { SemesterPlannerClient } from "./semester-planner";
 import { cookies } from "next/headers";
+import PageTitle from "@/components/page-title";
 
 
 async function fetchDraftsAndCourses() {
@@ -50,14 +51,25 @@ export default async function SemesterPlannerPage() {
   const { drafts, courses, syncInfo } = await fetchDraftsAndCourses();
   return (
     <>
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>
-            Last synced on {syncInfo.date} at {syncInfo.time}
-          </span>
+      <div className="w-full px-0 pb-16 pt-4 sm:px-1 md:px-2 lg:px-4 xl:px-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <PageTitle
+            icon={CalendarCheck2}
+            text="Semester Planner"
+            subheading="Curate your perfect schedule, keep favourite combinations locked in place, and export polished timetables in a click."
+            className="text-left"
+          />
+          <div className="flex items-center self-start rounded-full border border-border/60 bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm">
+            <Clock className="mr-2 h-4 w-4" />
+            <span>
+              Last synced on {syncInfo.date} at {syncInfo.time}
+            </span>
+          </div>
         </div>
-        <SemesterPlannerClient courses={courses} initialDrafts={drafts} />
+
+        <div className="mt-8 lg:mt-10">
+          <SemesterPlannerClient courses={courses} initialDrafts={drafts} />
+        </div>
       </div>
       <Toaster position="top-right" />
     </>

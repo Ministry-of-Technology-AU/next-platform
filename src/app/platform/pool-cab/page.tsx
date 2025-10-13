@@ -73,7 +73,6 @@ export default async function PoolCab() {
                         }
                         icon={Car}
                     />
-                    <div className="my-4 border-t border-gray-300"></div>
                 </div>
 
                 {/* Conditional Rendering: Show Active Pool or Form */}

@@ -29,8 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ButtonGroup } from "@/components/ui/button-group"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { isValidJourney } from "./journeys"
 
 export default function PoolCabForm() {
   const router = useRouter()
@@ -89,23 +89,64 @@ export default function PoolCabForm() {
   }, [session?.user?.email])
 
   // Location options
-  const locationOptions = [
-    { value: "Campus", label: "Campus" },
-    { value: "New Delhi", label: "New Delhi" },
-    { value: "Gurgaon", label: "Gurgaon" },
-    { value: "Noida", label: "Noida" },
-    { value: "Airport (T1)", label: "Airport (T1)" },
-    { value: "Airport (T2)", label: "Airport (T2)" },
-    { value: "Airport (T3)", label: "Airport (T3)" },
-    { value: "Jahangirpuri", label: "Jahangirpuri" },
-    { value: "Azadpur", label: "Azadpur" },
-    { value: "Chandigarh", label: "Chandigarh" },
-    { value: "Jaipur", label: "Jaipur" },
-    { value: "Ludhiana", label: "Ludhiana" },
-    { value: "Ghaziabad", label: "Ghaziabad" },
-    { value: "Nizamuddin", label: "Nizamuddin" },
-    { value: "Agra", label: "Agra" },
-  ]
+  const locationOptions = React.useMemo(
+    () => [
+      { value: "Campus", label: "Campus" },
+      { value: "New Delhi", label: "New Delhi" },
+      { value: "Gurgaon", label: "Gurgaon" },
+      { value: "Noida", label: "Noida" },
+      { value: "Airport (T1)", label: "Airport (T1)" },
+      { value: "Airport (T2)", label: "Airport (T2)" },
+      { value: "Airport (T3)", label: "Airport (T3)" },
+      { value: "Jahangirpuri", label: "Jahangirpuri" },
+      { value: "Azadpur", label: "Azadpur" },
+      { value: "Chandigarh", label: "Chandigarh" },
+      { value: "Jaipur", label: "Jaipur" },
+      { value: "Ludhiana", label: "Ludhiana" },
+      { value: "Ghaziabad", label: "Ghaziabad" },
+      { value: "Nizamuddin", label: "Nizamuddin" },
+      { value: "Agra", label: "Agra" },
+    ],
+    []
+  )
+
+  const toSelectOptions = React.useMemo(
+    () =>
+      locationOptions.map((option) => ({
+        ...option,
+        disable: fromLocation ? !isValidJourney(fromLocation, option.value) : false,
+      })),
+    [fromLocation, locationOptions]
+  )
+
+  const fromSelectOptions = React.useMemo(
+    () =>
+      locationOptions.map((option) => ({
+        ...option,
+        disable: toLocation ? !isValidJourney(option.value, toLocation) : false,
+      })),
+    [toLocation, locationOptions]
+  )
+
+  const handleToLocationChange = React.useCallback(
+    (value: string) => {
+      setToLocation(value)
+      if (fromLocation && !isValidJourney(fromLocation, value)) {
+        setFromLocation("")
+      }
+    },
+    [fromLocation]
+  )
+
+  const handleFromLocationChange = React.useCallback(
+    (value: string) => {
+      setFromLocation(value)
+      if (toLocation && !isValidJourney(value, toLocation)) {
+        setToLocation("")
+      }
+    },
+    [toLocation]
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -171,7 +212,7 @@ export default function PoolCabForm() {
   }
 
   return (
-    <Card className="max-w-7xl ml-auto mr-auto">
+  <Card className="max-w-7xl ml-auto mr-auto border border-gray-200 dark:border-border shadow-lg hover:shadow-2xl dark:shadow-2xl transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-2">
           <MapPin className="h-5 w-5" />
@@ -214,12 +255,11 @@ export default function PoolCabForm() {
               </Popover>
             </div>
 
-            {/* Time Selection with ButtonGroup */}
+            {/* Time Selection */}
             <div className="flex-1 min-w-0">
-              <ButtonGroup className="w-full h-10">
-                {/* Hour Selection */}
+              <div className="grid w-full gap-2 sm:grid-cols-3">
                 <Select value={selectedHour} onValueChange={setSelectedHour}>
-                  <SelectTrigger className="w-45 sm:w-60 border border-input shadow-sm">
+                  <SelectTrigger className="w-full border border-input shadow-sm">
                     <SelectValue placeholder="HH" />
                   </SelectTrigger>
                   <SelectContent>
@@ -231,14 +271,8 @@ export default function PoolCabForm() {
                   </SelectContent>
                 </Select>
 
-                {/* Colon separator */}
-                <div className="flex items-center justify-center px-2 text-sm font-medium text-muted-foreground">
-                  :
-                </div>
-
-                {/* Minute Selection */}
                 <Select value={selectedMinute} onValueChange={setSelectedMinute}>
-                  <SelectTrigger className="w-45 sm:w-60 border border-input rounded-lg shadow-sm">
+                  <SelectTrigger className="w-full border border-input shadow-sm">
                     <SelectValue placeholder="MM" />
                   </SelectTrigger>
                   <SelectContent>
@@ -255,27 +289,26 @@ export default function PoolCabForm() {
                   </SelectContent>
                 </Select>
 
-                {/* AM/PM Toggle - smaller width */}
                 <ToggleGroup
                   type="single"
                   value={selectedPeriod}
                   onValueChange={(value) => value && setSelectedPeriod(value as "AM" | "PM")}
-                  className="w-30 border-1 shadow-none"
+                  className="flex w-full overflow-hidden rounded-md border border-input shadow-sm"
                 >
                   <ToggleGroupItem
                     value="AM"
-                    className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-none text-xs"
+                    className="flex-1 px-4 text-sm font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                   >
                     AM
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value="PM"
-                    className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-none text-xs"
+                    className="flex-1 px-4 text-sm font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                   >
                     PM
                   </ToggleGroupItem>
                 </ToggleGroup>
-              </ButtonGroup>
+              </div>
             </div>
           </div>
         </div>
@@ -285,18 +318,18 @@ export default function PoolCabForm() {
           <SingleSelect
             title="From"
             placeholder="Select departure location"
-            items={locationOptions}
+            items={fromSelectOptions}
             value={fromLocation}
-            onChange={setFromLocation}
+            onChange={handleFromLocationChange}
             isRequired={true}
           />
 
           <SingleSelect
             title="To"
             placeholder="Select destination"
-            items={locationOptions}
+            items={toSelectOptions}
             value={toLocation}
-            onChange={setToLocation}
+            onChange={handleToLocationChange}
             isRequired={true}
           />
         </div>
@@ -322,7 +355,7 @@ export default function PoolCabForm() {
               <Label className="px-1 text-base font-medium">
                 Contact Email <span className="text-destructive">*</span>
               </Label>
-              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+              <div className="flex items-center gap-2 p-3 rounded-md border border-border bg-muted dark:bg-primary/15 dark:border-primary/30">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{userEmail}</span>
               </div>
@@ -346,7 +379,7 @@ export default function PoolCabForm() {
         <div className="pt-4">
           <Button
             type="submit"
-            className="w-full gap-2 text-lg py-6"
+            className="w-full gap-2 whitespace-nowrap py-4 text-base"
             disabled={
               isSubmitting ||
               isLoadingProfile ||

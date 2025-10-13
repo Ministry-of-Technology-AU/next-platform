@@ -2,7 +2,6 @@
 
 import { X, Lock, Unlock, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Popover,
   PopoverContent,
@@ -46,18 +45,18 @@ export function TimetableGrid({
   };
 
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="min-w-[600px] md:min-w-[800px] border border-border rounded-lg overflow-hidden">
+    <div className="w-full overflow-x-auto rounded-3xl bg-background p-2 shadow-inner dark:bg-background/40">
+      <div className="w-full min-w-[560px] md:min-w-[760px] overflow-hidden rounded-2xl border border-border/60 bg-background/90 shadow-sm dark:bg-background/50">
         {/* Header */}
-        <div className="grid grid-cols-6 border-b border-border">
-          <div className="font-semibold text-center p-2 md:p-4 bg-muted border-r border-border text-xs md:text-sm">
+        <div className="grid grid-cols-6 border-b border-border/40 bg-muted/70">
+          <div className="border-r border-border/40 p-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground md:p-4 md:text-sm">
             Time
           </div>
           {DAYS.map((day, index) => (
             <div
               key={day}
-              className={`font-semibold text-center p-2 md:p-4 bg-muted text-xs md:text-sm ${
-                index < DAYS.length - 1 ? "border-r border-border" : ""
+              className={`p-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground md:p-4 md:text-sm ${
+                index < DAYS.length - 1 ? "border-r border-border/40" : ""
               }`}
             >
               <span className="hidden sm:inline">{day}</span>
@@ -71,17 +70,18 @@ export function TimetableGrid({
           <div
             key={slot}
             className={`grid grid-cols-6 ${
-              slotIndex < TIME_SLOTS.length - 1 ? "border-b border-border" : ""
+              slotIndex < TIME_SLOTS.length - 1 ? "border-b border-border/40" : ""
             }`}
           >
-            <div className="font-medium text-center p-2 md:p-4 bg-muted border-r border-border text-xs md:text-sm">
+            <div className="border-r border-border/30 bg-muted/40 p-2 text-center text-[10px] font-semibold tracking-wide text-muted-foreground md:p-4 md:text-sm">
               <span className="hidden sm:inline">{slot}</span>
               <span className="sm:hidden">{slot.length > 8 ? slot.slice(0, 5) + "..." : slot}</span>
             </div>
 
             {slot === "LUNCH" ? (
-              <div className="col-span-5 p-2 md:p-4 bg-yellow-50 text-center text-xs md:text-sm text-yellow-800 font-medium">
-                🍽️ <span className="hidden sm:inline">Lunch Break</span><span className="sm:hidden">Lunch</span>
+              <div className="col-span-5 flex items-center justify-center gap-2 bg-secondary/15 p-2 text-center text-xs font-semibold text-secondary-foreground md:p-4 md:text-sm">
+                🍽️ <span className="hidden sm:inline">Lunch Break</span>
+                <span className="sm:hidden">Lunch</span>
               </div>
             ) : (
               DAYS.map((day, dayIndex) => {
@@ -94,29 +94,29 @@ export function TimetableGrid({
                 return (
                   <div
                     key={`${day}-${slot}`}
-                    className={`p-1 md:p-2 min-h-[60px] md:min-h-[80px] ${
-                      dayIndex < DAYS.length - 1 ? "border-r border-border" : ""
+                    className={`min-h-[70px] p-1 md:min-h-[90px] md:p-2 ${
+                      dayIndex < DAYS.length - 1 ? "border-r border-border/30" : ""
                     }`}
                   >
                     {course ? (
-                      <Card
-                        className="h-full p-1 md:p-2 relative group cursor-pointer transition-all hover:shadow-md border-2"
+                      <div
+                        className="group relative flex h-full flex-col justify-between px-2 py-2 text-left transition-colors md:px-3 md:py-3"
                         style={{
-                          backgroundColor: course.color + "20",
-                          borderColor: course.color,
+                          backgroundColor: `${course.color}12`,
+                          boxShadow: `inset 0 0 0 1px ${course.color}33`,
                         }}
                       >
-                        <div className="absolute top-0.5 md:top-1 right-0.5 md:right-1 flex gap-0.5 md:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute right-1 top-1 flex gap-1 rounded-full bg-background/95 p-1 opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
+                            className="h-6 w-6 rounded-full p-0 text-foreground/70 hover:bg-background/80"
                             onClick={() => onToggleLock(course.id, day, slot)}
                           >
                             {isLocked ? (
-                              <Lock className="h-2 w-2 md:h-3 md:w-3" />
+                              <Lock className="h-3 w-3" />
                             ) : (
-                              <Unlock className="h-2 w-2 md:h-3 md:w-3" />
+                              <Unlock className="h-3 w-3" />
                             )}
                           </Button>
 
@@ -125,13 +125,13 @@ export function TimetableGrid({
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
+                                className="h-6 w-6 rounded-full p-0 text-foreground/70 hover:bg-background/80"
                               >
-                                <Palette className="h-2 w-2 md:h-3 md:w-3" />
+                                <Palette className="h-3 w-3" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-2">
-                              <div className="flex gap-1 flex-wrap max-w-[120px]">
+                            <PopoverContent className="w-auto rounded-xl border border-border/50 bg-background/90 p-2 shadow-lg">
+                              <div className="flex max-w-[140px] flex-wrap gap-1">
                                 {COURSE_COLORS.map((color) => (
                                   <button
                                     key={color}
@@ -143,7 +143,7 @@ export function TimetableGrid({
                                         color
                                       )
                                     }
-                                    className="w-6 h-6 rounded border-2 border-muted hover:border-foreground transition-colors"
+                                    className="h-6 w-6 rounded-full border-2 border-border/50 transition-colors hover:border-foreground"
                                     style={{ backgroundColor: color }}
                                   />
                                 ))}
@@ -155,33 +155,33 @@ export function TimetableGrid({
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
+                              className="h-6 w-6 rounded-full p-0 text-foreground/70 hover:bg-background/80"
                               onClick={() =>
                                 onRemoveCourse(course.id, day, slot)
                               }
                             >
-                              <X className="h-2 w-2 md:h-3 md:w-3" />
+                              <X className="h-3 w-3" />
                             </Button>
                           )}
                         </div>
-                        <div className="space-y-0.5 md:space-y-1">
-                          <p
-                            className="font-semibold text-[10px] md:text-xs"
-                            style={{ color: course.color }}
-                          >
+                        <div className="space-y-1">
+                          <p className="text-[11px] font-semibold tracking-wide" style={{ color: course.color }}>
                             {course.code}
                           </p>
-                          <p className="text-[9px] md:text-xs text-muted-foreground line-clamp-2 hidden sm:block">
+                          <p className="hidden text-[11px] font-medium text-foreground/90 sm:block">
                             {course.name}
                           </p>
-                          <p className="text-[8px] md:text-xs text-muted-foreground hidden md:block">
+                          <p className="hidden text-[10px] text-muted-foreground md:block">
                             {course.professor}
                           </p>
+                          <p className="hidden text-[10px] text-muted-foreground/80 lg:block">
+                            {course.department}
+                          </p>
                         </div>
-                      </Card>
+                      </div>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-muted-foreground text-[10px] md:text-xs">
-                        Free
+                      <div className="flex h-full items-center justify-center bg-muted/30 text-[10px] font-medium text-muted-foreground md:text-xs">
+                        Free Slot
                       </div>
                     )}
                   </div>

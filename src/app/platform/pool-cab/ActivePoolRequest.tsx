@@ -107,7 +107,7 @@ export default function ActivePoolRequest({ userPool }: ActivePoolRequestProps) 
   }
 
   return (
-    <Card className="max-w-7xl mx-auto">
+  <Card className="max-w-7xl mx-auto border border-gray-200 dark:border-border shadow-lg hover:shadow-2xl dark:shadow-2xl transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Car className="h-5 w-5" />
@@ -122,7 +122,7 @@ export default function ActivePoolRequest({ userPool }: ActivePoolRequestProps) 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-            <div className="p-3 bg-muted rounded-md flex items-center gap-2">
+            <div className="p-3 border border-gray-200 dark:border-gray-800 rounded-md flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">{formatDate(userPool.attributes.day)}</span>
             </div>
@@ -130,7 +130,7 @@ export default function ActivePoolRequest({ userPool }: ActivePoolRequestProps) 
 
           <div className="space-y-2">
             <Label className="text-sm font-medium text-muted-foreground">Time</Label>
-            <div className="p-3 bg-muted rounded-md flex items-center gap-2">
+            <div className="p-3 border border-gray-200 dark:border-gray-800 rounded-md flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">{formatTime(userPool.attributes.time)}</span>
             </div>
@@ -138,7 +138,7 @@ export default function ActivePoolRequest({ userPool }: ActivePoolRequestProps) 
 
           <div className="space-y-2">
             <Label className="text-sm font-medium text-muted-foreground">Route</Label>
-            <div className="p-3 bg-muted rounded-md flex items-center gap-2">
+            <div className="p-3 border border-gray-200 dark:border-gray-800 rounded-md flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">{userPool.attributes.journey}</span>
             </div>

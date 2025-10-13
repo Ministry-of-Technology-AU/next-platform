@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useIsMac } from "@/hooks/useIsMac";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -81,7 +80,7 @@ export function AppSidebar() {
   // On mobile, when sidebar is open, we want to show the text
   const [iconCollapse, setIconCollapse] = React.useState(isCollapsed);
   const hideLabels = !isDrawerOpen;
-  const collapseDelay = 2500; // ms, adjust as needed
+  const collapseDelay = 600; // ms, snappier icon collapse
   const collapseTimeout = React.useRef<NodeJS.Timeout | null>(null);  
 
   React.useEffect(() => {
@@ -106,8 +105,6 @@ export function AppSidebar() {
     };
   }, [isCollapsed, collapseDelay]);
 
-  const isMac = useIsMac();
-
   return (
     <Sidebar className="border-r border-border flex flex-col h-screen bg-white dark:bg-black overflow-y-auto" collapsible="icon">
       <SidebarHeader className="p-4">
@@ -118,10 +115,10 @@ export function AppSidebar() {
                   alt="Ministry of Technology"
                   width={48}
                   height={48}
-                  className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8"
+                  className="rounded-lg object-cover transition-all duration-200 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8"
                 />
               </div>
-          <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
+          <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-200 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
             <h3 className="text-lg font-semibold text-primary truncate leading-tight whitespace-nowrap !text-left">
                 Platform
               </h3>
@@ -189,7 +186,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       {!isCollapsed && (<SidebarFooter className="p-4">
-        <div className="text-xs text-muted-foreground text-left transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
+        <div className="text-xs text-muted-foreground text-left transition-all duration-200 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
             <p>Developed & maintained by</p>
             <p className="text-primary text-bold">the Ministry of Technology</p>
         </div>

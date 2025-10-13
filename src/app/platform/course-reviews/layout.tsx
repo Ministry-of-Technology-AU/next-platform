@@ -21,10 +21,7 @@ export default function CourseReviewsLayout({
         <Suspense fallback={<ReviewsTableSkeleton entriesPerPage={10} />}>
       {children}
       </Suspense>
-    <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Lead Developer", 'profileUrl': 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/'}, {"name": "Previous Teams"}]}/>
-
-      <DeveloperCredits developers={[{ "name": "Soham Tulsyan", "role": "Lead Developer" }]} />
-
+      <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Lead Developer", 'profileUrl': 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/'}, {"name": "Previous Teams"}]}/>
     </div>
   );
 }

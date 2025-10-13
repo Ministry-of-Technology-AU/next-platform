@@ -144,7 +144,7 @@ export function ListView({
             {dayEvents.map((event) => (
               <Card
                 key={event.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
+                className="cursor-pointer border border-gray-200 dark:border-gray-800 shadow-lg hover:shadow-2xl dark:shadow-2xl transition-all duration-300"
               >
                 <CardContent
                   className="p-4"
@@ -298,7 +298,7 @@ export function TodayView({
           {todayEvents.map((event) => (
             <Card
               key={event.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className="cursor-pointer border border-gray-200 dark:border-gray-800 shadow-lg hover:shadow-2xl dark:shadow-2xl transition-all duration-300"
             >
               <CardContent className="p-4" onClick={() => onEventClick(event)}>
                 <div className="flex items-start justify-between">

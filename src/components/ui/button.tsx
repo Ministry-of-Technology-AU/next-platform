@@ -12,7 +12,7 @@ const buttonVariants = cva(
         destructive:
           "bg-green text-white shadow-xs hover:bg-green-light/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
-          "border border-black bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border border-border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-border dark:bg-transparent dark:hover:bg-primary/15 dark:hover:text-primary-foreground",
         secondary:
           "bg-secondary text-black shadow-xs hover:bg-secondary-extradark/80",
         ghost:
@@ -20,7 +20,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         animated: "bg-primary text-white shadow-xs button-animated",
         animatedGhost:
-          "transition-all duration-300 hover:[transform:translateY(-.315rem)]",
+          "transition-all duration-150 hover:[transform:translateY(-.315rem)]",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

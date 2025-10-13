@@ -45,7 +45,7 @@ export function ReviewsTable({paginatedCourses, sortField, sortDirection, handle
               {paginatedCourses.length > 0 ? (
                 paginatedCourses.map((course: CourseWithReviews) => {
                   const hasReviews = course.reviews && course.reviews.length > 0;
-                  const greyedOutClasses = hasReviews ? "" : "opacity-60 bg-gray-50 dark:bg-gray-800/30";
+                  const greyedOutClasses = hasReviews ? "" : "opacity-60 bg-gray-50 dark:bg-background/40";
                   
                   return (
                   <Dialog key={course.id}>

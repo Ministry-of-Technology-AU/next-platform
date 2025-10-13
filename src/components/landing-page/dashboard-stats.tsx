@@ -38,11 +38,11 @@ export default function DashboardStats() {
               <div className="text-sm sm:text-base md:text-lg opacity-90">Active Users</div>
             </div>
           }
-          description="Students currently using the platform"
+          description={<span className="text-white">Students currently using the platform</span>}
           header={
             <div className="flex items-center justify-between mb-2 sm:mb-4">
               <Users className="size-6 sm:size-7 md:size-8 text-blue-400" />
-              <div className="flex items-center gap-1 sm:gap-2 bg-white/20 rounded-full px-2 sm:px-3 py-1">
+              <div className="flex items-center gap-1 sm:gap-2 bg-white/30 rounded-full px-2 sm:px-3 py-1 text-white">
                 <TrendingUp className="size-3 sm:size-4" />
                 <span className="text-xs sm:text-sm font-medium">{stats.weeklyGrowth}</span>
               </div>

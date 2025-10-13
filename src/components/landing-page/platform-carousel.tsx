@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { banners } from './data/platform-data';
@@ -14,41 +14,82 @@ interface PlatformCarouselProps {
 export default function PlatformCarousel({ className }: PlatformCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const autoPlayIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearResumeTimeout = useCallback(() => {
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleResume = useCallback(() => {
+    clearResumeTimeout();
+    resumeTimeoutRef.current = setTimeout(() => {
+      setIsAutoPlaying(true);
+      resumeTimeoutRef.current = null;
+    }, 7000);
+  }, [clearResumeTimeout]);
+
+  const pauseAutoPlay = useCallback(() => {
+    if (autoPlayIntervalRef.current) {
+      clearInterval(autoPlayIntervalRef.current);
+      autoPlayIntervalRef.current = null;
+    }
+    if (isAutoPlaying) {
+      setIsAutoPlaying(false);
+    }
+    scheduleResume();
+  }, [isAutoPlaying, scheduleResume]);
 
   useEffect(() => {
-    if (!isAutoPlaying) return;
-    
-    const interval = setInterval(() => {
+    if (!isAutoPlaying || autoPlayIntervalRef.current) {
+      return;
+    }
+
+    autoPlayIntervalRef.current = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length);
     }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (autoPlayIntervalRef.current) {
+        clearInterval(autoPlayIntervalRef.current);
+        autoPlayIntervalRef.current = null;
+      }
+    };
   }, [isAutoPlaying]);
+
+  useEffect(() => {
+    return () => {
+      if (autoPlayIntervalRef.current) {
+        clearInterval(autoPlayIntervalRef.current);
+      }
+      clearResumeTimeout();
+    };
+  }, [clearResumeTimeout]);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    pauseAutoPlay();
   };
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % banners.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    pauseAutoPlay();
   };
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    pauseAutoPlay();
   };
 
   return (
-    <div className={`relative w-full max-w-4xl aspect-[16/7] sm:aspect-[16/7] md:aspect-[16/7] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ${className}`}>
+    <div className={`relative w-full max-w-4xl aspect-[16/7] sm:aspect-[16/7] md:aspect-[16/7] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl dark:shadow-2xl transition-shadow duration-300 ${className}`}>
       {/* Carousel Images */}
       <div className="relative w-full h-full overflow-hidden max-w-full">
         <div 
-          className="flex w-full h-full transition-transform duration-1000 ease-in-out"
+          className="flex w-full h-full transition-transform duration-400 ease-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
           {banners.map((banner, index) => (
@@ -70,21 +111,21 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
               {/* Content Overlay */}
               <div className="absolute inset-0 flex items-center justify-start text-left text-white p-3 sm:p-6 md:p-8">
                 <div className="sm:max-w-lg max-w-xs">
-                  <div className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${
+                  <div className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-400 ${
                     index === currentSlide 
                       ? 'animate-in fade-in-0 slide-in-from-bottom-4' 
                       : 'opacity-0 translate-y-4'
                   }`}>
                     {banner.subtitle}
                   </div>
-                  <h1 className={`!text-sm sm:!text-2xl lg:!text-4xl font-extrabold mb-2 sm:mb-4 transition-all duration-1000 delay-150 !text-left ${
+                  <h1 className={`!text-sm sm:!text-2xl lg:!text-4xl font-extrabold mb-2 sm:mb-4 transition-all duration-400 delay-150 !text-left ${
                     index === currentSlide 
                       ? 'animate-in fade-in-0 slide-in-from-bottom-4' 
                       : 'opacity-0 translate-y-4'
                   }`}>
                     {banner.title}
                   </h1>
-                  <p className={`sm:text-sm md:text-base text-[10px] mb-3 sm:mb-6 opacity-90 transition-all duration-1000 delay-300 ${
+                  <p className={`sm:text-sm md:text-base text-[10px] mb-3 sm:mb-6 opacity-90 transition-all duration-400 delay-300 ${
                     index === currentSlide 
                       ? 'animate-in fade-in-0 slide-in-from-bottom-4' 
                       : 'opacity-0 translate-y-4'
@@ -92,7 +133,7 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
                     {banner.description}
                   </p>
                   {Array.isArray(banner.buttons) && banner.buttons.length > 0 && (
-                    <div className={`flex flex-row flex-wrap gap-2 sm:gap-3 transition-all duration-1000 delay-500 ${
+                    <div className={`flex flex-row flex-wrap gap-2 sm:gap-3 transition-all duration-400 delay-300 ${
                       index === currentSlide 
                         ? 'animate-in fade-in-0 slide-in-from-bottom-4' 
                         : 'opacity-0 translate-y-4'

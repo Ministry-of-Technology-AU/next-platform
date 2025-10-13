@@ -43,7 +43,7 @@ export default function CGPAForm({
                             onChange={(e) => setGradeInput(e.target.value)}
                             placeholder="Go to the Grades & Evaluations' page on your AMS → Ctrl+A → Ctrl+C → navigate back to this page → Ctrl+V in this box. On Macs, use Cmd instead of Ctrl."
                             rows={10}
-                            className="text-sm font-mono resize-y"
+                            className="text-sm resize-y"
                         />
                     </div>
 

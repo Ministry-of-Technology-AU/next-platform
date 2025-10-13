@@ -284,7 +284,7 @@ export default function PoolCabResults() {
       </div>
 
       {/* Filters and Search */}
-      <Card>
+  <Card className="border border-gray-200 dark:border-border shadow-lg hover:shadow-2xl dark:shadow-2xl transition-all duration-300">
         <CardHeader className="cursor-pointer lg:cursor-default" onClick={() => setShowFilters(!showFilters)}>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -377,7 +377,7 @@ export default function PoolCabResults() {
       </Card>
 
       {/* Available Pools */}
-      <Card>
+  <Card className="border border-gray-200 dark:border-border shadow-lg hover:shadow-2xl dark:shadow-2xl transition-all duration-300">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -397,7 +397,7 @@ export default function PoolCabResults() {
           ) : (
             <div className="space-y-3">
               {currentPools.map((pool) => (
-                <div key={pool.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3 sm:gap-4">
+                <div key={pool.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-muted/50 dark:hover:bg-primary/15 hover:shadow-xl dark:shadow-lg transition-all duration-300 gap-3 sm:gap-4">
                   <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
                     <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
                       <AvatarFallback className="bg-primary-light/70 text-white">{getInitials(pool.attributes.pooler.data.attributes.username)}</AvatarFallback>
@@ -500,7 +500,7 @@ export default function PoolCabResults() {
 
       {/* Trip Details Section - Only show if user has a pool */}
       {userPool && (
-        <Card>
+  <Card className="border border-gray-200 dark:border-border shadow-lg hover:shadow-2xl dark:shadow-2xl transition-all duration-300">
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Your Trip Details</CardTitle>
             <p className="text-xs sm:text-sm text-muted-foreground">
@@ -512,7 +512,7 @@ export default function PoolCabResults() {
               <div className="space-y-3 sm:space-y-4">
                 <div>
                   <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Date</Label>
-                  <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md flex items-center gap-2">
+                  <div className="mt-1 p-2.5 sm:p-3 border border-gray-200 dark:border-border rounded-md flex items-center gap-2">
                     <Calendar className="h-4 w-4 flex-shrink-0" />
                     <span className="text-sm sm:text-base">{formatDate(userPool.attributes.day)}</span>
                   </div>
@@ -520,7 +520,7 @@ export default function PoolCabResults() {
 
                 <div>
                   <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Time</Label>
-                  <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md flex items-center gap-2">
+                  <div className="mt-1 p-2.5 sm:p-3 border border-gray-200 dark:border-border rounded-md flex items-center gap-2">
                     <Clock className="h-4 w-4 flex-shrink-0" />
                     <span className="text-sm sm:text-base">{formatTime(userPool.attributes.time)}</span>
                   </div>
@@ -530,7 +530,7 @@ export default function PoolCabResults() {
               <div className="space-y-3 sm:space-y-4">
                 <div>
                   <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Route</Label>
-                  <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md flex items-center gap-2">
+                  <div className="mt-1 p-2.5 sm:p-3 border border-gray-200 dark:border-border rounded-md flex items-center gap-2">
                     <MapPin className="h-4 w-4 flex-shrink-0" />
                     <span className="text-sm sm:text-base truncate">{userPool.attributes.journey}</span>
                   </div>
@@ -538,7 +538,7 @@ export default function PoolCabResults() {
 
                 <div>
                   <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Status</Label>
-                  <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md">
+                  <div className="mt-1 p-2.5 sm:p-3 border border-gray-200 dark:border-border rounded-md">
                     <Badge variant={userPool.attributes.status === 'available' ? 'default' : 'secondary'} className={`text-xs ${userPool.attributes.status === 'available' ? 'bg-green-600' : 'bg-primary'}`}>
                       {userPool.attributes.status}
                     </Badge>

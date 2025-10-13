@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,15 +20,21 @@ const popularTools = [
     description: "Read and write course reviews",
     icon: ClipboardPenLine,
     href: "/platform/course-reviews",
-    color: "text-blue-400",
+    gradient: "from-blue-500 to-cyan-500",
+  iconBg: "bg-blue-50 dark:bg-blue-950/30",
+  iconColor: "text-blue-600 dark:text-blue-400",
+  hoverClass: "group-hover:text-blue-600 dark:group-hover:text-blue-400",
   },
   {
     id: 2,
-    title: "Semester Planner", 
+    title: "Semester Planner",
     description: "Plan your academic semester",
     icon: CalendarSync,
     href: "/platform/semester-planner",
-    color: "text-green-400",
+    gradient: "from-green-500 to-emerald-500",
+  iconBg: "bg-green-50 dark:bg-green-950/30",
+  iconColor: "text-green-600 dark:text-green-400",
+  hoverClass: "group-hover:text-green-600 dark:group-hover:text-green-400",
   },
   {
     id: 3,
@@ -35,15 +42,21 @@ const popularTools = [
     description: "Raise a ticket about wifi issues",
     icon: WifiPen,
     href: "/platform/wifi-tickets",
-    color: "text-purple-400",
+    gradient: "from-purple-500 to-pink-500",
+  iconBg: "bg-purple-50 dark:bg-purple-950/30",
+  iconColor: "text-purple-600 dark:text-purple-400",
+  hoverClass: "group-hover:text-purple-600 dark:group-hover:text-purple-400",
   },
   {
     id: 4,
     title: "Pool a Cab",
-    description: "COMING SOON",
+    description: "Share rides with other students",
     icon: Car,
-    href: "/platform",
-    color: "text-orange-400",
+    href: "/platform/pool-cab",
+    gradient: "from-orange-500 to-red-500",
+  iconBg: "bg-orange-50 dark:bg-orange-950/30",
+  iconColor: "text-orange-600 dark:text-orange-400",
+  hoverClass: "group-hover:text-orange-500 dark:group-hover:text-orange-300",
   }
 ];
 
@@ -58,32 +71,35 @@ export default function PopularToolsGrid() {
       </div>
       
       {/* Responsive Grid - 2 cols on mobile/tablet, 4 cols on desktop */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
         {popularTools.map((tool) => {
           const Icon = tool.icon;
           return (
-            <Card 
-              key={tool.id} 
-              className="group h-40 sm:h-48 lg:h-56 border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-background"
+            <Card
+              key={tool.id}
+              className="group relative h-48 sm:h-52 lg:h-56 border border-gray-200 dark:border-border overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:-translate-y-1 bg-white dark:bg-background/70"
             >
-              <Button 
-                variant="ghost" 
+              {/* Gradient accent line at top */}
+              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${tool.gradient} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300`} />
+
+              <Button
+                variant="ghost"
                 className="w-full h-full p-0 bg-transparent hover:bg-transparent"
                 asChild
               >
                 <Link href={tool.href}>
-                  <CardContent className="p-3 sm:p-4 lg:p-6 h-full flex flex-col items-center justify-center">
-                    {/* Icon */}
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 flex items-center justify-center">
-                      <Icon className={`size-6 sm:size-8 ${tool.color}`} />
+                  <CardContent className="p-4 sm:p-5 lg:p-6 h-full flex flex-col items-center justify-center relative">
+                    {/* Icon with background */}
+                    <div className={`w-14 h-14 sm:w-16 sm:h-16 mb-3 sm:mb-4 flex items-center justify-center rounded-xl ${tool.iconBg} transition-transform duration-300 group-hover:scale-110`}>
+                      <Icon className={`size-7 sm:size-8 ${tool.iconColor}`} />
                     </div>
-                    
+
                     {/* Content */}
-                    <div className="text-center">
-                      <h3 className="sm:!text-xl !text-sm font-medium mb-1 sm:mb-2 group-hover:text-primary dark:group-hover:text-secondary transition-colors">
+                    <div className="text-center space-y-1.5 sm:space-y-2">
+                      <h3 className={cn("text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 transition-all duration-300", tool.hoverClass)}>
                         {tool.title}
                       </h3>
-                      <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-2 px-1">
                         {tool.description}
                       </p>
                     </div>
