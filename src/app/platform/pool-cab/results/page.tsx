@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, Car, Clock, MapPin, Phone, MessageCircle, Filter, Search, Users, Calendar, RefreshCw, Mail } from "lucide-react"
+import { ArrowLeft, Car, Clock, MapPin, MessageCircle, Filter, Search, Users, Calendar, RefreshCw, Mail } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import PageTitle from "@/components/page-title"
 
@@ -504,7 +504,7 @@ export default function PoolCabResults() {
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Your Trip Details</CardTitle>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Below are your current pool request details. You can mark it as pooled when you've found someone, or cancel if you no longer need it.
+              Below are your current pool request details. You can mark it as pooled when you&apos;ve found someone, or cancel if you no longer need it.
             </p>
           </CardHeader>
           <CardContent>

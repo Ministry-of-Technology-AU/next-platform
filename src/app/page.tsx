@@ -11,7 +11,7 @@ export default function Home() {
         icon={Link}
       />
       <Button onClick={() => window.location.href = '/platform'} className="mt-4 text-sm sm:text-base px-4 sm:px-6">
-        Here's a button to get you there!
+        Here&apos;s a button to get you there!
       </Button>
     </div>
   );

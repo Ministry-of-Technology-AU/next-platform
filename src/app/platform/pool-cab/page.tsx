@@ -7,6 +7,8 @@ import { strapiGet } from "@/lib/apis/strapi";
 import { getUserIdByEmail } from "@/lib/userid";
 import { auth } from "@/auth";
 
+export const dynamic = 'force-dynamic';
+
 async function existPoolRequest() {
     try {
         const session = await auth();

@@ -8,8 +8,8 @@ import { redirect, RedirectType } from "next/navigation";
 import { Suspense } from "react";
 
 async function getData() {
-  try {
-    const cookieStore = await cookies();
+  const cookieStore = cookies();
+  try {    
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/sg-compose/outbox`, {
       method: 'GET',
       headers: {
