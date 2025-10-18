@@ -3,13 +3,7 @@
 import { Asset } from '../types';
 import { AssetCard } from './asset-card';
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import AssetDialog from './asset-dialog';
 
 interface AssetGridProps {
   assets: Asset[];
@@ -44,25 +38,11 @@ export function AssetGrid({ assets, title, onToggleBookmark }: AssetGridProps) {
         </div>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Borrow Request</DialogTitle>
-            <DialogDescription>
-              {selectedAsset ? (
-                <>
-                  You are requesting to borrow: <strong>{selectedAsset.name}</strong>
-                  <br />
-                  <br />
-                  This is a template dialog. Implement your borrow request form here.
-                </>
-              ) : (
-                'Loading...'
-              )}
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <AssetDialog
+        asset={selectedAsset || null}
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </>
   );
 }

@@ -1,46 +1,65 @@
 'use client';
 
-import { AssetCategory } from '../types';
-import { Button } from '@/components/ui/button';
-import { Search, Filter } from 'lucide-react';
+import { AssetTab, AssetType } from '../types';
+import { Badge } from '@/components/ui/badge';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger} from '@/components/ui/shadcn-io/tabs';
 
 interface FilterBarProps {
-  selectedCategory: AssetCategory | 'All';
-  onCategoryChange: (category: AssetCategory | 'All') => void;
+  selectedTab: AssetTab;
+  onTabChange: (tab: AssetTab) => void;
+  selectedTypes: Set<AssetType>;
+  onTypeToggle: (type: AssetType) => void;
+  availableTypes: AssetType[];
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
-const categories: (AssetCategory | 'All')[] = ['All', 'Techmin', 'Jazbaa'];
-
-export function FilterBar({ selectedCategory, onCategoryChange }: FilterBarProps) {
+export function FilterBar({
+  selectedTab,
+  onTabChange,
+  selectedTypes,
+  onTypeToggle,
+  availableTypes,
+  searchQuery,
+  onSearchChange,
+}: FilterBarProps) {
   return (
-    <div className="mb-6">
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search assets..."
-            className="pl-10"
-          />
+    <div className="mb-6 space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder="Search assets..."
+          className="pl-10"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
+      </div>
+
+      <Tabs value={selectedTab} onValueChange={(value) => onTabChange(value as AssetTab)}>
+        <TabsList className="w-full grid grid-cols-4">
+          <TabsTrigger value="All">All</TabsTrigger>
+          <TabsTrigger value="Techmin">Techmin</TabsTrigger>
+          <TabsTrigger value="Jazbaa">Coming Soon</TabsTrigger>
+          <TabsTrigger value="Bookmarks">Bookmarks</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {availableTypes.length > 0 && selectedTab !== 'Bookmarks' && (
+        <div className="flex gap-3 flex-wrap justify-center">
+          {availableTypes.map((type) => (
+            <Badge
+              key={type}
+              variant={selectedTypes.has(type) ? 'default' : 'outline'}
+              className="cursor-pointer select-none text-xs px-3 py-1.5"
+              onClick={() => onTypeToggle(type)}
+            >
+              {type}
+            </Badge>
+          ))}
         </div>
-        <Button variant="outline" className="sm:w-auto">
-          <Filter className="h-4 w-4 mr-2" />
-          Filters & Preferences
-        </Button>
-      </div>
-      <div className="flex gap-2 flex-wrap">
-        {categories.map((category) => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onCategoryChange(category)}
-            className="rounded-full"
-          >
-            {category}
-          </Button>
-        ))}
-      </div>
+      )}
     </div>
   );
 }

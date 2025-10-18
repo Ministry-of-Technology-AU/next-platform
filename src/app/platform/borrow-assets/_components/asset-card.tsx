@@ -18,9 +18,12 @@ export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCar
   const isAvailable = asset.status === 'available';
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden">
+    <Card className={cn(
+      "flex flex-col h-full overflow-hidden transition-opacity",
+      !isAvailable && "opacity-60"
+    )}>
       <CardHeader className="relative p-0">
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-200">
+        <div className="relative aspect-[4/3] w-full overflow-hidden">
           {asset.imageUrl ? (
             <Image
               src={asset.imageUrl}
@@ -30,7 +33,7 @@ export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCar
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
-            <div className="flex items-center justify-center h-full bg-gray-200 text-gray-400 text-sm">
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
               Missing Image
             </div>
           )}
@@ -57,7 +60,7 @@ export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCar
         </CardDescription>
         <div className="flex items-center gap-2 mb-2">
           <Badge variant="secondary" className="text-xs">
-            {asset.category}
+            {asset.type}
           </Badge>
         </div>
         {!isAvailable && asset.overdueDate && (

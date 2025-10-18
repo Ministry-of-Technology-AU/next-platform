@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { Package, AlertTriangle, CalendarIcon } from "lucide-react";
+import { Package, Phone, AlertTriangle, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import {Calendar} from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,24 +23,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  PhoneInput,
-  TextInput,
-  CheckboxComponent,
-} from "@/components/form";
-import { Asset } from "../types";
+
+interface Asset {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  tags: string[];
+  status: "Available" | "Overdue";
+  overdueDate?: string;
+}
 
 interface FormData {
   returnDate: string;
   purpose: string;
   phoneNumber: string;
-  agreedToTerms: boolean;
 }
 
 interface AssetRequestDialogProps {
   asset: Asset | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit: (formData: FormData, asset: Asset) => void;
 }
 
 function formatDate(date: Date | undefined) {
@@ -52,7 +57,6 @@ function formatDate(date: Date | undefined) {
     year: "numeric",
   });
 }
-
 function isValidDate(date: Date | undefined) {
   if (!date) {
     return false;
@@ -60,102 +64,66 @@ function isValidDate(date: Date | undefined) {
   return !isNaN(date.getTime());
 }
 
+
 export default function AssetDialog({
   asset,
   isOpen,
   onOpenChange,
+  onSubmit,
 }: AssetRequestDialogProps) {
   const [formData, setFormData] = useState<FormData>({
     returnDate: "",
     purpose: "",
     phoneNumber: "",
-    agreedToTerms: false,
   });
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [open, setOpen] = React.useState(false);
-  const [date, setDate] = React.useState<Date | undefined>(undefined);
-  const [month, setMonth] = React.useState<Date | undefined>(new Date());
-  const [value, setValue] = React.useState("");
+    const [open, setOpen] = React.useState(false);
+    const [date, setDate] = React.useState<Date | undefined>(
+      new Date("2025-06-01")
+    );
+    const [month, setMonth] = React.useState<Date | undefined>(date);
+    const [value, setValue] = React.useState(formatDate(date));
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.returnDate) {
-      newErrors.returnDate = "Return date is required";
-    } else {
-      const selectedDate = new Date(formData.returnDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const maxDate = new Date();
-      maxDate.setDate(maxDate.getDate() + 30);
-      
-      if (selectedDate < today) {
-        newErrors.returnDate = "Return date cannot be in the past";
-      } else if (selectedDate > maxDate) {
-        newErrors.returnDate = "Maximum borrowing period is 30 days";
-      }
-    }
-
-    if (!formData.purpose.trim()) {
-      newErrors.purpose = "Purpose is required";
-    } else if (formData.purpose.trim().length < 10) {
-      newErrors.purpose = "Please provide more details (at least 10 characters)";
-    }
-
-    if (!formData.phoneNumber) {
-      newErrors.phoneNumber = "Phone number is required";
-    } else if (formData.phoneNumber.length !== 10) {
-      newErrors.phoneNumber = "Phone number must be exactly 10 digits";
-    } else if (!/^[6-9]/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = "Phone number must start with 6, 7, 8, or 9";
-    }
-
-    if (!formData.agreedToTerms) {
-      newErrors.agreedToTerms = "You must agree to the terms and conditions";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const validatePhoneNumber = (phone: string) => {
+    return phone.length === 10 && /^\d{10}$/.test(phone);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePhoneChange = (value: string) => {
+    const numericValue = value.replace(/\D/g, "").slice(0, 10);
+    setFormData((prev) => ({ ...prev, phoneNumber: numericValue }));
 
-    if (!validateForm()) {
-      return;
+    if (numericValue.length > 0 && !validatePhoneNumber(numericValue)) {
+      setErrors((prev) => ({
+        ...prev,
+        phoneNumber: "Phone number must be exactly 10 digits",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, phoneNumber: "" }));
     }
+  };
 
-    if (!asset) {
-      return;
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      setHasScrolledToBottom(true);
     }
+  };
 
-    // Placeholder function - will post to Strapi later
-    console.log("Form submission data:", {
-      asset: {
-        id: asset.id,
-        name: asset.name,
-        description: asset.description,
-        tab: asset.tab,
-        type: asset.type,
-      },
-      formData: {
-        returnDate: formData.returnDate,
-        purpose: formData.purpose,
-        phoneNumber: formData.phoneNumber,
-        agreedToTerms: formData.agreedToTerms,
-      },
-      submittedAt: new Date().toISOString(),
-    });
+  const handleSubmit = () => {
+    const newErrors: Record<string, string> = {};
 
-    // TODO: Replace with actual Strapi API call
-    // Example:
-    // await fetch('/api/asset-requests', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ asset, formData }),
-    // });
+    if (!formData.returnDate) newErrors.returnDate = "Return date is required";
+    if (!formData.purpose.trim()) newErrors.purpose = "Purpose is required";
+    if (!validatePhoneNumber(formData.phoneNumber))
+      newErrors.phoneNumber = "Valid 10-digit phone number is required";
 
-    handleClose();
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0 && asset) {
+      onSubmit(formData, asset);
+      handleClose();
+    }
   };
 
   const handleClose = () => {
@@ -164,11 +132,9 @@ export default function AssetDialog({
       returnDate: "",
       purpose: "",
       phoneNumber: "",
-      agreedToTerms: false,
     });
+    setHasScrolledToBottom(false);
     setErrors({});
-    setDate(undefined);
-    setValue("");
   };
 
   if (!asset) return null;
@@ -179,15 +145,18 @@ export default function AssetDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" />
-            Request: {asset.name}
+            Request: {asset.title}
           </DialogTitle>
           <DialogDescription>
             Please fill out the following information to request this asset.
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[70vh] pr-4 px-1">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <ScrollArea
+          className="max-h-[70vh] pr-4 px-1"
+          onScrollCapture={handleScroll}
+        >
+          <div className="space-y-6">
             {/* Disclaimer */}
             <Alert className="border-destructive">
               <AlertTriangle className="h-4 w-4" />
@@ -200,6 +169,25 @@ export default function AssetDialog({
             </Alert>
 
             {/* Return Date */}
+            <div className="space-y-2">
+              <Input
+                id="returnDate"
+                type="date"
+                value={formData.returnDate}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    returnDate: e.target.value,
+                  }))
+                }
+                min={new Date().toISOString().split("T")[0]}
+                className={errors.returnDate ? "border-destructive" : ""}
+              />
+              {errors.returnDate && (
+                <p className="text-sm text-destructive">{errors.returnDate}</p>
+              )}
+            </div>
+
             <div className="flex flex-col gap-3">
               <Label
                 htmlFor="returnDate"
@@ -213,22 +201,16 @@ export default function AssetDialog({
               </p>
               <div className="relative flex gap-2">
                 <Input
-                  id="returnDate"
+                  id="date"
                   value={value}
-                  placeholder="Select a date"
-                  className={`bg-background pr-10 dark:text-gray-light text-gray-dark ${
-                    errors.returnDate ? "border-destructive" : ""
-                  }`}
+                  placeholder="June 1, 2025"
+                  className="bg-background pr-10 dark:text-gray-light text-gray-dark"
                   onChange={(e) => {
                     const date = new Date(e.target.value);
                     setValue(e.target.value);
                     if (isValidDate(date)) {
                       setDate(date);
                       setMonth(date);
-                      setFormData((prev) => ({
-                        ...prev,
-                        returnDate: e.target.value,
-                      }));
                     }
                   }}
                   onKeyDown={(e) => {
@@ -242,7 +224,6 @@ export default function AssetDialog({
                   <PopoverTrigger asChild>
                     <Button
                       id="date-picker"
-                      type="button"
                       variant="ghost"
                       className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
                     >
@@ -262,64 +243,81 @@ export default function AssetDialog({
                       captionLayout="dropdown"
                       month={month}
                       onMonthChange={setMonth}
-                      disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const maxDate = new Date();
-                        maxDate.setDate(maxDate.getDate() + 30);
-                        return date < today || date > maxDate;
-                      }}
-                      onSelect={(selectedDate) => {
-                        setDate(selectedDate);
-                        setValue(formatDate(selectedDate));
-                        setFormData((prev) => ({
-                          ...prev,
-                          returnDate: selectedDate
-                            ? selectedDate.toISOString().split("T")[0]
-                            : "",
-                        }));
+                      onSelect={(date) => {
+                        setDate(date);
+                        setValue(formatDate(date));
                         setOpen(false);
                       }}
                     />
                   </PopoverContent>
                 </Popover>
               </div>
-              {errors.returnDate && (
-                <p className="text-sm text-destructive">{errors.returnDate}</p>
-              )}
             </div>
 
             {/* Purpose */}
-            <TextInput
-              title="Purpose of Use"
-              description="Describe how you plan to use this asset. Include project details, course requirements, or event information."
-              placeholder="e.g., Final year project photography, Technical fest documentation, Course assignment..."
-              isParagraph
-              isRequired
-              value={formData.purpose}
-              onChange={(value) => {
-                if (value.length <= 300) {
-                  setFormData((prev) => ({ ...prev, purpose: value }));
-                }
-              }}
-              errorMessage={errors.purpose}
-            />
-            <div className="flex justify-end text-sm text-muted-foreground -mt-4">
-              <span>{formData.purpose.length}/300</span>
+            <div className="space-y-2">
+              <Label htmlFor="purpose" className="text-base font-medium">
+                Purpose of Use *
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Describe how you plan to use this asset. Include project
+                details, course requirements, or event information.
+              </p>
+              <Textarea
+                id="purpose"
+                placeholder="e.g., Final year project photography, Technical fest documentation, Course assignment..."
+                value={formData.purpose}
+                onChange={(e) => {
+                  if (e.target.value.length <= 300) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      purpose: e.target.value,
+                    }));
+                  }
+                }}
+                className={`min-h-[100px] ${
+                  errors.purpose ? "border-destructive" : ""
+                }`}
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>
+                  {errors.purpose && (
+                    <span className="text-destructive">{errors.purpose}</span>
+                  )}
+                </span>
+                <span>{formData.purpose.length}/300</span>
+              </div>
             </div>
 
             {/* Phone Number */}
-            <PhoneInput
-              title="Contact Number"
-              description="Provide a valid 10-digit mobile number for communication regarding your request."
-              placeholder="9876543210"
-              isRequired
-              value={formData.phoneNumber}
-              onChange={(value) =>
-                setFormData((prev) => ({ ...prev, phoneNumber: value }))
-              }
-              errorMessage={errors.phoneNumber}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber" className="text-base font-medium">
+                Contact Number *
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Provide a valid 10-digit mobile number for communication
+                regarding your request.
+              </p>
+              <div className="flex">
+                <div className="flex items-center px-3 bg-muted border border-r-0 rounded-l-md">
+                  <Phone className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">+91</span>
+                </div>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="9876543210"
+                  value={formData.phoneNumber}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  className={`rounded-l-none ${
+                    errors.phoneNumber ? "border-destructive" : ""
+                  }`}
+                />
+              </div>
+              {errors.phoneNumber && (
+                <p className="text-sm text-destructive">{errors.phoneNumber}</p>
+              )}
+            </div>
 
             {/* Undertaking */}
             <div className="space-y-4">
@@ -372,16 +370,12 @@ export default function AssetDialog({
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Asset:</span>
-                    <p className="font-medium">{asset.name}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Type:</span>
-                    <p className="font-medium">{asset.type}</p>
+                    <p className="font-medium">{asset.title}</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Return Date:</span>
                     <p className="font-medium">
-                      {value || "Not specified"}
+                      {formData.returnDate || "Not specified"}
                     </p>
                   </div>
                   <div>
@@ -403,21 +397,8 @@ export default function AssetDialog({
 
               <Separator />
 
-              {/* Agreement Checkbox */}
-              <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5">
-                <CheckboxComponent
-                  title="I agree to the terms and conditions outlined above"
-                  isRequired
-                  value={formData.agreedToTerms}
-                  onChange={(checked) =>
-                    setFormData((prev) => ({ ...prev, agreedToTerms: checked }))
-                  }
-                  errorMessage={errors.agreedToTerms}
-                />
-              </div>
-
               {/* Contact Information */}
-              <div className="text-center space-y-2 pt-4">
+              <div className="text-center space-y-2">
                 <h4 className="font-medium">For queries and support:</h4>
                 <div className="text-sm text-muted-foreground mb-3">
                   <p>
@@ -432,25 +413,20 @@ export default function AssetDialog({
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="flex justify-between pt-4 border-t">
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Close
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  !formData.returnDate ||
-                  !formData.purpose.trim() ||
-                  formData.phoneNumber.length !== 10 ||
-                  !formData.agreedToTerms
-                }
-                className="min-w-[120px]"
-              >
-                Request Asset
-              </Button>
-            </div>
-          </form>
+          <div className="flex justify-between pt-4 border-t">
+            <Button variant="outline" onClick={handleClose}>
+              Close
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!hasScrolledToBottom}
+              className="min-w-[120px]"
+            >
+              {!hasScrolledToBottom ? "Scroll to Continue" : "Submit Request"}
+            </Button>
+          </div>
         </ScrollArea>
       </DialogContent>
     </Dialog>
