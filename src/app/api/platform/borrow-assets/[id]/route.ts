@@ -6,7 +6,7 @@ import { getCurrentDateISTString, isBeforeTodayIST } from '@/lib/date-utils';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get authenticated user
@@ -19,7 +19,7 @@ export async function POST(
       );
     }
 
-    const assetId = params.id;
+    const { id: assetId } = await params;
     
     // Parse the request body
     const body = await request.json();
@@ -195,7 +195,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get authenticated user
@@ -208,7 +208,7 @@ export async function GET(
       );
     }
 
-    const assetId = params.id;
+    const { id: assetId } = await params;
 
     // Get borrow requests for this asset
     const borrowRequests = await strapiGet('/borrow-requests', {
