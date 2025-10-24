@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge"
 interface PoolData {
   id: string
   attributes: {
-    journey: string
+    From: string
+    To: string
     time: string
     day: string
     status: string
@@ -140,7 +141,7 @@ export default function ActivePoolRequest({ userPool }: ActivePoolRequestProps) 
             <Label className="text-sm font-medium text-muted-foreground">Route</Label>
             <div className="p-3 bg-muted rounded-md flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{userPool.attributes.journey}</span>
+              <span className="text-sm">{userPool.attributes.From} → {userPool.attributes.To}</span>
             </div>
           </div>
         </div>
