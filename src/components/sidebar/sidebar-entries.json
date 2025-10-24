@@ -61,6 +61,11 @@
           "title": "Pool a Cab",
           "icon": "Car",
           "href": "/pool-cab"
+        },
+        {
+          "title": "Pool Subscriptions",
+          "icon": "Users",
+          "href": "/pool-subscription"
         }
       ]
     },
