@@ -16,7 +16,8 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
   const [selectedTypes, setSelectedTypes] = useState<Set<AssetType>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const handleToggleBookmark = (assetId: string) => {
+  const handleToggleBookmark = async (assetId: string) => {
+    // Optimistically update the UI
     setAssets((prevAssets) =>
       prevAssets.map((asset) =>
         asset.id === assetId
@@ -24,6 +25,42 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
           : asset
       )
     );
+
+    try {
+      // Call the API to update bookmark status
+      const response = await fetch('/api/platform/borrow-assets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'bookmark',
+          assetId,
+        }),
+      });
+
+      if (!response.ok) {
+        // Revert the optimistic update if the API call failed
+        setAssets((prevAssets) =>
+          prevAssets.map((asset) =>
+            asset.id === assetId
+              ? { ...asset, bookmarked: !asset.bookmarked }
+              : asset
+          )
+        );
+        console.error('Failed to update bookmark status');
+      }
+    } catch (error) {
+      // Revert the optimistic update if there was an error
+      setAssets((prevAssets) =>
+        prevAssets.map((asset) =>
+          asset.id === assetId
+            ? { ...asset, bookmarked: !asset.bookmarked }
+            : asset
+        )
+      );
+      console.error('Error updating bookmark status:', error);
+    }
   };
 
   const handleTabChange = (newTab: AssetTab) => {
@@ -165,7 +202,7 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
 
             {availableAssets.length === 0 && unavailableAssets.length === 0 && (
               <div className="text-center py-12 text-gray-500">
-                No assets found matching your filters.
+                {assets.length === 0 ? 'No assets available at the moment.' : 'No assets found matching your filters.'}
               </div>
             )}
           </>

@@ -16,7 +16,7 @@ interface AssetCardProps {
 
 export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCardProps) {
   const isAvailable = asset.status === 'available';
-
+  
   return (
     <Card className={cn(
       "flex flex-col h-full overflow-hidden transition-opacity",
@@ -24,17 +24,17 @@ export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCar
     )}>
       <CardHeader className="relative p-0">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
-          {asset.imageUrl ? (
+          {asset.Image?.url ? (
             <Image
-              src={asset.imageUrl}
-              alt={asset.name}
+              src={asset.Image.url}
+              alt={asset.Image.alternativeText || asset.name}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-              Missing Image
+            <div className="flex items-center justify-center h-full bg-gray-100 text-gray-400 text-sm">
+              No Image Available
             </div>
           )}
           <button
@@ -55,17 +55,25 @@ export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCar
       </CardHeader>
       <CardContent className="flex-1 p-4">
         <CardTitle className="text-lg mb-2">{asset.name}</CardTitle>
+        {asset.model && (
+          <p className="text-sm text-gray-600 mb-2 font-medium">Model: {asset.model}</p>
+        )}
         <CardDescription className="text-sm mb-3 line-clamp-2">
           {asset.description}
         </CardDescription>
         <div className="flex items-center gap-2 mb-2">
-          <Badge variant="secondary" className="text-xs">
-            {asset.type}
+          <Badge variant="secondary" className="text-xs capitalize">
+            {asset.type === 'mobile' ? 'Mobile Phone' : asset.type}
           </Badge>
+          {asset.bookmarked && (
+            <Badge variant="outline" className="text-xs">
+              ⭐ Bookmarked
+            </Badge>
+          )}
         </div>
-        {!isAvailable && asset.overdueDate && (
+        {!isAvailable && asset.last_borrow_request && (
           <p className="text-xs text-gray-600">
-            Overdue Since: {asset.overdueDate}
+            Last borrowed: {new Date(asset.last_borrow_request.updatedAt).toLocaleDateString()}
           </p>
         )}
       </CardContent>
