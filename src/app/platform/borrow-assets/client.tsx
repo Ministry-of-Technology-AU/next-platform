@@ -16,6 +16,20 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
   const [selectedTypes, setSelectedTypes] = useState<Set<AssetType>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  const refreshAssets = async () => {
+    try {
+      const response = await fetch('/api/platform/borrow-assets');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setAssets(data.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing assets:', error);
+    }
+  };
+
   const handleToggleBookmark = async (assetId: string) => {
     // Optimistically update the UI
     setAssets((prevAssets) =>
@@ -135,14 +149,18 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
 
     return {
       availableAssets: filtered.filter((asset) => asset.status === 'available'),
-      unavailableAssets: filtered.filter((asset) => asset.status === 'unavailable'),
+      unavailableAssets: filtered.filter((asset) => 
+        asset.status === 'borrowed' || 
+        asset.status === 'overdue' || 
+        asset.status === 'unavailable'
+      ),
       techminBookmarks: [],
       jazbaaBookmarks: [],
     };
   }, [assets, selectedTab, selectedTypes, searchQuery]);
 
   return (
-    <div>
+    <div className='mt-6'>
       <FilterBar
         selectedTab={selectedTab}
         onTabChange={handleTabChange}
@@ -189,6 +207,7 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
                 assets={availableAssets}
                 title="Available"
                 onToggleBookmark={handleToggleBookmark}
+                onRequestSuccess={refreshAssets}
               />
             )}
 
@@ -197,6 +216,7 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
                 assets={unavailableAssets}
                 title="Currently Unavailable"
                 onToggleBookmark={handleToggleBookmark}
+                onRequestSuccess={refreshAssets}
               />
             )}
 

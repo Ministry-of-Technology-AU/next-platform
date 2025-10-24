@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { strapiGet, strapiPut } from "@/lib/apis/strapi";
 import { getUserIdByEmail } from "@/lib/userid";
 import { Asset, BorrowRequest } from "@/app/platform/borrow-assets/types";
+import { isOverdueIST } from "@/lib/date-utils";
 
 /**
  * GET handler for /api/platform/borrow-assets
@@ -32,8 +33,20 @@ export async function GET(request: NextRequest) {
     const [assetsResponse, userResponse] = await Promise.all([
       strapiGet(`/assets`, {
         populate: {
-          borrow_requests: true,
-          last_borrow_request: true,
+          borrow_requests: {
+            populate: {
+              user: true,
+              issued_by: true,
+              returned_to: true
+            }
+          },
+          last_borrow_request: {
+            populate: {
+              user: true,
+              issued_by: true,
+              returned_to: true
+            }
+          },
           Image: true
         }
       }),
@@ -62,11 +75,26 @@ export async function GET(request: NextRequest) {
       const attributes = strapiAsset.attributes;
       
       // Determine status based on last_borrow_request
-      let status: 'available' | 'unavailable' = 'available';
+      let status: 'available' | 'borrowed' | 'overdue' | 'unavailable' = 'available';
+      
       if (attributes.last_borrow_request?.data) {
-        // If there's a last borrow request, check if it's still active
-        // You might want to add logic here based on your borrow request schema
-        status = 'unavailable';
+        const lastRequest = attributes.last_borrow_request.data.attributes;
+        
+        // Check if the asset is currently issued (borrowed)
+        if (lastRequest.issued === 1 && lastRequest.returned !== 1) {
+          // Check if the return date has passed in IST
+          if (isOverdueIST(lastRequest.to)) {
+            status = 'overdue';
+          } else {
+            status = 'borrowed';
+          }
+        } else if (lastRequest.issued !== 1) {
+          // Request exists but not yet issued - still available
+          status = 'available';
+        } else if (lastRequest.returned === 1) {
+          // Request was completed - available again
+          status = 'available';
+        }
       }
 
       // Build the full image URL if it's a relative URL

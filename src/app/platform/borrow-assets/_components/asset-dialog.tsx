@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { Package, AlertTriangle, CalendarIcon } from "lucide-react";
+import { getCurrentDateISTString, isBeforeTodayIST } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -40,6 +41,7 @@ interface AssetRequestDialogProps {
   asset: Asset | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onRequestSuccess?: () => void;
 }
 
 function formatDate(date: Date | undefined) {
@@ -64,6 +66,7 @@ export default function AssetDialog({
   asset,
   isOpen,
   onOpenChange,
+  onRequestSuccess,
 }: AssetRequestDialogProps) {
   const [formData, setFormData] = useState<FormData>({
     returnDate: "",
@@ -76,6 +79,35 @@ export default function AssetDialog({
   const [date, setDate] = React.useState<Date | undefined>(undefined);
   const [month, setMonth] = React.useState<Date | undefined>(new Date());
   const [value, setValue] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingPhone, setIsLoadingPhone] = useState(false);
+
+  // Fetch user phone number when dialog opens
+  React.useEffect(() => {
+    const fetchUserPhone = async () => {
+      if (!isOpen) return;
+      
+      setIsLoadingPhone(true);
+      try {
+        const response = await fetch('/api/platform/profile');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.data?.phone_number) {
+            setFormData(prev => ({
+              ...prev,
+              phoneNumber: result.data.phone_number
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user phone:', error);
+      } finally {
+        setIsLoadingPhone(false);
+      }
+    };
+
+    fetchUserPhone();
+  }, [isOpen]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -84,14 +116,14 @@ export default function AssetDialog({
       newErrors.returnDate = "Return date is required";
     } else {
       const selectedDate = new Date(formData.returnDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const todayIST = getCurrentDateISTString();
+      const todayDate = new Date(todayIST);
       
-      const maxDate = new Date();
+      const maxDate = new Date(todayDate);
       maxDate.setDate(maxDate.getDate() + 30);
       
-      if (selectedDate < today) {
-        newErrors.returnDate = "Return date cannot be in the past";
+      if (isBeforeTodayIST(formData.returnDate)) {
+        newErrors.returnDate = "Return date cannot be before today";
       } else if (selectedDate > maxDate) {
         newErrors.returnDate = "Maximum borrowing period is 30 days";
       }
@@ -119,7 +151,7 @@ export default function AssetDialog({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -130,32 +162,37 @@ export default function AssetDialog({
       return;
     }
 
-    // Placeholder function - will post to Strapi later
-    console.log("Form submission data:", {
-      asset: {
-        id: asset.id,
-        name: asset.name,
-        description: asset.description,
-        tab: asset.tab,
-        type: asset.type,
-      },
-      formData: {
-        returnDate: formData.returnDate,
-        purpose: formData.purpose,
-        phoneNumber: formData.phoneNumber,
-        agreedToTerms: formData.agreedToTerms,
-      },
-      submittedAt: new Date().toISOString(),
-    });
+    setIsSubmitting(true);
 
-    // TODO: Replace with actual Strapi API call
-    // Example:
-    // await fetch('/api/asset-requests', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ asset, formData }),
-    // });
+    try {
+      const response = await fetch(`/api/platform/borrow-assets/${asset.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: getCurrentDateISTString(), // Today's date in IST
+          to: formData.returnDate,
+          reason: formData.purpose,
+        }),
+      });
 
-    handleClose();
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit request');
+      }
+
+      // Success! Show success message or redirect
+      alert('Asset request submitted successfully! You will receive a confirmation email shortly.');
+      onRequestSuccess?.();
+      handleClose();
+    } catch (error) {
+      console.error('Error submitting request:', error);
+      alert(error instanceof Error ? error.message : 'Failed to submit request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -263,11 +300,12 @@ export default function AssetDialog({
                       month={month}
                       onMonthChange={setMonth}
                       disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const maxDate = new Date();
+                        const todayIST = new Date(getCurrentDateISTString());
+                        const maxDate = new Date(todayIST);
                         maxDate.setDate(maxDate.getDate() + 30);
-                        return date < today || date > maxDate;
+                        
+                        // Allow today's date, but not before today
+                        return date < todayIST || date > maxDate;
                       }}
                       onSelect={(selectedDate) => {
                         setDate(selectedDate);
@@ -311,7 +349,7 @@ export default function AssetDialog({
             {/* Phone Number */}
             <PhoneInput
               title="Contact Number"
-              description="Provide a valid 10-digit mobile number for communication regarding your request."
+              description={isLoadingPhone ? "Fetching your contact number..." : "Your registered contact number for communication regarding your request."}
               placeholder="9876543210"
               isRequired
               value={formData.phoneNumber}
@@ -440,6 +478,7 @@ export default function AssetDialog({
               <Button
                 type="submit"
                 disabled={
+                  isSubmitting ||
                   !formData.returnDate ||
                   !formData.purpose.trim() ||
                   formData.phoneNumber.length !== 10 ||
@@ -447,7 +486,7 @@ export default function AssetDialog({
                 }
                 className="min-w-[120px]"
               >
-                Request Asset
+                {isSubmitting ? 'Submitting...' : 'Request Asset'}
               </Button>
             </div>
           </form>

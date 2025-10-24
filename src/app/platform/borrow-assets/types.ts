@@ -1,14 +1,52 @@
-export type AssetStatus = 'available' | 'unavailable';
+export type AssetStatus = 'available' | 'borrowed' | 'overdue' | 'unavailable';
 
 export type AssetTab = 'All' | 'Techmin' | 'Jazbaa' | 'Bookmarks';
 
 export type AssetType = 'mobile' | 'cable' | 'adapter';
 
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  // Add other user fields as needed
+}
+
 export interface BorrowRequest {
-  id: string;
-  // Add other borrow request fields as needed
+  id: number;
+  from: string; // date
+  to: string; // date
+  issued?: number; // 0 or 1
+  returned?: number; // 0 or 1
+  user: {
+    data: User;
+  };
+  asset: {
+    data: Asset;
+  };
+  reason: string;
+  issued_by?: {
+    data: User;
+  };
+  returned_to?: {
+    data: User;
+  };
+  is_the_latest_booking_of?: {
+    data: Asset;
+  };
+  issued_on?: string; // date
+  returned_on?: string; // date
   createdAt: string;
   updatedAt: string;
+  publishedAt: string;
+}
+
+export interface CreateBorrowRequestData {
+  from: string;
+  to: string;
+  user: number;
+  asset: number;
+  reason: string;
+  issued_on?: string; // Optional, set when request is created
 }
 
 export interface Asset {

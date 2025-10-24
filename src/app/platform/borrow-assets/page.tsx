@@ -1,4 +1,3 @@
-import { sampleAssets } from './data';
 import { BorrowAssetsClient } from './client';
 import PageTitle from '@/components/page-title';
 import { ShoppingBag } from 'lucide-react';
