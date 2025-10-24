@@ -4,7 +4,7 @@ import * as React from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useIsMac } from "@/hooks/useIsMac";
 import { Button } from "@/components/ui/button";
-import { User, Newspaper, HelpCircle, LogOut, UserPen, LogIn } from "lucide-react";
+import { User, Newspaper, HelpCircle, LogOut, UserPen, LogIn, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -15,10 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -26,12 +22,100 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+} from "@/components/ui/command";
 import { TourTrigger } from "./guided-tour";
 import { SidebarTrigger } from "./ui/sidebar";
 import ThemeToggle from "@/components/ui/theme-toggle";
 import ClientOnly from "./client-only";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import sidebarEntries from "@/components/sidebar/sidebar-entries.json";
 
+// Search Command Component
+const SearchCommand = React.memo(function SearchCommand() {
+  const [open, setOpen] = React.useState(false);
+  const router = useRouter();
+  const isMac = useIsMac();
+
+  // Keyboard shortcut listener
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((open) => !open);
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  const handleSelect = (href: string) => {
+    setOpen(false);
+    router.push(`/platform${href}`);
+  };
+
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setOpen(true)}
+            className="relative h-8 w-8 p-0 xl:h-9 xl:w-60 xl:justify-start xl:px-3 xl:py-2"
+          >
+            <Search className="h-4 w-4 xl:mr-2" />
+            <span className="hidden xl:inline-flex">Search features...</span>
+            <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 xl:flex">
+              <span className="text-xs">{isMac ? "⌘" : "Ctrl"}</span>K
+            </kbd>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent className="xl:hidden">
+          <p className="text-sm">
+            Search features
+            <br />
+            <span className="text-xs text-muted-foreground">
+              {isMac ? "⌘" : "Ctrl"} + K
+            </span>
+          </p>
+        </TooltipContent>
+      </Tooltip>
+
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput placeholder="Search features..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          {sidebarEntries.categories.map((category) => (
+            <React.Fragment key={category.id}>
+              <CommandGroup heading={category.title}>
+                {category.items.map((item) => (
+                  <CommandItem
+                    key={item.href}
+                    onSelect={() => handleSelect(item.href)}
+                    className="cursor-pointer"
+                  >
+                    <span>{item.title}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+              <CommandSeparator />
+            </React.Fragment>
+          ))}
+        </CommandList>
+      </CommandDialog>
+    </>
+  );
+});
 
 // Authentication Section Component
 const AuthSection = React.memo(function AuthSection() {
@@ -144,8 +228,11 @@ export default function Navbar() {
         </Tooltip>
       </div>
 
-      {/* Right: Help, Feedback, theme toggle, profile */}
+      {/* Right: Search, Help, Feedback, theme toggle, profile */}
       <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 ml-auto">
+        {/* Search Command */}
+        <SearchCommand />
+        
         {/* Help button - Launches global tooltips */}
         <Tooltip>
           <TourTrigger>
