@@ -33,7 +33,8 @@ interface UserData {
 interface PoolData {
   id: string
   attributes: {
-    journey: string
+    From: string
+    To: string
     time: string
     day: string
     status: string
@@ -123,9 +124,10 @@ export default function PoolCabResults() {
     let filtered = pools.filter(pool => pool.attributes.status === 'available')
 
     if (searchTerm) {
-      filtered = filtered.filter(pool =>
-        pool.attributes.journey.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = filtered.filter(pool => {
+        const routeLabel = `${pool.attributes.From} ${pool.attributes.To}`
+        return routeLabel.toLowerCase().includes(searchTerm.toLowerCase())
+      })
     }
 
     if (dayFilter && dayFilter !== "all") {
@@ -133,7 +135,7 @@ export default function PoolCabResults() {
     }
 
     if (routeFilter && routeFilter !== "all") {
-      filtered = filtered.filter(pool => pool.attributes.journey === routeFilter)
+      filtered = filtered.filter(pool => `${pool.attributes.From} → ${pool.attributes.To}` === routeFilter)
     }
 
     setFilteredPools(filtered)
@@ -141,7 +143,7 @@ export default function PoolCabResults() {
 
   // Get unique routes and days for filters
   const uniqueRoutes = React.useMemo(() => {
-    const routes = [...new Set(pools.map(pool => pool.attributes.journey))]
+    const routes = [...new Set(pools.map(pool => `${pool.attributes.From} → ${pool.attributes.To}`))]
     return routes.sort()
   }, [pools])
 
@@ -162,7 +164,7 @@ export default function PoolCabResults() {
   const handleWhatsAppContact = (phoneNumber: string, pool: PoolData) => {
     const message = encodeURIComponent(
       `Hi! I found your cab pool request on the Platform by Techmin.\n\n` +
-      `Route: ${pool.attributes.journey}\n` +
+      `Route: ${pool.attributes.From} → ${pool.attributes.To}\n` +
       `Date: ${formatDate(pool.attributes.day)}\n` +
       `Time: ${formatTime(pool.attributes.time)}\n\n` +
       `I'm interested in joining your trip!`
@@ -176,7 +178,7 @@ export default function PoolCabResults() {
       `Hi,\n\n` +
       `I found your cab pool request on the Platform by Techmin, and I'm interested in joining your trip.\n\n` +
       `Details:\n` +
-      `Route: ${pool.attributes.journey}\n` +
+      `Route: ${pool.attributes.From} → ${pool.attributes.To}\n` +
       `Date: ${formatDate(pool.attributes.day)}\n` +
       `Time: ${formatTime(pool.attributes.time)}\n\n` +
       `Please let me know if you're still looking for someone to share the cab.\n\n` +
@@ -412,7 +414,7 @@ export default function PoolCabResults() {
                         </span>
                         <span className="flex items-center gap-1 min-w-0">
                           <MapPin className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{pool.attributes.journey}</span>
+                          <span className="truncate">{pool.attributes.From} → {pool.attributes.To}</span>
                         </span>
                         <span className="flex items-center gap-1 whitespace-nowrap">
                           <Calendar className="h-3 w-3 flex-shrink-0" />
@@ -532,7 +534,7 @@ export default function PoolCabResults() {
                   <Label className="text-xs sm:text-sm font-medium text-muted-foreground">Route</Label>
                   <div className="mt-1 p-2.5 sm:p-3 bg-muted rounded-md flex items-center gap-2">
                     <MapPin className="h-4 w-4 flex-shrink-0" />
-                    <span className="text-sm sm:text-base truncate">{userPool.attributes.journey}</span>
+                    <span className="text-sm sm:text-base truncate">{userPool.attributes.From} → {userPool.attributes.To}</span>
                   </div>
                 </div>
 

@@ -91,20 +91,19 @@ export default function PoolCabForm() {
   // Location options
   const locationOptions = [
     { value: "Campus", label: "Campus" },
-    { value: "New Delhi", label: "New Delhi" },
-    { value: "Gurgaon", label: "Gurgaon" },
-    { value: "Noida", label: "Noida" },
+    { value: "Jahangirpuri", label: "Jahangirpuri" },
+    { value: "Azadpur", label: "Azadpur" },
     { value: "Airport (T1)", label: "Airport (T1)" },
     { value: "Airport (T2)", label: "Airport (T2)" },
     { value: "Airport (T3)", label: "Airport (T3)" },
-    { value: "Jahangirpuri", label: "Jahangirpuri" },
-    { value: "Azadpur", label: "Azadpur" },
-    { value: "Chandigarh", label: "Chandigarh" },
+    { value: "New Delhi", label: "New Delhi" },
     { value: "Jaipur", label: "Jaipur" },
+    { value: "Noida", label: "Noida" },
+    { value: "Gurgaon", label: "Gurgaon" },
     { value: "Ludhiana", label: "Ludhiana" },
-    { value: "Ghaziabad", label: "Ghaziabad" },
-    { value: "Nizamuddin", label: "Nizamuddin" },
     { value: "Agra", label: "Agra" },
+    { value: "Nizamuddin", label: "Nizamuddin" },
+    { value: "Ghaziabad", label: "Ghaziabad" },
   ]
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -14,108 +14,28 @@ function sanitizeInput(input: string): string {
   return input.trim().replace(/[<>]/g, '')
 }
 
-// Valid journey values from Strapi enum
-const VALID_JOURNEYS = [
-  "airport to campus",
-  "airport(T1) to campus",
-  "airport(T2) to campus",
-  "airport(T3) to campus",
-  "campus to airport",
-  "campus to airport(T1)",
-  "campus to airport(T2)",
-  "campus to airport(T3)",
-  "airport to jahangirpuri",
-  "jahangirpuri to airport",
-  "airport to azadpur",
-  "azadpur to airport",
-  "jahangirpuri to campus",
-  "azadpur to campus",
-  "campus to jahangirpuri",
-  "campus to azadpur",
-  "campus to new delhi",
-  "new delhi to campus",
-  "new delhi to jahangirpuri",
-  "jahangirpuri to new delhi",
-  "gurgaon to campus",
-  "campus to gurgaon",
-  "campus to chandigarh",
-  "chandigarh to campus",
-  "campus to jaipur",
-  "jaipur to campus",
-  "campus to ludhiana",
-  "ludhiana to campus",
-  "campus to noida",
-  "noida to campus",
-  "campus to ghaziabad",
-  "ghaziabad to campus",
-  "campus to nizamuddin",
-  "nizamuddin to campus",
-  "campus to agra",
-  "agra to campus"
-];
+// Valid locations enum values (configured in Strapi). We validate incoming from/to against this set.
+const VALID_LOCATIONS = [
+  "Campus",
+  "Jahangirpuri",
+  "Azadpur",
+  "Airport (T1)",
+  "Airport (T2)",
+  "Airport (T3)",
+  "New Delhi",
+  "Jaipur",
+  "Noida",
+  "Gurgaon",
+  "Ludhiana",
+  "Agra",
+  "Nizamuddin",
+  "Ghaziabad",
+]
 
-// Helper function to map locations to Strapi journey enum values
-function mapToJourneyEnum(from: string, to: string): string | null {
-  const fromLower = sanitizeInput(from).toLowerCase()
-  const toLower = sanitizeInput(to).toLowerCase()
-
-  const journey = `${fromLower} to ${toLower}`
-
-  const mappings: Record<string, string> = {
-    "airport (t1) to campus": "airport(T1) to campus",
-    "airport (t2) to campus": "airport(T2) to campus",
-    "airport (t3) to campus": "airport(T3) to campus",
-    "campus to airport (t1)": "campus to airport(T1)",
-    "campus to airport (t2)": "campus to airport(T2)",
-    "campus to airport (t3)": "campus to airport(T3)",
-    "airport (t1) to jahangirpuri": "airport to jahangirpuri",
-    "airport (t2) to jahangirpuri": "airport to jahangirpuri",
-    "airport (t3) to jahangirpuri": "airport to jahangirpuri",
-    "jahangirpuri to airport (t1)": "jahangirpuri to airport",
-    "jahangirpuri to airport (t2)": "jahangirpuri to airport",
-    "jahangirpuri to airport (t3)": "jahangirpuri to airport",
-    "airport (t1) to azadpur": "airport to azadpur",
-    "airport (t2) to azadpur": "airport to azadpur",
-    "airport (t3) to azadpur": "airport to azadpur",
-    "azadpur to airport (t1)": "azadpur to airport",
-    "azadpur to airport (t2)": "azadpur to airport",
-    "azadpur to airport (t3)": "azadpur to airport",
-    "airport to jahangirpuri": "airport to jahangirpuri",
-    "jahangirpuri to airport": "jahangirpuri to airport",
-    "jahangirpuri to campus": "jahangirpuri to campus",
-    "azadpur to campus": "azadpur to campus",
-    "campus to jahangirpuri": "campus to jahangirpuri",
-    "campus to azadpur": "campus to azadpur",
-    "campus to new delhi": "campus to new delhi",
-    "new delhi to campus": "new delhi to campus",
-    "new delhi to jahangirpuri": "new delhi to jahangirpuri",
-    "jahangirpuri to new delhi": "jahangirpuri to new delhi",
-    "gurgaon to campus": "gurgaon to campus",
-    "campus to gurgaon": "campus to gurgaon",
-    "campus to chandigarh": "campus to chandigarh",
-    "chandigarh to campus": "chandigarh to campus",
-    "campus to jaipur": "campus to jaipur",
-    "jaipur to campus": "jaipur to campus",
-    "campus to ludhiana": "campus to ludhiana",
-    "ludhiana to campus": "ludhiana to campus",
-    "campus to noida": "campus to noida",
-    "noida to campus": "noida to campus",
-    "campus to ghaziabad": "campus to ghaziabad",
-    "ghaziabad to campus": "ghaziabad to campus",
-    "campus to nizamuddin": "campus to nizamuddin",
-    "nizamuddin to campus": "nizamuddin to campus",
-    "campus to agra": "campus to agra",
-    "agra to campus": "agra to campus"
-  }
-
-  const mapped = mappings[journey] || journey
-
-  // Validate against allowed journeys
-  if (!VALID_JOURNEYS.includes(mapped)) {
-    return null
-  }
-
-  return mapped
+function validateLocation(value: string): boolean {
+  if (!value) return false
+  const normalized = sanitizeInput(value).toLowerCase()
+  return VALID_LOCATIONS.some(v => v.toLowerCase() === normalized)
 }
 
 // Helper function to convert 12-hour time to 24-hour format
@@ -171,8 +91,6 @@ export async function GET(request: NextRequest) {
         sort: ['day:asc', 'time:asc']
       })
 
-      console.log("Pools response:", JSON.stringify(poolsResponse, null, 2))
-
       // Fetch user's pool separately (only show if status is 'available')
       const userPoolResponse = await strapiGet('/pools', {
         filters: {
@@ -192,8 +110,6 @@ export async function GET(request: NextRequest) {
           limit: 1
         }
       })
-
-      console.log("User pool response:", JSON.stringify(userPoolResponse, null, 2))
 
       return NextResponse.json({
         success: true,
@@ -391,22 +307,23 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Map locations to journey enum
-    const journey = mapToJourneyEnum(actualFromLocation, actualToLocation)
+    // Validate provided locations against allowed list (Strapi now has separate From/To enum fields)
+    const fromSan = sanitizeInput(actualFromLocation)
+    const toSan = sanitizeInput(actualToLocation)
 
-    // Validate journey
-    if (!journey) {
-      console.log(`Invalid journey combination: ${actualFromLocation} to ${actualToLocation}`)
+    if (!validateLocation(fromSan) || !validateLocation(toSan)) {
+      console.log(`Invalid from/to values: ${actualFromLocation} -> ${actualToLocation}`)
       return NextResponse.json({
         success: false,
-        error: `Invalid journey combination: ${actualFromLocation} to ${actualToLocation}. Please select a valid route.`
+        error: `Invalid From or To value. Allowed locations: ${VALID_LOCATIONS.join(', ')}`
       }, { status: 400 })
     }
 
-    // Prepare data for Strapi
+    // Prepare data for Strapi (send separate from/to fields)
     const poolData = {
       data: {
-        journey: journey,
+        From: fromSan,
+        To: toSan,
         time: time24,
         day: actualDate,
         status: "available",
