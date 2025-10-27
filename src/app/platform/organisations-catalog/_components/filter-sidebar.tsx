@@ -10,7 +10,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChecklistProgress, ChecklistItem } from './checklist-progress';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -29,6 +28,7 @@ import {
 import { OrganizationType, Organization } from '../types';
 import { defaultColors } from '../../events-calendar/data/calendar-data';
 import { useCategoryColors } from './category-colors-context';
+import { toast } from 'sonner';
 
 interface FilterPreferences {
   selectedOrganizations: string[];
@@ -90,16 +90,20 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
     fetchOrganizations();
   }, []);
 
-  // Fetch checklist from user
+  // Replace session API with a fetch to Strapi user profile, using a dedicated endpoint
   React.useEffect(() => {
     const fetchChecklist = async () => {
       try {
         setChecklistLoading(true);
-        const response = await fetch('/api/auth/session');
-        const sessionData = await response.json();
-        
-        if (sessionData?.user?.orgs_checklist) {
-          const items = sessionData.user.orgs_checklist.map((item: OrgsChecklistItem) => ({
+        // Get checklist by calling dedicated organisations-catalogue/user-checklist endpoint
+        // Expect a JSON object with a `checklist` array field from the Strapi user object
+        const response = await fetch('/api/platform/organisations-catalogue/checklist', {
+          credentials: 'include', // forward cookies if on server
+        });
+        const data = await response.json();
+        console.log('Checklist raw response:', data); // LOG FOR DEBUG
+        if (data?.success && Array.isArray(data.checklist)) {
+          const items = data.checklist.map((item: OrgsChecklistItem) => ({
             id: item.name.toLowerCase().replace(/\s+/g, '-'),
             label: item.name,
             deadline: item.deadline,
@@ -110,13 +114,12 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
           setChecklistItems([]);
         }
       } catch (error) {
-        console.error('Error fetching checklist:', error);
+        console.error('Error fetching checklist from Strapi user:', error);
         setChecklistItems([]);
       } finally {
         setChecklistLoading(false);
       }
     };
-
     fetchChecklist();
   }, []);
 
@@ -199,29 +202,33 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
   const handleSavePreferences = async () => {
     try {
       setIsSaving(true);
-
+      // Transform checklistItems to API format: { name, deadline, isDone }
+      const checklistToPost = checklistItems.map((item) => ({
+        name: item.label,
+        deadline: item.deadline,
+        isDone: item.completed,
+      }));
       const response = await fetch('/api/platform/organisations-catalogue/preferences', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ preferences }),
+        body: JSON.stringify({ preferences, checklist: checklistToPost }),
+        credentials: 'include', // handle cookies
       });
-
       if (!response.ok) {
         throw new Error(`Failed to save preferences: ${response.statusText}`);
       }
-
       const data = await response.json();
-
       if (data && data.data) {
-        setPreferences(data.data);
+        setPreferences(data.data.orgs_catalogue_filter_preferences || preferences);
+        toast.success('Preferences saved successfully!');
+      } else {
+        toast.success('Preferences saved!');
       }
-
-      alert('Preferences saved successfully!');
     } catch (error) {
       console.error('Error saving preferences:', error);
-      alert(`Error saving preferences: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error saving preferences: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSaving(false);
     }
@@ -248,14 +255,14 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
         </Button>
       </SheetTrigger>
 
-      <SheetContent className="w-96 overflow-y-auto px-5">
+      <SheetContent className="overflow-y-auto px-5">
         <SheetHeader>
-          <SheetTitle>Filters and Preferences</SheetTitle>
+          <SheetTitle className='text-xs'>Filters and Preferences</SheetTitle>
         </SheetHeader>
 
         <div className="space-y-6">
           {/* My Club Checklist Section */}
-          <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50">
+          <div className="border border-neutral-200 rounded-lg p-4">
             <h3 className="font-medium mb-3">My Club Checklist</h3>
             {checklistLoading ? (
               <div className="space-y-3">

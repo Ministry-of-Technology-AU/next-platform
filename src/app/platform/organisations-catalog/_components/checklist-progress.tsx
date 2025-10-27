@@ -14,6 +14,15 @@ interface ChecklistProgressProps {
   onToggleItem: (itemId: string) => void;
 }
 
+function formatDDMM(d: string) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  const day = String(dt.getDate()).padStart(2, '0');
+  const month = String(dt.getMonth() + 1).padStart(2, '0');
+  return `${day}/${month}`;
+}
+
 export function ChecklistProgress({ items, onToggleItem }: ChecklistProgressProps) {
   const completedItems = items.filter((item) => item.completed).length;
   const progressPercentage = (completedItems / items.length) * 100;
@@ -53,7 +62,7 @@ export function ChecklistProgress({ items, onToggleItem }: ChecklistProgressProp
                   ? 'text-neutral-500 line-through'
                   : 'text-neutral-600'
               }`}>
-                {item.label} : {item.deadline}
+                {item.label} : <span className="text-sm text-primary font-extrabold">{formatDDMM(item.deadline)}</span>
               </span>
             </div>
           ))}

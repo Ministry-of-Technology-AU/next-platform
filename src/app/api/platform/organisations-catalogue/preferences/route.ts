@@ -13,9 +13,8 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
-
     const userEmail = session.user.email;
-    const { preferences } = await request.json();
+    const { preferences, checklist } = await request.json();
 
     if (!preferences) {
       return NextResponse.json(
@@ -34,21 +33,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update user's filter preferences in Strapi
-    const response = await strapiPut(`/users/${userId}`, {
+    // Prepare update body (update filter preferences and checklist)
+    const body = {
       orgs_catalogue_filter_preferences: preferences,
-    });
-
+      orgs_checklist: checklist || [],
+    };
+    // Save both to Strapi
+    const response = await strapiPut(`/users/${userId}`, body);
     return NextResponse.json({
       success: true,
       data: response,
     });
   } catch (error) {
-    console.error('Error saving filter preferences:', error);
+    console.error('Error saving filter preferences/checklist:', error);
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Failed to save preferences'
+        error: error instanceof Error ? error.message : 'Failed to save preferences/checklist'
       },
       { status: 500 }
     );

@@ -65,10 +65,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
     >
       <MorphingDialogTrigger
         className="group relative flex flex-col overflow-hidden border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-lg"
-        style={{
-          borderRadius: '24px',
-          borderColor: getCategoryColor(organization.type),
-        }}
+        style={{ borderRadius: '24px' }}
       >
         <div
           className="relative"
