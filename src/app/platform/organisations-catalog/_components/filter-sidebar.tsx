@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Filter } from 'lucide-react';
+import { Filter, Save, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -11,60 +11,118 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ChecklistProgress, ChecklistItem } from './checklist-progress';
-import { OrganizationFilters, FilterCategory } from './organisation-filter';
-import { OrganizationType } from '../types';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
+import {
+  Accordion11,
+  Accordion11Content,
+  Accordion11Item,
+  Accordion11Trigger,
+} from '@/components/ui/shadcn-io/accordion-11';
+import { OrganizationType, Organization } from '../types';
+import { defaultColors } from '../../events-calendar/data/calendar-data';
+import { useCategoryColors } from './category-colors-context';
+
+interface FilterPreferences {
+  selectedOrganizations: string[];
+  selectedCategories: string[];
+  categoryColors: Record<string, string>;
+}
+
+interface OrgsChecklistItem {
+  name: string;
+  deadline: string;
+  isDone: boolean;
+}
 
 interface FiltersSidebarProps {
   filters: Set<OrganizationType>;
   onFilterChange: (filters: Set<OrganizationType>) => void;
 }
 
-const filterCategories: FilterCategory[] = [
-  {
-    label: 'Clubs',
-    color: 'bg-red-300',
-    types: ['Club'],
-  },
-  {
-    label: 'Societies',
-    color: 'bg-red-900',
-    types: ['Society'],
-  },
-  {
-    label: 'Departments',
-    color: 'bg-amber-200',
-    types: ['Department', 'Ministry'],
-  },
-];
-
 export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps) {
-  const [checklistItems, setChecklistItems] = React.useState<ChecklistItem[]>([
-    {
-      id: 'techmin',
-      label: 'Techmin',
-      deadline: '26/9',
-      completed: true,
-    },
-    {
-      id: 'jazbaa',
-      label: 'Jazbaa',
-      deadline: '1/10',
-      completed: false,
-    },
-    {
-      id: 'dance-society',
-      label: 'Dance Society',
-      deadline: '5/10',
-      completed: false,
-    },
-    {
-      id: 'debate-club',
-      label: 'Debate Club',
-      deadline: '8/10',
-      completed: false,
-    },
-  ]);
+  const { categoryColors, setCategoryColors } = useCategoryColors();
+  
+  const [checklistItems, setChecklistItems] = React.useState<ChecklistItem[]>([]);
+  const [checklistLoading, setChecklistLoading] = React.useState(true);
+  
+  const [organizations, setOrganizations] = React.useState<Organization[]>([]);
+  const [organizationsLoading, setOrganizationsLoading] = React.useState(true);
+  
+  const [preferences, setPreferences] = React.useState<FilterPreferences>({
+    selectedOrganizations: [],
+    selectedCategories: ['clubs', 'societies', 'departments', 'ministries', 'others'],
+    categoryColors: categoryColors,
+  });
+  
+  const [searchTerms, setSearchTerms] = React.useState<Record<string, string>>({});
+  const [mounted, setMounted] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  const categories = ['clubs', 'societies', 'departments', 'ministries', 'others'] as const;
+
+  // Fetch organizations
+  React.useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        setOrganizationsLoading(true);
+        const response = await fetch('/api/platform/organisations-catalogue');
+        if (!response.ok) throw new Error('Failed to fetch organizations');
+        const data = await response.json();
+        // Handle nested structure from API
+        const orgs = data.data?.organisations || data.organisations || data.data || [];
+        setOrganizations(orgs);
+      } catch (error) {
+        console.error('Error fetching organizations:', error);
+        setOrganizations([]);
+      } finally {
+        setOrganizationsLoading(false);
+      }
+    };
+
+    fetchOrganizations();
+  }, []);
+
+  // Fetch checklist from user
+  React.useEffect(() => {
+    const fetchChecklist = async () => {
+      try {
+        setChecklistLoading(true);
+        const response = await fetch('/api/auth/session');
+        const sessionData = await response.json();
+        
+        if (sessionData?.user?.orgs_checklist) {
+          const items = sessionData.user.orgs_checklist.map((item: OrgsChecklistItem) => ({
+            id: item.name.toLowerCase().replace(/\s+/g, '-'),
+            label: item.name,
+            deadline: item.deadline,
+            completed: item.isDone,
+          }));
+          setChecklistItems(items);
+        } else {
+          setChecklistItems([]);
+        }
+      } catch (error) {
+        console.error('Error fetching checklist:', error);
+        setChecklistItems([]);
+      } finally {
+        setChecklistLoading(false);
+      }
+    };
+
+    fetchChecklist();
+  }, []);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleChecklistItem = (itemId: string) => {
     setChecklistItems((prev) =>
@@ -72,6 +130,101 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
         item.id === itemId ? { ...item, completed: !item.completed } : item
       )
     );
+  };
+
+  const getFilteredOrganizations = (category: string) => {
+    const searchTerm = searchTerms[category] || '';
+    
+    return organizations
+      .filter((org) => {
+        const orgType = org.type.toLowerCase();
+        // Map categories to organization types
+        if (category === 'clubs') return orgType === 'club';
+        if (category === 'societies') return orgType === 'society';
+        if (category === 'departments') return orgType === 'department' || orgType === 'ministry';
+        if (category === 'ministries') return orgType === 'ministry';
+        if (category === 'others') return !['club', 'society', 'department', 'ministry'].includes(orgType);
+        return false;
+      })
+      .filter((org) =>
+        org.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  };
+
+  const handleOrganizationToggle = (orgId: string) => {
+    const newSelected = preferences.selectedOrganizations.includes(orgId)
+      ? preferences.selectedOrganizations.filter((id) => id !== orgId)
+      : [...preferences.selectedOrganizations, orgId];
+
+    setPreferences({
+      ...preferences,
+      selectedOrganizations: newSelected,
+    });
+  };
+
+  const handleCategoryToggle = (category: string) => {
+    const isCurrentlySelected = preferences.selectedCategories.includes(category);
+    let newSelected: string[];
+    
+    if (isCurrentlySelected) {
+      newSelected = preferences.selectedCategories.filter(cat => cat !== category);
+      
+      // Make sure we have at least one category selected
+      if (newSelected.length === 0) {
+        newSelected = [category];
+      }
+    } else {
+      newSelected = [...preferences.selectedCategories, category];
+    }
+
+    setPreferences({
+      ...preferences,
+      selectedCategories: newSelected,
+    });
+  };
+
+  const handleColorChange = (category: string, color: string) => {
+    const newColors = {
+      ...preferences.categoryColors,
+      [category]: color,
+    };
+    setPreferences({
+      ...preferences,
+      categoryColors: newColors,
+    });
+    // Sync to context so organization cards update in real-time
+    setCategoryColors(newColors);
+  };
+
+  const handleSavePreferences = async () => {
+    try {
+      setIsSaving(true);
+
+      const response = await fetch('/api/platform/organisations-catalogue/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ preferences }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save preferences: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data && data.data) {
+        setPreferences(data.data);
+      }
+
+      alert('Preferences saved successfully!');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      alert(`Error saving preferences: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const activeFilterCount = filters.size;
@@ -95,27 +248,217 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
         </Button>
       </SheetTrigger>
 
-      <SheetContent className="w-[400px] sm:w-[540px]">
+      <SheetContent className="w-96 overflow-y-auto px-5">
         <SheetHeader>
-          <SheetTitle className="text-2xl font-bold">
-            Filters and Preferences
-          </SheetTitle>
+          <SheetTitle>Filters and Preferences</SheetTitle>
         </SheetHeader>
 
-        <ScrollArea className="mt-6 h-[calc(100vh-120px)] pr-4">
-          <div className="space-y-6">
-            <ChecklistProgress 
-              items={checklistItems}
-              onToggleItem={toggleChecklistItem}
-            />
-            
-            <OrganizationFilters 
-              filters={filters}
-              onFilterChange={onFilterChange}
-              categories={filterCategories}
-            />
+        <div className="space-y-6">
+          {/* My Club Checklist Section */}
+          <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50">
+            <h3 className="font-medium mb-3">My Club Checklist</h3>
+            {checklistLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
+            ) : checklistItems.length > 0 ? (
+              <ChecklistProgress
+                items={checklistItems}
+                onToggleItem={toggleChecklistItem}
+              />
+            ) : (
+              <div className="text-sm text-muted-foreground py-4 text-center">
+                No orgs to display
+              </div>
+            )}
           </div>
-        </ScrollArea>
+
+          {/* Categories and Organizations - Updated Section */}
+          <div>
+            <h3 className="font-medium mb-3">Categories and Organizations</h3>
+            {organizationsLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : (
+              <Accordion11
+                type="single"
+                collapsible
+                className="w-full max-w-2xl"
+                defaultValue="clubs"
+              >
+                {categories.map((category) => (
+                  <Accordion11Item
+                    key={category}
+                    value={category}
+                    className="flex flex-col justify-start !w-full"
+                  >
+                    {/* Custom header with checkbox, category name, and color picker */}
+                    <div className="capitalize text-sm text-left flex items-center w-full py-2 border-b">
+                      {/* Left: Checkbox + Category */}
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`cat-${category}`}
+                          checked={preferences.selectedCategories.includes(
+                            category
+                          )}
+                          onCheckedChange={() => handleCategoryToggle(category)}
+                          className="rounded-xs mx-3 w-4 h-4 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
+                        />
+                        <span className="font-semibold text-sm capitalize">
+                          {category}
+                        </span>
+                      </div>
+
+                      {/* Right: Palette */}
+                      <div className="flex items-center space-x-2 ml-auto">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              className="w-5 h-5 rounded border hover:scale-110 transition-transform"
+                              style={{
+                                backgroundColor:
+                                  preferences.categoryColors[category],
+                              }}
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent className="flex flex-wrap gap-2 w-50">
+                            {defaultColors.map((color) => (
+                              <button
+                                key={color}
+                                onClick={() =>
+                                  handleColorChange(category, color)
+                                }
+                                className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
+                                style={{
+                                  backgroundColor: color,
+                                  borderColor:
+                                    preferences.categoryColors[category] ===
+                                    color
+                                      ? '#000'
+                                      : '#d1d5db',
+                                }}
+                              />
+                            ))}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* Separate accordion trigger with just the chevron */}
+                      <Accordion11Trigger className="ml-2 p-0">
+                        <span className="sr-only">Toggle {category}</span>
+                      </Accordion11Trigger>
+                    </div>
+
+                    <Accordion11Content>
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder={`Search ${category}...`}
+                            value={searchTerms[category] || ''}
+                            onChange={(e) =>
+                              setSearchTerms({
+                                ...searchTerms,
+                                [category]: e.target.value,
+                              })
+                            }
+                            className="pl-8"
+                          />
+                        </div>
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                          {getFilteredOrganizations(category).length > 0 ? (
+                            getFilteredOrganizations(category).map((org) => (
+                              <div
+                                key={org.id}
+                                className="flex items-center space-x-2"
+                              >
+                                <Checkbox
+                                  id={org.id}
+                                  checked={preferences.selectedOrganizations.includes(
+                                    org.id
+                                  )}
+                                  onCheckedChange={() =>
+                                    handleOrganizationToggle(org.id)
+                                  }
+                                  className="rounded-md w-5 h-5 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
+                                />
+                                <label htmlFor={org.id} className="text-sm cursor-pointer">
+                                  {org.title}
+                                </label>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-sm text-muted-foreground py-2 text-center">
+                              No organizations found
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Accordion11Content>
+                  </Accordion11Item>
+                ))}
+              </Accordion11>
+            )}
+          </div>
+
+          {/* Save Button */}
+          <div className="pt-4 border-t">
+            <Button
+              onClick={handleSavePreferences}
+              disabled={isSaving || organizationsLoading}
+              className={`
+                fixed
+                bottom-6
+                right-6
+                z-50
+                h-14
+                w-14
+                rounded-full
+                flex
+                items-center
+                justify-center
+                bg-primary/70
+                shadow-lg
+                transition-all
+                duration-300
+                group
+                hover:w-56
+                hover:rounded-3xl
+                hover:justify-start
+                px-4
+                overflow-hidden
+                ${isSaving || organizationsLoading ? 'opacity-70' : ''}
+              `}
+              style={{ minWidth: "3.5rem" }}
+            >
+              <span className="flex items-center w-full justify-center group-hover:justify-start">
+                <Save
+                  className={`w-15 h-15 flex-shrink-0 text-center ${isSaving ? 'animate-pulse' : ''}`}
+                  strokeWidth={2.5}
+                />
+                <span
+                  className={`
+      ml-4
+      text-lg
+      font-semibold
+      whitespace-nowrap
+      hidden
+      group-hover:inline
+      transition-all
+      duration-300
+    `}
+                >
+                  {isSaving ? 'Saving...' : 'Save Preferences'}
+                </span>
+              </span>
+            </Button>
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );

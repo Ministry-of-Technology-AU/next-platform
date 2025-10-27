@@ -16,18 +16,29 @@ import {
 } from '@/components/ui/morphing-dialog';
 import { Organization } from '../types';
 import { cn } from '@/lib/utils';
+import { useCategoryColors } from './category-colors-context';
 
 interface OrganizationCardProps {
   organization: Organization;
 }
 
 export function OrganizationCard({ organization }: OrganizationCardProps) {
+  const { categoryColors } = useCategoryColors();
   const [isHovered, setIsHovered] = React.useState(false);
   const [isTrackingInductions, setIsTrackingInductions] = React.useState(false);
 
   const truncateDescription = (text: string, maxLength: number = 80) => {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength).trim() + '...';
+  };
+
+  // Get color based on organization type
+  const getCategoryColor = (type: string): string => {
+    const lowerType = type.toLowerCase();
+    if (lowerType === 'club') return categoryColors.clubs;
+    if (lowerType === 'society') return categoryColors.societies;
+    if (lowerType === 'department' || lowerType === 'ministry') return categoryColors.departments;
+    return categoryColors.others;
   };
 
   const getBadgeColor = (type: string) => {
@@ -53,10 +64,11 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
       }}
     >
       <MorphingDialogTrigger
+        className="group relative flex flex-col overflow-hidden border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-lg"
         style={{
           borderRadius: '24px',
+          borderColor: getCategoryColor(organization.type),
         }}
-        className="group relative flex flex-col overflow-hidden border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg"
       >
         <div
           className="relative"
