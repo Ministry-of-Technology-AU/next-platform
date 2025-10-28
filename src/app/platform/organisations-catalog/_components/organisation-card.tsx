@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Megaphone, Bell, BellRing } from 'lucide-react';
+import { Megaphone, Bell, BellRing, Mail, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   MorphingDialog,
@@ -14,6 +14,10 @@ import {
   MorphingDialogDescription,
   MorphingDialogContainer,
 } from '@/components/ui/morphing-dialog';
+import {
+  ButtonGroup,
+  ButtonGroupText,
+} from '@/components/ui/button-group';
 import { Organization } from '../types';
 import { cn } from '@/lib/utils';
 import { useCategoryColors } from './category-colors-context';
@@ -21,6 +25,15 @@ import { useCategoryColors } from './category-colors-context';
 interface OrganizationCardProps {
   organization: Organization;
 }
+
+const RichTextRenderer: React.FC<{ html: string }> = ({ html }) => {
+  return (
+    <div 
+      className="prose prose-sm dark:prose-invert max-w-none text-neutral-700 dark:text-neutral-300"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+};
 
 export function OrganizationCard({ organization }: OrganizationCardProps) {
   const { categoryColors } = useCategoryColors();
@@ -37,22 +50,71 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
     const lowerType = type.toLowerCase();
     if (lowerType === 'club') return categoryColors.clubs;
     if (lowerType === 'society') return categoryColors.societies;
-    if (lowerType === 'department' || lowerType === 'ministry') return categoryColors.departments;
+    if (lowerType === 'ministry' || lowerType === 'iso') return categoryColors.departments;
     return categoryColors.others;
   };
 
   const getBadgeColor = (type: string) => {
+    const normalizedType = type.charAt(0).toUpperCase() + type.slice(1);
     const colors: Record<string, string> = {
       Club: 'bg-amber-200 text-amber-900 hover:bg-amber-200',
       Society: 'bg-amber-700 text-white hover:bg-amber-700',
       Ministry: 'bg-amber-300 text-amber-900 hover:bg-amber-300',
-      Department: 'bg-amber-100 text-amber-800 hover:bg-amber-100',
       Fest: 'bg-orange-200 text-orange-900 hover:bg-orange-200',
       Collective: 'bg-yellow-200 text-yellow-900 hover:bg-yellow-200',
-      ISO: 'bg-amber-400 text-amber-900 hover:bg-amber-400',
+      Iso: 'bg-amber-400 text-amber-900 hover:bg-amber-400',
       League: 'bg-amber-500 text-white hover:bg-amber-500',
+      Other: 'bg-gray-200 text-gray-900 hover:bg-gray-200',
     };
-    return colors[type] || 'bg-gray-200 text-gray-900';
+    return colors[normalizedType] || 'bg-gray-200 text-gray-900';
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Date not specified';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  const getLogoUrl = (): string => {
+    // If there's a profile image, use it; otherwise use initial
+    if (organization.logoUrl) {
+      return organization.logoUrl;
+    }
+    // Return empty string to show initial
+    return '';
+  };
+
+  const LogoCircle: React.FC<{ size?: 'small' | 'large' }> = ({ size = 'small' }) => {
+    const sizeClasses = size === 'small' 
+      ? 'h-16 w-16 sm:h-20 sm:w-20 text-lg sm:text-xl' 
+      : 'h-20 w-20 sm:h-24 sm:w-24 text-xl sm:text-2xl';
+    
+    const logoUrl = getLogoUrl();
+
+    return (
+      <div className={cn(
+        'flex items-center justify-center rounded-full bg-red-900 shadow-lg sm:shadow-xl text-white font-bold overflow-hidden',
+        sizeClasses
+      )}>
+        {logoUrl ? (
+          <img 
+            src={logoUrl} 
+            alt={organization.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          organization.name.charAt(0).toUpperCase()
+        )}
+      </div>
+    );
   };
 
   return (
@@ -73,14 +135,14 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
           onMouseLeave={() => setIsHovered(false)}
         >
           <MorphingDialogImage
-            src={organization.imageUrl}
-            alt={organization.title}
+            src={organization.bannerUrl}
+            alt={organization.name}
             className="h-80 sm:h-96 lg:h-[420px] w-full object-cover"
           />
 
           {/* Logo Circle */}
-          <div className="absolute left-1/2 top-16 sm:top-20 lg:top-24 flex h-16 w-16 sm:h-20 sm:w-20 -translate-x-1/2 items-center justify-center rounded-full bg-red-900 shadow-lg text-white font-bold text-lg sm:text-xl">
-            {organization.title.charAt(0).toUpperCase()}
+          <div className="absolute left-1/2 top-16 sm:top-20 lg:top-24 flex -translate-x-1/2 z-10">
+            <LogoCircle size="small" />
           </div>
 
           {organization.inductionsOpen && (
@@ -127,12 +189,12 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
             <div className="flex justify-start">
               <Badge className={cn('mb-3 text-xs sm:text-sm', getBadgeColor(organization.type))}>
-              {organization.type}
+              {organization.type.charAt(0).toUpperCase() + organization.type.slice(1)}
               </Badge>
             </div>
             <div className="mb-3 flex items-start justify-between gap-2">
               <MorphingDialogTitle className="text-lg sm:text-xl font-semibold leading-tight">
-              {organization.title}
+              {organization.name}
               </MorphingDialogTitle>
             </div>
 
@@ -161,109 +223,318 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
           style={{
             borderRadius: '24px',
           }}
-          className="pointer-events-auto relative flex h-auto w-full flex-col overflow-hidden border border-neutral-200 bg-white shadow-xl sm:w-[600px] sm:max-h-[90vh]"
+          className="pointer-events-auto relative flex h-auto w-full flex-col overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 shadow-xl sm:w-[90vw] md:w-[750px] lg:w-[850px] sm:max-h-[90vh]"
         >
-          <div className="relative">
-            <MorphingDialogImage
-              src={organization.imageUrl}
-              alt={organization.title}
-              className="h-80 sm:h-96 w-full object-cover"
-            />
-            
-            {/* Logo Circle for Dialog */}
-            <div className="absolute left-1/2 top-16 sm:top-20 flex h-20 w-20 sm:h-24 sm:w-24 -translate-x-1/2 items-center justify-center rounded-full bg-red-900 shadow-xl text-white font-bold text-xl sm:text-2xl">
-              {organization.title.charAt(0).toUpperCase()}
-            </div>
-
-            <div className="absolute left-6 top-6 flex items-center gap-3">
-              {organization.inductionsOpen && (
-                <div className="flex items-center gap-2 rounded-full bg-red-900 px-4 py-2 shadow-lg">
-                  <Megaphone className="h-5 w-5 text-white" />
-                  <span className="text-sm font-semibold text-white">
-                    Inductions Open
-                  </span>
-                </div>
-              )}
+          {/* Scrollable Content Container */}
+          <div className="overflow-y-auto">
+            <div className="relative">
+              <MorphingDialogImage
+                src={organization.bannerUrl}
+                alt={organization.name}
+                className="h-80 sm:h-96 w-full object-cover"
+              />
               
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsTrackingInductions(!isTrackingInductions);
-                }}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-lg transition-all ${
-                  isTrackingInductions 
-                    ? 'bg-amber-500 hover:bg-amber-600' 
-                    : 'bg-red-900/90 hover:bg-red-900'
-                }`}
-              >
-                {isTrackingInductions ? (
-                  <BellRing className="h-5 w-5 text-white" />
-                ) : (
-                  <Bell className="h-5 w-5 text-white" />
-                )}
-                <span className="text-sm font-semibold text-white">
-                  {isTrackingInductions ? 'Tracking' : 'Track Inductions'}
-                </span>
-              </button>
-            </div>
-          </div>
+              {/* Dark Overlay */}
+              <div className="absolute inset-0 bg-black/40" />
+              
+              {/* Logo Circle for Dialog */}
+              <div className="absolute left-1/2 top-16 sm:top-20 flex -translate-x-1/2 z-20">
+                <LogoCircle size="large" />
+              </div>
 
-          <div className="overflow-y-auto p-6">
-            <MorphingDialogTitle className="text-3xl font-bold text-neutral-900">
-              {organization.title}
-            </MorphingDialogTitle>
-
-            <div className="mt-2 flex items-center gap-2">
-              <Badge className={cn('text-sm', getBadgeColor(organization.type))}>
-                {organization.type}
-              </Badge>
-            </div>
-
-            <MorphingDialogSubtitle className="mt-2 text-sm text-neutral-600">
-              {organization.categories.join(' • ')}
-            </MorphingDialogSubtitle>
-
-            <MorphingDialogDescription
-              disableLayoutAnimation
-              variants={{
-                initial: { opacity: 0, scale: 0.8, y: 100 },
-                animate: { opacity: 1, scale: 1, y: 0 },
-                exit: { opacity: 0, scale: 0.8, y: 100 },
-              }}
-            >
-              <div className="mt-6 space-y-4">
-                <div>
-                  <h3 className="mb-2 text-lg font-semibold text-neutral-900">
-                    About
-                  </h3>
-                  <p className="leading-relaxed text-neutral-700">
-                    {organization.fullDescription}
-                  </p>
-                </div>
-
-                {organization.categories.length > 0 && (
-                  <div>
-                    <h3 className="mb-2 text-lg font-semibold text-neutral-900">
-                      Categories
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {organization.categories.map((category, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {category}
-                        </Badge>
-                      ))}
-                    </div>
+              <div className="absolute left-6 top-6 z-20 flex items-center gap-3">
+                {organization.inductionsOpen && (
+                  <div className="flex items-center gap-2 rounded-full bg-red-900 px-4 py-2 shadow-lg">
+                    <Megaphone className="h-5 w-5 text-white" />
+                    <span className="text-sm font-semibold text-white">
+                      Inductions Open
+                    </span>
                   </div>
                 )}
+                
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsTrackingInductions(!isTrackingInductions);
+                  }}
+                  className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-lg transition-all ${
+                    isTrackingInductions 
+                      ? 'bg-amber-500 hover:bg-amber-600' 
+                      : 'bg-red-900/90 hover:bg-red-900'
+                  }`}
+                >
+                  {isTrackingInductions ? (
+                    <BellRing className="h-5 w-5 text-white" />
+                  ) : (
+                    <Bell className="h-5 w-5 text-white" />
+                  )}
+                  <span className="text-sm font-semibold text-white">
+                    {isTrackingInductions ? 'Tracking' : 'Track Inductions'}
+                  </span>
+                </button>
               </div>
-            </MorphingDialogDescription>
+            </div>
+
+            <div className="p-6">
+              <div className="flex flex-wrap items-start gap-3 mb-3">
+                <MorphingDialogTitle className="text-3xl font-bold text-neutral-900 dark:text-white">
+                  {organization.name}
+                </MorphingDialogTitle>
+                <Badge className={cn('text-sm h-fit mt-1', getBadgeColor(organization.type))}>
+                  {organization.type.charAt(0).toUpperCase() + organization.type.slice(1)}
+                </Badge>
+              </div>
+
+              <MorphingDialogSubtitle className="text-sm text-neutral-600 dark:text-neutral-400">
+                {organization.description}
+              </MorphingDialogSubtitle>
+
+              <MorphingDialogDescription
+                disableLayoutAnimation
+                variants={{
+                  initial: { opacity: 0, scale: 0.8, y: 100 },
+                  animate: { opacity: 1, scale: 1, y: 0 },
+                  exit: { opacity: 0, scale: 0.8, y: 100 },
+                }}
+              >
+                <div className="mt-6 space-y-6">
+                  {/* About Section */}
+                  <div>
+                    <h3 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
+                      About
+                    </h3>
+                    <div className="leading-relaxed text-neutral-700 dark:text-neutral-300">
+                      {organization.fullDescription || organization.description ? (
+                        <RichTextRenderer html={organization.fullDescription || organization.description} />
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* Induction Information */}
+                  {organization.inductionsOpen && (
+                    <div className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Megaphone className="h-5 w-5 text-amber-900 dark:text-amber-100" />
+                        <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100">
+                          Inductions Open
+                        </h3>
+                      </div>
+                      {organization.inductionEnd && (
+                        <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+                          <span className="font-semibold">Ends:</span> {formatDate(organization.inductionEnd)}
+                        </p>
+                      )}
+                      {organization.inductionDescription && (
+                        <div className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
+                          <RichTextRenderer html={organization.inductionDescription} />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Members Section */}
+                  {organization.circle1_humans && organization.circle1_humans.length > 0 && (
+                    <div>
+                      <h3 className="mb-3 text-lg font-semibold text-neutral-900 dark:text-white">
+                        Circle 1 (Leads)
+                      </h3>
+                      <div className="space-y-2">
+                        {organization.circle1_humans.map((member, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-50 dark:bg-neutral-800 p-2 rounded">
+                            <Mail className="h-4 w-4 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
+                            <div>
+                              <div className="font-medium">{member.username}</div>
+                              <div className="text-xs text-neutral-500 dark:text-neutral-400">{member.email}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {organization.circle2_humans && organization.circle2_humans.length > 0 && (
+                    <div>
+                      <h3 className="mb-3 text-lg font-semibold text-neutral-900 dark:text-white">
+                        Circle 2 (Coordinators)
+                      </h3>
+                      <div className="space-y-2">
+                        {organization.circle2_humans.map((member, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-50 dark:bg-neutral-800 p-2 rounded">
+                            <Mail className="h-4 w-4 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
+                            <div>
+                              <div className="font-medium">{member.username}</div>
+                              <div className="text-xs text-neutral-500 dark:text-neutral-400">{member.email}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Social Links */}
+                  {(organization.instagram || organization.twitter || organization.linkedin || 
+                    organization.youtube || organization.website || organization.whatsapp) && (
+                    <div>
+                      <div className="flex items-center gap-3 mb-3">
+                        <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                          Connect With Us
+                        </h3>
+                      </div>
+                      <ButtonGroup orientation="horizontal" className="w-full flex-wrap">
+                        {organization.instagram && (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.instagram.startsWith('http') 
+                                  ? organization.instagram 
+                                  : `https://instagram.com/${organization.instagram}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="Instagram"
+                          >
+                            <Instagram className="h-4 w-4" />
+                            <span className="hidden sm:inline">Instagram</span>
+                          </button>
+                        )}
+                        {organization.twitter ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.twitter.startsWith('http') 
+                                  ? organization.twitter 
+                                  : `https://twitter.com/${organization.twitter}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="Twitter"
+                          >
+                            <Twitter className="h-4 w-4" />
+                            <span className="hidden sm:inline">Twitter</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="Twitter not available"
+                          >
+                            <Twitter className="h-4 w-4" />
+                            <span className="hidden sm:inline">Twitter</span>
+                          </button>
+                        )}
+                        {organization.linkedin ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.linkedin.startsWith('http') 
+                                  ? organization.linkedin 
+                                  : `https://linkedin.com/in/${organization.linkedin}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="LinkedIn"
+                          >
+                            <Linkedin className="h-4 w-4" />
+                            <span className="hidden sm:inline">LinkedIn</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="LinkedIn not available"
+                          >
+                            <Linkedin className="h-4 w-4" />
+                            <span className="hidden sm:inline">LinkedIn</span>
+                          </button>
+                        )}
+                        {organization.youtube ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.youtube.startsWith('http') 
+                                  ? organization.youtube 
+                                  : `https://youtube.com/${organization.youtube}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="YouTube"
+                          >
+                            <Youtube className="h-4 w-4" />
+                            <span className="hidden sm:inline">YouTube</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="YouTube not available"
+                          >
+                            <Youtube className="h-4 w-4" />
+                            <span className="hidden sm:inline">YouTube</span>
+                          </button>
+                        )}
+                        {organization.website ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.website.startsWith('http') 
+                                  ? organization.website 
+                                  : `https://${organization.website}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="Website"
+                          >
+                            <Globe className="h-4 w-4" />
+                            <span className="hidden sm:inline">Website</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="Website not available"
+                          >
+                            <Globe className="h-4 w-4" />
+                            <span className="hidden sm:inline">Website</span>
+                          </button>
+                        )}
+                        {organization.whatsapp ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                `https://wa.me/${organization.whatsapp.replace(/\D/g, '')}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="WhatsApp"
+                          >
+                            <Smartphone className="h-4 w-4" />
+                            <span className="hidden sm:inline">WhatsApp</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="WhatsApp not available"
+                          >
+                            <Smartphone className="h-4 w-4" />
+                            <span className="hidden sm:inline">WhatsApp</span>
+                          </button>
+                        )}
+                      </ButtonGroup>
+                    </div>
+                  )}
+                </div>
+              </MorphingDialogDescription>
+            </div>
           </div>
 
-          <MorphingDialogClose className="text-neutral-900" />
+          <MorphingDialogClose className="text-neutral-900 dark:text-white" />
         </MorphingDialogContent>
       </MorphingDialogContainer>
     </MorphingDialog>

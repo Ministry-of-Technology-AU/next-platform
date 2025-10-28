@@ -144,13 +144,13 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
         // Map categories to organization types
         if (category === 'clubs') return orgType === 'club';
         if (category === 'societies') return orgType === 'society';
-        if (category === 'departments') return orgType === 'department' || orgType === 'ministry';
+        if (category === 'departments') return orgType === 'ministry' || orgType === 'iso' || orgType === 'league';
         if (category === 'ministries') return orgType === 'ministry';
-        if (category === 'others') return !['club', 'society', 'department', 'ministry'].includes(orgType);
+        if (category === 'others') return !['club', 'society', 'ministry', 'fest', 'collective', 'iso', 'league'].includes(orgType);
         return false;
       })
       .filter((org) =>
-        org.title.toLowerCase().includes(searchTerm.toLowerCase())
+        org.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
   };
 
@@ -395,7 +395,7 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
                                   className="rounded-md w-5 h-5 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
                                 />
                                 <label htmlFor={org.id} className="text-sm cursor-pointer">
-                                  {org.title}
+                                  {org.name}
                                 </label>
                               </div>
                             ))

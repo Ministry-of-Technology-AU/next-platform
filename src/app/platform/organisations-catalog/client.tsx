@@ -1,47 +1,50 @@
 'use client';
 
 import * as React from 'react';
-import { Book, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SearchBar } from './_components/search-bar';
 import { FiltersSidebar } from './_components/filter-sidebar';
 import { OrganizationCard } from './_components/organisation-card';
-import { OrganizationType } from './types';
-import { dummyOrganizations } from './data';
+import { OrganizationType, Organization } from './types';
 import { CategoryColorsProvider } from './_components/category-colors-context';
 
-export function CataloguePage() {
+interface CataloguePageProps {
+  initialOrganizations: Organization[];
+  initialError: string | null;
+}
+
+export function CataloguePage({ initialOrganizations, initialError }: CataloguePageProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filters, setFilters] = React.useState<Set<OrganizationType>>(new Set());
   const [showOnlyPreferences, setShowOnlyPreferences] = React.useState(false);
+  const [organizations] = React.useState<Organization[]>(initialOrganizations);
+  const [error] = React.useState<string | null>(initialError);
 
   // Mock user preferences - in a real app, this would come from user data
   const userPreferences = React.useMemo(() => new Set([
-    'Tech Enthusiasts Club',
-    'Debate Society', 
-    'Dance Collective',
-    'Photography Club'
+    'Ministry of Technology',
+    'Ashoka Debating Union', 
+    'Dance Society',
+    'Photography Society'
   ]), []);
 
   const filteredOrganizations = React.useMemo(() => {
-    return dummyOrganizations.filter((org) => {
+    return organizations.filter((org: Organization) => {
       const matchesSearch =
         searchQuery === '' ||
-        org.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        org.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        org.categories.some((cat) =>
-          cat.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        org.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        org.description.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesFilter =
         filters.size === 0 || filters.has(org.type);
 
       const matchesPreferences = 
-        !showOnlyPreferences || userPreferences.has(org.title);
+        !showOnlyPreferences || userPreferences.has(org.name);
 
       return matchesSearch && matchesFilter && matchesPreferences;
     });
-  }, [searchQuery, filters, showOnlyPreferences, userPreferences]);
+  }, [searchQuery, filters, showOnlyPreferences, userPreferences, organizations]);
 
   return (
     <CategoryColorsProvider>
@@ -77,16 +80,16 @@ export function CataloguePage() {
             <div className="flex min-h-[400px] items-center justify-center">
               <div className="text-center">
                 <p className="text-lg font-medium text-neutral-900">
-                  No organizations found
+                  {error ? 'Error loading organizations' : 'No organizations found'}
                 </p>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Try adjusting your search or filters
+                  {error ? error : 'Try adjusting your search or filters'}
                 </p>
               </div>
             </div>
           ) : (
             <div className="columns-1 gap-6 sm:columns-2 lg:columns-3 xl:columns-4">
-              {filteredOrganizations.map((org) => (
+              {filteredOrganizations.map((org: Organization) => (
                 <div key={org.id} className="mb-6 break-inside-avoid">
                   <OrganizationCard organization={org} />
                 </div>
