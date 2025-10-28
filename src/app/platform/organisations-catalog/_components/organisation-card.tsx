@@ -18,6 +18,12 @@ import {
   ButtonGroup,
   ButtonGroupText,
 } from '@/components/ui/button-group';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
+import { CopyButton } from '@/components/ui/shadcn-io/copy-button';
 import { Organization } from '../types';
 import { cn } from '@/lib/utils';
 import { useCategoryColors } from './category-colors-context';
@@ -32,6 +38,52 @@ const RichTextRenderer: React.FC<{ html: string }> = ({ html }) => {
       className="prose prose-sm dark:prose-invert max-w-none text-neutral-700 dark:text-neutral-300"
       dangerouslySetInnerHTML={{ __html: html }}
     />
+  );
+};
+
+const truncateEmail = (email: string, maxLength: number = 30) => {
+  if (email.length <= maxLength) return email;
+  const [localPart, domain] = email.split('@');
+  if (localPart.length > maxLength - 3) {
+    return `${localPart.slice(0, maxLength - 3)}...@${domain}`;
+  }
+  return email;
+};
+
+interface MemberTagProps {
+  username: string;
+  email: string;
+}
+
+const MemberTag: React.FC<MemberTagProps> = ({ username, email }) => {
+  const handleCopyClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full text-sm font-medium text-neutral-700 dark:text-neutral-300 cursor-default transition-colors">
+          {username}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent 
+        className="flex items-center gap-2 bg-neutral-900 dark:bg-neutral-800 text-white"
+        sideOffset={5}
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
+        <span className="text-xs">{truncateEmail(email)}</span>
+        <div onClick={handleCopyClick} onPointerDown={handleCopyClick}>
+          <CopyButton 
+            content={email} 
+            variant="ghost" 
+            size="sm"
+            className="hover:bg-neutral-800 dark:hover:bg-neutral-700"
+          />
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -50,23 +102,19 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
     const lowerType = type.toLowerCase();
     if (lowerType === 'club') return categoryColors.clubs;
     if (lowerType === 'society') return categoryColors.societies;
-    if (lowerType === 'ministry' || lowerType === 'iso') return categoryColors.departments;
+    if (lowerType === 'ministry' || lowerType === 'iso' || lowerType === 'league') return categoryColors.departments;
     return categoryColors.others;
   };
 
   const getBadgeColor = (type: string) => {
-    const normalizedType = type.charAt(0).toUpperCase() + type.slice(1);
-    const colors: Record<string, string> = {
-      Club: 'bg-amber-200 text-amber-900 hover:bg-amber-200',
-      Society: 'bg-amber-700 text-white hover:bg-amber-700',
-      Ministry: 'bg-amber-300 text-amber-900 hover:bg-amber-300',
-      Fest: 'bg-orange-200 text-orange-900 hover:bg-orange-200',
-      Collective: 'bg-yellow-200 text-yellow-900 hover:bg-yellow-200',
-      Iso: 'bg-amber-400 text-amber-900 hover:bg-amber-400',
-      League: 'bg-amber-500 text-white hover:bg-amber-500',
-      Other: 'bg-gray-200 text-gray-900 hover:bg-gray-200',
+    const color = getCategoryColor(type);
+    return `text-white hover:opacity-90`;
+  };
+
+  const getBadgeStyle = (type: string) => {
+    return {
+      backgroundColor: getCategoryColor(type),
     };
-    return colors[normalizedType] || 'bg-gray-200 text-gray-900';
   };
 
   const formatDate = (dateString: string | null) => {
@@ -188,7 +236,10 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
 
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
             <div className="flex justify-start">
-              <Badge className={cn('mb-3 text-xs sm:text-sm', getBadgeColor(organization.type))}>
+              <Badge 
+                className={cn('mb-3 text-xs sm:text-sm', getBadgeColor(organization.type))}
+                style={getBadgeStyle(organization.type)}
+              >
               {organization.type.charAt(0).toUpperCase() + organization.type.slice(1)}
               </Badge>
             </div>
@@ -280,7 +331,10 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                 <MorphingDialogTitle className="text-3xl font-bold text-neutral-900 dark:text-white">
                   {organization.name}
                 </MorphingDialogTitle>
-                <Badge className={cn('text-sm h-fit mt-1', getBadgeColor(organization.type))}>
+                <Badge 
+                  className={cn('text-sm h-fit mt-1', getBadgeColor(organization.type))}
+                  style={getBadgeStyle(organization.type)}
+                >
                   {organization.type.charAt(0).toUpperCase() + organization.type.slice(1)}
                 </Badge>
               </div>
@@ -338,15 +392,13 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                       <h3 className="mb-3 text-lg font-semibold text-neutral-900 dark:text-white">
                         Circle 1 (Leads)
                       </h3>
-                      <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
                         {organization.circle1_humans.map((member, index) => (
-                          <div key={index} className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-50 dark:bg-neutral-800 p-2 rounded">
-                            <Mail className="h-4 w-4 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
-                            <div>
-                              <div className="font-medium">{member.username}</div>
-                              <div className="text-xs text-neutral-500 dark:text-neutral-400">{member.email}</div>
-                            </div>
-                          </div>
+                          <MemberTag 
+                            key={index}
+                            username={member.username}
+                            email={member.email}
+                          />
                         ))}
                       </div>
                     </div>
@@ -357,15 +409,13 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                       <h3 className="mb-3 text-lg font-semibold text-neutral-900 dark:text-white">
                         Circle 2 (Coordinators)
                       </h3>
-                      <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
                         {organization.circle2_humans.map((member, index) => (
-                          <div key={index} className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-50 dark:bg-neutral-800 p-2 rounded">
-                            <Mail className="h-4 w-4 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
-                            <div>
-                              <div className="font-medium">{member.username}</div>
-                              <div className="text-xs text-neutral-500 dark:text-neutral-400">{member.email}</div>
-                            </div>
-                          </div>
+                          <MemberTag 
+                            key={index}
+                            username={member.username}
+                            email={member.email}
+                          />
                         ))}
                       </div>
                     </div>
