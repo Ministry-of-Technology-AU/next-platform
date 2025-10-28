@@ -3,7 +3,8 @@ import { auth } from '@/auth';
 import { strapiGet } from '@/lib/apis/strapi';
 import { getUserIdByEmail } from '@/lib/userid';
 
-const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1000&h=400&fit=crop';
+// const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1000&h=400&fit=crop';
+const DEFAULT_BANNER = 'https://picsum.photos/1000/400';
 
 export async function GET() {
   try {

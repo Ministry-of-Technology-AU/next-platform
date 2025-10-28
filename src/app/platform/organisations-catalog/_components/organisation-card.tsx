@@ -102,7 +102,8 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
     const lowerType = type.toLowerCase();
     if (lowerType === 'club') return categoryColors.clubs;
     if (lowerType === 'society') return categoryColors.societies;
-    if (lowerType === 'ministry' || lowerType === 'iso' || lowerType === 'league') return categoryColors.departments;
+    if (lowerType === 'ministry') return categoryColors.ministries;
+    if (lowerType === 'iso' || lowerType === 'league') return categoryColors.departments;
     return categoryColors.others;
   };
 
