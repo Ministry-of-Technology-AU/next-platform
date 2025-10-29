@@ -30,8 +30,11 @@ export async function sendMail(params: MailParams): Promise<void> {
 
         const senderEmail = params.from ? params.from : process.env.TECHMAIL_ID;
 
+        // If an alias is provided, format the From header as: Alias <email@domain>
+        const fromHeader = params.alias ? `${params.alias}` : `${senderEmail}`;
+
         const mailOptions = {
-            from: `${senderEmail}`,
+            from: fromHeader,
             to: params.to,
             subject: params.subject,
             text: params.text,
