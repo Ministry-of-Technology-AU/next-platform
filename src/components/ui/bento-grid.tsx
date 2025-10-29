@@ -43,12 +43,14 @@ export const BentoGridItem = ({
     >
       {/* Custom background layer */}
       {children && (
-        <div className="absolute inset-0 w-full h-full -z-10 pointer-events-none">
+        // Place children above the background (so pattern is visible over gradients)
+        // but keep them behind interactive content by using z-0 for the layer
+        <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
           {children}
         </div>
       )}
       {header}
-      <div className="transition duration-200 group-hover/bento:translate-x-2">
+      <div className="relative z-10 transition duration-200 group-hover/bento:translate-x-2">
         {icon}
         <div className="mt-2 mb-2 font-sans font-bold text-neutral-700 dark:text-neutral-100">
           {title}
