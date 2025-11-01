@@ -219,7 +219,7 @@ export default function Navbar() {
       <div className="flex items-center gap-1 sm:gap-2 min-w-0">
         <Tooltip>
           <TooltipTrigger asChild>
-            <SidebarTrigger className="hover:text-primary-extralight dark:hover:text-primary-light dark:text-secondary-dark" />
+            <SidebarTrigger className="hover:text-primary-extralight dark:hover:text-primary-light" />
           </TooltipTrigger>
           <TooltipContent side="right" align="center" className="text-white hidden sm:block">
             Toggle Sidebar

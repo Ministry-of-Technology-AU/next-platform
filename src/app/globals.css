@@ -18,7 +18,8 @@
     --color-secondary: #ffcd74;
     --color-secondary-light: #ffe7a9;
     --color-secondary-extralight: #eef5db;
-    --color-secondary-dark: #f4b448;
+    /* --color-secondary-dark: #f4b448; */
+    --color-secondary-dark: #9C2414;
     --color-secondary-extradark: #d68e3a;
 
     /* Greens */
@@ -37,7 +38,8 @@
 
     /* Neutrals */
     --color-white: #f7f4f2;
-    --color-black: #1c1917;
+    /* --color-black: #1c1917; */
+    --color-black: #0a0a0a;
     --color-gray: #767371;
     --color-gray-light: #bfbcba;
     --color-gray-extralight: #f2f1ee;
@@ -151,7 +153,8 @@ h3{
 }
 
 .dark {
-     --background: #1c1917;
+     /* --background: #1c1917; */
+     --background: #171717;
      --foreground: #f7f4f2;
      --card: var(--color-gray-dark)/15;
   --card-foreground: #fff8f0;
@@ -166,7 +169,7 @@ h3{
   --accent: #4e342e;
   --accent-foreground: #fff8f0;
   --destructive: #c0392b;
-  --border: #e0e0e0;
+  --border: #404040;
   --input: #e0e0e0;
   --ring: #bdbdbd;
   --chart-1: #7cb342;
