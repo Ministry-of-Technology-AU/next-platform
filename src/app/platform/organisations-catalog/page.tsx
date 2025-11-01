@@ -45,7 +45,7 @@ export default async function OrganisationsCatalogPage() {
     <div className="pt-6 px-6">
       <PageTitle 
         icon={FileStack} 
-        text="Organizations Catalog" 
+        text="Organizations Catalogue" 
         subheading="Discover and join various clubs, societies, and departments on campus." 
       />
       <CataloguePage initialOrganizations={organizations} initialError={error} />

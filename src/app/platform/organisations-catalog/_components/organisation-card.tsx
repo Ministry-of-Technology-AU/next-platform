@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Megaphone, Bell, BellRing, Mail, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
+import { Megaphone, Bell, BellRing, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   MorphingDialog,
@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/morphing-dialog';
 import {
   ButtonGroup,
-  ButtonGroupText,
 } from '@/components/ui/button-group';
 import {
   Tooltip,
@@ -340,9 +339,9 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                 </Badge>
               </div>
 
-              <MorphingDialogSubtitle className="text-sm text-neutral-600 dark:text-neutral-400">
+              {/* <MorphingDialogSubtitle className="text-sm text-neutral-600 dark:text-neutral-400">
                 {organization.description}
-              </MorphingDialogSubtitle>
+              </MorphingDialogSubtitle> */}
 
               <MorphingDialogDescription
                 disableLayoutAnimation
