@@ -53,7 +53,7 @@ export default function DashboardStats() {
           children={
             <FlickeringGrid
               className="absolute inset-0"
-        squareSize={6}
+        squareSize={9}
         gridGap={3}
         flickerChance={0.3}
         color="#3b0800"
@@ -81,7 +81,7 @@ export default function DashboardStats() {
           children={
             <FlickeringGrid
               className="absolute inset-0"
-        squareSize={6}
+        squareSize={9}
         gridGap={3}
         flickerChance={0.3}
         color="#3b0800"
@@ -107,7 +107,7 @@ export default function DashboardStats() {
           children={
             <FlickeringGrid
               className="absolute inset-0"
-        squareSize={6}
+        squareSize={9}
         gridGap={3}
         flickerChance={0.3}
         color="#3b0800"
@@ -133,7 +133,7 @@ export default function DashboardStats() {
           children={
             <FlickeringGrid
               className="absolute inset-0"
-        squareSize={6}
+        squareSize={9}
         gridGap={3}
         flickerChance={0.3}
         color="#3b0800"
