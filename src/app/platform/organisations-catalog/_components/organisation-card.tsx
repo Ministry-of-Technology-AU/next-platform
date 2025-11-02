@@ -345,10 +345,171 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                     {/* Right: Placeholder content ~70% */}
                     <div className="md:col-span-6 text-white text-left">
                       <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">Overview</h3>
-                        <p className="text-sm text-white/80">
-                          Sample content area. Add key highlights, CTA, or summary here.
-                        </p>
+                                      <div className="flex flex-wrap items-start gap-3 mb-3">
+                <MorphingDialogTitle className="text-3xl font-bold text-white font-nunito dark:text-white">
+                  {organization.name}
+                </MorphingDialogTitle>
+                <Badge 
+                  className={cn('text-sm h-fit mt-1', getBadgeColor(organization.type))}
+                  style={getBadgeStyle(organization.type)}
+                >
+                  {organization.type.charAt(0).toUpperCase() + organization.type.slice(1)}
+                </Badge>
+
+                {/* Social Links */}
+                  {(organization.instagram || organization.twitter || organization.linkedin || 
+                    organization.youtube || organization.website || organization.whatsapp) && (
+                    <div>
+                      <ButtonGroup orientation="horizontal" className="w-full flex-wrap">
+                        {organization.instagram && (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.instagram.startsWith('http') 
+                                  ? organization.instagram 
+                                  : `https://instagram.com/${organization.instagram}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="Instagram"
+                          >
+                            <Instagram className="h-4 w-4" />
+                            <span className="hidden sm:inline">Instagram</span>
+                          </button>
+                        )}
+                        {organization.twitter ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.twitter.startsWith('http') 
+                                  ? organization.twitter 
+                                  : `https://twitter.com/${organization.twitter}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="Twitter"
+                          >
+                            <Twitter className="h-4 w-4" />
+                            <span className="hidden sm:inline">Twitter</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="Twitter not available"
+                          >
+                            <Twitter className="h-4 w-4" />
+                            <span className="hidden sm:inline">Twitter</span>
+                          </button>
+                        )}
+                        {organization.linkedin ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.linkedin.startsWith('http') 
+                                  ? organization.linkedin 
+                                  : `https://linkedin.com/in/${organization.linkedin}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="LinkedIn"
+                          >
+                            <Linkedin className="h-4 w-4" />
+                            <span className="hidden sm:inline">LinkedIn</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="LinkedIn not available"
+                          >
+                            <Linkedin className="h-4 w-4" />
+                            <span className="hidden sm:inline">LinkedIn</span>
+                          </button>
+                        )}
+                        {organization.youtube ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.youtube.startsWith('http') 
+                                  ? organization.youtube 
+                                  : `https://youtube.com/${organization.youtube}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="YouTube"
+                          >
+                            <Youtube className="h-4 w-4" />
+                            <span className="hidden sm:inline">YouTube</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="YouTube not available"
+                          >
+                            <Youtube className="h-4 w-4" />
+                            <span className="hidden sm:inline">YouTube</span>
+                          </button>
+                        )}
+                        {organization.website ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                organization.website.startsWith('http') 
+                                  ? organization.website 
+                                  : `https://${organization.website}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="Website"
+                          >
+                            <Globe className="h-4 w-4" />
+                            <span className="hidden sm:inline">Website</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="Website not available"
+                          >
+                            <Globe className="h-4 w-4" />
+                            <span className="hidden sm:inline">Website</span>
+                          </button>
+                        )}
+                        {organization.whatsapp ? (
+                          <button
+                            onClick={() => {
+                              window.open(
+                                `https://wa.me/${organization.whatsapp.replace(/\D/g, '')}`,
+                                '_blank'
+                              );
+                            }}
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            title="WhatsApp"
+                          >
+                            <Smartphone className="h-4 w-4" />
+                            <span className="hidden sm:inline">WhatsApp</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
+                            title="WhatsApp not available"
+                          >
+                            <Smartphone className="h-4 w-4" />
+                            <span className="hidden sm:inline">WhatsApp</span>
+                          </button>
+                        )}
+                      </ButtonGroup>
+                    </div>
+                  )}
+              </div>
                       </div>
                     </div>
                   </div>
@@ -380,17 +541,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                   </Disclosure>)}
 
             <div className="p-6">
-              <div className="flex flex-wrap items-start gap-3 mb-3">
-                <MorphingDialogTitle className="text-3xl font-bold text-neutral-900 dark:text-white">
-                  {organization.name}
-                </MorphingDialogTitle>
-                <Badge 
-                  className={cn('text-sm h-fit mt-1', getBadgeColor(organization.type))}
-                  style={getBadgeStyle(organization.type)}
-                >
-                  {organization.type.charAt(0).toUpperCase() + organization.type.slice(1)}
-                </Badge>
-              </div>
+
 
 
               {/* <MorphingDialogSubtitle className="text-sm text-neutral-600 dark:text-neutral-400">
@@ -453,164 +604,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                     </div>
                   )}
 
-                  {/* Social Links */}
-                  {(organization.instagram || organization.twitter || organization.linkedin || 
-                    organization.youtube || organization.website || organization.whatsapp) && (
-                    <div>
-                      <div className="flex items-center gap-3 mb-3">
-                        <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                          Connect With Us
-                        </h3>
-                      </div>
-                      <ButtonGroup orientation="horizontal" className="w-full flex-wrap">
-                        {organization.instagram && (
-                          <button
-                            onClick={() => {
-                              window.open(
-                                organization.instagram.startsWith('http') 
-                                  ? organization.instagram 
-                                  : `https://instagram.com/${organization.instagram}`,
-                                '_blank'
-                              );
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
-                            title="Instagram"
-                          >
-                            <Instagram className="h-4 w-4" />
-                            <span className="hidden sm:inline">Instagram</span>
-                          </button>
-                        )}
-                        {organization.twitter ? (
-                          <button
-                            onClick={() => {
-                              window.open(
-                                organization.twitter.startsWith('http') 
-                                  ? organization.twitter 
-                                  : `https://twitter.com/${organization.twitter}`,
-                                '_blank'
-                              );
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
-                            title="Twitter"
-                          >
-                            <Twitter className="h-4 w-4" />
-                            <span className="hidden sm:inline">Twitter</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
-                            title="Twitter not available"
-                          >
-                            <Twitter className="h-4 w-4" />
-                            <span className="hidden sm:inline">Twitter</span>
-                          </button>
-                        )}
-                        {organization.linkedin ? (
-                          <button
-                            onClick={() => {
-                              window.open(
-                                organization.linkedin.startsWith('http') 
-                                  ? organization.linkedin 
-                                  : `https://linkedin.com/in/${organization.linkedin}`,
-                                '_blank'
-                              );
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
-                            title="LinkedIn"
-                          >
-                            <Linkedin className="h-4 w-4" />
-                            <span className="hidden sm:inline">LinkedIn</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
-                            title="LinkedIn not available"
-                          >
-                            <Linkedin className="h-4 w-4" />
-                            <span className="hidden sm:inline">LinkedIn</span>
-                          </button>
-                        )}
-                        {organization.youtube ? (
-                          <button
-                            onClick={() => {
-                              window.open(
-                                organization.youtube.startsWith('http') 
-                                  ? organization.youtube 
-                                  : `https://youtube.com/${organization.youtube}`,
-                                '_blank'
-                              );
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
-                            title="YouTube"
-                          >
-                            <Youtube className="h-4 w-4" />
-                            <span className="hidden sm:inline">YouTube</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
-                            title="YouTube not available"
-                          >
-                            <Youtube className="h-4 w-4" />
-                            <span className="hidden sm:inline">YouTube</span>
-                          </button>
-                        )}
-                        {organization.website ? (
-                          <button
-                            onClick={() => {
-                              window.open(
-                                organization.website.startsWith('http') 
-                                  ? organization.website 
-                                  : `https://${organization.website}`,
-                                '_blank'
-                              );
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
-                            title="Website"
-                          >
-                            <Globe className="h-4 w-4" />
-                            <span className="hidden sm:inline">Website</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
-                            title="Website not available"
-                          >
-                            <Globe className="h-4 w-4" />
-                            <span className="hidden sm:inline">Website</span>
-                          </button>
-                        )}
-                        {organization.whatsapp ? (
-                          <button
-                            onClick={() => {
-                              window.open(
-                                `https://wa.me/${organization.whatsapp.replace(/\D/g, '')}`,
-                                '_blank'
-                              );
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
-                            title="WhatsApp"
-                          >
-                            <Smartphone className="h-4 w-4" />
-                            <span className="hidden sm:inline">WhatsApp</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
-                            title="WhatsApp not available"
-                          >
-                            <Smartphone className="h-4 w-4" />
-                            <span className="hidden sm:inline">WhatsApp</span>
-                          </button>
-                        )}
-                      </ButtonGroup>
-                    </div>
-                  )}
+                  
                 </div>
               </MorphingDialogDescription>
             </div>
