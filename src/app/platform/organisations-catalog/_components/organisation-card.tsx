@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Megaphone, Bell, BellRing, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube, ChevronDown } from 'lucide-react';
+import { Megaphone, Bell, BellRing, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube, ChevronDown, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   MorphingDialog,
@@ -143,7 +143,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
   const LogoCircle: React.FC<{ size?: 'small' | 'large' }> = ({ size = 'small' }) => {
     const sizeClasses = size === 'small' 
       ? 'h-16 w-16 sm:h-20 sm:w-20 text-lg sm:text-xl' 
-      : 'h-20 w-20 sm:h-24 sm:w-24 text-xl sm:text-2xl';
+      : 'h-24 w-24 sm:h-28 sm:w-28 text-2xl sm:text-3xl';
     
     const logoUrl = getLogoUrl();
 
@@ -285,16 +285,16 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
               <MorphingDialogImage
                 src={organization.bannerUrl}
                 alt={organization.name}
-                className="h-64 sm:h-84 w-full object-cover"
+                className="h-72 sm:h-80 md:h-96 w-full object-cover"
               />
               
               {/* Dark Overlay (dimmed) */}
               <div className="absolute inset-0 bg-black/80" />
               
-              {/* Logo Circle for Dialog */}
-              <div className="absolute left-1/2 top-16 sm:top-20 flex -translate-x-1/2 z-20">
-                <LogoCircle size="large" />
-              </div>
+              {/* Top-right close button */}
+              <MorphingDialogClose className="text-white z-30 top-4 right-4 hover:opacity-80">
+                <X className="h-6 w-6" />
+              </MorphingDialogClose>
 
               <div className="absolute left-6 top-6 z-20 flex items-center gap-3">
                 {organization.inductionsOpen && (
@@ -328,6 +328,31 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                   </span>
                 </button>
                 */}
+              </div>
+
+              {/* Banner content split into 30/70 columns with vertical divider */}
+              <div className="absolute inset-0 z-20">
+                <div className="flex h-full w-full items-center p-6 sm:p-8">
+                  <div className="w-full grid grid-cols-1 md:grid-cols-10 gap-6 items-center">
+                    {/* Left: Logo ~30% */}
+                    <div className="md:col-span-3 flex justify-center">
+                      <LogoCircle size="large" />
+                    </div>
+                    {/* Divider */}
+                    <div className="hidden md:block md:col-span-1">
+                      <div className="h-24 w-px bg-white/30 mx-auto" />
+                    </div>
+                    {/* Right: Placeholder content ~70% */}
+                    <div className="md:col-span-6 text-white text-left">
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">Overview</h3>
+                        <p className="text-sm text-white/80">
+                          Sample content area. Add key highlights, CTA, or summary here.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -590,8 +615,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
               </MorphingDialogDescription>
             </div>
           </div>
-
-          <MorphingDialogClose className="text-neutral-900 dark:text-white" />
+          {/* Bottom close removed in favor of top-right close */}
         </MorphingDialogContent>
       </MorphingDialogContainer>
     </MorphingDialog>
