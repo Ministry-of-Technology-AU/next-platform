@@ -63,7 +63,7 @@ const MemberTag: React.FC<MemberTagProps> = ({ username, email }) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full text-sm font-medium text-neutral-700 dark:text-neutral-300 cursor-default transition-colors">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-light/70 hover:bg-neutral-200 dark:hover:bg-gray-dark/60 rounded-full text-xs font-medium text-black dark:text-white cursor-default transition-colors">
           {username}
         </span>
       </TooltipTrigger>
@@ -357,8 +357,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                 </Badge>
 
                 {/* Social Links */}
-                  {(organization.instagram || organization.twitter || organization.linkedin || 
-                    organization.youtube || organization.website || organization.whatsapp) && (
+        
                     <div>
                       <ButtonGroup orientation="horizontal" className="w-full flex-wrap">
                         {organization.instagram && (
@@ -508,8 +507,29 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                         )}
                       </ButtonGroup>
                     </div>
-                  )}
+                  
+
+                  
               </div>
+
+              {/**People section */}
+                                {organization.circle1_humans && organization.circle1_humans.length > 0 && (
+                    <div className="text-left">
+                      <h6 className="mb-3 text-lg font-semibold text-left !text-left">
+                        People
+                      </h6>
+                      <div className="flex flex-wrap gap-1.5">
+                        {organization.circle1_humans.map((member, index) => (
+                          <MemberTag 
+                            key={index}
+                            username={member.username}
+                            email={member.email}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                       </div>
                     </div>
                   </div>
@@ -529,6 +549,9 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                     </DisclosureTrigger>
                     <DisclosureContent>
                       <div className="p-4 rounded-lg">
+                        <h4 className="mb-2 text-base font-semibold text-amber-900 dark:text-amber-100">
+                          {`Inductions Open${organization.inductionEnd ? ' | ' + formatDate(organization.inductionEnd) : ''}`}
+                        </h4>
                         {organization.inductionDescription ? (
                           <RichTextRenderer html={organization.inductionDescription} />
                         ) : (
@@ -570,22 +593,6 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                   </div>
 
                   {/* Members Section */}
-                  {organization.circle1_humans && organization.circle1_humans.length > 0 && (
-                    <div>
-                      <h3 className="mb-3 text-lg font-semibold text-neutral-900 dark:text-white">
-                        Circle 1 (Leads)
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {organization.circle1_humans.map((member, index) => (
-                          <MemberTag 
-                            key={index}
-                            username={member.username}
-                            email={member.email}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {organization.circle2_humans && organization.circle2_humans.length > 0 && (
                     <div>
