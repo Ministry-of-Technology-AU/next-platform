@@ -189,7 +189,7 @@ export function DraftTabs({
         <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:flex-shrink-0 items-center">
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="flex-1 sm:flex-none">
+              <Button size="sm" variant="outline" className="dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
                 <Plus className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">New Draft</span>
                 <span className="sm:hidden">New</span>
@@ -215,7 +215,7 @@ export function DraftTabs({
 
           <Dialog open={isDuplicateOpen} onOpenChange={setIsDuplicateOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="flex-1 sm:flex-none">
+              <Button size="sm" variant="outline" className="dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
                 <Copy className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Duplicate</span>
                 <span className="sm:hidden">Copy</span>
@@ -236,7 +236,7 @@ export function DraftTabs({
                     setDuplicateSourceId(activeDraftId);
                     handleDuplicateDraft();
                   }}
-                  className="w-full"
+                  className="w-full "
                 >
                   Duplicate Current Draft
                 </Button>
@@ -247,7 +247,7 @@ export function DraftTabs({
           <Button
             size="sm"
             variant="outline"
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
             onClick={handleSaveDraft}
             disabled={isSaving}
           >
@@ -259,11 +259,11 @@ export function DraftTabs({
             size="sm"
             variant="outline"
             onClick={() => onDownloadTimetable(activeDraftId)}
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
           >
             <Download className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Download</span>
-            <span className="sm:hidden">DL</span>
+            <span className="sm:hidden">Download</span>
           </Button>
         </div>
       </div>
