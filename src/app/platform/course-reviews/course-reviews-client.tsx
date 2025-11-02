@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense, useMemo } from "react";
+import { TourStep } from "@/components/guided-tour";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ export default function CourseReviewsClient({ courses }: { courses: CourseWithRe
     <>
       {/* Filters Row */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6 my-6">
+        <TourStep id="semester-filter" order={1} position="bottom" content="Use this dropdown to filter courses by semester." title="Semester Filter">
         <Select value={semesterFilter} onValueChange={(value) => handleFilterChange('semester', value)}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Filter by semester" />
@@ -79,6 +81,8 @@ export default function CourseReviewsClient({ courses }: { courses: CourseWithRe
             ))}
           </SelectContent>
         </Select>
+        </TourStep>
+        <TourStep id="year-filter" order={2} position="bottom" content="Use this dropdown to filter courses by year." title="Year Filter">
 
         <Select value={yearFilter} onValueChange={(value) => handleFilterChange('year', value)}>
           <SelectTrigger className="w-full sm:w-48">
@@ -91,12 +95,14 @@ export default function CourseReviewsClient({ courses }: { courses: CourseWithRe
             ))}
           </SelectContent>
         </Select>
+        </TourStep>
       </div>
 
       {/* Entries + Search */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6 items-start sm:items-center">
         <div className="flex items-center gap-2">
           <span className="text-sm text-neutral-dark">Show</span>
+          <TourStep id="entries-per-page" order={3} position="bottom" content="Use this dropdown to select the number of entries to show per page." title="Entries Per Page">
           <Select
             value={entriesPerPage.toString()}
             onValueChange={handleEntriesPerPageChange}
@@ -112,10 +118,13 @@ export default function CourseReviewsClient({ courses }: { courses: CourseWithRe
               <SelectItem value="100">100</SelectItem>
             </SelectContent>
           </Select>
+            </TourStep>
+
           <span className="text-sm text-neutral-dark">entries</span>
         </div>
 
         <div className="flex-1 w-full sm:max-w-md sm:ml-auto">
+          <TourStep id="search-bar" order={4} position="bottom" content="Use this search bar to find courses or professors quickly." title="Search Bar">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-primary" />
             <Input
@@ -125,6 +134,7 @@ export default function CourseReviewsClient({ courses }: { courses: CourseWithRe
               className="pl-10"
             />
           </div>
+          </TourStep>
         </div>
       </div>
 
