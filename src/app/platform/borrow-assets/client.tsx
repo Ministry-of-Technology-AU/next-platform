@@ -16,7 +16,22 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
   const [selectedTypes, setSelectedTypes] = useState<Set<AssetType>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const handleToggleBookmark = (assetId: string) => {
+  const refreshAssets = async () => {
+    try {
+      const response = await fetch('/api/platform/borrow-assets');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setAssets(data.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing assets:', error);
+    }
+  };
+
+  const handleToggleBookmark = async (assetId: string) => {
+    // Optimistically update the UI
     setAssets((prevAssets) =>
       prevAssets.map((asset) =>
         asset.id === assetId
@@ -24,6 +39,42 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
           : asset
       )
     );
+
+    try {
+      // Call the API to update bookmark status
+      const response = await fetch('/api/platform/borrow-assets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'bookmark',
+          assetId,
+        }),
+      });
+
+      if (!response.ok) {
+        // Revert the optimistic update if the API call failed
+        setAssets((prevAssets) =>
+          prevAssets.map((asset) =>
+            asset.id === assetId
+              ? { ...asset, bookmarked: !asset.bookmarked }
+              : asset
+          )
+        );
+        console.error('Failed to update bookmark status');
+      }
+    } catch (error) {
+      // Revert the optimistic update if there was an error
+      setAssets((prevAssets) =>
+        prevAssets.map((asset) =>
+          asset.id === assetId
+            ? { ...asset, bookmarked: !asset.bookmarked }
+            : asset
+        )
+      );
+      console.error('Error updating bookmark status:', error);
+    }
   };
 
   const handleTabChange = (newTab: AssetTab) => {
@@ -98,14 +149,18 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
 
     return {
       availableAssets: filtered.filter((asset) => asset.status === 'available'),
-      unavailableAssets: filtered.filter((asset) => asset.status === 'unavailable'),
+      unavailableAssets: filtered.filter((asset) => 
+        asset.status === 'borrowed' || 
+        asset.status === 'overdue' || 
+        asset.status === 'unavailable'
+      ),
       techminBookmarks: [],
       jazbaaBookmarks: [],
     };
   }, [assets, selectedTab, selectedTypes, searchQuery]);
 
   return (
-    <div>
+    <div className='mt-6'>
       <FilterBar
         selectedTab={selectedTab}
         onTabChange={handleTabChange}
@@ -152,6 +207,7 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
                 assets={availableAssets}
                 title="Available"
                 onToggleBookmark={handleToggleBookmark}
+                onRequestSuccess={refreshAssets}
               />
             )}
 
@@ -160,12 +216,13 @@ export function BorrowAssetsClient({ initialAssets }: BorrowAssetsClientProps) {
                 assets={unavailableAssets}
                 title="Currently Unavailable"
                 onToggleBookmark={handleToggleBookmark}
+                onRequestSuccess={refreshAssets}
               />
             )}
 
             {availableAssets.length === 0 && unavailableAssets.length === 0 && (
               <div className="text-center py-12 text-gray-500">
-                No assets found matching your filters.
+                {assets.length === 0 ? 'No assets available at the moment.' : 'No assets found matching your filters.'}
               </div>
             )}
           </>

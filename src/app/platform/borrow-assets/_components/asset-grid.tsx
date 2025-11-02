@@ -9,9 +9,10 @@ interface AssetGridProps {
   assets: Asset[];
   title: string;
   onToggleBookmark: (assetId: string) => void;
+  onRequestSuccess?: () => void;
 }
 
-export function AssetGrid({ assets, title, onToggleBookmark }: AssetGridProps) {
+export function AssetGrid({ assets, title, onToggleBookmark, onRequestSuccess }: AssetGridProps) {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -42,6 +43,7 @@ export function AssetGrid({ assets, title, onToggleBookmark }: AssetGridProps) {
         asset={selectedAsset || null}
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
+        onRequestSuccess={onRequestSuccess}
       />
     </>
   );

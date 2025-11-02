@@ -16,6 +16,10 @@ import {
 import {
   Dialog,
   DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -31,13 +35,14 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
-import { TourTrigger } from "./guided-tour";
-import { SidebarTrigger } from "./ui/sidebar";
+import { TourTrigger } from "../guided-tour";
+import { SidebarTrigger } from "../ui/sidebar";
 import ThemeToggle from "@/components/ui/theme-toggle";
-import ClientOnly from "./client-only";
+import ClientOnly from "../client-only";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import sidebarEntries from "@/components/sidebar/sidebar-entries.json";
+import FeedbackDialog from "./FeedbackDialog";
 
 // Search Command Component
 const SearchCommand = React.memo(function SearchCommand() {
@@ -257,31 +262,12 @@ export default function Navbar() {
                   size="icon"
                   aria-label="Feedback"
                   className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10"
-                  onClick={() => window.open('https://www.notion.so/ministry-of-technology/2844ae85dc2c80a484bdd94abe7ceecc?v=2844ae85dc2c802a9d79000c2f255fe8&source=copy_link', '_blank')}
                 >
                   <Newspaper className="size-4 xs:size-4.5 sm:size-5" />
                 </Button>
               </TooltipTrigger>
             </DialogTrigger>
-            {/* <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Your Feedback</DialogTitle>
-                <DialogDescription>
-                  We appreciate your feedback! Please share your thoughts or
-                  report issues.
-                </DialogDescription>
-                <form className="mt-4">
-                  <textarea
-                    className="w-full p-2 border border-border rounded-md"
-                    rows={4}
-                    placeholder="Type your feedback here..."
-                  />
-                  <div className="mt-2 flex justify-end">
-                    <Button type="submit">Submit</Button>
-                  </div>
-                </form>
-              </DialogHeader>
-            </DialogContent> */}
+          <FeedbackDialog isOpen={true} onClose={() => {}} />
           </Dialog>
           <TooltipContent className="hidden sm:block">
             <p className="text-sm">Give us your feedback!</p>

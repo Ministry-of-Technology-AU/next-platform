@@ -8,6 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Bookmark, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Format date consistently to avoid hydration mismatch
+function formatDateIST(dateString: string): string {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 interface AssetCardProps {
   asset: Asset;
   onRequestBorrow: (assetId: string) => void;
@@ -16,7 +25,37 @@ interface AssetCardProps {
 
 export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCardProps) {
   const isAvailable = asset.status === 'available';
+  
+  const getStatusColor = (status: Asset['status']) => {
+    switch (status) {
+      case 'available':
+        return 'bg-green-100 text-green-700 border-green-200';
+      case 'borrowed':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'overdue':
+        return 'bg-red-100 text-red-700 border-red-200';
+      case 'unavailable':
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
 
+  const getStatusText = (status: Asset['status']) => {
+    switch (status) {
+      case 'available':
+        return 'Available';
+      case 'borrowed':
+        return 'Currently Borrowed';
+      case 'overdue':
+        return 'Overdue';
+      case 'unavailable':
+        return 'Unavailable';
+      default:
+        return 'Unknown';
+    }
+  };
+  
   return (
     <Card className={cn(
       "flex flex-col h-full overflow-hidden transition-opacity",
@@ -24,17 +63,17 @@ export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCar
     )}>
       <CardHeader className="relative p-0">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
-          {asset.imageUrl ? (
+          {asset.Image?.url ? (
             <Image
-              src={asset.imageUrl}
-              alt={asset.name}
+              src={asset.Image.url}
+              alt={asset.Image.alternativeText || asset.name}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-              Missing Image
+            <div className="flex items-center justify-center h-full bg-gray-100 text-gray-400 text-sm">
+              No Image Available
             </div>
           )}
           <button
@@ -55,17 +94,28 @@ export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCar
       </CardHeader>
       <CardContent className="flex-1 p-4">
         <CardTitle className="text-lg mb-2">{asset.name}</CardTitle>
+        {asset.model && (
+          <p className="text-sm text-gray-600 mb-2 font-medium">Model: {asset.model}</p>
+        )}
         <CardDescription className="text-sm mb-3 line-clamp-2">
           {asset.description}
         </CardDescription>
-        <div className="flex items-center gap-2 mb-2">
-          <Badge variant="secondary" className="text-xs">
-            {asset.type}
+        <div className="flex items-center flex-wrap gap-2 mb-2">
+          <Badge variant="secondary" className="text-xs capitalize">
+            {asset.type === 'mobile' ? 'Mobile Phone' : asset.type}
           </Badge>
+          <Badge className={cn("text-xs", getStatusColor(asset.status))}>
+            {getStatusText(asset.status)}
+          </Badge>
+          {asset.bookmarked && (
+            <Badge variant="outline" className="text-xs">
+              Bookmarked
+            </Badge>
+          )}
         </div>
-        {!isAvailable && asset.overdueDate && (
+        {!isAvailable && asset.last_borrow_request && (
           <p className="text-xs text-gray-600">
-            Overdue Since: {asset.overdueDate}
+            Last activity: {formatDateIST(asset.last_borrow_request.updatedAt)}
           </p>
         )}
       </CardContent>
@@ -77,7 +127,10 @@ export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCar
           disabled={!isAvailable}
         >
           <span className="flex items-center justify-center gap-2">
-            {isAvailable ? 'Request Borrow' : 'Currently Unavailable'}
+            {isAvailable ? 'Request Borrow' : 
+             asset.status === 'borrowed' ? 'Currently Borrowed' :
+             asset.status === 'overdue' ? 'Overdue Return' :
+             'Currently Unavailable'}
             {isAvailable && <ArrowRight className="h-4 w-4" />}
           </span>
         </Button>

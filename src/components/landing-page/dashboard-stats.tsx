@@ -10,7 +10,8 @@ import {
   Activity,
   Car
 } from 'lucide-react';
-
+import { InteractiveGridPattern } from '../ui/shadcn-io/interactive-grid-pattern';
+import { FlickeringGrid } from '../ui/shadcn-io/flickering-grid';
 const stats = {
   activeUsers: "4,442",
   totalEvents: "154",
@@ -31,7 +32,7 @@ export default function DashboardStats() {
       <BentoGrid className="max-w-6xl mx-auto px-2 sm:px-4">
         {/* Active Users - Large card */}
         <BentoGridItem
-          className="md:col-span-2 border-0 bg-gradient-to-r from-[#60150a] via-[#87281b] to-[#9b4e43]"
+          className="md:col-span-2 border-0 bg-gradient-to-r from-[#60150a] to-[#87281b]"
           title={
             <div className="text-white">
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">{stats.activeUsers}</div>
@@ -48,12 +49,23 @@ export default function DashboardStats() {
               </div>
             </div>
           }
+          // Add the interactive grid pattern as a decorative background above the gradient
+          children={
+            <FlickeringGrid
+              className="absolute inset-0"
+        squareSize={9}
+        gridGap={3}
+        flickerChance={0.3}
+        color="#3b0800"
+        maxOpacity={0.7}
+            />
+          }
         >
         </BentoGridItem>
 
         {/* Events This Month */}
         <BentoGridItem
-          className="bg-gradient-to-r from-[#60150a] via-[#87281b] to-[#9b4e43] text-white border-0"
+          className="bg-gradient-to-r from-[#60150a] to-[#87281b] text-white border-0"
           title={
             <div className="text-white">
               <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">{stats.totalEvents}</div>
@@ -66,11 +78,21 @@ export default function DashboardStats() {
               <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-400 animate-pulse" />
             </div>
           }
+          children={
+            <FlickeringGrid
+              className="absolute inset-0"
+        squareSize={9}
+        gridGap={3}
+        flickerChance={0.3}
+        color="#3b0800"
+        maxOpacity={0.7}
+            />
+          }
         />
 
         {/* Course Reviews */}
         <BentoGridItem
-          className="bg-gradient-to-r from-[#60150a] via-[#87281b] to-[#9b4e43] text-white border-0"
+          className="bg-gradient-to-r from-[#60150a] to-[#87281b] text-white border-0"
           title={
             <div className="text-white">
               <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">{stats.coursesReviewed}</div>
@@ -82,11 +104,21 @@ export default function DashboardStats() {
               <BookOpen className="size-5 sm:size-6 text-orange-400" />
             </div>
           }
+          children={
+            <FlickeringGrid
+              className="absolute inset-0"
+        squareSize={9}
+        gridGap={3}
+        flickerChance={0.3}
+        color="#3b0800"
+        maxOpacity={0.7}
+            />
+          }
         />
 
         {/* System Uptime - Wide card */}
         <BentoGridItem
-          className="md:col-span-2 bg-gradient-to-r from-[#60150a] via-[#87281b] to-[#9b4e43] text-white border-0"
+          className="md:col-span-2 bg-gradient-to-r from-[#60150a] to-[#87281b] text-white border-0"
           title={
             <div className="text-white">
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">{stats.uptime}</div>
@@ -97,6 +129,16 @@ export default function DashboardStats() {
             <div className="flex items-center justify-between mb-2 sm:mb-4">
               <Car className="size-6 sm:size-7 md:size-8 text-purple-400" />
             </div>
+          }
+          children={
+            <FlickeringGrid
+              className="absolute inset-0"
+        squareSize={9}
+        gridGap={3}
+        flickerChance={0.3}
+        color="#3b0800"
+        maxOpacity={0.7}
+            />
           }
         />
       </BentoGrid>

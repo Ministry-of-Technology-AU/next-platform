@@ -45,6 +45,11 @@
           "title": "Events Calendar",
           "icon": "CalendarDays",
           "href": "/events-calendar"
+        },
+        {
+          "title": "Organisations Catalogue",
+          "icon": "GalleryHorizontalEnd",
+          "href": "/organisations-catalog"
         }
       ]
     },
@@ -63,9 +68,14 @@
           "href": "/pool-cab"
         },
         {
+
           "title": "Pool Subscriptions",
           "icon": "Users",
           "href": "/pool-subscription"
+        },
+          "title": "Borrow Assets",
+          "icon":"ShoppingBag",
+          "href":"/borrow-assets"
         }
       ]
     },

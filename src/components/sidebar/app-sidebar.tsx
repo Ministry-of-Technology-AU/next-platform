@@ -35,6 +35,8 @@ import {
   Clock,
   WifiPen,
   User,
+  GalleryHorizontalEnd,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -57,6 +59,8 @@ const iconMap = {
   Clock,
   WifiPen,
   User,
+  GalleryHorizontalEnd,
+  ShoppingBag
 };
 
 interface SidebarItem {
@@ -109,20 +113,29 @@ export function AppSidebar() {
   const isMac = useIsMac();
 
   return (
-    <Sidebar className="border-r border-border flex flex-col h-screen bg-white dark:bg-black overflow-y-auto" collapsible="icon">
+    <Sidebar className="border-r border-border flex flex-col h-screen bg-background xoverflow-y-auto" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
               <div className="flex-shrink-0 cursor-pointer">
+                {/* Light Mode Logo */}
                 <Image
-                  src="/MoT logo.png"
+                  src="/Techmin Logo.png"
                   alt="Ministry of Technology"
                   width={48}
                   height={48}
-                  className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8"
+                  className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8 block dark:hidden"
+                />
+                {/* Dark Mode Logo */}
+                <Image
+                  src="/Techmin Logo.png"
+                  alt="Ministry of Technology"
+                  width={48}
+                  height={48}
+                  className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8 hidden dark:block"
                 />
               </div>
           <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
-            <h3 className="text-lg font-semibold text-primary truncate leading-tight whitespace-nowrap !text-left">
+            <h3 className="text-lg font-semibold text-primary dark:text-secondary-dark truncate leading-tight whitespace-nowrap !text-left">
                 Platform
               </h3>
             <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">

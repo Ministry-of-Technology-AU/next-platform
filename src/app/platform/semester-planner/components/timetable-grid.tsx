@@ -50,13 +50,13 @@ export function TimetableGrid({
       <div className="min-w-[600px] md:min-w-[800px] border border-border rounded-lg overflow-hidden">
         {/* Header */}
         <div className="grid grid-cols-6 border-b border-border">
-          <div className="font-semibold text-center p-2 md:p-4 bg-muted border-r border-border text-xs md:text-sm">
+          <div className="font-semibold text-center p-2 md:p-4 bg-muted dark:bg-muted/40 border-r border-border text-xs md:text-sm">
             Time
           </div>
           {DAYS.map((day, index) => (
             <div
               key={day}
-              className={`font-semibold text-center p-2 md:p-4 bg-muted text-xs md:text-sm ${
+              className={`font-semibold text-center p-2 md:p-4 bg-muted dark:bg-muted/40 text-xs md:text-sm ${
                 index < DAYS.length - 1 ? "border-r border-border" : ""
               }`}
             >
@@ -74,7 +74,7 @@ export function TimetableGrid({
               slotIndex < TIME_SLOTS.length - 1 ? "border-b border-border" : ""
             }`}
           >
-            <div className="font-medium text-center p-2 md:p-4 bg-muted border-r border-border text-xs md:text-sm">
+            <div className="font-medium text-center p-2 md:p-4 bg-muted dark:bg-muted/40 border-r border-border text-xs md:text-sm">
               <span className="hidden sm:inline">{slot}</span>
               <span className="sm:hidden">{slot.length > 8 ? slot.slice(0, 5) + "..." : slot}</span>
             </div>

@@ -19,7 +19,7 @@ export function ReviewsTable({paginatedCourses, sortField, sortDirection, handle
   };
     return(
                   <Table>
-            <TableHeader className="sticky top-0 bg-primary-light/40 dark:bg-primary-dark/40 z-10">
+            <TableHeader className="sticky top-0 bg-primary-light/30 dark:bg-primary-dark/40 !text-white z-10">
               <TableRow>
                 {[
                   { field: "courseCode", label: "Course Code" },
@@ -30,7 +30,7 @@ export function ReviewsTable({paginatedCourses, sortField, sortDirection, handle
                 ].map(({ field, label, hideOnMobile }) => (
                   <TableHead
                     key={field}
-                    className={`cursor-pointer hover:bg-neutral-light ${hideOnMobile ? 'hidden sm:table-cell' : ''}`}
+                    className={`cursor-pointer text-gray dark:text-gray-light hover:bg-neutral-light ${hideOnMobile ? 'hidden sm:table-cell' : ''}`}
                     onClick={() => handleSort(field as SortField)}
                   >
                     <div className="flex items-center gap-2">

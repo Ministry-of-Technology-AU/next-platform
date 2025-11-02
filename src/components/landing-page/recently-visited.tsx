@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { recentlyVisited } from './data/platform-data';
+import { TourStep } from '../guided-tour';
 
 interface RecentlyVisitedProps {
   className?: string;
@@ -12,6 +13,7 @@ export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
   return (
     <div className={`flex flex-col gap-3 sm:gap-4 ${className}`}>
       <h3 className="text-lg font-semibold !text-left text-primary dark:text-secondary">Recently Visited</h3>
+        <TourStep id="recently-visited" order={1} position="right" content="Access your recently visited tools quickly from here." title="Recently Visited">
       <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 sm:gap-3">
         {recentlyVisited.slice(0, 4).map((item) => (
           <Link
@@ -27,7 +29,12 @@ export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
             </span>
           </Link>
         ))}
+
       </div>
+          </TourStep>
+
     </div>
+
   );
+
 }
