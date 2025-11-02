@@ -208,7 +208,7 @@ export default function ComposeNew() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-    <div className="space-y-6 max-w-8xl mx-auto p-6">
+  <div className="space-y-6 mx-auto px-2 sm:px-4 md:px-6 max-w-[1200px] w-full">
       {/* Header Section */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -221,8 +221,8 @@ export default function ComposeNew() {
       </div>
 
 
-      {/* Form Card */}
-      <Card className="w-full">
+  {/* Form Card */}
+  <Card className="w-full bg-card dark:bg-card p-2 sm:p-6">
         <CardHeader>
           <TourStep id="compose-email-form" order={1} position="bottom" content="View instructions and guidelines for composing your email." title="Guidelines for Composing Email">
          <InstructionsField
@@ -239,7 +239,7 @@ export default function ComposeNew() {
         </TourStep>
         </CardHeader>
 
-        <FormContainer onSubmit={handleFormSubmit} className="w-full">
+  <FormContainer onSubmit={handleFormSubmit} className="w-full px-0">
           <TourStep order={2} id="category" position="right" content="Select what category your email content belongs in (eg, Announcements, Events, etc.)" title="Category">
           {/* Category Selection */}
           <SingleSelect
@@ -281,33 +281,42 @@ export default function ComposeNew() {
               <Label className="text-base font-medium">
                 Mail Draft <span className="text-destructive">*</span>
               </Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => insertTemplate('announcement')}
-                  className="hover:bg-primary/10 transition-colors duration-200"
+                  className="hover:bg-primary/10 transition-colors dark:border-border dark:bg-neutral-light duration-200 px-2 sm:px-3 min-w-[44px]"
                 >
-                  📢 Announcement
+                  <span className="sm:hidden" aria-hidden>
+                    📢
+                  </span>
+                  <span className="hidden sm:inline">📢 Announcement</span>
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => insertTemplate('event')}
-                  className="hover:bg-primary/10 transition-colors duration-200"
+                  className="hover:bg-primary/10 transition-colors duration-200 px-2 sm:px-3 dark:border-border dark:bg-neutral-light min-w-[44px] "
                 >
-                  📅 Event
+                  <span className="sm:hidden" aria-hidden>
+                    📅
+                  </span>
+                  <span className="hidden sm:inline">📅 Event</span>
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => insertTemplate('reminder')}
-                  className="hover:bg-primary/10 transition-colors duration-200"
+                  className="hover:bg-primary/10 dark:border-border dark:bg-neutral-light transition-colors duration-200 px-2 sm:px-3 min-w-[44px]"
                 >
-                  ⏰ Reminder
+                  <span className="sm:hidden" aria-hidden>
+                    ⏰
+                  </span>
+                  <span className="hidden sm:inline">⏰ Reminder</span>
                 </Button>
               </div>
             </div>

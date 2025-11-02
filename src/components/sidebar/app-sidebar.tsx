@@ -135,7 +135,7 @@ export function AppSidebar() {
                 />
               </div>
           <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
-            <h3 className="text-lg font-semibold text-primary dark:text-secondary-dark truncate leading-tight whitespace-nowrap !text-left">
+            <h3 className="text-lg font-semibold text-primary dark:text-primary-bright truncate leading-tight whitespace-nowrap !text-left">
                 Platform
               </h3>
             <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">
@@ -204,7 +204,7 @@ export function AppSidebar() {
       {!isCollapsed && (<SidebarFooter className="p-4">
         <div className="text-xs text-muted-foreground text-left transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
             <p>Developed & maintained by</p>
-            <p className="text-primary text-bold">the Ministry of Technology</p>
+            <p className="text-primary dark:text-primary-bright text-bold">the Ministry of Technology</p>
         </div>
       </SidebarFooter>)}
     </Sidebar>

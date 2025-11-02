@@ -8,9 +8,9 @@ import {
   BookOpen, 
   TrendingUp,
   Activity,
-  Car
+  Car,
+  Handshake
 } from 'lucide-react';
-import { InteractiveGridPattern } from '../ui/shadcn-io/interactive-grid-pattern';
 import { FlickeringGrid } from '../ui/shadcn-io/flickering-grid';
 const stats = {
   activeUsers: "4,442",
@@ -42,11 +42,7 @@ export default function DashboardStats() {
           description="Students currently using the platform"
           header={
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <Users className="size-6 sm:size-7 md:size-8 text-blue-400" />
-              <div className="flex items-center gap-1 sm:gap-2 bg-white/20 rounded-full px-2 sm:px-3 py-1">
-                <TrendingUp className="size-3 sm:size-4" />
-                <span className="text-xs sm:text-sm font-medium">{stats.weeklyGrowth}</span>
-              </div>
+              <Users className="size-6 sm:size-7 md:size-8 text-blue-light" />
             </div>
           }
           // Add the interactive grid pattern as a decorative background above the gradient
@@ -74,8 +70,7 @@ export default function DashboardStats() {
           }
           header={
             <div className="flex justify-between items-start mb-2 sm:mb-4">
-              <Calendar className="size-5 sm:size-6 text-green-400" />
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-400 animate-pulse" />
+              <Handshake className="size-5 sm:size-6 text-green" />
             </div>
           }
           children={
@@ -101,7 +96,7 @@ export default function DashboardStats() {
           }
           header={
             <div className="flex justify-between items-start mb-2 sm:mb-4">
-              <BookOpen className="size-5 sm:size-6 text-orange-400" />
+              <BookOpen className="size-5 sm:size-6 text-secondary-dark" />
             </div>
           }
           children={
@@ -127,7 +122,7 @@ export default function DashboardStats() {
           }
           header={
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <Car className="size-6 sm:size-7 md:size-8 text-purple-400" />
+              <Car className="size-6 sm:size-7 md:size-8 text-green-light" />
             </div>
           }
           children={
