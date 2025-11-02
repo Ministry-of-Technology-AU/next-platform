@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { TourStep } from "@/components/guided-tour";
 import type { TimetableDraft } from "../types";
 
 interface DraftTabsProps {
@@ -119,152 +120,192 @@ export function DraftTabs({
     <div className="w-full">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-4">
         {/* Tabs scroller */}
-        <div className="flex-1 min-w-0">
-          <ScrollArea className="w-full rounded-md border whitespace-nowrap">
-            <div className="flex w-max gap-1 p-2">
-              {drafts.map((draft) => {
-                const isActive = activeDraftId === draft.id;
-                const isEditing = editingDraftId === draft.id;
-                return (
-                  <div
-                    key={draft.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={isActive}
-                    onClick={() => !isEditing && onSwitchDraft(draft.id)}
-                    onKeyDown={(e) => {
-                      if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
-                        e.preventDefault();
-                        onSwitchDraft(draft.id);
-                      }
-                      if (e.key === 'F2' && !isEditing) {
-                        startEditing(draft.id, draft.name);
-                      }
-                    }}
-                    onDoubleClick={() => startEditing(draft.id, draft.name)}
-                    className={`h-fit relative group px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 cursor-pointer select-none ${
-                      isActive ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'
-                    }`}
-                  >
-                    {isEditing ? (
-                      <input
-                        autoFocus
-                        className="bg-transparent border-b border-border focus:outline-none focus:ring-0 text-sm w-28"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onBlur={commitEditing}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            commitEditing();
-                          } else if (e.key === 'Escape') {
-                            cancelEditing();
-                          }
-                        }}
-                      />
-                    ) : (
-                      <span>{draft.name}</span>
-                    )}
-                    {drafts.length > 1 && !isEditing && (
-                      <button
-                        type="button"
-                        aria-label="Delete draft"
-                        className="ml-2 h-4 w-4 p-0 inline-flex items-center justify-center rounded opacity-0 group-hover:opacity-100 hover:bg-background/20 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteDraft(draft.id);
-                        }}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <ScrollBar orientation="horizontal" className="absolute" />
-          </ScrollArea>
-        </div>
+        <TourStep
+          id="draft-tabs"
+          order={0}
+          title="Draft Tabs"
+          content="Switch between different timetable drafts using these tabs. Each draft saves its own set of courses and layout."
+          position="bottom"
+        >
+          <div className="flex-1 min-w-0">
+            <ScrollArea className="w-full rounded-md border whitespace-nowrap">
+              <div className="flex w-max gap-1 p-2">
+                {drafts.map((draft) => {
+                  const isActive = activeDraftId === draft.id;
+                  const isEditing = editingDraftId === draft.id;
+                  return (
+                    <div
+                      key={draft.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isActive}
+                      onClick={() => !isEditing && onSwitchDraft(draft.id)}
+                      onKeyDown={(e) => {
+                        if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          onSwitchDraft(draft.id);
+                        }
+                        if (e.key === 'F2' && !isEditing) {
+                          startEditing(draft.id, draft.name);
+                        }
+                      }}
+                      onDoubleClick={() => startEditing(draft.id, draft.name)}
+                      className={`h-fit relative group px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 cursor-pointer select-none ${
+                        isActive ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'
+                      }`}
+                    >
+                      {isEditing ? (
+                        <input
+                          autoFocus
+                          className="bg-transparent border-b border-border focus:outline-none focus:ring-0 text-sm w-28"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onBlur={commitEditing}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              commitEditing();
+                            } else if (e.key === 'Escape') {
+                              cancelEditing();
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span>{draft.name}</span>
+                      )}
+                      {drafts.length > 1 && !isEditing && (
+                        <button
+                          type="button"
+                          aria-label="Delete draft"
+                          className="ml-2 h-4 w-4 p-0 inline-flex items-center justify-center rounded opacity-0 group-hover:opacity-100 hover:bg-background/20 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteDraft(draft.id);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <ScrollBar orientation="horizontal" className="absolute" />
+            </ScrollArea>
+          </div>
+        </TourStep>
 
         {/* Buttons */}
         <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:flex-shrink-0 items-center">
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
-                <Plus className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">New Draft</span>
-                <span className="sm:hidden">New</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Draft</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  placeholder="Draft name"
-                  value={newDraftName}
-                  onChange={(e) => setNewDraftName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCreateDraft()}
-                />
-                <Button onClick={handleCreateDraft} className="w-full">
-                  Create Draft
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isDuplicateOpen} onOpenChange={setIsDuplicateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
-                <Copy className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Duplicate</span>
-                <span className="sm:hidden">Copy</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Duplicate Draft</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  placeholder="New draft name"
-                  value={duplicateName}
-                  onChange={(e) => setDuplicateName(e.target.value)}
-                />
-                <Button
-                  onClick={() => {
-                    setDuplicateSourceId(activeDraftId);
-                    handleDuplicateDraft();
-                  }}
-                  className="w-full "
-                >
-                  Duplicate Current Draft
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
-            onClick={handleSaveDraft}
-            disabled={isSaving}
+          <TourStep
+            id="create-draft"
+            order={1}
+            title="Create New Draft"
+            content="Click here to create a new draft. A draft is a snapshot of your current timetable that you can save and come back to later."
+            position="bottom"
           >
-            <Save className="h-4 w-4 mr-2" />
-            {isSaving ? 'Saving...' : <><span className="hidden sm:inline">Save Draft</span><span className="sm:hidden">Save</span></>}
-          </Button>
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
+                  <Plus className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">New Draft</span>
+                  <span className="sm:hidden">New</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Draft</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="Draft name"
+                    value={newDraftName}
+                    onChange={(e) => setNewDraftName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleCreateDraft()}
+                  />
+                  <Button onClick={handleCreateDraft} className="w-full">
+                    Create Draft
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </TourStep>
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onDownloadTimetable(activeDraftId)}
-            className="flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
+          <TourStep
+            id="duplicate-draft"
+            order={2}
+            title="Duplicate Draft"
+            content="Duplicate your current draft to create a copy. This is useful when you want to experiment with variations of your timetable."
+            position="bottom"
           >
-            <Download className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Download</span>
-            <span className="sm:hidden">Download</span>
-          </Button>
+            <Dialog open={isDuplicateOpen} onOpenChange={setIsDuplicateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
+                  <Copy className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Duplicate</span>
+                  <span className="sm:hidden">Copy</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Duplicate Draft</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="New draft name"
+                    value={duplicateName}
+                    onChange={(e) => setDuplicateName(e.target.value)}
+                  />
+                  <Button
+                    onClick={() => {
+                      setDuplicateSourceId(activeDraftId);
+                      handleDuplicateDraft();
+                    }}
+                    className="w-full "
+                  >
+                    Duplicate Current Draft
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </TourStep>
+
+          <TourStep
+            id="save-draft"
+            order={3}
+            title="Save Draft"
+            content="Click to save your current draft. This persists your timetable so you don't lose your work."
+            position="bottom"
+          >
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
+              onClick={handleSaveDraft}
+              disabled={isSaving}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? 'Saving...' : <><span className="hidden sm:inline">Save Draft</span><span className="sm:hidden">Save</span></>}
+            </Button>
+          </TourStep>
+
+          <TourStep
+            id="download-timetable"
+            order={4}
+            title="Download Timetable"
+            content="Download your timetable as an image. Perfect for saving or sharing with friends!"
+            position="bottom"
+          >
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDownloadTimetable(activeDraftId)}
+              className="flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
+            >
+              <Download className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Download</span>
+              <span className="sm:hidden">Download</span>
+            </Button>
+          </TourStep>
         </div>
       </div>
 

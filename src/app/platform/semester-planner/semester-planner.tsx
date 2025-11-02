@@ -18,6 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { COURSE_COLORS } from "./types";
+import { useTour } from "@/components/guided-tour";
+import { TourStep } from "@/components/guided-tour";
 
 
 interface SemesterPlannerClientProps {
@@ -26,6 +28,9 @@ interface SemesterPlannerClientProps {
 }
 
 export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlannerClientProps) {
+  const { isActive: isTourActive, stopTour } = useTour();
+  const [sampleCourseId, setSampleCourseId] = useState<string | null>(null);
+  
   const [drafts, setDrafts] = useState<TimetableDraft[]>(() => {
     if (Array.isArray(initialDrafts) && initialDrafts.length > 0) {
       return initialDrafts.map((d: any) => ({
@@ -113,6 +118,11 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
   const handleAddCourse = useCallback(
     (course: Course) => {
+      // Don't add if it's the sample course being tracked
+      if (sampleCourseId && course.id === sampleCourseId) {
+        return;
+      }
+      
       // Check for time conflicts
       const conflictResult = checkTimeConflict(course, activeDraft.courses);
       if (conflictResult.hasConflict) {
@@ -151,8 +161,34 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
       );
       toast.success(`${course.code} added to timetable`, { duration: 2000 });
     },
-    [activeDraftId, activeDraft.courses, checkTimeConflict]
+    [activeDraftId, activeDraft.courses, checkTimeConflict, sampleCourseId]
   );
+
+  // Add a sample course for the tour step
+  const handleAddSampleCourse = useCallback(() => {
+    if (courses.length === 0) return;
+    const sampleCourse = courses[0];
+    setSampleCourseId(sampleCourse.id);
+    handleAddCourse(sampleCourse);
+  }, [courses, handleAddCourse]);
+
+  // Remove the sample course when tour ends
+  useEffect(() => {
+    if (!isTourActive && sampleCourseId) {
+      setDrafts((prev) =>
+        prev.map((draft) =>
+          draft.id === activeDraftId
+            ? {
+                ...draft,
+                courses: draft.courses.filter((c) => c.id !== sampleCourseId),
+                updatedAt: new Date(),
+              }
+            : draft
+        )
+      );
+      setSampleCourseId(null);
+    }
+  }, [isTourActive, sampleCourseId, activeDraftId]);
 
   // Color picker is now only for changing color, not for adding
   const handleColorSelect = useCallback(
@@ -436,15 +472,24 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onDownloadTimetable={handleDownloadTimetable}
               onRenameDraft={handleRenameDraft}
           >
-            <div id="timetable-grid" className="min-w-0">
-              <TimetableGrid
-                courses={activeDraft.courses}
-                onRemoveCourse={handleRemoveCourse}
-                onToggleLock={handleToggleLock}
-                onRecolorCourse={handleRecolorCourse}
-                lockedCourses={lockedCourses}
-              />
-            </div>
+            <TourStep
+              id="timetable-grid"
+              order={5}
+              title="Timetable Grid"
+              content="This is your timetable grid. Courses appear here once you add them. You can see time slots for each day, lock courses, and change their colors."
+              position="left"
+              onOpen={handleAddSampleCourse}
+            >
+              <div id="timetable-grid" className="min-w-0">
+                <TimetableGrid
+                  courses={activeDraft.courses}
+                  onRemoveCourse={handleRemoveCourse}
+                  onToggleLock={handleToggleLock}
+                  onRecolorCourse={handleRecolorCourse}
+                  lockedCourses={lockedCourses}
+                />
+              </div>
+            </TourStep>
           </DraftTabs>
         </div>
 
