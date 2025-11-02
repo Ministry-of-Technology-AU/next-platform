@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Megaphone, Bell, BellRing, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
+import { Megaphone, Bell, BellRing, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   MorphingDialog,
@@ -26,7 +26,7 @@ import { CopyButton } from '@/components/ui/shadcn-io/copy-button';
 import { Organization } from '../types';
 import { cn } from '@/lib/utils';
 import { useCategoryColors } from './category-colors-context';
-
+import { Disclosure, DisclosureTrigger, DisclosureContent } from '@/components/ui/disclosure';
 interface OrganizationCardProps {
   organization: Organization;
 }
@@ -89,7 +89,7 @@ const MemberTag: React.FC<MemberTagProps> = ({ username, email }) => {
 export function OrganizationCard({ organization }: OrganizationCardProps) {
   const { categoryColors } = useCategoryColors();
   const [isHovered, setIsHovered] = React.useState(false);
-  const [isTrackingInductions, setIsTrackingInductions] = React.useState(false);
+  // const [isTrackingInductions, setIsTrackingInductions] = React.useState(false);
 
   const truncateDescription = (text: string, maxLength: number = 80) => {
     if (text.length <= maxLength) return text;
@@ -199,6 +199,8 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
             </div>
           )}
 
+          {/** Tracking button temporarily hidden */}
+          {/**
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -226,6 +228,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
               <Bell className="h-4 w-4 text-white" />
             )}
           </div>
+          */}
 
           <div
             className={cn(
@@ -274,19 +277,19 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
           style={{
             borderRadius: '24px',
           }}
-          className="pointer-events-auto relative flex h-auto w-full flex-col overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 shadow-xl sm:w-[90vw] md:w-[750px] lg:w-[850px] sm:max-h-[90vh]"
+          className="pointer-events-auto relative flex h-auto w-full flex-col overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 shadow-xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[80vw] xl:w-[80vw] sm:max-h-[90vh]"
         >
           {/* Scrollable Content Container */}
           <div className="overflow-y-auto">
-            <div className="relative">
+            <div className="sticky top-0 z-10 relative">
               <MorphingDialogImage
                 src={organization.bannerUrl}
                 alt={organization.name}
-                className="h-80 sm:h-96 w-full object-cover"
+                className="h-64 sm:h-84 w-full object-cover"
               />
               
-              {/* Dark Overlay */}
-              <div className="absolute inset-0 bg-black/40" />
+              {/* Dark Overlay (dimmed) */}
+              <div className="absolute inset-0 bg-black/80" />
               
               {/* Logo Circle for Dialog */}
               <div className="absolute left-1/2 top-16 sm:top-20 flex -translate-x-1/2 z-20">
@@ -302,7 +305,8 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                     </span>
                   </div>
                 )}
-                
+                {/** Tracking button temporarily hidden */}
+                {/**
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -323,8 +327,32 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                     {isTrackingInductions ? 'Tracking' : 'Track Inductions'}
                   </span>
                 </button>
+                */}
               </div>
             </div>
+
+                                        {/* Induction Information moved to top-right in a Disclosure */}
+                  {organization.inductionsOpen && (<Disclosure className="m-6 rounded-lg border-2 border-primary">
+                    <DisclosureTrigger className="w-full">
+                      <div className="flex items-center justify-between w-full p-4 rounded-lg cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                        <h3 className="text-lg">
+                          Induction Information
+                        </h3>
+                        <ChevronDown className="w-5 h-5" />
+                      </div>
+                    </DisclosureTrigger>
+                    <DisclosureContent>
+                      <div className="p-4 rounded-lg">
+                        {organization.inductionDescription ? (
+                          <RichTextRenderer html={organization.inductionDescription} />
+                        ) : (
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                            No induction details provided.
+                          </p>
+                        )}
+                      </div>
+                    </DisclosureContent>
+                  </Disclosure>)}
 
             <div className="p-6">
               <div className="flex flex-wrap items-start gap-3 mb-3">
@@ -338,6 +366,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                   {organization.type.charAt(0).toUpperCase() + organization.type.slice(1)}
                 </Badge>
               </div>
+
 
               {/* <MorphingDialogSubtitle className="text-sm text-neutral-600 dark:text-neutral-400">
                 {organization.description}
@@ -363,28 +392,6 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                       ) : null}
                     </div>
                   </div>
-
-                  {/* Induction Information */}
-                  {organization.inductionsOpen && (
-                    <div className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Megaphone className="h-5 w-5 text-amber-900 dark:text-amber-100" />
-                        <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100">
-                          Inductions Open
-                        </h3>
-                      </div>
-                      {organization.inductionEnd && (
-                        <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
-                          <span className="font-semibold">Ends:</span> {formatDate(organization.inductionEnd)}
-                        </p>
-                      )}
-                      {organization.inductionDescription && (
-                        <div className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
-                          <RichTextRenderer html={organization.inductionDescription} />
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   {/* Members Section */}
                   {organization.circle1_humans && organization.circle1_humans.length > 0 && (
