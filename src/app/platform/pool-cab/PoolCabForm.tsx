@@ -2,12 +2,26 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Car, Clock, MapPin, Phone, Calendar } from "lucide-react"
+import { Car, ChevronDownIcon, MapPin, Mail } from "lucide-react"
+import { toast } from "sonner"
+import { useSession } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  FormContainer,
+  SingleSelect,
+  PhoneInput,
+} from "@/components/form"
 import {
   Select,
   SelectContent,
@@ -15,111 +29,118 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-// Generate dates for the next 30 days
-const generateDates = () => {
-  const dates = []
-  const today = new Date()
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(today)
-    date.setDate(today.getDate() + i)
-    dates.push({
-      value: date.toISOString().split('T')[0],
-      label: date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric'
-      })
-    })
-  }
-  return dates
-}
+import { ButtonGroup } from "@/components/ui/button-group"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 export default function PoolCabForm() {
   const router = useRouter()
-  const [selectedDate, setSelectedDate] = React.useState("")
+  const { data: session } = useSession()
+
+  // Helper function to get current IST date
+  const getISTDate = () => {
+    const now = new Date()
+    const istOffset = 5.5 * 60 * 60 * 1000 // IST is UTC+5:30
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60 * 1000)
+    return new Date(utc + istOffset)
+  }
+
+  // Form state
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined)
+  const [selectedHour, setSelectedHour] = React.useState("12")
+  const [selectedMinute, setSelectedMinute] = React.useState("00")
+  const [selectedPeriod, setSelectedPeriod] = React.useState<"AM" | "PM">("PM")
   const [fromLocation, setFromLocation] = React.useState("")
   const [toLocation, setToLocation] = React.useState("")
-  const [selectedHour, setSelectedHour] = React.useState("")
-  const [selectedMinute, setSelectedMinute] = React.useState("")
-  const [selectedPeriod, setSelectedPeriod] = React.useState("")
   const [contactNumber, setContactNumber] = React.useState("")
-  const [phoneError, setPhoneError] = React.useState("")
+  const [useEmail, setUseEmail] = React.useState(false)
+  const [userEmail, setUserEmail] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [isLoadingProfile, setIsLoadingProfile] = React.useState(true)
 
-  const dates = generateDates()
+  // Date picker state
+  const [datePickerOpen, setDatePickerOpen] = React.useState(false)
 
-  // Generate hours (1-12)
-  const hours = Array.from({ length: 12 }, (_, i) => ({
-    value: (i + 1).toString(),
-    label: (i + 1).toString().padStart(2, '0')
-  }))
+  // Fetch user profile data on mount
+  React.useEffect(() => {
+    async function fetchProfile() {
+      try {
+        setIsLoadingProfile(true)
+        const response = await fetch('/api/platform/profile', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
 
-  // Generate minutes (00, 15, 30, 45)
-  const minutes = [
-    { value: "00", label: "00" },
-    { value: "15", label: "15" },
-    { value: "30", label: "30" },
-    { value: "45", label: "45" }
-  ]
-
-  const periods = [
-    { value: "AM", label: "AM" },
-    { value: "PM", label: "PM" }
-  ]
-
-  const validatePhoneNumber = (phone: string) => {
-    const phoneRegex = /^[0-9]{10}$/
-    return phoneRegex.test(phone)
-  }
-
-  const handlePhoneChange = (value: string) => {
-    // Remove any non-numeric characters
-    const numericValue = value.replace(/[^0-9]/g, '')
-
-    // Limit to 10 digits
-    const limitedValue = numericValue.slice(0, 10)
-
-    setContactNumber(limitedValue)
-
-    // Validate and set error
-    if (limitedValue.length > 0 && !validatePhoneNumber(limitedValue)) {
-      if (limitedValue.length < 10) {
-        setPhoneError("Phone number must be exactly 10 digits")
-      } else {
-        setPhoneError("Invalid phone number format")
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.data) {
+            setContactNumber(result.data.phone_number || "")
+            setUserEmail(result.data.email || session?.user?.email || "")
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error)
+        setUserEmail(session?.user?.email || "")
+      } finally {
+        setIsLoadingProfile(false)
       }
-    } else {
-      setPhoneError("")
     }
-  }
+
+    fetchProfile()
+  }, [session?.user?.email])
+
+  // Location options
+  const locationOptions = [
+    { value: "Campus", label: "Campus" },
+    { value: "Jahangirpuri", label: "Jahangirpuri" },
+    { value: "Azadpur", label: "Azadpur" },
+    { value: "Airport (T1)", label: "Airport (T1)" },
+    { value: "Airport (T2)", label: "Airport (T2)" },
+    { value: "Airport (T3)", label: "Airport (T3)" },
+    { value: "New Delhi", label: "New Delhi" },
+    { value: "Jaipur", label: "Jaipur" },
+    { value: "Noida", label: "Noida" },
+    { value: "Gurgaon", label: "Gurgaon" },
+    { value: "Ludhiana", label: "Ludhiana" },
+    { value: "Agra", label: "Agra" },
+    { value: "Nizamuddin", label: "Nizamuddin" },
+    { value: "Ghaziabad", label: "Ghaziabad" },
+  ]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!selectedDate || !fromLocation || !toLocation || !selectedHour || !selectedMinute || !selectedPeriod || !contactNumber) {
-      alert("Please fill in all required fields")
+    // Validate required fields
+    if (!selectedDate || !fromLocation || !toLocation || !selectedHour || !selectedMinute) {
+      toast.error("Please fill in all required fields")
       return
     }
 
-    if (!validatePhoneNumber(contactNumber)) {
-      alert("Please enter a valid 10-digit phone number")
+    // Validate contact method
+    if (!useEmail && !contactNumber) {
+      toast.error("Please provide a contact number or select use email")
       return
     }
 
     setIsSubmitting(true)
 
     try {
+      // Convert date to YYYY-MM-DD format in IST
+      const istDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000)
+      const formattedDate = istDate.toISOString().split('T')[0]
+
       // Prepare data for API call
       const poolData = {
-        selectedDate,
+        selectedDate: formattedDate,
         fromLocation,
         toLocation,
         selectedHour,
         selectedMinute,
         selectedPeriod,
-        contactNumber
+        contactNumber: useEmail ? null : contactNumber,
+        useEmailContact: useEmail
       }
+
+      console.log("Form data to be submitted:", poolData)
 
       // Call API endpoint
       const response = await fetch('/api/platform/pool-cab', {
@@ -133,16 +154,16 @@ export default function PoolCabForm() {
       const result = await response.json()
 
       if (!result.success) {
-        alert(result.error || "Failed to create pool")
+        toast.error(result.error || "Failed to create pool")
       } else {
+        toast.success("Pool created successfully!")
         // Success - navigate to results page
-        router.push('platform/pool-cab/results')
+        router.push('/platform/pool-cab/results')
       }
 
     } catch (error) {
       console.error("Error creating pool:", error)
-      const errorMessage = "Failed to create pool. Please try again."
-      alert(errorMessage)
+      toast.error("Failed to create pool. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -156,193 +177,191 @@ export default function PoolCabForm() {
           Trip Details
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Date Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="date" className="text-sm font-medium flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Select date to pool on <span className="text-destructive">*</span>
-            </Label>
-            <Select value={selectedDate} onValueChange={setSelectedDate}>
-              <SelectTrigger id="date">
-                <SelectValue placeholder="Choose your travel date" />
-              </SelectTrigger>
-              <SelectContent>
-                {dates.map((date) => (
-                  <SelectItem key={date.value} value={date.value}>
-                    {date.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* From and To Locations */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* From Location */}
-            <div className="space-y-2">
-              <Label htmlFor="from" className="text-sm font-medium flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                From <span className="text-destructive">*</span>
-              </Label>
-              <Select value={fromLocation} onValueChange={setFromLocation}>
-                <SelectTrigger id="from">
-                  <SelectValue placeholder="Select departure location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Campus">Campus</SelectItem>
-                  <SelectItem value="New Delhi">New Delhi</SelectItem>
-                  <SelectItem value="Gurgaon">Gurgaon</SelectItem>
-                  <SelectItem value="Noida">Noida</SelectItem>
-                  <SelectItem value="Airport">Airport</SelectItem>
-                  <SelectItem value="Jahangirpuri">Jahangirpuri</SelectItem>
-                  <SelectItem value="Azadpur">Azadpur</SelectItem>
-                  <SelectItem value="Chandigarh">Chandigarh</SelectItem>
-                  <SelectItem value="Jaipur">Jaipur</SelectItem>
-                  <SelectItem value="Ludhiana">Ludhiana</SelectItem>
-                  <SelectItem value="Ghaziabad">Ghaziabad</SelectItem>
-                  <SelectItem value="Nizamuddin">Nizamuddin</SelectItem>
-                  <SelectItem value="Agra">Agra</SelectItem>
-                </SelectContent>
-              </Select>
+      <FormContainer onSubmit={handleSubmit}>
+        {/* Date and Time - unified label with all inline controls */}
+        <div className="flex flex-col gap-3">
+          <Label htmlFor="date-picker" className="px-1 text-base font-medium">
+            Date and Time <span className="text-destructive">*</span>
+          </Label>
+          
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            {/* Date Selection */}
+            <div className="flex-1 min-w-0">
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    id="date-picker"
+                    className="w-full justify-between font-normal"
+                  >
+                    {selectedDate ? selectedDate.toLocaleDateString() : "Select date"}
+                    <ChevronDownIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    captionLayout="dropdown"
+                    onSelect={(date) => {
+                      setSelectedDate(date)
+                      setDatePickerOpen(false)
+                    }}
+                    fromDate={getISTDate()} // Allow today and future dates in IST
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
-            {/* To Location */}
-            <div className="space-y-2">
-              <Label htmlFor="to" className="text-sm font-medium flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                To <span className="text-destructive">*</span>
-              </Label>
-              <Select value={toLocation} onValueChange={setToLocation}>
-                <SelectTrigger id="to">
-                  <SelectValue placeholder="Select destination" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Campus">Campus</SelectItem>
-                  <SelectItem value="New Delhi">New Delhi</SelectItem>
-                  <SelectItem value="Gurgaon">Gurgaon</SelectItem>
-                  <SelectItem value="Noida">Noida</SelectItem>
-                  <SelectItem value="Airport">Airport</SelectItem>
-                  <SelectItem value="Jahangirpuri">Jahangirpuri</SelectItem>
-                  <SelectItem value="Azadpur">Azadpur</SelectItem>
-                  <SelectItem value="Chandigarh">Chandigarh</SelectItem>
-                  <SelectItem value="Jaipur">Jaipur</SelectItem>
-                  <SelectItem value="Ludhiana">Ludhiana</SelectItem>
-                  <SelectItem value="Ghaziabad">Ghaziabad</SelectItem>
-                  <SelectItem value="Nizamuddin">Nizamuddin</SelectItem>
-                  <SelectItem value="Agra">Agra</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Time Selection - Hour, Minute, AM/PM */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Select time to pool at <span className="text-destructive">*</span>
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <Label htmlFor="hour" className="text-xs text-muted-foreground">Hour</Label>
+            {/* Time Selection with ButtonGroup */}
+            <div className="flex-1 min-w-0">
+              <ButtonGroup className="w-full h-10">
+                {/* Hour Selection */}
                 <Select value={selectedHour} onValueChange={setSelectedHour}>
-                  <SelectTrigger id="hour">
+                  <SelectTrigger className="w-45 sm:w-60 border border-input shadow-sm">
                     <SelectValue placeholder="HH" />
                   </SelectTrigger>
                   <SelectContent>
-                    {hours.map((hour) => (
-                      <SelectItem key={hour.value} value={hour.value}>
-                        {hour.label}
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                      <SelectItem key={hour} value={hour.toString()}>
+                        {hour.toString().padStart(2, '0')}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label htmlFor="minute" className="text-xs text-muted-foreground">Minute</Label>
+
+                {/* Colon separator */}
+                <div className="flex items-center justify-center px-2 text-sm font-medium text-muted-foreground">
+                  :
+                </div>
+
+                {/* Minute Selection */}
                 <Select value={selectedMinute} onValueChange={setSelectedMinute}>
-                  <SelectTrigger id="minute">
+                  <SelectTrigger className="w-45 sm:w-60 border border-input rounded-lg shadow-sm">
                     <SelectValue placeholder="MM" />
                   </SelectTrigger>
                   <SelectContent>
-                    {minutes.map((minute) => (
-                      <SelectItem key={minute.value} value={minute.value}>
-                        {minute.label}
+                    {[
+                      { value: '00', label: '00' },
+                      { value: '15', label: '15' },
+                      { value: '30', label: '30' },
+                      { value: '45', label: '45' }
+                    ].map((min) => (
+                      <SelectItem key={min.value} value={min.value}>
+                        {min.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label htmlFor="period" className="text-xs text-muted-foreground">Period</Label>
-                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                  <SelectTrigger id="period">
-                    <SelectValue placeholder="AM/PM" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {periods.map((period) => (
-                      <SelectItem key={period.value} value={period.value}>
-                        {period.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
+                {/* AM/PM Toggle - smaller width */}
+                <ToggleGroup
+                  type="single"
+                  value={selectedPeriod}
+                  onValueChange={(value) => value && setSelectedPeriod(value as "AM" | "PM")}
+                  className="w-30 border-1 shadow-none"
+                >
+                  <ToggleGroupItem
+                    value="AM"
+                    className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-none text-xs"
+                  >
+                    AM
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="PM"
+                    className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-none text-xs"
+                  >
+                    PM
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </ButtonGroup>
             </div>
           </div>
+        </div>
 
-          {/* Contact Number */}
-          <div className="space-y-2">
-            <Label htmlFor="contact" className="text-sm font-medium flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Enter contact number <span className="text-destructive">*</span>
-            </Label>
-            <div className="flex gap-2">
-              <div className="flex items-center px-3 py-2 bg-muted border border-input rounded-md text-sm font-mono text-muted-foreground">
-                +91
-              </div>
-              <div className="flex-1">
-                <Input
-                  id="contact"
-                  type="tel"
-                  placeholder="Enter 10-digit number"
-                  value={contactNumber}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                  className={`font-mono ${phoneError ? 'border-destructive' : ''}`}
-                  maxLength={10}
-                />
-                {phoneError && (
-                  <p className="text-xs text-destructive mt-1">{phoneError}</p>
-                )}
-              </div>
-            </div>
-          </div>
+        {/* From and To Locations */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SingleSelect
+            title="From"
+            placeholder="Select departure location"
+            items={locationOptions}
+            value={fromLocation}
+            onChange={setFromLocation}
+            isRequired={true}
+          />
 
-          {/* Submit Button */}
-          <div className="pt-4">
-            <Button
-              type="submit"
-              className="w-full gap-2 text-lg py-6"
-              disabled={
-                isSubmitting ||
-                !selectedDate ||
-                !fromLocation ||
-                !toLocation ||
-                !selectedHour ||
-                !selectedMinute ||
-                !selectedPeriod ||
-                !contactNumber ||
-                !!phoneError ||
-                !validatePhoneNumber(contactNumber)
-              }
+          <SingleSelect
+            title="To"
+            placeholder="Select destination"
+            items={locationOptions}
+            value={toLocation}
+            onChange={setToLocation}
+            isRequired={true}
+          />
+        </div>
+
+        {/* Contact Information */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="use-email"
+              checked={useEmail}
+              onCheckedChange={(checked) => setUseEmail(checked as boolean)}
+            />
+            <Label
+              htmlFor="use-email"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
-              <Car className="h-5 w-5" />
-              {isSubmitting ? "Creating Pool..." : "Pool a Cab!"}
-            </Button>
+              Use email for contact instead
+            </Label>
           </div>
-        </form>
-      </CardContent>
+
+          {useEmail ? (
+            <div className="flex flex-col gap-3">
+              <Label className="px-1 text-base font-medium">
+                Contact Email <span className="text-destructive">*</span>
+              </Label>
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{userEmail}</span>
+              </div>
+              <p className="text-xs text-muted-foreground px-1">
+                Others will contact you via email
+              </p>
+            </div>
+          ) : (
+            <PhoneInput
+              title="Contact Number"
+              description="Provide a valid 10-digit mobile number"
+              placeholder="9876543210"
+              value={contactNumber}
+              onChange={setContactNumber}
+              isRequired={true}
+            />
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-4">
+          <Button
+            type="submit"
+            className="w-full gap-2 text-lg py-6"
+            disabled={
+              isSubmitting ||
+              isLoadingProfile ||
+              !selectedDate ||
+              !selectedHour ||
+              !selectedMinute ||
+              !fromLocation ||
+              !toLocation ||
+              (!useEmail && !contactNumber)
+            }
+          >
+            <Car className="h-5 w-5" />
+            {isSubmitting ? "Creating Pool..." : "Pool a Cab!"}
+          </Button>
+        </div>
+      </FormContainer>
     </Card>
   )
 }

@@ -706,7 +706,7 @@ export function CheckboxComponent({
           id={title.toLowerCase().replace(/\s+/g, "-")}
           checked={value}
           onCheckedChange={onChange}
-          className="border-0 rounded-xs"
+          className="border-2 rounded-xs mt-1"
         />
         <div className="grid gap-1.5 leading-none">
           <Label

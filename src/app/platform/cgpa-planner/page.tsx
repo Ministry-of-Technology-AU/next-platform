@@ -34,7 +34,7 @@ async function fetchCGPAData(): Promise<ParsedCGPAData | null> {
 
 export default async function CGPAPlannerPage(){
     const cgpaData = await fetchCGPAData();
-    return (<div className="mt-5 mx-6">
+    return (<div className="mt-2 xs:mt-3 sm:mt-4 md:mt-5 mx-2 xs:mx-3 sm:mx-4 md:mx-6 mb-2 xs:mb-3 sm:mb-4">
         <CGPAPlanner data={cgpaData}/>
     </div>);
 }

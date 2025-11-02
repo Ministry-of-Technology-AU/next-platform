@@ -1,75 +1,147 @@
 "use client";
 
 import React from 'react';
-import {
-  Users,
-  Calendar,
-  BookOpen,
+import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
+import { 
+  Users, 
+  Calendar, 
+  BookOpen, 
   TrendingUp,
   Activity,
-  Star,
-  Zap
+  Car
 } from 'lucide-react';
-
+import { InteractiveGridPattern } from '../ui/shadcn-io/interactive-grid-pattern';
+import { FlickeringGrid } from '../ui/shadcn-io/flickering-grid';
 const stats = {
-  activeUsers: "2,847",
-  totalEvents: "156",
-  coursesReviewed: "423",
+  activeUsers: "4,442",
+  totalEvents: "154",
+  coursesReviewed: "1,093",
   avgRating: "4.6",
   weeklyGrowth: "+12%",
-  uptime: "99.9%"
+  uptime: "1793"
 };
 
 export default function DashboardStats() {
   return (
-    <div className="mb-8 sm:mb-12 w-full overflow-hidden">
-      <div className="flex items-center gap-3 mb-4 sm:mb-6">
-        <Activity className="size-5 sm:size-6 text-primary flex-shrink-0" />
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">Platform Insights</h2>
+    <div className="mb-8 sm:mb-12 md:mb-16">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
+        <Activity className="size-4 sm:size-5 md:size-6 text-primary" />
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Platform Insights</h2>
       </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
-        {/* Active Users */}
-        <div className="bg-primary dark:bg-gradient-to-br dark:from-primary/70 dark:to-primary/60 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg hover:shadow-xl transition-shadow w-full overflow-hidden">
-          <Users className="size-5 sm:size-6 mx-auto mb-2 opacity-80" />
-          <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 truncate">{stats.activeUsers}</div>
-          <div className="text-xs opacity-90 truncate">Active Users</div>
-          <div className="flex items-center justify-center gap-1 mt-2 text-xs bg-white/20 rounded-full px-2 py-1 w-fit mx-auto">
-            <TrendingUp className="size-3 flex-shrink-0" />
-            <span className="whitespace-nowrap">{stats.weeklyGrowth}</span>
-          </div>
-        </div>
+      
+      <BentoGrid className="max-w-6xl mx-auto px-2 sm:px-4">
+        {/* Active Users - Large card */}
+        <BentoGridItem
+          className="md:col-span-2 border-0 bg-gradient-to-r from-[#60150a] to-[#87281b]"
+          title={
+            <div className="text-white">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">{stats.activeUsers}</div>
+              <div className="text-sm sm:text-base md:text-lg opacity-90">Active Users</div>
+            </div>
+          }
+          description="Students currently using the platform"
+          header={
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <Users className="size-6 sm:size-7 md:size-8 text-blue-400" />
+              <div className="flex items-center gap-1 sm:gap-2 bg-white/20 rounded-full px-2 sm:px-3 py-1">
+                <TrendingUp className="size-3 sm:size-4" />
+                <span className="text-xs sm:text-sm font-medium">{stats.weeklyGrowth}</span>
+              </div>
+            </div>
+          }
+          // Add the interactive grid pattern as a decorative background above the gradient
+          children={
+            <FlickeringGrid
+              className="absolute inset-0"
+        squareSize={9}
+        gridGap={3}
+        flickerChance={0.3}
+        color="#3b0800"
+        maxOpacity={0.7}
+            />
+          }
+        >
+        </BentoGridItem>
 
         {/* Events This Month */}
-        <div className="bg-primary-light dark:bg-gradient-to-br dark:from-primary/60 dark:to-primary/50 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg hover:shadow-xl transition-shadow w-full overflow-hidden">
-          <Calendar className="size-5 sm:size-6 mx-auto mb-2 opacity-80" />
-          <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 truncate">{stats.totalEvents}</div>
-          <div className="text-xs opacity-90 truncate">Events This Month</div>
-          <div className="w-2 h-2 rounded-full bg-green-300 animate-pulse mx-auto mt-2" />
-        </div>
+        <BentoGridItem
+          className="bg-gradient-to-r from-[#60150a] to-[#87281b] text-white border-0"
+          title={
+            <div className="text-white">
+              <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">{stats.totalEvents}</div>
+              <div className="text-sm sm:text-base opacity-90">Pools Requested</div>
+            </div>
+          }
+          header={
+            <div className="flex justify-between items-start mb-2 sm:mb-4">
+              <Calendar className="size-5 sm:size-6 text-green-400" />
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-400 animate-pulse" />
+            </div>
+          }
+          children={
+            <FlickeringGrid
+              className="absolute inset-0"
+        squareSize={9}
+        gridGap={3}
+        flickerChance={0.3}
+        color="#3b0800"
+        maxOpacity={0.7}
+            />
+          }
+        />
 
         {/* Course Reviews */}
-        <div className="bg-gradient-to-br from-red-600 to-red-700 dark:bg-gradient-to-br dark:from-primary/60 dark:to-primary/50 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg hover:shadow-xl transition-shadow w-full overflow-hidden">
-          <BookOpen className="size-5 sm:size-6 mx-auto mb-2 opacity-80" />
-          <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 truncate">{stats.coursesReviewed}</div>
-          <div className="text-xs opacity-90 truncate">Course Reviews</div>
-          <div className="flex items-center justify-center gap-1 mt-2 text-xs">
-            <Star className="size-3 fill-current flex-shrink-0" />
-            <span className="whitespace-nowrap">{stats.avgRating}</span>
-          </div>
-        </div>
+        <BentoGridItem
+          className="bg-gradient-to-r from-[#60150a] to-[#87281b] text-white border-0"
+          title={
+            <div className="text-white">
+              <div className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">{stats.coursesReviewed}</div>
+              <div className="text-sm sm:text-base opacity-90">Course Reviews</div>
+            </div>
+          }
+          header={
+            <div className="flex justify-between items-start mb-2 sm:mb-4">
+              <BookOpen className="size-5 sm:size-6 text-orange-400" />
+            </div>
+          }
+          children={
+            <FlickeringGrid
+              className="absolute inset-0"
+        squareSize={9}
+        gridGap={3}
+        flickerChance={0.3}
+        color="#3b0800"
+        maxOpacity={0.7}
+            />
+          }
+        />
 
-        {/* System Uptime */}
-        <div className="bg-gradient-to-br from-amber-500 to-amber-600 dark:bg-gradient-to-br dark:from-primary/50 dark:to-primary/40 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg hover:shadow-xl transition-shadow w-full overflow-hidden">
-          <Zap className="size-5 sm:size-6 mx-auto mb-2 opacity-80" />
-          <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 truncate">{stats.uptime}</div>
-          <div className="text-xs opacity-90 truncate">System Uptime</div>
-          <div className="flex items-center justify-center gap-1 mt-2 text-xs opacity-90">
-            <div className="w-2 h-2 rounded-full bg-green-300 animate-pulse flex-shrink-0" />
-            <span className="whitespace-nowrap">Operational</span>
-          </div>
-        </div>
-      </div>
+        {/* System Uptime - Wide card */}
+        <BentoGridItem
+          className="md:col-span-2 bg-gradient-to-r from-[#60150a] to-[#87281b] text-white border-0"
+          title={
+            <div className="text-white">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">{stats.uptime}</div>
+              <div className="text-sm sm:text-base md:text-lg opacity-90">Cabs Requested</div>
+            </div>
+          }
+          header={
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <Car className="size-6 sm:size-7 md:size-8 text-purple-400" />
+            </div>
+          }
+          children={
+            <FlickeringGrid
+              className="absolute inset-0"
+        squareSize={9}
+        gridGap={3}
+        flickerChance={0.3}
+        color="#3b0800"
+        maxOpacity={0.7}
+            />
+          }
+        />
+      </BentoGrid>
     </div>
   );
 }

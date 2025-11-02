@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Eye, ArrowUpDown } from "lucide-react"
 import { useState } from "react"
+import { TourStep } from "@/components/guided-tour"
 
 // Email Details Modal Component
 function EmailDetailsModal({ email }: { email: OutboxEmail }) {
@@ -22,7 +23,7 @@ function EmailDetailsModal({ email }: { email: OutboxEmail }) {
       <DialogTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 p-0">
           <span className="sr-only">View details</span>
-          <Eye className="h-4 w-4" />
+            <Eye className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">

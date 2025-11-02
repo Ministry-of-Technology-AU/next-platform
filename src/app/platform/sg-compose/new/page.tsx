@@ -2,19 +2,19 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, MailPlus, Send } from "lucide-react"
+import { ArrowLeft, MailPlus, Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import PageTitle from "@/components/page-title"
 import { toast } from "sonner"
+import { TourStep } from "@/components/guided-tour"
 import {
   TextInput,
   SingleSelect,
   MultiSelectCheckbox,
   FileUpload,
-  SubmitButton,
   FormContainer,
   InstructionsField
 } from "@/components/form"
@@ -53,6 +53,7 @@ export default function ComposeNew() {
   const [mailDraft, setMailDraft] = React.useState("")
   const [additionalNotes, setAdditionalNotes] = React.useState("")
   const [attachedFiles, setAttachedFiles] = React.useState<File[]>([])
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   // Email templates for quick insertion
   const emailTemplates = {
@@ -121,6 +122,7 @@ export default function ComposeNew() {
 
   const handleSubmit = async (action: 'request' | 'cancel') => {
     if (action === 'request') {
+      setIsSubmitting(true);
       try {
         // Debug log to verify HTML content
         console.log('HTML content being submitted:', mailDraft);
@@ -174,7 +176,7 @@ export default function ComposeNew() {
         if (result.success) {
           alert('Email request submitted successfully! It will be reviewed by the administrators.');
           // Navigate to outbox
-          router.push('/sg-compose/outbox');
+          router.push('/platform/sg-compose/outbox');
         } else {
           alert(`Error: ${result.error || 'Failed to submit email request'}`);
         }
@@ -182,6 +184,8 @@ export default function ComposeNew() {
       } catch (error) {
         console.error('Error submitting form:', error);
         alert('Failed to submit email request. Please try again.');
+      } finally {
+        setIsSubmitting(false);
       }
     } else {
       // Cancel action - just navigate back
@@ -220,6 +224,7 @@ export default function ComposeNew() {
       {/* Form Card */}
       <Card className="w-full">
         <CardHeader>
+          <TourStep id="compose-email-form" order={1} position="bottom" content="View instructions and guidelines for composing your email." title="Guidelines for Composing Email">
          <InstructionsField
           heading="Email Composition Guidelines"
           subheading="Please follow these guidelines for effective email composition"
@@ -231,9 +236,11 @@ export default function ComposeNew() {
             "Include any additional notes for the administrators"
           ]}
         />
+        </TourStep>
         </CardHeader>
 
         <FormContainer onSubmit={handleFormSubmit} className="w-full">
+          <TourStep order={2} id="category" position="right" content="Select what category your email content belongs in (eg, Announcements, Events, etc.)" title="Category">
           {/* Category Selection */}
           <SingleSelect
             title="Select Your Category of Mail"
@@ -243,7 +250,8 @@ export default function ComposeNew() {
             onChange={setSelectedCategory}
             isRequired={true}
           />
-
+</TourStep>
+<TourStep order={3} id="recipients" position="right" content="Select one or more recipient groups for your email." title="Recipients">
           {/* Recipients Selection */}
           <MultiSelectCheckbox
             title="Select Recipients"
@@ -253,6 +261,8 @@ export default function ComposeNew() {
             onChange={setSelectedRecipients}
             isRequired={true}
           />
+</TourStep>
+<TourStep order={4} id="subject" position="right" content="Enter a clear and concise subject line for your email." title="Subject">
 
           {/* Subject */}
           <TextInput
@@ -262,6 +272,8 @@ export default function ComposeNew() {
             onChange={setSubject}
             isRequired={true}
           />
+</TourStep>
+<TourStep order={5} id="content" position="right" content="Compose the body of your email using the rich text editor. You can also use the template buttons to quickly insert common formats." title="Mail Draft">
 
           {/* Mail Draft with Template Buttons */}
           <div className="space-y-4">
@@ -311,7 +323,8 @@ export default function ComposeNew() {
               Use the rich text editor to format your email. You can add headings, bold/italic text, links, images, and tables. Use the template buttons above for quick starts.
             </p>
           </div>
-
+</TourStep>
+<TourStep order={6} id="attachments" position="right" content="Attach any relevant files to your email, ensuring the total size does not exceed 10MB. This is an optional field." title="File Attachments">
           {/* File Attachment */}
           <FileUpload
             title="File Attachment (if any)"
@@ -322,7 +335,8 @@ export default function ComposeNew() {
             value={attachedFiles}
             onChange={setAttachedFiles}
           />
-
+</TourStep>
+<TourStep order={7} id="additional-notes" position="right" content="Provide any additional notes or special instructions for the administrators reviewing your email request. This won't be sent to the student body." title="Additional Notes">
           {/* Additional Notes */}
           <TextInput
             title="Additional Notes (if any)"
@@ -331,22 +345,43 @@ export default function ComposeNew() {
             value={additionalNotes}
             onChange={setAdditionalNotes}
           />
+          </TourStep>
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
-            <SubmitButton
-              text="Request Email"
+            <TourStep order={8} id="submit" position="top" content="Submit your email request for review." title="Submit">
+            <Button
+              type="submit"
+              className="flex-1"
               disabled={
+                isSubmitting ||
                 !selectedCategory || 
                 selectedRecipients.length === 0 || 
                 !subject || 
                 !mailDraft.trim()
               }
-              description="Submit your email request for administrative review"
-            />
-            <Button variant="outline" onClick={() => handleSubmit("cancel")}>
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Request Email"
+              )}
+            </Button>
+            </TourStep>
+            <TourStep order={9} id="cancel" position="top" content="Cancel your email request." title="Cancel">
+            <Button 
+              type="button"
+              variant="outline" 
+              className="flex-1"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("cancel")}
+            >
               Cancel Email
             </Button>
+            </TourStep>
           </div>
         </FormContainer>
       </Card>

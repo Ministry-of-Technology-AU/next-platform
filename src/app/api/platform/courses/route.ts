@@ -41,7 +41,6 @@ export async function GET(request: Request) {
       filters: filters,
       sort: ["year:desc"],
     });
-
     return Response.json(data);
   } catch (error) {
     console.error('Error fetching courses:', error);

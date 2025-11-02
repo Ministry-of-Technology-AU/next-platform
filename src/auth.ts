@@ -13,6 +13,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.AUTH_CLIENT_ID!,
       clientSecret: process.env.AUTH_CLIENT_SECRET!,
+      // Suggest Google limit accounts shown to the allowed hosted domain.
+      // This is a UI hint and should NOT be relied on for security — see server-side check in `signIn` below.
+      authorization: {
+        params: {
+          hd: process.env.ALLOWED_EMAIL_DOMAIN || 'ashoka.edu.in',
+          prompt: 'select_account',
+        },
+      },
     })
   ],
   session: {
@@ -39,15 +47,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = user.email!;
 
         // Determine user role based on email patterns
+        // if (ORGANIZATION_EMAILS.includes(email)) {
+        //   token.role = 'organization';
+        //   token.access = ['platform', 'organization'];
+        // } else if (process.env.BETA_TESTERS?.split(',').includes(email)) {
+        //   token.role = 'beta_tester';
+        //   token.access = ['platform', 'beta_features'];
+        // } else if (email.includes('_ug')) {
+        //   token.role = 'student';
+        //   token.access = ['platform'];
+        // } else {
+        //   token.role = 'user';
+        //   token.access = ['platform']; // Default access
+        // }
+        // Only for beta launch TODO: Change this before full launch
         if (ORGANIZATION_EMAILS.includes(email)) {
           token.role = 'organization';
           token.access = ['platform', 'organization'];
-        } else if (email.includes('_ug')) {
-          token.role = 'student';
-          token.access = ['platform'];
+        } else if (process.env.BETA_TESTERS?.split(',').includes(email)) {
+          token.role = 'beta_tester';
+          token.access = ['platform', 'beta_features'];
         } else {
           token.role = 'user';
-          token.access = ['platform']; // Default access
+          token.access = ['none']; // Default access
         }
 
         token.email = email;

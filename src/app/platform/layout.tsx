@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito, Nunito_Sans } from "next/font/google";
 import "../globals.css";
-import Navbar from "@/components/navbar";
+import Navbar from "@/components/navbar/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,18 +31,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (    
-    <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>     
+    <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>      
         <TooltipProvider>
           <TourProvider
             autoStart={false}
           >
             <SidebarProvider defaultOpen={false}>
-              <div className="flex min-h-screen w-full">
+              <div className="flex min-h-screen w-full overflow-x-hidden">
                 <AppSidebar />
-                <div className="flex flex-1 flex-col">
+                <div className="flex flex-1 flex-col min-w-0">
                   <Navbar />
                   <Suspense>
-                    <main className="flex-1 overflow-auto pt-4 pb-4 pl-14 sm:pl-16 pr-12 sm:pr-14">
+                    <main className="flex-1 overflow-auto pt-2 pb-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
                       {children}
                     </main>
                   </Suspense>
@@ -50,7 +50,7 @@ export default function RootLayout({
               </div>
             </SidebarProvider>
           </TourProvider>
-        </TooltipProvider>    
+        </TooltipProvider> 
     </div>    
   );
 }

@@ -52,7 +52,7 @@ export function CourseSelection({
   }, [courses, searchTerm, departmentFilter, typeFilter]);
 
   return (
-    <Card className="h-[90vh]">
+    <Card className="h-[90vh] bg-card dark:bg-card">
       <CardContent className="p-4 space-y-4">
         <div className="space-y-3">
           <div className="relative">
@@ -105,7 +105,7 @@ export function CourseSelection({
             {filteredCourses.map((course) => (
               <Card
                 key={course.id}
-                className="p-3 hover:bg-muted/50 transition-colors"
+                className="p-3 hover:bg-muted/50 dark:bg-card transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1 space-y-1">
@@ -122,7 +122,8 @@ export function CourseSelection({
                       Prof. {course.professor}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {course.department} • {course.credits} credits
+                      {course.department}
+                      {/* {course.department} • {course.credits} credits */}
                     </p>
                   </div>
                   <Button

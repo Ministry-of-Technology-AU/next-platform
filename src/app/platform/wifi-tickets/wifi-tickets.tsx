@@ -4,7 +4,10 @@ import { FormContainer, PhoneInput, TextInput, SingleSelect, SubmitButton} from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Wifi } from "lucide-react";
+import { Wifi } from "lucide-react";
+import SpeedTest from "./_components/speedtest";
+import { Drawer } from "@/components/ui/drawer";
+import { toast } from "sonner";
 
 export default function WifiTickets1(){
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -49,9 +52,8 @@ export default function WifiTickets1(){
   const [roomFloor, setRoomFloor] = useState("");
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [downloadSpeed, setDownloadSpeed] = useState("");
-  const [isSpeedTesting, setIsSpeedTesting] = useState(false);
-  const [speedTestStarted, setSpeedTestStarted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Load user's existing phone number
   useEffect(() => {
@@ -72,39 +74,31 @@ export default function WifiTickets1(){
     loadUserData();
   }, []);
 
-  const startSpeedTest = () => {
-    if (isSpeedTesting) return;
-    
-    setIsSpeedTesting(true);
-    setSpeedTestStarted(true);
-    setDownloadSpeed("");
-    
-    let counter = 0;
-    const interval = setInterval(() => {
-      // Generate random speed values that gradually increase for realism
-      const randomSpeed = Math.floor(Math.random() * 150 + 10);
-      setDownloadSpeed(`${randomSpeed}`);
-      counter++;
-      
-      // After 7 seconds (approximately 35 intervals at 200ms), set to 120 mbps
-      if (counter >= 35) {
-        clearInterval(interval);
-        setDownloadSpeed("120");
-        setIsSpeedTesting(false);
-      }
-    }, 200);
+  // Auto-launch speedtest when user selects "Yes" for Ashoka WiFi
+  useEffect(() => {
+    if (onAshokaWifi === "yes") {
+      setDrawerOpen(true);
+    }
+  }, [onAshokaWifi]);
+
+  const handleSpeedTestComplete = () => {
+    setDrawerOpen(false);
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate required fields
     if (!phoneNumber || phoneNumber.length !== 10) {
-      alert("Please enter a valid 10-digit phone number");
+      toast.error("Validation Error", {
+        description: "Please enter a valid 10-digit phone number"
+      });
       return;
     }
     
     if (!onAshokaWifi || !complaintType || !location || !roomFloor || !additionalDetails) {
-      alert("Please fill in all required fields");
+      toast.error("Validation Error", {
+        description: "Please fill in all required fields"
+      });
       return;
     }
     
@@ -124,7 +118,7 @@ export default function WifiTickets1(){
       
       console.log('Submitting form data:', formData);
 
-      const response = await fetch('/api/wifi-tickets', {
+      const response = await fetch('/api/platform/wifi-tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +129,9 @@ export default function WifiTickets1(){
       const result = await response.json();
       
       if (response.ok && result.success) {
-        alert(`WiFi ticket submitted successfully! Ticket ID: ${result.ticketId}`);
+        toast.success("WiFi Ticket Submitted Successfully!", {
+          description: `Your ticket has been created with ID: ${result.ticketId}. You will receive a confirmation email shortly.`
+        });
         // Reset form fields after successful submission
         setPhoneNumber("");
         setOnAshokaWifi("");
@@ -144,13 +140,14 @@ export default function WifiTickets1(){
         setRoomFloor("");
         setAdditionalDetails("");
         setDownloadSpeed("");
-        setSpeedTestStarted(false);
       } else {
         throw new Error(result.error || 'Failed to submit ticket');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Error submitting WiFi ticket. Please try again.');
+      toast.error("Submission Failed", {
+        description: error instanceof Error ? error.message : 'Error submitting WiFi ticket. Please try again.'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -167,47 +164,40 @@ export default function WifiTickets1(){
         value={onAshokaWifi}
         onChange={setOnAshokaWifi}
       />
-      
-      {/* Speed Test Component */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Download Speed Test (Optional)</Label>
-        <p className="text-sm text-muted-foreground">
-          Test your current download speed. This helps us better understand your connectivity issues.
-        </p>
-        <div className="flex items-center space-x-2">
-          <div className="relative flex-1">
-            <Input
-              type="text"
-              value={downloadSpeed ? `${downloadSpeed} Mbps` : ""}
-              placeholder="Speed will appear here after test"
-              readOnly
-              className="pr-10"
-            />
-            {isSpeedTesting && (
-              <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin" />
-            )}
+      {/* Conditional Speed Test Section - Only show when user is on Ashoka WiFi */}
+      {onAshokaWifi === "yes" && (
+        <div className="space-y-3 sm:space-y-4">
+          <Label className="text-base font-medium">Download Speed Test (Optional)</Label>
+          <p className="text-sm text-muted-foreground">
+            Test your current download speed. This helps us better understand your connectivity issues.
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <div className="relative flex-1 w-full">
+              <Input
+                type="text"
+                value={downloadSpeed}
+                onChange={(e) => setDownloadSpeed(e.target.value)}
+                placeholder="Enter your download speed (Mbps)"
+                className="w-full"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDrawerOpen(true)}
+              className="w-full sm:w-auto whitespace-nowrap"
+            >
+              <Wifi className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
+              Re-test Speed
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={startSpeedTest}
-            disabled={isSpeedTesting}
-            className="whitespace-nowrap"
-          >
-            {isSpeedTesting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Testing...
-              </>
-            ) : (
-              <>
-                <Wifi className="mr-2 h-4 w-4" />
-                {speedTestStarted ? "Test Again" : "Start Test"}
-              </>
-            )}
-          </Button>
         </div>
-      </div>
+      )}
+
+      {/* Speed Test Drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SpeedTest onClose={handleSpeedTestComplete} />
+      </Drawer>
       
       <PhoneInput
         title="Contact Number"

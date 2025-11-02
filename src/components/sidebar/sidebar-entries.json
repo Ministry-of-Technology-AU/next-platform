@@ -38,17 +38,6 @@
       ]
     },
     {
-      "id": "campus-life",
-      "title": "Campus Life",
-      "items": [
-        {
-          "title": "Pool a Cab",
-          "icon": "Car",
-          "href": "/pool-cab"
-        }
-      ]
-    },
-    {
       "id": "cultural-life",
       "title": "Cultural Life",
       "items": [
@@ -56,6 +45,37 @@
           "title": "Events Calendar",
           "icon": "CalendarDays",
           "href": "/events-calendar"
+        },
+        {
+          "title": "Organisations Catalogue",
+          "icon": "GalleryHorizontalEnd",
+          "href": "/organisations-catalog"
+        }
+      ]
+    },
+    {
+      "id": "campus-life",
+      "title": "Campus Life",
+      "items": [
+        {
+          "title": "Wifi Tickets",
+          "icon": "WifiPen",
+          "href": "/wifi-tickets"
+        },
+        {
+          "title": "Pool a Cab",
+          "icon": "Car",
+          "href": "/pool-cab"
+        },
+        {
+          "title": "Pool Subscriptions",
+          "icon": "Users",
+          "href": "/pool-subscription"
+        },
+        {
+          "title": "Borrow Assets",
+          "icon":"ShoppingBag",
+          "href":"/borrow-assets"
         }
       ]
     },

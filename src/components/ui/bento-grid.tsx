@@ -24,23 +24,33 @@ export const BentoGridItem = ({
   title,
   description,
   header,
+  children,
   icon,
 }: {
   className?: string;
   title?: string | React.ReactNode;
   description?: string | React.ReactNode;
   header?: React.ReactNode;
+  children?: React.ReactNode;
   icon?: React.ReactNode;
 }) => {
   return (
     <div
       className={cn(
-        "group/bento shadow-input row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-neutral-200 bg-white p-4 transition duration-200 hover:shadow-xl dark:border-white/[0.2] dark:bg-black dark:shadow-none",
+        "group/bento shadow-input row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-neutral-200 bg-white p-4 transition duration-200 hover:shadow-xl dark:border-white/[0.2] dark:bg-black dark:shadow-none relative overflow-hidden",
         className,
       )}
     >
+      {/* Custom background layer */}
+      {children && (
+        // Place children above the background (so pattern is visible over gradients)
+        // but keep them behind interactive content by using z-0 for the layer
+        <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+          {children}
+        </div>
+      )}
       {header}
-      <div className="transition duration-200 group-hover/bento:translate-x-2">
+      <div className="relative z-10 transition duration-200 group-hover/bento:translate-x-2">
         {icon}
         <div className="mt-2 mb-2 font-sans font-bold text-neutral-700 dark:text-neutral-100">
           {title}
