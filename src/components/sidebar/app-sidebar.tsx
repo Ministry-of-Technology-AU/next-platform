@@ -35,6 +35,8 @@ import {
   Clock,
   WifiPen,
   User,
+  GalleryHorizontalEnd,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -57,6 +59,8 @@ const iconMap = {
   Clock,
   WifiPen,
   User,
+  GalleryHorizontalEnd,
+  ShoppingBag
 };
 
 interface SidebarItem {

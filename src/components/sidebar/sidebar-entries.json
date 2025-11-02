@@ -45,6 +45,11 @@
           "title": "Events Calendar",
           "icon": "CalendarDays",
           "href": "/events-calendar"
+        },
+        {
+          "title": "Organisations Catalogue",
+          "icon": "GalleryHorizontalEnd",
+          "href": "/organisations-catalog"
         }
       ]
     },
@@ -61,6 +66,11 @@
           "title": "Pool a Cab",
           "icon": "Car",
           "href": "/pool-cab"
+        },
+        {
+          "title": "Borrow Assets",
+          "icon":"ShoppingBag",
+          "href":"/borrow-assets"
         }
       ]
     },
