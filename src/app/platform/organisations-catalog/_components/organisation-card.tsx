@@ -301,7 +301,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                   <div className="flex items-center gap-2 rounded-full bg-red-900 px-4 py-2 shadow-lg">
                     <Megaphone className="h-5 w-5 text-white" />
                     <span className="text-sm font-semibold text-white">
-                      Inductions Open
+                      {`Inductions Open${organization.inductionEnd ? ' | Deadline: ' +  formatDate(organization.inductionEnd) : ''}`}
                     </span>
                   </div>
                 )}
@@ -538,12 +538,12 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
             </div>
 
                                         {/* Induction Information moved to top-right in a Disclosure */}
-                  {organization.inductionsOpen && (<Disclosure className="m-6 rounded-lg border-2 border-primary">
+                  {organization.inductionsOpen && (<Disclosure className="mx-6 mt-6 rounded-lg bg-gray-light/70 dark:bg-gray-dark/60 border border-neutral-200 dark:border-neutral-700">
                     <DisclosureTrigger className="w-full">
                       <div className="flex items-center justify-between w-full p-4 rounded-lg cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
-                        <h3 className="text-lg">
+                        <h4 className="text-lg font-bold">
                           Induction Information
-                        </h3>
+                        </h4>
                         <ChevronDown className="w-5 h-5" />
                       </div>
                     </DisclosureTrigger>
@@ -579,7 +579,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                   exit: { opacity: 0, scale: 0.8, y: 100 },
                 }}
               >
-                <div className="mt-6 space-y-6">
+                <div className="">
                   {/* About Section */}
                   <div>
                     <h3 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
