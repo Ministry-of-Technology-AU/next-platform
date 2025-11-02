@@ -156,7 +156,7 @@ h3{
      /* --background: #1c1917; */
      --background: #171717;
      --foreground: #f7f4f2;
-     --card: var(--color-gray-dark)/15;
+     --card: #171717;
   --card-foreground: #fff8f0;
   --popover: #3a3a3a;
   --popover-foreground: #fff8f0;
