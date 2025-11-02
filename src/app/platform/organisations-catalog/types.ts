@@ -1,33 +1,43 @@
-export type OrganizationType = 'Club' | 'Society' | 'Ministry' | 'Department' | 'Fest' | 'Collective' | 'ISO' | 'League';
+export type OrganizationType = 'ministry' | 'club' | 'society' | 'fest' | 'collective' | 'iso' | 'league' | 'other';
 
-export interface Person {
-  id: number;
+export interface OrganizationMember {
+  id: string | number;
   username: string;
   email: string;
 }
 
 export interface Organization {
   id: string;
-  title: string;
+  name: string;
   type: OrganizationType;
   description: string;
   fullDescription: string;
-  imageUrl: string;
-  profile_url?: string;
-  categories: string[];
+  bannerUrl: string;
+  logoUrl: string | null; // Profile image from associated user
+  
+  // Member relations
+  circle1_humans: OrganizationMember[];
+  circle2_humans: OrganizationMember[];
+  members: OrganizationMember[];
+  interested_applicants: OrganizationMember[];
+  
+  // Induction details
   inductionsOpen: boolean;
+  inductionEnd: string | null;
+  inductionDescription: string;
+  
+  // Social links
+  instagram: string;
+  twitter: string;
+  linkedin: string;
+  youtube: string;
+  website: string;
+  whatsapp: string;
+  
+  // Additional fields
+  calendarEventId: string | null;
   createdAt: string;
   updatedAt: string;
-  circle1_humans: Person[]; // People (general members)
-  circle2_humans: Person[]; // Core team
-  interested_applicants: Person[];
-  // Social links
-  instagram?: string | null;
-  twitter?: string | null;
-  linkedin?: string | null;
-  youtube?: string | null;
-  website?: string | null;
-  whatsapp?: string | null;
 }
 
 export interface FilterOptions {
