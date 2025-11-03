@@ -37,6 +37,7 @@ import {
   User,
   GalleryHorizontalEnd,
   ShoppingBag,
+  Puzzle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -60,7 +61,8 @@ const iconMap = {
   WifiPen,
   User,
   GalleryHorizontalEnd,
-  ShoppingBag
+  ShoppingBag,
+  Puzzle
 };
 
 interface SidebarItem {

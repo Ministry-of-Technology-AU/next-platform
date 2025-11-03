@@ -244,7 +244,7 @@ export default function Navbar() {
             </TooltipTrigger>
           </TourTrigger>
           <TooltipContent className="hidden sm:block">
-            <p className="text-sm">Need help? See tooltips!</p>
+            <p className="text-sm">Need help? See a Guided Tour (not implemented for all features yet)!</p>
           </TooltipContent>
         </Tooltip>
 
