@@ -12,30 +12,9 @@ export const banners: Array<{
   gradient: string;
   buttons?: BannerButton[];
 }> = [
-        {
-    id: 1,
-    title: "Thank you for being part of the early access program!",
-    subtitle: "[EARLY ACCESS]",
-    description: "Please go through as many pages as you can, test out any feature as you like, and most importantly - make sure to drop your feedback!",
-    image: "/yyh4iiocug5dnctfkd5t.webp",
-    alt: "Thank you for being part of the early access program! Please go through as many pages as you can, test out any feature as you like, and most importantly - make sure to drop your feedback!",
-    gradient: "",
-    buttons:[
-        {
-            variant: "secondary",
-            children: "Give Feedback!",
-            onClick: () => window.location.href = "https://www.notion.so/ministry-of-technology/2844ae85dc2c80a484bdd94abe7ceecc?v=2844ae85dc2c802a9d79000c2f255fe8&source=copy_link",
-        },
-        {
-            variant: "animatedGhost",
-            children: "Visit the old platform",
-            onClick: () => window.location.href = "https://sg.ashoka.edu.in/platform",
-            className: "hover:underline",
-        }
-    ]
-  },
+        
   {
-    id: 3,
+    id: 1,
     title: "",
     subtitle: "",
     description: "",
@@ -51,7 +30,24 @@ export const banners: Array<{
     image: "/xvs8kyobnxkrgzgeym5o.webp",
     alt: "Meet our team!",
     gradient: "",
-  }
+  },
+  {
+    id: 3,
+    title: "This space is for your advertisements!",
+    subtitle: "Dear Organizations:",
+    description: "If you want to advertise here, please reach out to us via mail at technology.ministry@ashoka.edu.in",
+    image: "/yyh4iiocug5dnctfkd5t.webp",
+    alt: "Default Advertisement Banner",
+    gradient: "",
+    buttons:[
+        {
+            variant: "animatedGhost",
+            children: "Click here to contact Us",
+            onClick: () => window.location.href = "mailto:technology.ministry@ashoka.edu.in",
+            className: "hover:underline text-secondary",
+        }
+    ]
+  },
 ];
 
 export const recentlyVisited = [
