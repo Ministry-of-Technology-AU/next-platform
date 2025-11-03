@@ -149,7 +149,7 @@ export default function CourseReviewsClient({ courses }: { courses: CourseWithRe
       ) : null}
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-dark/15 rounded-lg border border-neutral-light overflow-hidden">
+      <div className="bg-white dark:bg-gray-dark/15 rounded-lg border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <Suspense fallback={<ReviewsTableSkeleton entriesPerPage={entriesPerPage} />}>
             <ReviewsTable paginatedCourses={paginatedCourses} sortField={sortField} sortDirection={sortDirection} handleSort={handleSort} />

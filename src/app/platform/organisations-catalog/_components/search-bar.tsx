@@ -44,11 +44,11 @@ export function SearchBar({ value, onChange, placeholder = 'Search organizations
             onClick={handleExpand}
             className="h-12 w-12 rounded-full border-neutral-300 hover:bg-neutral-100"
           >
-            <Search className="h-5 w-5 text-neutral-600" />
+            <Search className="h-5 w-5" />
           </Button>
         ) : (
           <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2" />
             <Input
               ref={inputRef}
               type="text"

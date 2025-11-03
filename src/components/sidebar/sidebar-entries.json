@@ -13,6 +13,11 @@
           "title": "SG Compose",
           "icon": "MailPlus",
           "href": "/sg-compose/outbox"
+        },
+        {
+          "title": "Games and Puzzles",
+          "icon": "Puzzle",
+          "href": "/games"
         }
       ]
     },

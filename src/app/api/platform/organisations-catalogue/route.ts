@@ -3,6 +3,9 @@ import { auth } from '@/auth';
 import { strapiGet } from '@/lib/apis/strapi';
 import { getUserIdByEmail } from '@/lib/userid';
 
+// const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1000&h=400&fit=crop';
+const DEFAULT_BANNER = 'https://picsum.photos/1000/400';
+
 export async function GET() {
   try {
     // Check authentication
@@ -26,7 +29,7 @@ export async function GET() {
       organisationsReq = await strapiGet('/organisations', {
         populate: {
           profile: {
-            fields: ['profile_url']
+            fields: ['id', 'username', 'email', 'profile_url']
           },
           circle1_humans: {
             fields: ['id', 'username', 'email']
@@ -34,8 +37,14 @@ export async function GET() {
           circle2_humans: {
             fields: ['id', 'username', 'email']
           },
+          members: {
+            fields: ['id', 'username', 'email']
+          },
           interested_applicants: {
             fields: ['id', 'username', 'email']
+          },
+          banner: {
+            fields: ['url']
           }
         },
         pagination: {
@@ -55,8 +64,6 @@ export async function GET() {
         }
       });
     }
-
-    // console.log('Raw Strapi response:', JSON.stringify(organisationsReq, null, 2));
 
     // Handle different possible response structures from Strapi
     let organisationsData = [];
@@ -83,46 +90,83 @@ export async function GET() {
     // Transform the data to match frontend expectations
     const organisations = organisationsData.map((x: any) => {
       try {
+        const attrs = x.attributes || {};
+        
+        // Normalize type to lowercase for consistency
+        const normalizedType = (attrs.type || 'other').toLowerCase();
+        
+        // Get banner image with fallback
+        let bannerUrl = DEFAULT_BANNER;
+        if (attrs.banner?.data) {
+          const bannerData = Array.isArray(attrs.banner.data) 
+            ? attrs.banner.data[0] 
+            : attrs.banner.data;
+          bannerUrl = bannerData?.attributes?.url || DEFAULT_BANNER;
+        }
+
+        // Get logo image from profile user's profile_url
+        let logoUrl: string | null = null;
+        if (attrs.profile?.data) {
+          const profileData = Array.isArray(attrs.profile.data) 
+            ? attrs.profile.data[0] 
+            : attrs.profile.data;
+          logoUrl = profileData?.attributes?.profile_url || null;
+        }
+
         return {
-          id: x.id.toString(), // Convert to string for consistency
-          title: x.attributes?.name || 'Untitled Organization',
-          type: x.attributes?.type?.charAt(0).toUpperCase() + x.attributes?.type?.slice(1) || 'Club',
-          description: x.attributes?.short_description || '',
-          fullDescription: x.attributes?.description || x.attributes?.short_description || '',
-          imageUrl: x.attributes?.profile?.data?.[0]?.attributes?.profile_url || null,
-          profile_url: x.attributes?.profile?.data?.[0]?.attributes?.profile_url || null,
-          categories: [], // Will need to be added to Strapi schema if needed
-          inductionsOpen: x.attributes?.induction || false,
-          createdAt: x.attributes?.createdAt || new Date().toISOString(),
-          updatedAt: x.attributes?.updatedAt || new Date().toISOString(),
-          circle1_humans: (x.attributes?.circle1_humans?.data || []).map((member: any) => ({
+          id: x.id.toString(),
+          name: attrs.name || 'Untitled Organization',
+          type: normalizedType,
+          description: attrs.short_description || '',
+          fullDescription: attrs.description || attrs.short_description || '',
+          bannerUrl: bannerUrl,
+          logoUrl: logoUrl,
+          
+          // Member relations
+          circle1_humans: (attrs.circle1_humans?.data || []).map((member: any) => ({
             id: member.id,
             username: member.attributes?.username || 'Unknown User',
             email: member.attributes?.email || 'No email'
           })),
-          circle2_humans: (x.attributes?.circle2_humans?.data || []).map((member: any) => ({
+          circle2_humans: (attrs.circle2_humans?.data || []).map((member: any) => ({
             id: member.id,
             username: member.attributes?.username || 'Unknown User',
             email: member.attributes?.email || 'No email'
           })),
-          interested_applicants: (x.attributes?.interested_applicants?.data || []).map((member: any) => ({
+          members: (attrs.members?.data || []).map((member: any) => ({
             id: member.id,
             username: member.attributes?.username || 'Unknown User',
             email: member.attributes?.email || 'No email'
           })),
-          // Social links
-          instagram: x.attributes?.instagram || null,
-          twitter: x.attributes?.twitter || null,
-          linkedin: x.attributes?.linkedin || null,
-          youtube: x.attributes?.youtube || null,
-          website: x.attributes?.website_blog || null,
-          whatsapp: x.attributes?.whatsapp || null,
+          interested_applicants: (attrs.interested_applicants?.data || []).map((member: any) => ({
+            id: member.id,
+            username: member.attributes?.username || 'Unknown User',
+            email: member.attributes?.email || 'No email'
+          })),
+          
+          // Induction details
+          inductionsOpen: attrs.induction || false,
+          inductionEnd: attrs.induction_end || null,
+          inductionDescription: attrs.induction_description || '',
+          
+          // Social links with fallback to empty strings
+          instagram: attrs.instagram || '',
+          twitter: attrs.twitter || '',
+          linkedin: attrs.linkedin || '',
+          youtube: attrs.youtube || '',
+          website: attrs.website_blog || '',
+          whatsapp: attrs.whatsapp || '',
+          
+          // Additional fields
+          calendarEventId: attrs.calendar_event_id || null,
+          createdAt: attrs.createdAt || new Date().toISOString(),
+          updatedAt: attrs.updatedAt || new Date().toISOString(),
         };
       } catch (transformError) {
         console.error('Error transforming organization:', x, transformError);
         return null;
       }
-    }).filter(Boolean); // Remove any null entries from failed transformations
+    }).filter(Boolean);
 
     console.log('Successfully transformed', organisations.length, 'organizations');
 

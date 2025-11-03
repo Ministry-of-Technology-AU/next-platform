@@ -96,23 +96,25 @@ export function DataTable<TData, TValue>({
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 gap-2 min-w-0 overflow-hidden">
           {/* Global Search */}
           <div className="relative">
-            <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground dark:text-white" />
             <Input
               placeholder="Search all columns..."
               value={globalFilter}
               onChange={(event) => setGlobalFilter(event.target.value)}
-              className="pl-8 max-w-sm"
+              className="pl-8 min-w-0 w-20 sm:w-[18rem] focus:w-56 sm:focus:w-[18rem] transition-all duration-200 max-w-full dark:bg-neutral-light dark:text-white"
+              onFocus={(e) => (e.currentTarget.style.width = "14rem")}
+              onBlur={(e) => (e.currentTarget.style.width = "5rem")}
             />
           </div>
           
           {/* Column Filter */}
           {filterColumns.length > 0 && (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 gap-2 min-w-0">
               <Select value={filterColumn} onValueChange={setFilterColumn}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-20 sm:w-[180px] focus:w-56 min-w-0 truncate dark:bg-neutral-light dark:text-white">
                   <SelectValue placeholder="Filter by column" />
                 </SelectTrigger>
                 <SelectContent>
@@ -123,13 +125,15 @@ export function DataTable<TData, TValue>({
                   ))}
                 </SelectContent>
               </Select>
-              
+
               {filterColumn && (
                 <Input
                   placeholder={`Filter ${filterColumn}...`}
                   value={columnFilter}
                   onChange={(event) => setColumnFilter(event.target.value)}
-                  className="max-w-sm"
+                  className="min-w-0 w-20 sm:w-auto focus:w-48 transition-all duration-200 max-w-sm dark:bg-neutral-light dark:text-white"
+                  onFocus={(e) => (e.currentTarget.style.width = "12rem")}
+                  onBlur={(e) => (e.currentTarget.style.width = "5rem")}
                 />
               )}
             </div>
@@ -139,7 +143,7 @@ export function DataTable<TData, TValue>({
         {/* Column Visibility */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" className="ml-auto dark:bg-neutral-light dark:text-white">
               Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

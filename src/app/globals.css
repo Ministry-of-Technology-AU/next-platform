@@ -13,13 +13,13 @@
     --color-primary-extralight: #c89188;
     --color-primary-dark: #60150a;
     --color-primary-extradark: #3b0800;
+    --color-primary-bright: #9C2414;
 
     /* Secondaries */
     --color-secondary: #ffcd74;
     --color-secondary-light: #ffe7a9;
     --color-secondary-extralight: #eef5db;
-    /* --color-secondary-dark: #f4b448; */
-    --color-secondary-dark: #9C2414;
+    --color-secondary-dark: #f4b448;
     --color-secondary-extradark: #d68e3a;
 
     /* Greens */
@@ -47,6 +47,8 @@
 
     --color-bg: #f7f4f2;
     --color-text: #1c1917;
+
+  --color-neutral-light: #27272a;
 
     /* Fonts */
     --font-body: 'Nunito Sans', sans-serif;
@@ -153,10 +155,9 @@ h3{
 }
 
 .dark {
-     /* --background: #1c1917; */
      --background: #171717;
      --foreground: #f7f4f2;
-     --card: #171717;
+     --card: #0f0f11;
   --card-foreground: #fff8f0;
   --popover: #3a3a3a;
   --popover-foreground: #fff8f0;

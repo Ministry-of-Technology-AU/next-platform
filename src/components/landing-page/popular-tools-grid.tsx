@@ -19,7 +19,7 @@ const popularTools = [
     description: "Read and write course reviews",
     icon: ClipboardPenLine,
     href: "/platform/course-reviews",
-    color: "text-blue-400",
+    color: "text-primary-light",
   },
   {
     id: 2,
@@ -27,7 +27,7 @@ const popularTools = [
     description: "Plan your academic semester",
     icon: CalendarSync,
     href: "/platform/semester-planner",
-    color: "text-green-400",
+    color: "text-secondary",
   },
   {
     id: 3,
@@ -35,15 +35,15 @@ const popularTools = [
     description: "Raise a ticket about wifi issues",
     icon: WifiPen,
     href: "/platform/wifi-tickets",
-    color: "text-purple-400",
+    color: "text-green",
   },
   {
     id: 4,
     title: "Pool a Cab",
-    description: "COMING SOON",
+    description: "Pool a Cab with fellow Ashokans",
     icon: Car,
-    href: "/platform",
-    color: "text-orange-400",
+    href: "/platform/pool-cab",
+    color: "text-blue",
   }
 ];
 
@@ -53,7 +53,7 @@ export default function PopularToolsGrid() {
       <div className="flex items-center gap-3 mb-6 sm:mb-8">
         <Star className="size-5 sm:size-6 text-primary fill-primary" />
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Or use our most popular tools
+          Use our most popular tools!
         </h2>
       </div>
       
@@ -64,7 +64,7 @@ export default function PopularToolsGrid() {
           return (
             <Card 
               key={tool.id} 
-              className="group h-40 sm:h-48 lg:h-56 border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-background"
+              className="group h-40 sm:h-48 lg:h-56 border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-card"
             >
               <Button 
                 variant="ghost" 

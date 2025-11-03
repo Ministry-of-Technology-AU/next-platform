@@ -16,10 +16,6 @@ import {
 import {
   Dialog,
   DialogTrigger,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogContent,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -76,7 +72,7 @@ const SearchCommand = React.memo(function SearchCommand() {
             variant="outline"
             size="sm"
             onClick={() => setOpen(true)}
-            className="relative h-8 w-8 p-0 xl:h-9 xl:w-60 xl:justify-start xl:px-3 xl:py-2"
+            className="relative h-8 w-8 p-0 xl:h-9 xl:w-60 xl:justify-start xl:px-3 xl:py-2 dark:bg-neutral-light"
           >
             <Search className="h-4 w-4 xl:mr-2" />
             <span className="hidden xl:inline-flex">Search features...</span>
@@ -219,7 +215,7 @@ export default function Navbar() {
       <div className="flex items-center gap-1 sm:gap-2 min-w-0">
         <Tooltip>
           <TooltipTrigger asChild>
-            <SidebarTrigger className="hover:text-primary-extralight dark:hover:text-primary-light" />
+            <SidebarTrigger className="hover:text-primary-extralight dark:hover:text-primary-light dark:text-primary-bright" />
           </TooltipTrigger>
           <TooltipContent side="right" align="center" className="text-white hidden sm:block">
             Toggle Sidebar
@@ -248,7 +244,7 @@ export default function Navbar() {
             </TooltipTrigger>
           </TourTrigger>
           <TooltipContent className="hidden sm:block">
-            <p className="text-sm">Need help? See tooltips!</p>
+            <p className="text-sm">Need help? See a Guided Tour (not implemented for all features yet)!</p>
           </TooltipContent>
         </Tooltip>
 
@@ -276,13 +272,7 @@ export default function Navbar() {
 
         {/* Dark/Light Mode Toggle button */}
         <Tooltip>
-          <ThemeToggle
-            onClick={() => {
-              // Replicate the old toggle logic
-              const next = !document.documentElement.classList.contains("dark");
-              document.documentElement.classList.toggle("dark", next);
-            }}
-          />
+          <ThemeToggle />
           <TooltipContent className="hidden sm:block">
             <p className="text-sm text-white">
               Toggle dark/light mode

@@ -16,7 +16,7 @@ function PageTitle({
     <div className="flex items-start gap-3">
       {Icon && (
         <div className="flex-shrink-0">
-          <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary dark:text-secondary-dark" />
+          <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary dark:text-primary-bright" />
         </div>
       )}
       <div className="flex flex-col min-w-0 flex-1">

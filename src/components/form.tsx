@@ -184,9 +184,9 @@ export function TextInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
-        className={errorMessage ? "border-destructive" : ""}
+        className={errorMessage ? "border-destructive" : " dark:text-white"}
         {...(isParagraph && {
-          className: `min-h-[100px] ${
+          className: `min-h-[100px]${
             errorMessage ? "border-destructive" : ""
           }`,
         })}
@@ -242,10 +242,10 @@ export function SingleSelect({
         <p className="text-sm text-muted-foreground">{description}</p>
       )}
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger id={title.toLowerCase().replace(/\s+/g, "-")}>
+        <SelectTrigger id={title.toLowerCase().replace(/\s+/g, "-")} className="dark:bg-none dark:border-border dark:text-white">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="dark:bg-neutral-light dark:text-white">
           {items.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
@@ -656,7 +656,7 @@ export function InstructionsField({
       {description && (
         <p className="text-sm text-muted-foreground">{description}</p>
       )}
-      <Disclosure className="flex-1 rounded-md border bg-primary-extralight/20 border-gray-200 dark:border-gray-700 p-3 min-w-0">
+      <Disclosure className="flex-1 rounded-md border bg-primary-extralight/20 dark:bg-primary-dark/30 border-gray-200 dark:border-gray-700 p-3 min-w-0">
         <DisclosureTrigger>
           <Button
             variant="ghost"
