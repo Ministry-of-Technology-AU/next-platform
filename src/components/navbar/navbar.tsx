@@ -272,13 +272,7 @@ export default function Navbar() {
 
         {/* Dark/Light Mode Toggle button */}
         <Tooltip>
-          <ThemeToggle
-            onClick={() => {
-              // Replicate the old toggle logic
-              const next = !document.documentElement.classList.contains("dark");
-              document.documentElement.classList.toggle("dark", next);
-            }}
-          />
+          <ThemeToggle />
           <TooltipContent className="hidden sm:block">
             <p className="text-sm text-white">
               Toggle dark/light mode
