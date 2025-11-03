@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -30,21 +31,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
-        <SessionProvider
-          refetchInterval={5 * 60} // Refetch session every 5 minutes instead of 30 seconds
-          refetchOnWindowFocus={false} // Don't refetch when window gains focus
+        <ThemeProvider
+          defaultTheme="system"
+          storageKey="platform-theme"
         >
-          <Suspense>
-            <main>
-              {children}
-              <Analytics />
-              <SpeedInsights />
-            </main>
-            <Toaster position="top-right" />
-          </Suspense>
-        </SessionProvider>
+          <SessionProvider
+            refetchInterval={5 * 60} // Refetch session every 5 minutes instead of 30 seconds
+            refetchOnWindowFocus={false} // Don't refetch when window gains focus
+          >
+            <Suspense>
+              <main>
+                {children}
+                <Analytics />
+                <SpeedInsights />
+              </main>
+              <Toaster position="top-right" />
+            </Suspense>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
