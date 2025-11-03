@@ -370,7 +370,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                                 '_blank'
                               );
                             }}
-                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary-extralight items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
                             title="Instagram"
                           >
                             <Instagram className="h-4 w-4" />
@@ -387,7 +387,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                                 '_blank'
                               );
                             }}
-                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-blue-light items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
                             title="Twitter"
                           >
                             <Twitter className="h-4 w-4" />
@@ -413,7 +413,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                                 '_blank'
                               );
                             }}
-                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-blue-dark items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
                             title="LinkedIn"
                           >
                             <Linkedin className="h-4 w-4" />
@@ -439,7 +439,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                                 '_blank'
                               );
                             }}
-                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary-bright items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
                             title="YouTube"
                           >
                             <Youtube className="h-4 w-4" />
@@ -465,7 +465,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                                 '_blank'
                               );
                             }}
-                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-secondary-extradark items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
                             title="Website"
                           >
                             <Globe className="h-4 w-4" />
@@ -489,7 +489,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                                 '_blank'
                               );
                             }}
-                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-primary items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            className="flex bg-background/80 text-black dark:text-white hover:text-white hover:bg-green items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
                             title="WhatsApp"
                           >
                             <Smartphone className="h-4 w-4" />

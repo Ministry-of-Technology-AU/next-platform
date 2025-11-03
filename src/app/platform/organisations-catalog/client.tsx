@@ -14,20 +14,25 @@ interface CataloguePageProps {
   initialError: string | null;
 }
 
+interface UserPreferences {
+  selectedOrganizations: string[];
+  selectedCategories: string[];
+  categoryColors: Record<string, string>;
+}
+
 export function CataloguePage({ initialOrganizations, initialError }: CataloguePageProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filters, setFilters] = React.useState<Set<OrganizationType>>(new Set());
   const [showOnlyPreferences, setShowOnlyPreferences] = React.useState(false);
   const [organizations] = React.useState<Organization[]>(initialOrganizations);
   const [error] = React.useState<string | null>(initialError);
+  const [userPreferences, setUserPreferences] = React.useState<UserPreferences | null>(null);
+  const [preferencesLoading, setPreferencesLoading] = React.useState(false);
 
-  // Mock user preferences - in a real app, this would come from user data
-  const userPreferences = React.useMemo(() => new Set([
-    'Ministry of Technology',
-    'Ashoka Debating Union', 
-    'Dance Society',
-    'Photography Society'
-  ]), []);
+  // Handle preferences change from FiltersSidebar
+  const handlePreferencesChange = React.useCallback((preferences: UserPreferences) => {
+    setUserPreferences(preferences);
+  }, []);
 
   const filteredOrganizations = React.useMemo(() => {
     return organizations.filter((org: Organization) => {
@@ -40,7 +45,10 @@ export function CataloguePage({ initialOrganizations, initialError }: CatalogueP
         filters.size === 0 || filters.has(org.type);
 
       const matchesPreferences = 
-        !showOnlyPreferences || userPreferences.has(org.name);
+        !showOnlyPreferences || 
+        !userPreferences || 
+        userPreferences.selectedOrganizations.length === 0 ||
+        userPreferences.selectedOrganizations.includes(org.id);
 
       return matchesSearch && matchesFilter && matchesPreferences;
     });
@@ -58,10 +66,15 @@ export function CataloguePage({ initialOrganizations, initialError }: CatalogueP
               placeholder="Search organizations..."
             />
             <div className="flex items-center gap-3">
-              <FiltersSidebar filters={filters} onFilterChange={setFilters} />
+              <FiltersSidebar 
+                filters={filters} 
+                onFilterChange={setFilters}
+                onPreferencesChange={handlePreferencesChange}
+              />
               <Button
                 variant={showOnlyPreferences ? "default" : "outline"}
                 onClick={() => setShowOnlyPreferences(!showOnlyPreferences)}
+                disabled={preferencesLoading || !userPreferences}
                 className={`h-12 gap-2 rounded-full px-6 transition-all ${
                   showOnlyPreferences 
                     ? 'bg-primary hover:bg-primary-dark text-white' 
@@ -70,7 +83,11 @@ export function CataloguePage({ initialOrganizations, initialError }: CatalogueP
               >
                 <Heart className={`h-4 w-4 ${showOnlyPreferences ? 'fill-current' : ''}`} />
                 <span className="text-sm font-medium">
-                  {showOnlyPreferences ? 'Showing Preferences' : 'Only Show Preferences'}
+                  {preferencesLoading 
+                    ? 'Loading...' 
+                    : showOnlyPreferences 
+                      ? 'Showing Preferences' 
+                      : 'Only Show Preferences'}
                 </span>
               </Button>
             </div>

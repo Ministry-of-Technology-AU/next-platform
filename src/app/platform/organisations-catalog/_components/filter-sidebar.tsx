@@ -45,9 +45,10 @@ interface OrgsChecklistItem {
 interface FiltersSidebarProps {
   filters: Set<OrganizationType>;
   onFilterChange: (filters: Set<OrganizationType>) => void;
+  onPreferencesChange?: (preferences: FilterPreferences) => void;
 }
 
-export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps) {
+export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange }: FiltersSidebarProps) {
   const { categoryColors, setCategoryColors } = useCategoryColors();
   
   const [checklistItems, setChecklistItems] = React.useState<ChecklistItem[]>([]);
@@ -90,6 +91,37 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
     fetchOrganizations();
   }, []);
 
+    // Fetch user preferences on mount
+  React.useEffect(() => {
+    const fetchPreferences = async () => {
+      try {
+        const response = await fetch('/api/platform/organisations-catalogue/preferences');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.preferences) {
+            const newPreferences = {
+              ...data.preferences,
+              categoryColors: data.preferences.categoryColors || categoryColors,
+            };
+            setPreferences(newPreferences);
+            setCategoryColors(data.preferences.categoryColors || categoryColors);
+            
+            // Notify parent component of initial preferences load
+            if (onPreferencesChange) {
+              onPreferencesChange(newPreferences);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching preferences:', error);
+      }
+    };
+
+    fetchPreferences();
+    // Only run once on mount 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Replace session API with a fetch to Strapi user profile, using a dedicated endpoint
   React.useEffect(() => {
     const fetchChecklist = async () => {
@@ -127,6 +159,33 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
     setMounted(true);
   }, []);
 
+  // Helper function to reload preferences
+  const reloadPreferences = React.useCallback(async () => {
+    try {
+      const prefsResponse = await fetch('/api/platform/organisations-catalogue/preferences');
+      if (prefsResponse.ok) {
+        const prefsData = await prefsResponse.json();
+        if (prefsData.success && prefsData.preferences) {
+          const newPreferences = {
+            ...prefsData.preferences,
+            categoryColors: prefsData.preferences.categoryColors || preferences.categoryColors,
+          };
+          setPreferences(newPreferences);
+          setCategoryColors(prefsData.preferences.categoryColors || preferences.categoryColors);
+          
+          // Notify parent component of preferences change
+          if (onPreferencesChange) {
+            onPreferencesChange(newPreferences);
+          }
+          return newPreferences;
+        }
+      }
+    } catch (reloadError) {
+      console.error('Error reloading preferences:', reloadError);
+    }
+    return null;
+  }, [preferences.categoryColors, setCategoryColors, onPreferencesChange]);
+
   const toggleChecklistItem = (itemId: string) => {
     setChecklistItems((prev) =>
       prev.map((item) =>
@@ -144,7 +203,7 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
         // Map categories to organization types
         if (category === 'clubs') return orgType === 'club';
         if (category === 'societies') return orgType === 'society';
-        if (category === 'departments') return orgType === 'ministry' || orgType === 'iso' || orgType === 'league';
+        if (category === 'departments') return orgType === 'iso' || orgType === 'league';
         if (category === 'ministries') return orgType === 'ministry';
         if (category === 'others') return !['club', 'society', 'ministry', 'fest', 'collective', 'iso', 'league'].includes(orgType);
         return false;
@@ -220,12 +279,11 @@ export function FiltersSidebar({ filters, onFilterChange }: FiltersSidebarProps)
         throw new Error(`Failed to save preferences: ${response.statusText}`);
       }
       const data = await response.json();
-      if (data && data.data) {
-        setPreferences(data.data.orgs_catalogue_filter_preferences || preferences);
-        toast.success('Preferences saved successfully!');
-      } else {
-        toast.success('Preferences saved!');
-      }
+      
+      // Reload preferences after saving to ensure we have the latest data
+      await reloadPreferences();
+      
+      toast.success('Preferences saved successfully!');
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast.error(`Error saving preferences: ${error instanceof Error ? error.message : 'Unknown error'}`);
