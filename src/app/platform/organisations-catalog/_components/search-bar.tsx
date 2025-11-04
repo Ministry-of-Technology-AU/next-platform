@@ -34,7 +34,7 @@ export function SearchBar({ value, onChange, placeholder = 'Search organizations
       <div
         className={cn(
           'flex items-center gap-2 overflow-hidden transition-all duration-300 ease-in-out',
-          isExpanded ? 'w-80' : 'w-12'
+          isExpanded ? 'sm:w-80 w-48' : 'w-12'
         )}
       >
         {!isExpanded ? (

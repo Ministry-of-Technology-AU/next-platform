@@ -46,9 +46,10 @@ interface FiltersSidebarProps {
   filters: Set<OrganizationType>;
   onFilterChange: (filters: Set<OrganizationType>) => void;
   onPreferencesChange?: (preferences: FilterPreferences) => void;
+  isIconOnly?: boolean;
 }
 
-export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange }: FiltersSidebarProps) {
+export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, isIconOnly = false }: FiltersSidebarProps) {
   const { categoryColors, setCategoryColors } = useCategoryColors();
   
   const [checklistItems, setChecklistItems] = React.useState<ChecklistItem[]>([]);
@@ -299,12 +300,18 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange }:
       <SheetTrigger asChild>
         <Button
           variant="outline"
-          className="relative h-12 gap-2 rounded-full border-neutral-300 px-6 hover:bg-neutral-100"
+          className={`relative h-12 gap-2 rounded-full border-neutral-300 hover:bg-neutral-100 transition-all ${
+            isIconOnly 
+              ? 'w-12 p-0 flex items-center justify-center' 
+              : 'px-6'
+          }`}
         >
-          <Filter className="h-4 w-4" />
-          <span className="text-sm font-medium">
-            Filters & Preferences
-          </span>
+          <Filter className="h-5 w-5 flex-shrink-0" />
+          {!isIconOnly && (
+            <span className="text-sm font-medium">
+              Filters & Preferences
+            </span>
+          )}
           {activeFilterCount > 0 && (
             <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-900 text-xs font-semibold text-white">
               {activeFilterCount}
