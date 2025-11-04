@@ -79,9 +79,15 @@ interface SidebarCategory {
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { state, open, isMobile, openMobile } = useSidebar();
+  const { state, open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const isDrawerOpen = isMobile ? openMobile : open;
   const isCollapsed = state === "collapsed";
+
+  const handleLinkClick = () => {
+    if (isMobile && openMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   // Icon collapse state - only hide text when truly collapsed
   // On mobile, when sidebar is open, we want to show the text
@@ -184,6 +190,7 @@ export function AppSidebar() {
                         <Link
                           href={`/platform${item.href}`}
                           className="flex items-center w-full"
+                          onClick={handleLinkClick}
                         >
                           <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0" />
                           <span className={cn(

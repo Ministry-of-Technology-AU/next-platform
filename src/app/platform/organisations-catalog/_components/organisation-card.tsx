@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Megaphone, Bell, BellRing, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube, ChevronDown, X } from 'lucide-react';
+import { Megaphone, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube, ChevronDown, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   MorphingDialog,
