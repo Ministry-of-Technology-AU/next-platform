@@ -101,6 +101,19 @@ export default auth(async function middleware(req) {
 
   // console.log('User:', req.auth.user)
 
+  // Special access control for HOR dashboard
+  if (pathname === '/platform/sg-compose/dashboard') {
+    const horMembers = (process.env.HOR_MEMBERS || '').split(',').map(email => email.trim())
+    
+    if (!horMembers.includes(req.auth.user.email)) {
+      console.log(`❌ User ${req.auth.user.email} denied access to HOR dashboard`)
+      return NextResponse.redirect(new URL('/unauthorized', req.url))
+    }
+    
+    console.log(`✅ User ${req.auth.user.email} granted access to HOR dashboard`)
+    return NextResponse.next()
+  }
+
   // Check route access permissions
   const userAccess = req.auth.user?.access || []
   // Check if user has access to the requested route

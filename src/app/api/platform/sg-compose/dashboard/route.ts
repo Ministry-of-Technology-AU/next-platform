@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { strapiGet, strapiPut } from '@/lib/apis/strapi'
-import { sendMail } from '@/lib/apis/mail'
+import { sendMailSG } from '@/lib/apis/mail'
 import { getEmailAttachments, deleteFromDrive, extractFileIds } from '@/lib/apis/drive'
 
 // GET /api/sg-compose/dashboard - Fetch all pending emails for admin dashboard
@@ -22,9 +22,6 @@ export async function GET(request: NextRequest) {
                 status: {
                     $eq: 'pending'
                 }
-            },
-            sort: {
-                createdAt: 'desc' // Show newest first
             }
         };
         
@@ -35,8 +32,6 @@ export async function GET(request: NextRequest) {
         if (searchParams.get('pageSize')) {
             queryParams.pagination = { ...queryParams.pagination, pageSize: parseInt(searchParams.get('pageSize')!) };
         }
-        
-        console.log('Fetching pending SG mails for dashboard:', queryParams);
         
         const response = await strapiGet('/sg-mails', queryParams);
         
@@ -112,8 +107,6 @@ export async function PUT(request: NextRequest) {
             }
         };
         
-        console.log(`${action === 'approve' ? 'Approving' : 'Rejecting'} email ${emailId}:`, updateData);
-        
         if (action === 'approve') {
             // Handle approval - send the actual email to recipients
             try {
@@ -123,13 +116,13 @@ export async function PUT(request: NextRequest) {
                 // Add footer to email body
                 let emailHtml = emailData.attributes.mail_body;
                 emailHtml += `<br/><p style="color:rgb(177, 58, 58);font-size:12px;">${emailData.attributes.sender.data.attributes.username || 'User'} used <a href="https://sg.ashoka.edu.in/platform/sg-compose">SG Compose</a>, because emails deserve a little tech flair — courtesy of the Ministry of Technology.</p>`;
-
+                
                 // Send email to recipients
-                await sendMail({
-                    from: 'technology.ministry@ashoka.edu.in', // Use a proper from email
+                await sendMailSG({
+                    // from: 'technology.ministry@ashoka.edu.in', // Use a proper from email
                     alias: emailData.attributes.alias,
-                    // to: emailData.recipients,
-                    to: 'vansh.bothra_ug25@ashoka.edu.in', //TODO: Replace with actual recipient emails
+                    to: emailData.attributes.recipients,
+                    // to: 'vansh.bothra_ug25@ashoka.edu.in', //TODO: Replace with actual recipient emails
                     cc: senderEmail,
                     subject: emailData.attributes.subject,
                     html: emailHtml,
@@ -139,8 +132,6 @@ export async function PUT(request: NextRequest) {
                         contentType: att.contentType
                     }))
                 });
-                
-                console.log('Approval email sent successfully to recipients');
                 
                 // Delete files from Google Drive after successful sending
                 if (emailData.attributes.attachment_path) {
@@ -165,7 +156,7 @@ export async function PUT(request: NextRequest) {
         } else {
             // Handle rejection - send rejection notification to sender
             try {
-                await sendMail({
+                await sendMailSG({
                     from: 'technology.ministry@ashoka.edu.in',
                     alias: 'SG Compose',
                     to: senderEmail,
@@ -173,8 +164,6 @@ export async function PUT(request: NextRequest) {
                     text: `Dear Student,\n\nYour mail could not be sent to the recipients due to non-compliance with the policy. Kindly reach out to the SG for further clarification by replying to this email.\n\nReason for rejection: ${rejectReason || 'Not specified'}\n\nSG Compose (feature by Ministry of Technology)`,
                     // Note: Add replyTo if you have approver email
                 });
-                
-                console.log('Rejection email sent successfully to sender');
                 
                 // Delete files from Google Drive after rejection
                 if (emailData.attributes.attachment_path) {
@@ -199,8 +188,6 @@ export async function PUT(request: NextRequest) {
         
         // Update the email status in Strapi
         const response = await strapiPut(`/sg-mails/${emailId}`, updateData);
-        
-        console.log('Email status updated successfully:', response);
         
         return NextResponse.json({
             success: true,

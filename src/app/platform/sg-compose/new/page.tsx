@@ -39,7 +39,7 @@ const mailCategories = [
 const recipients = [
   { value: "all-students", label: "All Students", description: "students@ashoka.edu.in" },
   { value: "asp25", label: "ASP25", description: "asp25@ashoka.edu.in" },
-  { value: "ug26", label: "UG26", description: "ug26@ashoka.edu.in" },
+  { value: "ug2022", label: "UG2022", description: "ug2022@ashoka.edu.in" },
   { value: "ug2023", label: "UG2023", description: "ug2023@ashoka.edu.in" },
   { value: "ug2024", label: "UG2024", description: "ug2024@ashoka.edu.in" },
   { value: "ug2025", label: "UG2025", description: "ug2025@ashoka.edu.in" }

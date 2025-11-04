@@ -187,7 +187,7 @@ function EmailDetailsModal({ email, onApprove, onReject }: {
               <>
                 <Button 
                   variant="outline"
-                  className="flex-1 border-red-500 text-red-600 hover:bg-red-50 bg-transparent"
+                  className="flex-1 border-red-500 text-white hover:bg-red-50 bg-transparent"
                   onClick={handleReject}
                   disabled={isProcessing}
                 >

@@ -33,9 +33,24 @@ function validateAlias(alias: string): boolean {
   return validAliases.includes(alias)
 }
 
-// Helper function to process recipients array into a string
+// Helper function to process recipients array into a string of email addresses
 function processRecipients(recipients: string[]): string {
-  return recipients.join(', ')
+  // Map of recipient IDs to their actual email addresses
+  const recipientEmailMap: Record<string, string> = {
+    "all-students": "students@ashoka.edu.in",
+    "asp25": "asp25@ashoka.edu.in",
+    "ug2022": "ug2022@ashoka.edu.in",
+    "ug2023": "ug2023@ashoka.edu.in",
+    "ug2024": "ug2024@ashoka.edu.in",
+    "ug2025": "ug2025@ashoka.edu.in"
+  }
+  
+  // Convert recipient IDs to email addresses
+  const emails = recipients
+    .map(recipientId => recipientEmailMap[recipientId])
+    .filter(email => email) // Remove any undefined emails
+  
+  return emails.join(', ')
 }
 
 // POST /api/sg-compose/new - Create a new SG mail request
@@ -192,12 +207,12 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    console.log("Submitting SG mail data:", sgMailData)
+    // console.log("Submitting SG mail data:", sgMailData)
     
     // Submit to Strapi
     const response = await strapiPost('/sg-mails', sgMailData)
     
-    console.log("SG mail created successfully:", response)
+    // console.log("SG mail created successfully:", response)
     
     return NextResponse.json({
       success: true,
