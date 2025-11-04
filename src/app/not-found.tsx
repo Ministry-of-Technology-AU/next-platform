@@ -5,7 +5,7 @@ import { SearchX } from "lucide-react";
 import Image from "next/image";
 
 
-export default function LandingPage() {
+export default function NotFound() {
     return (
         <div className="container pt-14 px-8 flex flex-col items-center">
         <PageTitle text="404 Page Not Found" icon={SearchX} subheading="The page you're looking for probably doesn't exist."/>
