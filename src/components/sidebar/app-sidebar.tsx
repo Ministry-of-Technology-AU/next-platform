@@ -121,7 +121,7 @@ export function AppSidebar() {
               <div className="flex-shrink-0 cursor-pointer">
                 {/* Light Mode Logo */}
                 <Image
-                  src="/Techmin Logo.png"
+                  src="/Techmin logo.png"
                   alt="Ministry of Technology"
                   width={48}
                   height={48}
@@ -129,7 +129,7 @@ export function AppSidebar() {
                 />
                 {/* Dark Mode Logo */}
                 <Image
-                  src="/Techmin Logo.png"
+                  src="/Techmin logo.png"
                   alt="Ministry of Technology"
                   width={48}
                   height={48}
