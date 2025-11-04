@@ -150,24 +150,33 @@ function MinimalTiptap({
           size="sm"
           pressed={editor.isActive('bulletList')}
           onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+          asChild
         >
-          <List className="h-4 w-4" />
+          <button type="button">
+            <List className="h-4 w-4" />
+          </button>
         </Toggle>
         
         <Toggle
           size="sm"
           pressed={editor.isActive('orderedList')}
           onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+          asChild
         >
-          <ListOrdered className="h-4 w-4" />
+          <button type="button">
+            <ListOrdered className="h-4 w-4" />
+          </button>
         </Toggle>
         
         <Toggle
           size="sm"
           pressed={editor.isActive('blockquote')}
           onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
+          asChild
         >
-          <Quote className="h-4 w-4" />
+          <button type="button">
+            <Quote className="h-4 w-4" />
+          </button>
         </Toggle>
 
         <Separator orientation="vertical" className="h-6" />
@@ -175,6 +184,7 @@ function MinimalTiptap({
         <Button
           variant="ghost"
           size="sm"
+          type="button"
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
         >
           <Minus className="h-4 w-4" />
@@ -185,6 +195,7 @@ function MinimalTiptap({
         <Button
           variant="ghost"
           size="sm"
+          type="button"
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().chain().focus().undo().run()}
         >
@@ -194,6 +205,7 @@ function MinimalTiptap({
         <Button
           variant="ghost"
           size="sm"
+          type="button"
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().chain().focus().redo().run()}
         >
