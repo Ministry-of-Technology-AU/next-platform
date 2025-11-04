@@ -10,11 +10,10 @@ async function fetchOrganizations(): Promise<{ organizations: Organization[]; er
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/organisations-catalogue`,
       {
-        // Revalidate every hour
-        next: { revalidate: 3600 },
         headers: {
           'Cookie': cookieStore.toString()
-        }
+        },
+        cache: 'no-store'
       }
     );
 
