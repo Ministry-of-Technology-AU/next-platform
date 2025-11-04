@@ -4,6 +4,9 @@ import { FileStack } from "lucide-react";
 import { Organization } from "./types";
 import { cookies } from "next/headers";
 
+// Force dynamic rendering since we're using cookies
+export const dynamic = 'force-dynamic';
+
 async function fetchOrganizations(): Promise<{ organizations: Organization[]; error: string | null }> {
   try {
     const cookieStore = await cookies();
