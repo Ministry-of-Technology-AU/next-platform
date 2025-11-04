@@ -16,6 +16,10 @@ export default auth(async function middleware(req) {
     return NextResponse.next()
   }
 
+  if (pathname.startsWith('/backend')) {
+    return NextResponse.next()
+  }
+
   if (pathname.endsWith('jpg') || pathname.endsWith('png') || pathname.endsWith('svg') || pathname.endsWith('ico')) {
     return NextResponse.next()
   }
