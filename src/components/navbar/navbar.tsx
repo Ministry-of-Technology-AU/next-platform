@@ -4,7 +4,7 @@ import * as React from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useIsMac } from "@/hooks/useIsMac";
 import { Button } from "@/components/ui/button";
-import { User, Newspaper, HelpCircle, LogOut, UserPen, LogIn, Search } from "lucide-react";
+import { User, Newspaper, HelpCircle, LogOut, UserPen, LogIn, Search, MailSearch } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -129,7 +129,6 @@ const AuthSection = React.memo(function AuthSection() {
       </Button>
     );
   }
-
   if (!session) {
     // Show login button when not authenticated
     return (
@@ -207,6 +206,36 @@ const AuthSection = React.memo(function AuthSection() {
   );
 });
 
+export function ComposeDashboardButton(){
+  const { data: session } = useSession();
+  console.log("User Session in Navbar:", session?.user.role);
+  if(session?.user?.role === 'hor_member' || session?.user?.role === 'admin' ){
+  return (
+    <Tooltip >
+                <TourTrigger>
+            <TooltipTrigger asChild>
+    <Button
+      variant="animatedGhost"
+      size="sm"
+      className="gap-1 xs:gap-1.5 sm:gap-2 h-8 xs:h-9 sm:h-10 px-2 xs:px-3 sm:px-4 text-xs xs:text-sm"
+      asChild
+    >
+      <Link href="/platform/sg-compose/dashboard">
+        <MailSearch className="size-4 xs:size-4.5 sm:size-5" />
+      </Link>
+    </Button>
+
+            </TooltipTrigger>
+          </TourTrigger>
+          <TooltipContent className="hidden sm:block">
+            <p className="text-sm">Access the SG Compose Dashboard</p>
+          </TooltipContent>
+        </Tooltip>
+  );
+}
+else return (<></>);
+}
+
 export default function Navbar() {
   const isMac = useIsMac();
   return (
@@ -233,6 +262,8 @@ export default function Navbar() {
       <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 ml-auto">
         {/* Search Command */}
         <SearchCommand />
+
+        <ComposeDashboardButton />
         
         {/* Help button - Launches global tooltips */}
         <Tooltip>
