@@ -77,7 +77,7 @@ export function CourseDialog({ course }: CourseDialogProps) {
       {/* Course Title */}
       <DialogHeader className="flex justify-center text-center align-center mb-2 sm:mb-4">
         <DialogTitle asChild>
-          <h3 className="text-primary font-semibold text-sm sm:text-base px-2 sm:px-4 lg:px-8">
+          <h3 className="text-primary-bright font-semibold text-sm sm:text-base px-2 sm:px-4 lg:px-8">
             {course.courseName} ({course.courseCode}){" "}
             <span className="text-black dark:text-white"> by </span>{" "}
             {course.faculty}
