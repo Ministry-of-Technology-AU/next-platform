@@ -212,7 +212,6 @@ export function ComposeDashboardButton(){
   if(session?.user?.role === 'hor_member' || session?.user?.role === 'admin' ){
   return (
     <Tooltip >
-                <TourTrigger>
             <TooltipTrigger asChild>
     <Button
       variant="animatedGhost"
@@ -226,7 +225,6 @@ export function ComposeDashboardButton(){
     </Button>
 
             </TooltipTrigger>
-          </TourTrigger>
           <TooltipContent className="hidden sm:block">
             <p className="text-sm">Access the SG Compose Dashboard</p>
           </TooltipContent>
