@@ -67,7 +67,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } else if (process.env.BETA_TESTERS?.split(',').includes(email)) {
           token.role = 'beta_tester';
           token.access = ['platform', 'beta_features'];
-        } else if (email.includes('_ug') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.startsWith('maeco') || email.startsWith('maeng') || email.startsWith('mscbio')) {
+        } else if (email.includes('_ug') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.includes('_ma')) {
           token.role = 'student';
           token.access = ['platform'];
         } else {
