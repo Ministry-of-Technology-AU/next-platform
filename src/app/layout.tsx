@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
@@ -24,6 +25,8 @@ export const metadata: Metadata = {
   title: "Platform",
   description: "Engineered by the Ministry of Technology of Ashoka University",
 };
+
+const GA_ID = process.env.GOOGLE_ANALYTICS_ID || '';
 
 export default function RootLayout({
   children,
@@ -46,6 +49,7 @@ export default function RootLayout({
                 {children}
                 <Analytics />
                 <SpeedInsights />
+                {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
               </main>
               <Toaster position="top-right" />
             </Suspense>
