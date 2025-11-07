@@ -210,7 +210,7 @@ const AuthSection = React.memo(function AuthSection() {
 export default function Navbar() {
   const isMac = useIsMac();
   return (
-    <nav className="w-full flex fixed top-0 items-center justify-between px-2 xs:px-3 sm:px-4 md:px-6 py-2 sm:py-3 border-b border-border bg-background backdrop-blur-md z-50">
+    <nav className="w-full flex sticky top-0 items-center justify-between px-2 xs:px-3 sm:px-4 md:px-6 py-2 sm:py-3 border-b border-border bg-background backdrop-blur-md z-50">
       {/* Left: Logo and text */}
       <div className="flex items-center gap-1 sm:gap-2 min-w-0">
         <Tooltip>
