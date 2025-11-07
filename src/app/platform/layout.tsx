@@ -39,10 +39,10 @@ export default function RootLayout({
             <SidebarProvider defaultOpen={false}>
               <div className="flex min-h-screen w-full overflow-x-hidden">
                 <AppSidebar />
-                <div className="flex flex-1 flex-col min-w-0">
+                <div className="flex flex-1 flex-col min-w-0 overflow-auto">
                   <Navbar />
                   <Suspense>
-                    <main className="flex-1 overflow-auto pt-2 pb-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
+                    <main className="flex-1 pt-16 pb-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
                       {children}
                     </main>
                   </Suspense>

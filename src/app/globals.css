@@ -377,3 +377,28 @@ input[type=number] {
   background-color: #2a2a2a;
   color: #e0e0e0;
 }
+
+/* globals.css */
+.custom-scrollbar {
+  scrollbar-width: thin;                 /* Firefox */
+  scrollbar-color: #9ca3af transparent;  /* thumb track */
+}
+.custom-scrollbar::-webkit-scrollbar {   /* Chrome/Safari/Edge */
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;             /* gray-400 */
+  border-radius: 9999px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #6b7280;             /* gray-500 */
+}
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4b5563;             /* gray-600 */
+}
+html.dark .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #6b7280;             /* gray-500 */
+}

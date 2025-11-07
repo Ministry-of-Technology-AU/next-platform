@@ -26,7 +26,7 @@ export async function GET(){
             courseReviews: totalCourseReviews,
         };
 
-        console.log("Platform Metrics:", metricsData);
+        // console.log("Platform Metrics:", metricsData);
 
         return NextResponse.json(metricsData);
     } catch (error) {

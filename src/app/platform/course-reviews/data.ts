@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { Course, CourseWithReviews, SortField } from "./types";
 
 export function uniqueSems(courses: (Course | CourseWithReviews)[]): string[] {
@@ -25,8 +24,9 @@ export function sortAndFilterCourses(courses: CourseWithReviews[], searchTerm: s
     // Semester filter
     const matchesSemester = semesterFilter === "all" || course.semester === semesterFilter;
 
-    // Year filter
-    const matchesYear = yearFilter === "all" || course.year === yearFilter;
+    // Year filter - handle both string and number comparison
+    const matchesYear = yearFilter === "all" || 
+      course.year.toString() === yearFilter.toString();
 
     return matchesSearch && matchesSemester && matchesYear;
   });

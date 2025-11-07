@@ -6,12 +6,11 @@ import {
 } from "@/components/ui/disclosure";
 import { Button } from "@/components/ui/button";
 import { Rating, RatingButton } from "@/components/ui/star-rating";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { DialogHeader } from "@/components/ui/dialog";
 import {
   DialogDescription,
   DialogTitle,
-  DialogClose,
 } from "@radix-ui/react-dialog";
 
 interface Review {
@@ -64,12 +63,12 @@ const ratingMetrics: { label: string; key: keyof Rating }[] = [
   { label: "Course Recommended", key: "courseRecommended" },
 ];
 
-const colorMap: { label: number; key: string }[] = [
-  { label: 5, key: "bg-green-extralight/20 dark:bg-green-extralight/60" },
-  { label: 4, key: "bg-green/20 dark:bg-green/60" },
-  { label: 3, key: "bg-secondary-light/20 dark:bg-secondary/60" },
-  { label: 2, key: "bg-primary/20 dark:bg-primary-light/60" },
-  { label: 1, key: "bg-primary-extradark/20 dark:bg-primary-dark/60" },
+const colorMap: { label: number; bgClass: string; borderClass: string }[] = [
+  { label: 5, bgClass: "bg-green-500/10 dark:bg-green-400/5", borderClass: "border-green-500 dark:border-green-400" },
+  { label: 4, bgClass: "bg-green-600/10 dark:bg-green-500/5", borderClass: "border-green-600 dark:border-green-500" },
+  { label: 3, bgClass: "bg-yellow-500/10 dark:bg-yellow-400/5", borderClass: "border-yellow-500 dark:border-yellow-400" },
+  { label: 2, bgClass: "bg-orange-500/10 dark:bg-orange-400/5", borderClass: "border-orange-500 dark:border-orange-400" },
+  { label: 1, bgClass: "bg-red-500/10 dark:bg-red-400/5", borderClass: "border-red-500 dark:border-red-400" },
 ];
 
 export function CourseDialog({ course }: CourseDialogProps) {
@@ -179,14 +178,18 @@ export function CourseDialog({ course }: CourseDialogProps) {
           Reviews ({course.reviews.length})
         </h4>
         {course.reviews.length > 0 ? (
-          <div className="space-y-2 sm:space-y-3 max-h-[40vh] overflow-y-auto">
-            {course.reviews.map((review, index) => (
+          <div className="space-y-2 sm:space-y-3 max-h-[40vh] overflow-y-auto custom-scrollbar">
+            {course.reviews.map((review, index) => {
+              const colorConfig = colorMap.find(
+                (item) => item.label === Math.round(review.rating)
+              );
+              return (
               <div
                 key={index}
-                className={`rounded-sm p-2 sm:p-3 w-full ${
-                  colorMap.find(
-                    (item) => item.label === Math.round(review.rating)
-                  )?.key || ""
+                className={`rounded-sm p-2 sm:p-3 w-full border ${
+                  colorConfig?.bgClass || "bg-gray-100/10 dark:bg-gray-700/15"
+                } ${
+                  colorConfig?.borderClass || "border-gray-300 dark:border-gray-600"
                 }`}
               >
                 <div className="font-bold text-gray-dark dark:text-gray-light text-xs">
@@ -233,7 +236,8 @@ export function CourseDialog({ course }: CourseDialogProps) {
                   </p>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-gray text-sm">

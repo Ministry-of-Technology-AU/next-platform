@@ -130,7 +130,7 @@ export default function ProfilePage() {
       
       setUserData(prev => prev ? { ...prev, phone_number: phoneNumber } : null);
       setHasChanges(false);
-      console.log('[PROFILE] Phone number saved successfully');
+      // console.log('[PROFILE] Phone number saved successfully');
       
       // Show success toast
       toast.success("Phone number saved successfully!", {

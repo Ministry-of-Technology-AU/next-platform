@@ -2,8 +2,6 @@
 import CourseReviewsClient from "./course-reviews-client";
 import { cookies } from "next/headers";
 
-const maxCoursesToLoad = 100;
-
 // Mock or fetched data can stay server-side
 function calculateRating(ratings: number[]){
   if (ratings.length === 0) return 0;
@@ -16,7 +14,7 @@ async function getData(){
     // For local development, just use localhost
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
-    const response = await fetch(`${baseUrl}/api/platform/courses?year=2025&page=1&pageSize=${maxCoursesToLoad}`, {
+    const response = await fetch(`${baseUrl}/api/platform/courses`, {
       cache: 'no-store',
       headers: { 'Cookie': cookieStore.toString() },
     });
