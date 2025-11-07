@@ -36,6 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
+        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
         <ThemeProvider
           defaultTheme="system"
           storageKey="platform-theme"
@@ -48,8 +49,7 @@ export default function RootLayout({
               <main>
                 {children}
                 <Analytics />
-                <SpeedInsights />
-                {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+                <SpeedInsights />                
               </main>
               <Toaster position="top-right" />
             </Suspense>
