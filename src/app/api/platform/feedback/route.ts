@@ -1,11 +1,26 @@
 import { NextResponse } from 'next/server';
 import { sendMail } from '@/lib/apis/mail';
+import { auth } from '@/auth';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const feedback: string = body.feedback || '';
     const page: string = body.page || 'general';
+
+    // Get server-side session for sender details (name, email)
+    const session = await auth();
+    const senderName = session?.user?.name?.toString().trim() || 'Anonymous';
+    const senderEmailRaw = session?.user?.email?.toString().trim() || '';
+
+    // Small helper to escape HTML in the injected values
+    const escapeHtml = (str: string) =>
+      str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 
     // Resolve recipients: prefer FEEDBACK_RECIPIENTS, fallback to TECHMAIL_ID if present
     const recipientsRaw = (process.env.FEEDBACK_RECIPIENTS || '').trim();
@@ -23,22 +38,33 @@ export async function POST(request: Request) {
     }
 
     const subject = `Platform Feedback - ${page}`;
+
     const html = `
-      <p><strong>Feedback scope:</strong> ${page}</p>
+      <p><strong>Feedback scope:</strong> ${escapeHtml(page)}</p>
+      <p><strong>From:</strong> ${escapeHtml(senderName)} &lt;${escapeHtml(senderEmailRaw || 'Not provided')}&gt;</p>
       <p><strong>Message:</strong></p>
-      <p>${feedback.replace(/\n/g, '<br/>')}</p>
+      <p>${escapeHtml(feedback).replace(/\n/g, '<br/>')}</p>
       <hr/>
       <p>Sent from platform feedback form</p>
     `;
 
-    await sendMail({
+    const text = `Feedback scope: ${page}\nFrom: ${senderName} <${senderEmailRaw || 'Not provided'}>\n\n${feedback}`;
+
+    const mailParams: any = {
       to: recipients,
       subject,
-      text: feedback,
+      text,
       html,
       // Use alias so the From header shows a friendly name for feedback
       alias: 'Platform Feedback',
-    });
+    };
+
+    // If we have an authenticated user's email, set it as replyTo
+    if (senderEmailRaw && senderEmailRaw.includes('@')) {
+      mailParams.replyTo = senderEmailRaw;
+    }
+
+    await sendMail(mailParams);
 
     return NextResponse.json({ success: true });
   } catch (error) {
