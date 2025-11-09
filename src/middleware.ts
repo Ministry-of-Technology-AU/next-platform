@@ -33,8 +33,11 @@ export default auth(async function middleware(req) {
     return NextResponse.next()
   }
 
-  // Allow root path and login page - let them through
-  if (pathname === '/' || pathname === '/login' || pathname === '/unauthorized') {
+  // Allow root path, login page, stadium display and unauthorized page
+  if (pathname === '/' || 
+      pathname === '/login' || 
+      pathname === '/unauthorized' ||
+      pathname.startsWith('/stadium/display')) {
     return NextResponse.next()
   }
 
@@ -155,6 +158,6 @@ export const config = {
     '/api/sg-compose/:path*',
     '/api/drive/:path*',
     '/api/mail/:path*',
-    '/((?!api/auth|api/platform/match-scores|api/platform/match-admin|api/strapi-stream|api/strapi-webhook|_next/static|_next/image|favicon.ico|login|$).*)'
+    '/((?!api/auth|api/platform/match-scores|api/platform/match-admin|api/strapi-stream|api/strapi-webhook|_next/static|_next/image|favicon.ico|login|stadium/display|$).*)'
   ],
 }
