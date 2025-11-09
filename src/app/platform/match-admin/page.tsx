@@ -2,16 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { strapiGet, strapiPut, strapiPost, strapiDelete } from '@/lib/apis/strapi';
-import {
+  import {
   Plus,
   Trash2,
-  Edit,
   Loader2,
   ArrowUp,
   ArrowDown,
-  Pause,
-  Play,
-  Square,
 } from 'lucide-react';
 import clsx from 'clsx';
 import MatchForm from './form';
@@ -21,7 +17,7 @@ export default function AdminMatchesPage() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [editingMatch, setEditingMatch] = useState<any | null>(null);
+
   const [saving, setSaving] = useState(false);
 
   const fetchMatches = async () => {
@@ -75,17 +71,7 @@ export default function AdminMatchesPage() {
     );
   };
 
-  const toggleStatus = (id: number) => {
-    const match = matches.find((m) => m.id === id);
-    if (!match) return;
-    const newStatus = match.status === 'paused' ? 'live' : 'paused';
-    updateMatch(id, { status: newStatus });
-  };
 
-  const stopMatch = (id: number) => {
-    if (!confirm('Are you sure you want to end this match?')) return;
-    updateMatch(id, { status: 'completed' });
-  };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this match?')) return;
@@ -124,10 +110,7 @@ export default function AdminMatchesPage() {
           </h1>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => {
-                setEditingMatch(null);
-                setFormOpen(true);
-              }}
+              onClick={() => setFormOpen(true)}
               className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
             >
               <Plus size={18} /> New Match
@@ -169,15 +152,6 @@ export default function AdminMatchesPage() {
                       {expandedId === m.id ? 'Hide' : 'Manage'}
                     </button>
                     <button
-                      onClick={() => {
-                        setEditingMatch(m);
-                        setFormOpen(true);
-                      }}
-                      className="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
                       onClick={() => handleDelete(m.id)}
                       className="p-2 rounded hover:bg-rose-100 dark:hover:bg-rose-900/40"
                     >
@@ -208,40 +182,7 @@ export default function AdminMatchesPage() {
                       />
                     </div>
 
-                    <div className="flex justify-center gap-4 mt-6">
-                      <button
-                        onClick={() => toggleStatus(m.id)}
-                        disabled={m.status === 'completed'}
-                        className={clsx(
-                          'flex items-center gap-2 px-4 py-2 rounded text-white font-medium',
-                          m.status === 'paused'
-                            ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
-                            : 'bg-emerald-600 hover:bg-emerald-700',
-                          m.status === 'completed' && 'opacity-60 cursor-not-allowed'
-                        )}
-                      >
-                        {m.status === 'paused' ? (
-                          <>
-                            <Play size={16} /> Resume
-                          </>
-                        ) : (
-                          <>
-                            <Pause size={16} /> Pause
-                          </>
-                        )}
-                      </button>
 
-                      <button
-                        onClick={() => stopMatch(m.id)}
-                        disabled={m.status === 'completed'}
-                        className={clsx(
-                          'flex items-center gap-2 px-4 py-2 rounded text-white font-medium bg-rose-600 hover:bg-rose-700',
-                          m.status === 'completed' && 'opacity-60 cursor-not-allowed'
-                        )}
-                      >
-                        <Square size={16} /> Stop
-                      </button>
-                    </div>
 
                     {saving && (
                       <p className="text-center mt-4 text-sm text-neutral-400">
@@ -258,7 +199,6 @@ export default function AdminMatchesPage() {
 
       {formOpen && (
         <MatchForm
-          existing={editingMatch}
           onClose={() => setFormOpen(false)}
           onSaved={() => {
             setFormOpen(false);

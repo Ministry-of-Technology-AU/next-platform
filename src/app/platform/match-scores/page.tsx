@@ -15,6 +15,8 @@ interface MatchScore {
   team_b_name: string;
   team_a_score: number;
   team_b_score: number;
+  team_a_color?: string;
+  team_b_color?: string;
   date?: string;
   team_a_logo?: any;
   team_b_logo?: any;
@@ -285,35 +287,43 @@ export default function MatchScoresPage() {
     name,
     score,
     logo,
-    gradient,
+    color,
   }: {
     name: string;
     score: number | string;
     logo: string | null;
-    gradient: string;
-  }) => (
-    <div
-      className={`relative flex flex-col items-center justify-center rounded-3xl shadow-md p-8 md:p-10 w-64 md:w-80 text-white overflow-hidden border border-white/10 dark:border-neutral-800 ${gradient}`}
-    >
-      {logo && (
-        <img
-          src={logo}
-          alt={name}
-          style={{ opacity: 0.15 }}
-          className="absolute inset-0 m-auto w-2/3 h-2/3 object-contain pointer-events-none select-none brightness-50 saturate-50 blur-[1px]"
-        />
-      )}
-      <div className="absolute inset-0 bg-black/30 dark:bg-black/40" />
-      <div className="relative z-10 flex flex-col items-center justify-center">
-        <h2 className="text-xl md:text-2xl font-semibold mb-3 text-center drop-shadow-lg tracking-wide">
-          {name}
-        </h2>
-        <div className="text-6xl md:text-7xl font-extrabold drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]">
-          {score}
+    color: string;
+  }) => {
+    // Create a darker version of the color for the gradient
+    const darkerColor = color + "dd"; // Adding transparency
+    
+    return (
+      <div
+        className="relative flex flex-col items-center justify-center rounded-3xl shadow-md p-8 md:p-10 w-64 md:w-80 text-white overflow-hidden border border-white/10 dark:border-neutral-800"
+        style={{
+          background: `linear-gradient(135deg, ${color}cc, ${darkerColor})`,
+        }}
+      >
+        {logo && (
+          <img
+            src={logo}
+            alt={name}
+            style={{ opacity: 0.15 }}
+            className="absolute inset-0 m-auto w-2/3 h-2/3 object-contain pointer-events-none select-none brightness-50 saturate-50 blur-[1px]"
+          />
+        )}
+        <div className="absolute inset-0 bg-black/30 dark:bg-black/40" />
+        <div className="relative z-10 flex flex-col items-center justify-center">
+          <h2 className="text-xl md:text-2xl font-semibold mb-3 text-center drop-shadow-lg tracking-wide">
+            {name}
+          </h2>
+          <div className="text-6xl md:text-7xl font-extrabold drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]">
+            {score}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div
@@ -353,7 +363,7 @@ export default function MatchScoresPage() {
               name={activeMatch.team_a_name}
               score={activeMatch.team_a_score}
               logo={logoA}
-              gradient="bg-gradient-to-br from-blue-900/80 to-indigo-950/80 dark:from-blue-800/80 dark:to-indigo-900/80"
+              color={activeMatch.team_a_color || '#1e3a8a'} // Default to blue if no color set
             />
             <div className="text-2xl font-semibold text-neutral-600 dark:text-neutral-400 select-none">
               vs
@@ -362,7 +372,7 @@ export default function MatchScoresPage() {
               name={activeMatch.team_b_name}
               score={activeMatch.team_b_score}
               logo={logoB}
-              gradient="bg-gradient-to-br from-rose-900/80 to-pink-950/80 dark:from-rose-800/80 dark:to-pink-900/80"
+              color={activeMatch.team_b_color || '#881337'} // Default to rose if no color set
             />
           </div>
         </div>

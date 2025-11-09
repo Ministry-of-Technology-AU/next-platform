@@ -8,30 +8,57 @@ import clsx from 'clsx';
 
 export default function MatchForm({ existing, onClose, onSaved }: any) {
   const [form, setForm] = useState({
-    match_name: existing?.attributes.match_name || '',
-    league_name: existing?.attributes.league_name || '',
-    team_a_name: existing?.attributes.team_a_name || '',
-    team_b_name: existing?.attributes.team_b_name || '',
-    team_a_score: existing?.attributes.team_a_score || 0,
-    team_b_score: existing?.attributes.team_b_score || 0,
-    date: existing?.attributes.date?.split('T')[0] || '',
-    status: existing?.attributes.status || 'upcoming',
+    match_name: '',
+    sport: '',
+    league_name: '',
+    team_a_name: '',
+    team_b_name: '',
+    team_a_score: 0,
+    team_b_score: 0,
+    team_a_color: '#0000ff', // Default blue
+    team_b_color: '#ff0000', // Default red
+    date: new Date().toISOString().split('T')[0],
+    match_status: 'upcoming',
   });
+  
+  const [teamALogo, setTeamALogo] = useState<File | null>(null);
+  const [teamBLogo, setTeamBLogo] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    
     try {
-      if (existing) {
-        await strapiPut(`/match-scores/${existing.id}`, { data: form });
-      } else {
-        await strapiPost('/match-scores', { data: form });
+      // Create FormData for file uploads
+      const formData = new FormData();
+      
+      // Add the main form data
+      formData.append('data', JSON.stringify(form));
+      
+      // Add logo files if they exist
+      if (teamALogo) {
+        formData.append('files.team_a_logo', teamALogo);
       }
+      if (teamBLogo) {
+        formData.append('files.team_b_logo', teamBLogo);
+      }
+
+      const res = await fetch('/api/platform/match-admin', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to save match');
+      }
+
       onSaved();
       onClose();
     } catch (err) {
       console.error('Failed to save match:', err);
+      alert('Failed to save match. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -53,72 +80,164 @@ export default function MatchForm({ existing, onClose, onSaved }: any) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {[
-            { key: 'match_name', label: 'Match Name' },
-            { key: 'league_name', label: 'League Name' },
-            { key: 'team_a_name', label: 'Team A Name' },
-            { key: 'team_b_name', label: 'Team B Name' },
-          ].map(({ key, label }) => (
-            <div key={key}>
-              <label className="block text-sm font-medium mb-1">{label}</label>
+          {/* Match Details */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Match Name</label>
               <input
                 type="text"
-                value={form[key as keyof typeof form] as string}
-                onChange={(e) =>
-                  setForm({ ...form, [key]: e.target.value })
-                }
+                value={form.match_name}
+                onChange={(e) => setForm({ ...form, match_name: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100"
+                required
               />
             </div>
-          ))}
 
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-sm font-medium mb-1">Team A Score</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">Sport</label>
               <input
-                type="number"
-                value={form.team_a_score}
-                onChange={(e) =>
-                  setForm({ ...form, team_a_score: parseInt(e.target.value) })
-                }
-                className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
+                type="text"
+                value={form.sport}
+                onChange={(e) => setForm({ ...form, sport: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100"
+                required
               />
             </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium mb-1">Team B Score</label>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">League Name</label>
               <input
-                type="number"
-                value={form.team_b_score}
-                onChange={(e) =>
-                  setForm({ ...form, team_b_score: parseInt(e.target.value) })
-                }
+                type="text"
+                value={form.league_name}
+                onChange={(e) => setForm({ ...form, league_name: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Team A Details */}
+          <div className="space-y-4 pb-4 border-b dark:border-neutral-700">
+            <div>
+              <label className="block text-sm font-medium mb-1">Team A Name</label>
+              <input
+                type="text"
+                value={form.team_a_name}
+                onChange={(e) => setForm({ ...form, team_a_name: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100"
+                required
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Team A Score</label>
+                <input
+                  type="number"
+                  value={form.team_a_score}
+                  onChange={(e) => setForm({ ...form, team_a_score: parseInt(e.target.value) || 0 })}
+                  className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
+                  min="0"
+                />
+              </div>
+
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Team A Color</label>
+                <input
+                  type="color"
+                  value={form.team_a_color}
+                  onChange={(e) => setForm({ ...form, team_a_color: e.target.value })}
+                  className="w-full border rounded-lg h-[42px] px-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Team A Logo</label>
+              <input
+                type="file"
+                onChange={(e) => setTeamALogo(e.target.files?.[0] || null)}
+                accept="image/*"
                 className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
-            />
+          {/* Team B Details */}
+          <div className="space-y-4 pb-4 border-b dark:border-neutral-700">
+            <div>
+              <label className="block text-sm font-medium mb-1">Team B Name</label>
+              <input
+                type="text"
+                value={form.team_b_name}
+                onChange={(e) => setForm({ ...form, team_b_name: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100"
+                required
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Team B Score</label>
+                <input
+                  type="number"
+                  value={form.team_b_score}
+                  onChange={(e) => setForm({ ...form, team_b_score: parseInt(e.target.value) || 0 })}
+                  className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
+                  min="0"
+                />
+              </div>
+
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Team B Color</label>
+                <input
+                  type="color"
+                  value={form.team_b_color}
+                  onChange={(e) => setForm({ ...form, team_b_color: e.target.value })}
+                  className="w-full border rounded-lg h-[42px] px-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Team B Logo</label>
+              <input
+                type="file"
+                onChange={(e) => setTeamBLogo(e.target.files?.[0] || null)}
+                accept="image/*"
+                className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Status</label>
-            <select
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
-            >
-              <option value="upcoming">Upcoming</option>
-              <option value="live">Live</option>
-              <option value="paused">Paused</option>
-              <option value="completed">Completed</option>
-            </select>
+          {/* Match Status and Date */}
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Date</label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
+                required
+              />
+            </div>
+
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Status</label>
+              <select
+                value={form.match_status}
+                onChange={(e) => setForm({ ...form, match_status: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
+                required
+              >
+                <option value="upcoming">Upcoming</option>
+                <option value="live">Live</option>
+                <option value="paused">Paused</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
           </div>
 
           <button
