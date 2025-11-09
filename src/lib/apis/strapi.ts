@@ -4,10 +4,10 @@ import qs from 'qs';
 const secret =
   process.env.STRAPI_API_TOKEN || "";
 const axiosConfig = {
-  baseURL: process.env.STRAPI_URL || "http://localhost:1337/api",
+  baseURL: process.env.STRAPI_URL || "http://127.0.0.1:1337/api",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${secret}`,
+    Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`,
   },
 };
 

@@ -14,7 +14,9 @@ export default auth(async function middleware(req) {
 
   if (
     pathname.startsWith('/api/strapi-stream') ||
-    pathname.startsWith('/api/strapi-webhook')
+    pathname.startsWith('/api/strapi-webhook') ||
+    pathname.startsWith('/api/platform/match-scores') ||
+    pathname.startsWith('/api/platform/match-admin')
   ) {
     return NextResponse.next();
   }
@@ -153,6 +155,6 @@ export const config = {
     '/api/sg-compose/:path*',
     '/api/drive/:path*',
     '/api/mail/:path*',
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|login|$).*)'
+    '/((?!api/auth|api/platform/match-scores|api/platform/match-admin|api/strapi-stream|api/strapi-webhook|_next/static|_next/image|favicon.ico|login|$).*)'
   ],
 }

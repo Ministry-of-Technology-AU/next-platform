@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { strapiGet } from '@/lib/apis/strapi';
 import clsx from 'clsx';
 import { X } from 'lucide-react';
@@ -28,6 +28,11 @@ export default function MatchScoresPage() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Add debounce ref
+  const updateTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  // Track pending updates
+  const pendingUpdatesRef = useRef(new Set<number>());
 
   // Ref to store persistent active match ID (avoids re-render resets)
   const activeMatchIdRef = useRef<number | null>(null);
@@ -49,35 +54,38 @@ export default function MatchScoresPage() {
   // 🧭 Fetch matches
   const fetchMatches = async (silent = false) => {
     try {
-      const res = await strapiGet('/match-scores', {
-        populate: {
-          team_a_logo: { fields: ['url'] },
-          team_b_logo: { fields: ['url'] },
-        },
-        sort: ['date:desc'],
-        pagination: { limit: 50 },
-      });
+      console.log('Fetching matches...');
+      const res = await fetch('/api/platform/match-scores');
+      const data = await res.json();
+      console.log('Got matches response:', { status: res.status, data });
 
-      const data = res?.data?.map((d: any) => ({
-        id: d.id,
-        ...d.attributes,
-      }));
+      if (!res.ok) throw new Error(data.error);
 
-      setMatches(data || []);
+      setMatches(data);
+      console.log('Set matches state:', data);
 
       if (data?.length > 0) {
+        console.log('Have matches, current active ID:', activeMatchIdRef.current);
         const currentId = activeMatchIdRef.current;
-        const stillExists = data.find((m) => m.id === currentId);
+        const stillExists = data.find((m: MatchScore) => m.id === currentId);
+        
         if (stillExists) {
-          // ✅ Match still exists → keep it active
+          console.log('Current match still exists, keeping active:', stillExists);
           setActiveMatch(stillExists);
           setActiveId(stillExists.id);
-        } else if (!currentId) {
-          // ✅ No match selected yet → pick the first one
+        } else {
+          // If current match doesn't exist or no match is selected, pick the first one
+          console.log('Setting first match as active:', data[0]);
           setActiveMatch(data[0]);
           setActiveId(data[0].id);
           activeMatchIdRef.current = data[0].id;
         }
+      } else {
+        console.log('No matches returned from API');
+        // Reset states when no matches are available
+        setActiveMatch(null);
+        setActiveId(null);
+        activeMatchIdRef.current = null;
       }
 
       setLoading(false);
@@ -95,17 +103,60 @@ export default function MatchScoresPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Optimized update handling
+  const debouncedFetchMatches = useCallback(() => {
+    // Clear any existing timeout
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    // Set a new timeout
+    updateTimeoutRef.current = setTimeout(() => {
+      if (pendingUpdatesRef.current.size > 0) {
+        fetchMatches(true);
+        pendingUpdatesRef.current.clear();
+      }
+    }, 300); // 300ms debounce
+  }, []);
+
   // SSE (live update)
   useEffect(() => {
-    const sse = new EventSource('/api/strapi-stream');
-    sse.onmessage = (event) => {
-      if (event.data === 'ping') return;
-      console.log('📡 SSE update received:', event.data);
-      fetchMatches(true);
+    let source = new EventSource('/api/strapi-stream');
+    let isActive = true;
+    
+    source.onmessage = (event) => {
+      if (!isActive || event.data === 'connected') return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.model === 'match-score' && data.entry) {
+          setMatches(prev => prev.map(m => 
+            m.id === data.entry.id ? { ...m, ...data.entry } : m
+          ));
+          if (data.entry.id === activeId) {
+            setActiveMatch(prev => prev ? { ...prev, ...data.entry } : prev);
+          }
+          setLastUpdated(new Date());
+        }
+      } catch (err) {
+        console.error('Failed to parse SSE data:', err);
+      }
     };
-    sse.onerror = (err) => console.error('SSE connection error:', err);
-    return () => sse.close();
-  }, []);
+
+    source.onerror = () => {
+      if (!isActive) return;
+      source.close();
+      setTimeout(() => {
+        if (isActive) {
+          source = new EventSource('/api/strapi-stream');
+        }
+      }, 1000);
+    };
+
+    return () => {
+      isActive = false;
+      source.close();
+    };
+  }, [activeId]);
 
   // Persistent localStorage (optional)
   useEffect(() => {
@@ -179,6 +230,12 @@ export default function MatchScoresPage() {
   }
 
   if (!activeMatch) {
+    console.log('No active match selected. Current state:', {
+      matches: matches.length,
+      loading,
+      activeId: activeId,
+      activeMatchIdRef: activeMatchIdRef.current
+    });
     return (
       <div className="flex flex-col items-center justify-center h-screen text-neutral-500 dark:text-neutral-400">
         <p>No matches available.</p>

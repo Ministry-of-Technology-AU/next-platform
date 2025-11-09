@@ -27,16 +27,9 @@ export default function AdminMatchesPage() {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      const res = await strapiGet('/match-scores', {
-        populate: ['team_a_logo', 'team_b_logo'],
-        sort: ['date:desc'],
-        pagination: { limit: 100 },
-      });
-      const data =
-        res?.data?.map((d: any) => ({
-          id: d.id,
-          ...d.attributes,
-        })) || [];
+      const res = await fetch('/api/platform/match-admin');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setMatches(data);
     } catch (err) {
       console.error('❌ Failed to fetch matches:', err);
@@ -52,8 +45,16 @@ export default function AdminMatchesPage() {
   const updateMatch = async (id: number, patch: any) => {
     setSaving(true);
     try {
-      await strapiPut(`/match-scores/${id}`, { data: patch });
-      await fetchMatches(); // ensure fresh data
+      const res = await fetch('/api/platform/match-admin', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, data: patch })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error);
+      }
+      await fetchMatches();
     } catch (err) {
       console.error('Failed to update match:', err);
     } finally {
@@ -66,7 +67,8 @@ export default function AdminMatchesPage() {
       prev.map((m) => {
         if (m.id !== id) return m;
         const key = team === 'a' ? 'team_a_score' : 'team_b_score';
-        const newScore = Math.max(0, (m[key] ?? 0) + delta);
+        const current = Number(m[key] ?? 0);
+        const newScore = Math.max(0, current + delta);
         updateMatch(id, { [key]: newScore });
         return { ...m, [key]: newScore };
       })
@@ -88,7 +90,15 @@ export default function AdminMatchesPage() {
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this match?')) return;
     try {
-      await strapiDelete(`/match-scores/${id}`);
+      const res = await fetch('/api/platform/match-admin', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error);
+      }
       setMatches((prev) => prev.filter((m) => m.id !== id));
     } catch (err) {
       console.error('Failed to delete match:', err);
@@ -112,15 +122,20 @@ export default function AdminMatchesPage() {
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
             Match Admin
           </h1>
-          <button
-            onClick={() => {
-              setEditingMatch(null);
-              setFormOpen(true);
-            }}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-          >
-            <Plus size={18} /> New Match
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setEditingMatch(null);
+                setFormOpen(true);
+              }}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+            >
+              <Plus size={18} /> New Match
+            </button>
+            <button onClick={fetchMatches} className="px-3 py-2 rounded border">
+              Refresh
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -140,7 +155,8 @@ export default function AdminMatchesPage() {
                   <div>
                     <h2 className="text-lg font-semibold">{m.match_name}</h2>
                     <p className="text-sm text-neutral-500">
-                      {m.league_name} — {new Date(m.date).toLocaleDateString()}
+                      {m.league_name} —{' '}
+                      {m.date ? new Date(m.date).toLocaleDateString() : '—'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -254,7 +270,15 @@ export default function AdminMatchesPage() {
   );
 }
 
-function TeamBox({ name, logo, score, onScoreChange, disabled }: any) {
+interface TeamBoxProps {
+  name: string;
+  logo: string | null;
+  score: number;
+  onScoreChange: (delta: number) => void;
+  disabled: boolean;
+}
+
+function TeamBox({ name, logo, score, onScoreChange, disabled }: TeamBoxProps) {
   return (
     <div className="flex flex-col items-center gap-3">
       {logo && (
@@ -276,7 +300,7 @@ function TeamBox({ name, logo, score, onScoreChange, disabled }: any) {
         >
           <ArrowUp />
         </button>
-        <div className="text-5xl font-extrabold">{score ?? 0}</div>
+        <div className="text-5xl font-extrabold">{Number(score ?? 0)}</div>
         <button
           onClick={() => onScoreChange(-1)}
           disabled={disabled}
