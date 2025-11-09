@@ -10,7 +10,7 @@ interface MatchScore {
   match_name: string;
   league_name: string;
   sport?: string;
-  status?: string;
+  match_status?: 'upcoming' | 'live' | 'paused' | 'completed' | 'cancelled';
   team_a_name: string;
   team_b_name: string;
   team_a_score: number;
@@ -28,6 +28,11 @@ export default function MatchScoresPage() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Filter states
+  const [leagueFilter, setLeagueFilter] = useState<string>('all');
+  const [sportFilter, setSportFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   
   // Add debounce ref
   const updateTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -180,23 +185,49 @@ export default function MatchScoresPage() {
     activeMatchIdRef.current = match.id;
   };
 
+  // Get unique values for filters
+  const { leagues, sports, statuses } = useMemo(() => {
+    const leagues = new Set<string>();
+    const sports = new Set<string>();
+    const statuses = new Set<string>();
+
+    matches.forEach(m => {
+      if (m.league_name) leagues.add(m.league_name);
+      if (m.sport) sports.add(m.sport);
+      if (m.match_status) statuses.add(m.match_status);
+    });
+
+    return {
+      leagues: Array.from(leagues).sort(),
+      sports: Array.from(sports).sort(),
+      statuses: Array.from(statuses).sort()
+    };
+  }, [matches]);
+
   const filteredMatches = useMemo(() => {
     return matches
       .filter((m) => {
+        // Text search
         const query = search.toLowerCase();
-        return (
+        const matchesSearch = 
           m.match_name?.toLowerCase().includes(query) ||
           m.league_name?.toLowerCase().includes(query) ||
           m.team_a_name?.toLowerCase().includes(query) ||
-          m.team_b_name?.toLowerCase().includes(query)
-        );
+          m.team_b_name?.toLowerCase().includes(query);
+
+        // Filter conditions
+        const matchesLeague = leagueFilter === 'all' || m.league_name === leagueFilter;
+        const matchesSport = sportFilter === 'all' || m.sport === sportFilter;
+        const matchesStatus = statusFilter === 'all' || m.match_status === statusFilter;
+
+        return matchesSearch && matchesLeague && matchesSport && matchesStatus;
       })
       .sort((a, b) => {
         const da = new Date(a.date || 0).getTime();
         const db = new Date(b.date || 0).getTime();
         return db - da;
       });
-  }, [matches, search]);
+  }, [matches, search, leagueFilter, sportFilter, statusFilter]);
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
@@ -208,16 +239,20 @@ export default function MatchScoresPage() {
     });
   };
 
-  const statusColor = (status?: string) => {
+  const statusColor = (status?: MatchScore['match_status']) => {
     switch (status?.toLowerCase()) {
       case 'live':
-        return 'text-green-600 dark:text-green-400';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+      case 'upcoming':
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
       case 'paused':
-        return 'text-yellow-600 dark:text-yellow-400';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
       case 'completed':
-        return 'text-neutral-600 dark:text-neutral-400';
+        return 'bg-neutral-100 dark:bg-neutral-900/30 text-neutral-700 dark:text-neutral-300';
+      case 'cancelled':
+        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
       default:
-        return 'text-neutral-500 dark:text-neutral-500';
+        return 'bg-neutral-100 dark:bg-neutral-900/30 text-neutral-700 dark:text-neutral-300';
     }
   };
 
@@ -300,9 +335,9 @@ export default function MatchScoresPage() {
             </h2>
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               {formatDate(activeMatch.date)}{' '}
-              {activeMatch.status && (
-                <span className={clsx('ml-2 font-medium', statusColor(activeMatch.status))}>
-                  {activeMatch.status}
+              {activeMatch.match_status && (
+                <span className={clsx('ml-2 font-medium', statusColor(activeMatch.match_status))}>
+                  {activeMatch.match_status}
                 </span>
               )}
             </p>
@@ -347,6 +382,44 @@ export default function MatchScoresPage() {
           className="mb-3 w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
 
+        <div className="space-y-2 mb-4">
+          {/* League Filter */}
+          <select
+            value={leagueFilter}
+            onChange={(e) => setLeagueFilter(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200"
+          >
+            <option value="all">All Leagues</option>
+            {leagues.map(league => (
+              <option key={league} value={league}>{league}</option>
+            ))}
+          </select>
+
+          {/* Sport Filter */}
+          <select
+            value={sportFilter}
+            onChange={(e) => setSportFilter(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200"
+          >
+            <option value="all">All Sports</option>
+            {sports.map(sport => (
+              <option key={sport} value={sport}>{sport}</option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200"
+          >
+            <option value="all">All Statuses</option>
+            {statuses.map(status => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+        </div>
+
         {filteredMatches.map((m) => (
           <button
             key={m.id}
@@ -362,11 +435,23 @@ export default function MatchScoresPage() {
             <div className="text-xs opacity-80 truncate">
               {m.team_a_name} vs {m.team_b_name}
             </div>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {m.league_name && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                  {m.league_name}
+                </span>
+              )}
+              {m.sport && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                  {m.sport}
+                </span>
+              )}
+            </div>
             <div className="flex items-center justify-between mt-1 text-[11px] uppercase tracking-wide opacity-70">
               <span>{formatDate(m.date)}</span>
-              {m.status && (
-                <span className={clsx('font-medium', statusColor(m.status))}>
-                  {m.status}
+              {m.match_status && (
+                <span className={clsx('font-medium px-2 py-0.5 rounded', statusColor(m.match_status))}>
+                  {m.match_status}
                 </span>
               )}
             </div>
@@ -395,8 +480,46 @@ export default function MatchScoresPage() {
               placeholder="Search matches..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full mb-4 px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full mb-3 px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+
+            <div className="space-y-2 mb-4">
+              {/* League Filter */}
+              <select
+                value={leagueFilter}
+                onChange={(e) => setLeagueFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200"
+              >
+                <option value="all">All Leagues</option>
+                {leagues.map(league => (
+                  <option key={league} value={league}>{league}</option>
+                ))}
+              </select>
+
+              {/* Sport Filter */}
+              <select
+                value={sportFilter}
+                onChange={(e) => setSportFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200"
+              >
+                <option value="all">All Sports</option>
+                {sports.map(sport => (
+                  <option key={sport} value={sport}>{sport}</option>
+                ))}
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-200"
+              >
+                <option value="all">All Statuses</option>
+                {statuses.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
 
             {filteredMatches.map((m) => (
               <button
@@ -418,9 +541,9 @@ export default function MatchScoresPage() {
                 </div>
                 <div className="flex items-center justify-between mt-1 text-[11px] uppercase tracking-wide opacity-70">
                   <span>{formatDate(m.date)}</span>
-                  {m.status && (
-                    <span className={clsx('font-medium', statusColor(m.status))}>
-                      {m.status}
+                  {m.match_status && (
+                    <span className={clsx('font-medium', statusColor(m.match_status))}>
+                      {m.match_status}
                     </span>
                   )}
                 </div>
