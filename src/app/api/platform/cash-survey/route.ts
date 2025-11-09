@@ -1,12 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CASHSurveyData } from "@/app/platform/cash-survey/types";
+import { auth } from "@/auth";
+import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
     const body: CASHSurveyData = await request.json();
 
+    // Get user session
+    const session = await auth();
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User not authenticated",
+        },
+        { status: 401 }
+      );
+    }
+
+    // Hash the user's email
+    const hashedEmail = crypto
+      .createHash("sha256")
+      .update(session.user.email)
+      .digest("hex");
+
     // Log the survey data to the console
     console.log("=== CASH Survey Submission ===");
+    console.log(`User Email (hashed): ${hashedEmail}`);
     console.log(JSON.stringify(body, null, 2));
     console.log("=============================");
 
