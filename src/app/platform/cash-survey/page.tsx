@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import Section1A from "./_components/section-1a";
@@ -218,6 +217,9 @@ export default function CASHSurveyPage() {
 
   // Get the current section index
   const currentSectionIndex = sections.findIndex(s => s.id === currentTab);
+  
+  // Check if we're on the last section - explicitly check by ID
+  const isLastSection = currentTab === "section-8";
 
   return (
     <div className="w-full min-h-screen bg-background px-4 py-8">
@@ -347,7 +349,7 @@ export default function CASHSurveyPage() {
                     Previous
                   </Button>
 
-                  {currentTab !== sections[sections.length - 1].id ? (
+                  {!isLastSection ? (
                     <Button
                       type="button"
                       onClick={() => {
@@ -358,12 +360,11 @@ export default function CASHSurveyPage() {
                           });
                           return;
                         }
-                        const currentIndex = sections.findIndex(
-                          (s) => s.id === currentTab
-                        );
-                        if (currentIndex < sections.length - 1) {
+                        // Navigate to next section
+                        const nextSectionIndex = currentSectionIndex + 1;
+                        if (nextSectionIndex < sections.length) {
                           handleSaveSection(currentTab);
-                          setCurrentTab(sections[currentIndex + 1].id);
+                          setCurrentTab(sections[nextSectionIndex].id);
                         }
                       }}
                       className="w-full sm:w-auto"
