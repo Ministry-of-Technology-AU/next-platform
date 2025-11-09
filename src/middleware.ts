@@ -12,6 +12,13 @@ const ROUTE_ACCESS = {
 export default auth(async function middleware(req) {
   const { pathname } = req.nextUrl
 
+  if (
+    pathname.startsWith('/api/strapi-stream') ||
+    pathname.startsWith('/api/strapi-webhook')
+  ) {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith('/api/auth')) {
     return NextResponse.next()
   }
