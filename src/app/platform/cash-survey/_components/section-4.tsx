@@ -53,6 +53,7 @@ const FrequencyQuestion = ({
     <div className="grid grid-cols-2 md:grid-cols-4 gap-1 md:gap-2 w-full">
       {frequencyOptions.map((option) => (
         <Button
+          type="button"
           key={option.value}
           variant={value === option.value ? "default" : "outline"}
           size="sm"
@@ -167,6 +168,7 @@ export default function Section4({ data, onUpdate }: Section4Props) {
             <div className="grid grid-cols-2 gap-2 w-full">
               {yesNoOptions.map((option) => (
                 <Button
+                  type="button"
                   key={option.value}
                   variant={data.experiencedUnwantedExperiences === option.value ? "default" : "outline"}
                   onClick={() => onUpdate({ experiencedUnwantedExperiences: option.value })}

@@ -139,15 +139,19 @@ export default function CASHSurveyPage() {
     },
   });
 
-    const handleUpdateSection = (section: string, data: any) => {
-    setFormData({
-      ...formData,
-      [section]: data,
-    });
+  const handleUpdateSection = (section: string, data: any) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [section]: {
+        ...prevFormData[section as keyof CASHSurveyData],
+        ...data,
+      },
+    }));
     setLastSavedSection(section);
-    toast.success("Section saved", {
-      duration: 2000,
-    });
+  };
+
+  const handleSaveSection = (section: string) => {
+    setLastSavedSection(section);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -198,6 +202,46 @@ export default function CASHSurveyPage() {
     { id: "section-8", label: "Section 8 - Survey Experience", tab: "8" },
   ];
 
+  // Validation function to check if a section is complete
+  const isSectionComplete = (sectionId: string): boolean => {
+    // Convert section-1a to section1A, section-1b to section1B, etc.
+    let sectionKey = sectionId.replace("section-", "section");
+    // Handle special cases: 1a -> 1A, 1b -> 1B, 2 -> 2, etc.
+    if (sectionKey === "section1a") sectionKey = "section1A";
+    else if (sectionKey === "section1b") sectionKey = "section1B";
+    
+    const sectionData = formData[sectionKey as keyof CASHSurveyData];
+    
+    if (!sectionData) return false;
+
+    // Define which fields are conditionally required
+    const conditionalFields: Record<string, Set<string>> = {
+      section1B: new Set(["genderIdentityOther", "nationalityOther", "customOrientation"]),
+      section2: new Set(["workshopComments", "reasonsNotReportedOther"]),
+      section5: new Set(["reasonsNotReportedOther", "cashSGExperience", "cashExperience"]),
+      section6: new Set(["personRelationshipOther", "personGenderOther"]),
+      section8: new Set(["improvementDetails"]),
+    };
+
+    const conditionalFieldsForThisSection = conditionalFields[sectionKey] || new Set();
+
+    // Check if all values in the section are filled (not empty strings or empty arrays)
+    return Object.entries(sectionData).every(([key, value]) => {
+      // Skip conditional fields in validation
+      if (conditionalFieldsForThisSection.has(key)) {
+        return true;
+      }
+
+      if (typeof value === "string") return value.trim() !== "";
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === "number") return value !== undefined && value !== null;
+      return value !== null && value !== undefined;
+    });
+  };
+
+  // Get the current section index
+  const currentSectionIndex = sections.findIndex(s => s.id === currentTab);
+
   return (
     <div className="w-full min-h-screen bg-background px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -214,11 +258,12 @@ export default function CASHSurveyPage() {
                 {/* Tab List - Responsive grid without horizontal scroll */}
                 <div className="flex-shrink-0 border-b w-full">
                   <TabsList className="w-full flex flex-wrap gap-0">
-                    {sections.map((section) => (
+                    {sections.map((section, index) => (
                       <TabsTrigger
                         key={section.id}
                         value={section.id}
-                        className="relative text-xs md:text-sm py-2 px-2 md:px-3 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary flex-shrink-0"
+                        disabled={index > currentSectionIndex}
+                        className="relative text-xs md:text-sm py-2 px-2 md:px-3 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <div className="flex items-center gap-1 whitespace-nowrap">
                           {section.tab}
@@ -237,7 +282,7 @@ export default function CASHSurveyPage() {
                   {lastSavedSection && (
                     <div className="mb-4 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                       <Check className="w-4 h-4" />
-                      <span>Section saved</span>
+                      <span>Section data updated</span>
                     </div>
                   )}
 
@@ -315,6 +360,7 @@ export default function CASHSurveyPage() {
                         (s) => s.id === currentTab
                       );
                       if (currentIndex > 0) {
+                        handleSaveSection(currentTab);
                         setCurrentTab(sections[currentIndex - 1].id);
                       }
                     }}
@@ -324,14 +370,22 @@ export default function CASHSurveyPage() {
                     Previous
                   </Button>
 
-                  {currentTab !== sections[sections.length - 1].id ? (
+                                    {currentTab !== sections[sections.length - 1].id ? (
                     <Button
                       type="button"
                       onClick={() => {
+                        if (!isSectionComplete(currentTab)) {
+                          toast.error("Please fill all fields", {
+                            description: "All fields in this section are mandatory.",
+                            duration: 3000,
+                          });
+                          return;
+                        }
                         const currentIndex = sections.findIndex(
                           (s) => s.id === currentTab
                         );
                         if (currentIndex < sections.length - 1) {
+                          handleSaveSection(currentTab);
                           setCurrentTab(sections[currentIndex + 1].id);
                         }
                       }}

@@ -69,6 +69,7 @@ const ScaleQuestion = ({
     <div className="grid grid-cols-5 gap-1 md:gap-2 w-full">
       {scaleOptions.map((option, index) => (
         <Button
+          type="button"
           key={option.value}
           variant={value === option.value ? "default" : "outline"}
           size="sm"
