@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import Section1A from "./_components/section-1a";
 import Section1B from "./_components/section-1b";
@@ -19,10 +20,18 @@ import { CASHSurveyData } from "./types";
 import { isSectionComplete, getMissingFields } from "./validation-utils";
 
 export default function CASHSurveyPage() {
+  const router = useRouter();
   const [currentTab, setCurrentTab] = useState("section-1a");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasAlreadySubmitted, setHasAlreadySubmitted] = useState(false);
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
   const [lastSavedSection, setLastSavedSection] = useState<string | null>(null);
+  const [previousSubmissionInfo, setPreviousSubmissionInfo] = useState<{
+    hasSubmitted: boolean;
+    timestamp: string;
+    totalSubmissions: number;
+  } | null>(null);
 
   const [formData, setFormData] = useState<CASHSurveyData>({
     section1A: {
@@ -139,6 +148,50 @@ export default function CASHSurveyPage() {
     },
   });
 
+  // Fetch existing submission data on mount and redirect if already submitted
+  useEffect(() => {
+    const fetchExistingData = async () => {
+      try {
+        const response = await fetch("/api/platform/cash-survey", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch survey data");
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.hasSubmitted) {
+          // User has already submitted - redirect to thank you page
+          setHasAlreadySubmitted(true);
+          router.push("/platform/cash-survey/thank-you");
+        } else {
+          setPreviousSubmissionInfo({
+            hasSubmitted: false,
+            timestamp: "",
+            totalSubmissions: 0,
+          });
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching existing survey data:", error);
+        // Allow user to proceed on error
+        setPreviousSubmissionInfo({
+          hasSubmitted: false,
+          timestamp: "",
+          totalSubmissions: 0,
+        });
+        setIsLoading(false);
+      }
+    };
+
+    fetchExistingData();
+  }, [router]);
+
   const handleUpdateSection = (section: string, data: any) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -176,10 +229,10 @@ export default function CASHSurveyPage() {
         duration: 5000,
       });
       
-      // Optionally reset form or redirect after delay
+      // Redirect to thank you page after a brief delay
       setTimeout(() => {
-        // You can redirect here if needed
-      }, 1000);
+        router.push("/platform/cash-survey/thank-you");
+      }, 1500);
     } catch (error) {
       toast.error("Failed to submit survey", {
         description: error instanceof Error ? error.message : "An error occurred",
@@ -224,14 +277,40 @@ export default function CASHSurveyPage() {
   return (
     <div className="w-full min-h-screen bg-background px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <Card className="flex flex-col h-full">
-          <CardHeader className="flex-shrink-0">
-            <CardTitle className="text-2xl md:text-3xl">CASH Survey</CardTitle>
-            <CardDescription>
-              Committee Against Sexual Harassment (CASH) - Student Experience Survey
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
+        {isLoading || hasAlreadySubmitted ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>{hasAlreadySubmitted ? "Redirecting..." : "Loading Survey..."}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="flex flex-col h-full">
+            <CardHeader className="flex-shrink-0">
+              <CardTitle className="text-2xl md:text-3xl">CASH Survey</CardTitle>
+              <CardDescription>
+                Committee Against Sexual Harassment (CASH) - Student Experience Survey
+              </CardDescription>
+              {previousSubmissionInfo?.hasSubmitted && (
+                <div className="mt-4 flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                  <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900 dark:text-blue-300">
+                      Previous submission found
+                    </p>
+                    <p className="text-sm text-blue-800 dark:text-blue-400">
+                      Last submitted on {new Date(previousSubmissionInfo.timestamp).toLocaleString()}.
+                      Submission #{previousSubmissionInfo.totalSubmissions}. You can update your responses.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col">
             <form onSubmit={handleSubmit} className="flex flex-col h-full">
               <Tabs value={currentTab} onValueChange={setCurrentTab} className="flex flex-col h-full">
                 {/* Tab List - Responsive grid without horizontal scroll */}
@@ -385,6 +464,7 @@ export default function CASHSurveyPage() {
             </form>
           </CardContent>
         </Card>
+        )}
       </div>
     </div>
   );
