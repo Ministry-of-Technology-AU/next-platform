@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -207,11 +207,26 @@ export default function CASHSurveyPage() {
     setLastSavedSection(section);
   };
 
+  // Require explicit intent to submit to avoid accidental submissions from inner buttons/enter
+  const submitIntentRef = useRef(false);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      // Only allow submit on the final section AND when the explicit submit button was used
+      if (currentTab !== "section-8" || !submitIntentRef.current) {
+        setCurrentTab("section-8");
+        toast.message("Almost there", {
+          description: "Please complete the final section before submitting.",
+          duration: 3000,
+        });
+        submitIntentRef.current = false;
+        setIsSubmitting(false);
+        return;
+      }
+
       const response = await fetch("/api/platform/cash-survey", {
         method: "POST",
         headers: {
@@ -239,6 +254,7 @@ export default function CASHSurveyPage() {
         duration: 5000,
       });
     } finally {
+      submitIntentRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -311,7 +327,16 @@ export default function CASHSurveyPage() {
               )}
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
-            <form onSubmit={handleSubmit} className="flex flex-col h-full">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col h-full"
+              onKeyDown={(e) => {
+                // Prevent Enter from submitting on non-final sections
+                if (e.key === "Enter" && currentTab !== "section-8") {
+                  e.preventDefault();
+                }
+              }}
+            >
               <Tabs value={currentTab} onValueChange={setCurrentTab} className="flex flex-col h-full">
                 {/* Tab List - Responsive grid without horizontal scroll */}
                 <div className="flex-shrink-0 border-b w-full">
@@ -320,6 +345,8 @@ export default function CASHSurveyPage() {
                       <TabsTrigger
                         key={section.id}
                         value={section.id}
+                        type="button"
+                        // Testing: allow free navigation across tabs
                         disabled={index > currentSectionIndex}
                         className="relative text-xs md:text-sm py-2 px-2 md:px-3 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -452,7 +479,10 @@ export default function CASHSurveyPage() {
                     </Button>
                   ) : (
                     <Button 
-                      type="submit" 
+                      type="submit"
+                      onClick={() => {
+                        submitIntentRef.current = true;
+                      }}
                       disabled={isSubmitting}
                       className="w-full sm:w-auto"
                     >
