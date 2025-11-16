@@ -10,17 +10,17 @@ interface DeveloperProps{
 
 export default function DeveloperCredits({developers}: DeveloperProps) {
     return (
-      <div className="text-center text-sm text-muted-foreground border-t pt-8 mt-8">
+      <div className="text-center text-sm text-gray-600 dark:text-gray-400 border-t pt-8 mt-8">
         <p>
-          Feature developed by {" "}
+          Feature developed by{" "}
           {developers.map((dev, index) => (
             <span key={dev.name}>
               <a
                 href={dev.profileUrl || "#"}
                 target="_blank"
-                className="text-primary dark:text-secondary-dark hover:underline font-medium"
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
               >
-                <span className="font-bold">{dev.name}</span> {dev.role ? `- ${dev.role}` : ""}
+                <span className="font-bold">{dev.name}</span>{dev.role ? ` - ${dev.role}` : ""}
               </a>
               {index < developers.length - 1 ? ", " : ""}
             </span>
