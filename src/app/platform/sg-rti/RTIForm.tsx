@@ -140,25 +140,31 @@ export default function RTIForm() {
             </a>{" "}
             for more details.
           </p>
-        </div>
+        </div>        
 
-        <Form.TextInput
-          title="Name"
-          placeholder="Your name"
-          value={name}
-          onChange={setName}
-          isRequired
-        />
+        {!anonymous && (
+          <>
+            <Form.TextInput
+              title="Name"
+              placeholder="Your name"
+              value={name}
+              onChange={setName}
+              isRequired
+              isDisabled={true}
+            />
 
-        <Form.TextInput
-          title="Email ID"
-          placeholder="you@domain.com"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          isRequired
-        />
-
+            <Form.TextInput
+              title="Email ID"
+              placeholder="you@domain.com"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              isRequired
+              isDisabled={true}
+            />
+          </>
+        )}
+        
         <Form.CheckboxComponent
           title="Submit Anonymously"
           value={anonymous}

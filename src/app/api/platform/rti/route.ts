@@ -30,17 +30,76 @@ export async function POST(request: Request) {
 
     // Build pretty HTML email
     const html = `
-      <div style="font-family: Arial, sans-serif; color: #111;">
-        <h2 style="color:#0b5;">New RTI Submission</h2>
-        <p><strong>Submitted At:</strong> ${new Date().toLocaleString()}</p>
-        <h3>Requester</h3>
-        <p>${anonymous ? '<em>Submitted anonymously</em>' : `Name: ${escapeHtml(name)}<br/>Email: ${escapeHtml(email)}`}</p>
-        <h3>Information Requested</h3>
-        <p>${escapeHtml(information).replace(/\n/g, '<br/>')}</p>
-        <h3>Additional Details / Context</h3>
-        <p>${escapeHtml(details).replace(/\n/g, '<br/>') || '<em>None</em>'}</p>
-        <h3>Urgency / Preferred Timeline</h3>
-        <p>${escapeHtml(timeline)}${timeline === 'urgent' ? ` — Reason: ${escapeHtml(urgentReason)}` : ''}</p>
+      <!-- New RTI Submission (Email HTML) -->
+      <div style="font-family: Arial, sans-serif; color:#111; background:#f8f9fb; padding:24px;">
+        <div style="max-width:680px; margin:0 auto; background:#ffffff; border:1px solid #e6e6e6; border-radius:12px; overflow:hidden;">
+
+          <!-- Header -->
+          <div style="padding:20px 24px; background:linear-gradient(0deg,#f7fff9,#ffffff); border-bottom:1px solid #e6e6e6;">
+            <h2 style="margin:0; font-size:22px; color:#87281b; letter-spacing:0.2px;">New RTI Submission</h2>
+            <p style="margin:8px 0 0; font-size:13px; color:#444;">
+              <strong>Submitted At:</strong> ${new Date().toLocaleString()}
+            </p>
+          </div>
+
+          <!-- Body / Table -->
+          <div style="padding:6px 8px 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:separate; border-spacing:0; width:100%;">
+              <!-- Row helper function emulation via repeated markup -->
+
+              <!-- Requester -->
+              <tr>
+                <td style="width:240px; padding:14px 16px; background:#fafafa; border-bottom:1px solid #eee; vertical-align:top; font-weight:bold; font-size:14px;">
+                  Requester
+                </td>
+                <td style="padding:14px 16px; border-bottom:1px solid #eee; font-size:14px; color:#222;">
+                  ${anonymous 
+                    ? '<em>Submitted anonymously</em>' 
+                    : `Name: ${escapeHtml(name)}<br/>Email: ${escapeHtml(email)}`
+                  }
+                </td>
+              </tr>
+
+              <!-- Information Requested -->
+              <tr>
+                <td style="width:240px; padding:14px 16px; background:#fafafa; border-bottom:1px solid #eee; vertical-align:top; font-weight:bold; font-size:14px;">
+                  Information Requested
+                </td>
+                <td style="padding:14px 16px; border-bottom:1px solid #eee; font-size:14px; color:#222;">
+                  ${escapeHtml(information).replace(/\n/g, '<br/>')}
+                </td>
+              </tr>
+
+              <!-- Additional Details / Context -->
+              <tr>
+                <td style="width:240px; padding:14px 16px; background:#fafafa; border-bottom:1px solid #eee; vertical-align:top; font-weight:bold; font-size:14px;">
+                  Additional Details / Context
+                </td>
+                <td style="padding:14px 16px; border-bottom:1px solid #eee; font-size:14px; color:#222;">
+                  ${escapeHtml(details).replace(/\n/g, '<br/>') || '<em>None</em>'}
+                </td>
+              </tr>
+
+              <!-- Urgency / Preferred Timeline -->
+              <tr>
+                <td style="width:240px; padding:14px 16px; background:#fafafa; border-bottom:1px solid #eee; vertical-align:top; font-weight:bold; font-size:14px;">
+                  Urgency / Preferred Timeline
+                </td>
+                <td style="padding:14px 16px; border-bottom:1px solid #eee; font-size:14px; color:#222;">
+                  ${escapeHtml(timeline)}${timeline === 'urgent' ? ` — Reason: ${escapeHtml(urgentReason)}` : ''}
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Footer -->
+          <div style="padding:14px 18px; background:#f6fff7; border-top:1px solid #e6f1e6; text-align:center;">
+            <p style="margin:0; font-size:12px; color:#87281b;">
+              Feature brought to you by <strong>Ministry of Technology</strong>.
+            </p>
+          </div>
+
+        </div>
       </div>
     `;
 

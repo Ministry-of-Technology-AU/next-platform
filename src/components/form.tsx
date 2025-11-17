@@ -148,6 +148,7 @@ interface TextInputProps {
   isRequired?: boolean;
   errorMessage?: string;
   isParagraph?: boolean;
+  isDisabled?: boolean;
   value?: string;
   onChange?: (value: string) => void;
   type?: "text" | "email" | "password" | "number";
@@ -161,6 +162,7 @@ export function TextInput({
   isRequired = false,
   errorMessage,
   isParagraph = false,
+  isDisabled = false,
   value = "",
   onChange,
   type = "text",
@@ -190,6 +192,7 @@ export function TextInput({
             errorMessage ? "border-destructive" : ""
           }`,
         })}
+        disabled={isDisabled}
       />
       {errorMessage && (
         <p className="text-sm text-destructive">{errorMessage}</p>
