@@ -152,6 +152,10 @@ h3{
   --sidebar-accent-foreground: #3a3a3a;
   --sidebar-border: #e0e0e0;
   --sidebar-ring: #bdbdbd;
+  --sb-thumb: #9ca3af;           /* gray-400 */
+  --sb-thumb-hover: #6b7280;     /* gray-500 */
+  --sb-thumb-dark: #4b5563;      /* gray-600 */
+  --sb-thumb-dark-hover: #6b7280;/* gray-500 */
 }
 
 .dark {
@@ -212,31 +216,36 @@ h3{
 }
 
 @layer base {
-  /* 1. Set width */
-  *::-webkit-scrollbar {
-    @apply w-2 h-2;
-  }
 
-  /* 2. Light mode track & thumb */
-  *::-webkit-scrollbar-track {
-    @apply bg-gray-light dark:bg-black/60;
-  }
-  *::-webkit-scrollbar-thumb {
-    @apply bg-white dark:bg-black rounded-xl;
-  }
-
-  /* 3. Hover state */
-  *::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500 dark:bg-gray-400;
-  }
-
-  /* 4. Firefox fallback */
+  /* Firefox */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-gray-light) var(--color-white); /* light */
+    scrollbar-color: var(--sb-thumb) transparent;
   }
-  .dark {
-    scrollbar-color: var(--color-gray-dark) var(--color-black); /* dark */
+  html.dark * {
+    scrollbar-color: var(--sb-thumb-dark) transparent;
+  }
+
+  /* WebKit (Chrome/Safari/Edge/Opera) */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--sb-thumb);
+    border-radius: 9999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--sb-thumb-hover);
+  }
+  html.dark *::-webkit-scrollbar-thumb {
+    background-color: var(--sb-thumb-dark);
+  }
+  html.dark *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--sb-thumb-dark-hover);
   }
 }
 

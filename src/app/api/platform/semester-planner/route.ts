@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { strapiGet, strapiPut } from "@/lib/apis/strapi";
+// import { strapiGet, strapiPut } from "@/lib/apis/strapi";
 import timetableData from "@/data/timetable-planner.json";
 
 interface RawCourseData {
@@ -15,7 +15,7 @@ interface RawCourseData {
 }
 
 interface TimeSlot {
-  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
+  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
   slot: string;
 }
 
@@ -25,9 +25,12 @@ interface Course {
   name: string;
   professor: string;
   department: string;
-  type: 'Core' | 'Elective' | 'Lab' | 'Seminar';
+  location: string;
+  description: string;
+  prerequisites: string[];
   credits: number;
   timeSlots: TimeSlot[];
+  hasSaturday: boolean;
 }
 
 function parseTimeSlots(classDetails: string[]): TimeSlot[] {
@@ -62,7 +65,8 @@ function parseTimeSlots(classDetails: string[]): TimeSlot[] {
       'Tuesday': 'Tuesday', 
       'Wednesday': 'Wednesday',
       'Thursday': 'Thursday',
-      'Friday': 'Friday'
+      'Friday': 'Friday',
+      'Saturday': 'Saturday'
     };
 
     if (dayMap[day]) {
@@ -76,6 +80,27 @@ function parseTimeSlots(classDetails: string[]): TimeSlot[] {
   return timeSlots;
 }
 
+function parseLocation(classDetails: string[]): string {
+  if (!classDetails || classDetails.length === 0) {
+    return 'TBA';
+  }
+
+  // Extract location from classDetails: "Thursday-15:00-16:30 ( AC-03-LR-003 )"
+  const classString = classDetails[0];
+  const locationPattern = /\(\s*([^)]+)\s*\)/g;
+  const locations: string[] = [];
+  let match;
+
+  while ((match = locationPattern.exec(classString)) !== null) {
+    const location = match[1].trim();
+    if (location && !locations.includes(location)) {
+      locations.push(location);
+    }
+  }
+
+  return locations.length > 0 ? locations.join(', ') : 'TBA';
+}
+
 function getDepartmentFromCourseCode(courseCode: string): string {
   // Extract department from course code (e.g., "CS-101" -> "Computer Science")
   const prefix = courseCode.split('-')[0];
@@ -83,8 +108,10 @@ function getDepartmentFromCourseCode(courseCode: string): string {
   const departmentMap: { [key: string]: string } = {
     'CS': 'Computer Science',
     'MATH': 'Mathematics',
-    'PHYS': 'Physics',
+    'PHY': 'Physics',
+    'PHIL': 'Philosophy',
     'ENG': 'English',
+    'ENT': 'Entrepreneurship',
     'HIST': 'History',
     'ECON': 'Economics',
     'BIO': 'Biology',
@@ -98,32 +125,16 @@ function getDepartmentFromCourseCode(courseCode: string): string {
   return departmentMap[prefix] || 'General Studies';
 }
 
-function determineCourseType(courseCode: string): Course['type'] {
-  // Determine course type based on course code patterns
-  if (courseCode.startsWith('FC-')) {
-    return 'Core';
-  }
-  if (courseCode.includes('LAB') || courseCode.includes('Lab')) {
-    return 'Lab';
-  }
-  if (courseCode.includes('SEM') || courseCode.includes('Seminar')) {
-    return 'Seminar';
-  }
-  // Default logic: courses ending in numbers like 101, 201 are typically core
-  if (/\d{3}$/.test(courseCode)) {
-    return 'Core';
-  }
-  return 'Elective';
-}
 
-function estimateCredits(classCounts: number): number {
-  // Estimate credits based on class counts
-  // Most courses with 2 classes per week are 3-4 credits
-  // Courses with 1 class per week are usually 2-3 credits
-  if (classCounts >= 3) return 4;
-  if (classCounts === 2) return 3;
-  return 2;
-}
+
+// function estimateCredits(classCounts: number): number {
+//   // Estimate credits based on class counts
+//   // Most courses with 2 classes per week are 3-4 credits
+//   // Courses with 1 class per week are usually 2-3 credits
+//   if (classCounts === 2) return 4;
+//   if (classCounts === 1) return 3;
+//   return 2;
+// }
 
 function getLastSyncInfo(): { date: string; time: string } {
   const metadata = timetableData[0] as any;
@@ -140,11 +151,38 @@ async function fetchCourses(): Promise<RawCourseData[]> {
   ) as RawCourseData[];
 }
 
+function parsePrerequisites(prerequisites: any[]): string[] {
+  if (!prerequisites || !Array.isArray(prerequisites)) {
+    return [];
+  }
+
+  const parsedPrereqs: string[] = [];
+
+  prerequisites.forEach(prereqGroup => {
+    if (prereqGroup && prereqGroup.RequiredCourses) {
+      // Split the RequiredCourses string by commas and clean up
+      const courses = prereqGroup.RequiredCourses.split(',').map((course: string) => {
+        return course.trim().replace(/\s+/g, ' ');
+      }).filter((course: string) => course.length > 0);
+      
+      parsedPrereqs.push(...courses);
+    }
+  });
+
+  // Remove duplicates and return
+  return [...new Set(parsedPrereqs)];
+}
+
 async function formatCourses(): Promise<Course[]> {
   const rawCourses = await fetchCourses();
   
   return rawCourses.map((course, index) => {
     const timeSlots = parseTimeSlots(course.classDetails);
+    const location = parseLocation(course.classDetails);
+    const hasSaturday = timeSlots.some(slot => slot.day === 'Saturday');
+    
+    // Parse prerequisites using the new function
+    const prerequisites = parsePrerequisites(course.prerequisites || []);
     
     return {
       id: `${course.courseCode}-${index}`,
@@ -154,9 +192,12 @@ async function formatCourses(): Promise<Course[]> {
         word.charAt(0).toUpperCase() + word.slice(1)
       ).join(' '),
       department: getDepartmentFromCourseCode(course.courseCode),
-      type: determineCourseType(course.courseCode),
-      credits: estimateCredits(course.classCounts),
-      timeSlots
+      location,
+      description: course.description || 'No description available',
+      prerequisites,
+      // credits: estimateCredits(course.classCounts),
+      timeSlots,
+      hasSaturday
     } as Course;
   }).filter(course => course.timeSlots.length > 0); // Only include courses with valid time slots
 }

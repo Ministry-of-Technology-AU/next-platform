@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -28,7 +34,18 @@ export function CourseSelection({
 }: CourseSelectionProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleCardClick = (course: Course) => {
+    setSelectedCourse(course);
+    setIsDialogOpen(true);
+  };
+
+  const handleAddCourse = (course: Course, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    onAddCourse(course);
+  };
 
   const departments = useMemo(() => {
     const depts = Array.from(
@@ -45,11 +62,10 @@ export function CourseSelection({
         course.professor.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesDepartment =
         departmentFilter === "all" || course.department === departmentFilter;
-      const matchesType = typeFilter === "all" || course.type === typeFilter;
 
-      return matchesSearch && matchesDepartment && matchesType;
+      return matchesSearch && matchesDepartment;
     });
-  }, [courses, searchTerm, departmentFilter, typeFilter]);
+  }, [courses, searchTerm, departmentFilter]);
 
   return (
     <TourStep
@@ -74,41 +90,24 @@ export function CourseSelection({
               </TourStep>
             </div>
 
-            <div className="flex gap-2">
-              <TourStep id="department-filter" order={3} title="Filter by Department" content="Narrow down the course list by selecting a department." position="bottom">
-                <Select
-                  value={departmentFilter}
-                  onValueChange={setDepartmentFilter}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TourStep>
-
-              <TourStep id="type-filter" order={4} title="Filter by Type" content="Filter courses by their type: Core, Elective, Lab, or Seminar." position="bottom">
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="Core">Core</SelectItem>
-                    <SelectItem value="Elective">Elective</SelectItem>
-                    <SelectItem value="Lab">Lab</SelectItem>
-                    <SelectItem value="Seminar">Seminar</SelectItem>
-                  </SelectContent>
-                </Select>
-              </TourStep>
-            </div>
+            <TourStep id="department-filter" order={3} title="Filter by Department" content="Narrow down the course list by selecting a department." position="bottom">
+              <Select
+                value={departmentFilter}
+                onValueChange={setDepartmentFilter}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </TourStep>
           </div>
 
           <ScrollArea className="h-[70vh]">
@@ -116,15 +115,14 @@ export function CourseSelection({
               {filteredCourses.map((course) => (
                 <Card
                   key={course.id}
-                  className="p-3 hover:bg-muted/50 dark:bg-card transition-colors"
+                  className="p-3 hover:bg-muted/50 dark:bg-card transition-colors cursor-pointer"
+                  onClick={() => handleCardClick(course)}
+                  title="Click to learn more about this course (description, prerequisites, and location)"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium text-sm">{course.code}</h4>
-                        <Badge variant="outline" className="text-xs">
-                          {course.type}
-                        </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {course.name}
@@ -134,16 +132,16 @@ export function CourseSelection({
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {course.department}
-                        {/* {course.department} • {course.credits} credits */}
                       </p>
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() => onAddCourse(course)}
-                      className="ml-2"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
+                    <div className="ml-2">
+                      <Button
+                        size="sm"
+                        onClick={(e) => handleAddCourse(course, e)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -151,6 +149,89 @@ export function CourseSelection({
           </ScrollArea>
         </CardContent>
       </Card>
+      
+      {/* Course Details Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl overflow-hidden flex flex-col">
+          {selectedCourse && (
+        <>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+          <span>{selectedCourse.code}</span>
+          {(selectedCourse as any).hasSaturday && (
+            <Badge variant="destructive" className="text-xs">
+              Saturday Class
+            </Badge>
+          )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 flex-1 overflow-y-auto">
+            <div>
+          <h3 className="font-semibold text-lg mb-2">{selectedCourse.name}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">
+            <strong>Professor:</strong> {selectedCourse.professor}
+              </p>
+              <p className="text-muted-foreground">
+            <strong>Department:</strong> {selectedCourse.department}
+              </p>
+              {/* <p className="text-muted-foreground">
+            <strong>Credits:</strong> {(selectedCourse as any).credits || 'TBA'}
+              </p> */}
+            </div>
+            <div className="flex items-start gap-2">
+              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+              <div>
+            <p className="font-medium">Location</p>
+            <p className="text-muted-foreground text-sm">
+              {(selectedCourse as any).location || 'TBA'}
+            </p>
+              </div>
+            </div>
+          </div>
+          {(selectedCourse as any).hasSaturday && (
+            <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            ⚠️ This course has Saturday classes which won&apos;t appear on the timetable but may create scheduling conflicts.
+              </p>
+            </div>
+          )}
+            </div>
+            
+            <div>
+          <h4 className="font-medium mb-2">Prerequisites</h4>
+          <div className="max-h-32 overflow-y-auto border rounded-md p-3 bg-muted/30">
+            {(selectedCourse as any).prerequisites && (selectedCourse as any).prerequisites.length > 0 ? (
+              <ul className="list-disc list-inside space-y-1">
+            {(selectedCourse as any).prerequisites.map((prereq: string, index: number) => (
+              <li key={index} className="text-sm text-muted-foreground">{prereq}</li>
+            ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No prerequisites</p>
+            )}
+          </div>
+            </div>
+            
+            <div>
+          <h4 className="font-medium mb-2">Description</h4>
+          <div className="max-h-60 overflow-y-auto border rounded-md p-3 bg-muted/30">
+            {(selectedCourse as any).description && (selectedCourse as any).description !== 'No description available' ? (
+              <div 
+            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: (selectedCourse as any).description }}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No description available</p>
+            )}
+          </div>
+            </div>
+          </div>
+        </>
+          )}
+        </DialogContent>
+      </Dialog>
     </TourStep>
   );
 }
