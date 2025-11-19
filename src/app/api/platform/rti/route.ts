@@ -133,10 +133,13 @@ export async function POST(request: Request) {
       }
     }
 
+    const requestId = generateRandomNumber(6);
+
     // Send mail using the existing sendMail function
     await sendMail({
-      alias: "Platform RTI",
+      alias: `Platform RTI - ${requestId}`,
       to: RTI_POC,
+      cc: anonymous ? undefined : email || undefined,
       replyTo: anonymous ? undefined : email || undefined,
       subject: `RTI Submission${anonymous ? ' (Anonymous)' : ''}`,
       html,
@@ -157,4 +160,10 @@ function escapeHtml(unsafe: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function generateRandomNumber(length: number): number {
+  const min = Math.pow(10, length - 1);
+  const max = Math.pow(10, length) - 1;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
