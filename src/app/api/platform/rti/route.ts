@@ -14,8 +14,8 @@ export async function POST(request: Request) {
     const timeline = String(form.get("timeline") || "standard");
     const urgentReason = String(form.get("urgentReason") || "");
 
-    // File (if provided)
-    const file = form.get("file") as File | null;
+    // Get all files (multiple files support)
+    const files = form.getAll("files") as File[];
 
     // Validate required fields
     if (!information.trim()) {
@@ -89,6 +89,18 @@ export async function POST(request: Request) {
                   ${escapeHtml(timeline)}${timeline === 'urgent' ? ` — Reason: ${escapeHtml(urgentReason)}` : ''}
                 </td>
               </tr>
+
+              ${files.length > 0 ? `
+              <!-- Attachments -->
+              <tr>
+                <td style="width:240px; padding:14px 16px; background:#fafafa; border-bottom:1px solid #eee; vertical-align:top; font-weight:bold; font-size:14px;">
+                  Attachments
+                </td>
+                <td style="padding:14px 16px; border-bottom:1px solid #eee; font-size:14px; color:#222;">
+                  ${files.map(f => escapeHtml(f.name)).join('<br/>')}
+                </td>
+              </tr>
+              ` : ''}
             </table>
           </div>
 
@@ -103,15 +115,22 @@ export async function POST(request: Request) {
       </div>
     `;
 
-    // Prepare attachments if file is provided
+    // Prepare attachments for all files
     const attachments = [];
-    if (file && typeof (file as any).arrayBuffer === 'function') {
-      const arrayBuffer = await (file as any).arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      attachments.push({
-        filename: (file as any).name || 'attachment',
-        content: buffer,
-      });
+    for (const file of files) {
+      if (file && file.size > 0) {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          attachments.push({
+            filename: file.name || 'attachment',
+            content: buffer,
+            contentType: file.type || 'application/octet-stream',
+          });
+        } catch (err) {
+          console.error(`Error processing file ${file.name}:`, err);
+        }
+      }
     }
 
     // Send mail using the existing sendMail function
