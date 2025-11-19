@@ -1,7 +1,13 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { gradePointsMap, gradeOptions } from "./data";
 import { ParsedCGPAData, ParsedSemester, ParsedCourse, GradeKey, AttemptSource, CourseAttempt } from "./types";
 import { saveCGPAData } from "./_components/semester-navigation";
+
+type CGPAUpdateResult = { success: boolean; error?: string };
+
+const cloneCgpaData = (data: ParsedCGPAData): ParsedCGPAData =>
+    JSON.parse(JSON.stringify(data));
 
 export const useCalculations = (initialData?: ParsedCGPAData) => {
     // State management
@@ -206,6 +212,102 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
     const pastSemesters = semesterPartitions.pastUI;
     const currentUpcomingSemester = semesterPartitions.currentUpcoming;
 
+    const syncCgpaData = useCallback(async (
+        nextData: ParsedCGPAData,
+        previousData: ParsedCGPAData,
+        successMessage?: string
+    ): Promise<CGPAUpdateResult> => {
+        try {
+            const response = await saveCGPAData(nextData);
+            if (!response.success) {
+                throw new Error(response.error || "Failed to sync CGPA data");
+            }
+
+            if (successMessage) {
+                toast.success(successMessage);
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.error("Error syncing CGPA data:", error);
+            toast.error("Changes saved locally, but couldn't sync to server.");
+            return { success: false, error: (error as Error).message };
+        }
+    }, []);
+
+    const addCourseToSemester = useCallback(async (
+        semesterName: string,
+        newCourse: ParsedCourse
+    ): Promise<CGPAUpdateResult> => {
+        if (!semesterName) {
+            toast.error("Select a semester before adding a course.");
+            return { success: false, error: "Missing semester" };
+        }
+
+        const nextData = cloneCgpaData(cgpaData);
+        const targetSemester = nextData.semesters.find((semester) => semester.semester === semesterName);
+        if (!targetSemester) {
+            toast.error(`Semester "${semesterName}" was not found.`);
+            return { success: false, error: "Semester not found" };
+        }
+
+        targetSemester.courses.push(newCourse);
+        setCgpaData(nextData);
+
+        return await syncCgpaData(nextData, cgpaData, "Course added to semester");
+    }, [cgpaData, setCgpaData, syncCgpaData]);
+
+    const removeCourseFromSemester = useCallback(async (
+        semesterName: string,
+        courseIndex: number
+    ): Promise<CGPAUpdateResult> => {
+        if (!semesterName) {
+            toast.error("Unable to determine which semester this course belongs to.");
+            return { success: false, error: "Missing semester" };
+        }
+
+        const nextData = cloneCgpaData(cgpaData);
+        const targetSemester = nextData.semesters.find((semester) => semester.semester === semesterName);
+        if (!targetSemester) {
+            toast.error(`Semester "${semesterName}" was not found.`);
+            return { success: false, error: "Semester not found" };
+        }
+
+        if (courseIndex < 0 || courseIndex >= targetSemester.courses.length) {
+            toast.error("Course could not be located. Try refreshing the page.");
+            return { success: false, error: "Invalid course index" };
+        }
+
+        targetSemester.courses.splice(courseIndex, 1);
+        setCgpaData(nextData);
+
+        const affectsCurrentSemester =
+            currentUpcomingSemester &&
+            currentUpcomingSemester.semester === semesterName &&
+            selectedSemester === null;
+
+        if (affectsCurrentSemester) {
+            setCurrentSemesterGrades((prev) => {
+                if (!Object.keys(prev).length) {
+                    return prev;
+                }
+                const next: Record<number, string> = {};
+                Object.entries(prev).forEach(([key, value]) => {
+                    const idx = Number(key);
+                    if (Number.isNaN(idx)) return;
+                    if (idx < courseIndex) {
+                        next[idx] = value;
+                    } else if (idx > courseIndex) {
+                        next[idx - 1] = value;
+                    }
+                });
+                return next;
+            });
+        }
+
+        return await syncCgpaData(nextData, cgpaData, "Course removed");
+    }, [cgpaData, currentUpcomingSemester, currentSemesterGrades, selectedSemester, setCgpaData, setCurrentSemesterGrades, syncCgpaData]);
+
     const computeBestCourseSummary = (includeCurrent: boolean) => {
         const attempts = new Map<string, CourseAttempt[]>();
 
@@ -377,7 +479,7 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
 
     const handleCalculate = async () => {
         if (!gradeInput.trim()) {
-            alert('Please paste your grade data first.');
+            toast.error('Please paste your grade data first.');
             return;
         }
 
@@ -385,16 +487,16 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
         setCgpaData(parsedData);
         setIsFormView(false);
 
-        // Post to Strapi
+        // Post to Strapi - fail silently if it doesn't work
         try {
             const result = await saveCGPAData(parsedData);
             if (!result.success) {
-                console.error('Failed to save CGPA data:', result.error);
-                alert('Failed to save CGPA data.');
+                console.warn('Could not sync CGPA data to server:', result.error);
+                // App continues to work locally even if sync fails
             }
         } catch (error) {
-            console.error('Error posting CGPA data:', error);
-            alert('Error posting CGPA data.');
+            console.warn('Could not sync CGPA data to server:', error);
+            // App continues to work locally even if sync fails
         }
     };
 
@@ -809,5 +911,7 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
         calculateCreditsNeeded,
         handleCalculatorSave,
         resetActiveTab,
+        addCourseToSemester,
+        removeCourseFromSemester,
     };
 };

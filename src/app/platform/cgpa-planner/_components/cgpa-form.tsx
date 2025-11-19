@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Calculator } from "lucide-react";
+import { Calculator, ExternalLink } from "lucide-react";
 import { PFCreditsComponent } from "./pf-credits";
 
 interface CGPAFormProps {
@@ -34,14 +34,25 @@ export default function CGPAForm({
                 <div className="space-y-6">
                     {/* Grade Input Section */}
                     <div className="space-y-2">
-                        <Label htmlFor="gradeInput" className="text-sm font-medium">
-                            Grade Data Input
-                        </Label>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="gradeInput" className="text-sm font-medium">
+                                Grade Data Input
+                            </Label>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                onClick={() => window.open('https://ams.ashoka.edu.in/Contents/CourseManagement/StudentCourseReport_Student.aspx', '_blank')}
+                            >
+                                <ExternalLink className="h-4 w-4" />
+                                Open AMS
+                            </Button>
+                        </div>
                         <Textarea
                             id="gradeInput"
                             value={gradeInput}
                             onChange={(e) => setGradeInput(e.target.value)}
-                            placeholder="Go to the Grades & Evaluations' page on your AMS → Ctrl+A → Ctrl+C → navigate back to this page → Ctrl+V in this box. On Macs, use Cmd instead of Ctrl."
+                            placeholder="Go to AMS → Grades and Evaluations → My Course Report and Degree/Diploma Status. Then copy the ENTIRE page (Ctrl+A or Cmd+A on Mac), paste it here (Ctrl+V or Cmd+V), and click Calculate CGPA."
                             rows={10}
                             className="text-sm font-mono resize-y"
                         />

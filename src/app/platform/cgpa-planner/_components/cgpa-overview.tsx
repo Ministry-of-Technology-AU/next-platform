@@ -32,9 +32,6 @@ export default function CGPAOverview({ calculatedCGPA, getCurrentCGPA, getCurren
                                     Credits: {calculatedCGPA ? calculatedCGPA.totalGpaCredits : getCurrentCredits()}
                                 </Button>
                             </div>
-                            <div className="flex items-center text-xs text-muted-foreground">
-                                Retakes are auto-detected—only your best attempt counts toward CGPA.
-                            </div>
                         </div>
                     </CardContent>
     );

@@ -20,7 +20,7 @@ export default function CGPALayout({
     <div className="my-4 border-t border-gray-300"></div>
 
   <Suspense fallback={<Loader />}>{children}</Suspense>
-  <DeveloperCredits developers={[{"name": "Soham Tulsyan", "role": "Backend Developer", 'profileUrl': 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/'}, {"name": "Previous Teams"}]}/>
+  <DeveloperCredits developers={[{"name": "Parth Ahuja"}, {"name": "Ayush Thonge"}]}/>
   </div>
 )
 }
