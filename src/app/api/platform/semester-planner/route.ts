@@ -113,7 +113,7 @@ function getDepartmentFromCourseCode(courseCode: string): string {
     'ENG': 'English',
     'ENT': 'Entrepreneurship',
     'HIST': 'History',
-    'ECON': 'Economics',
+    'ECO': 'Economics',
     'BIO': 'Biology',
     'CHEM': 'Chemistry',
     'POL': 'Political Science',
