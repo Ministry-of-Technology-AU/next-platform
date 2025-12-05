@@ -116,6 +116,7 @@ function getDepartmentFromCourseCode(courseCode: string): string {
     'ECO': 'Economics',
     'BIO': 'Biology',
     'CHEM': 'Chemistry',
+    'MAT': 'Mathematics',        
     'POL': 'Political Science',
     'PSY': 'Psychology',
     'FC': 'Foundation Course',

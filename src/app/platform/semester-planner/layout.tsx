@@ -16,7 +16,7 @@ export default function SemesterPlannerLayout({
         <PageTitle
           text="Semester Planner"
           icon={Calendar}
-          subheading='Plan and organize your course schedule'
+          subheading='Plan and organize your course schedule. Click on the course cards to know more details about each course. Click on the "+" button to add a course to your timetable.'
         />
         <OrientationDialog />
         <Suspense fallback={<Loader />}>
