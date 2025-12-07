@@ -148,7 +148,7 @@ function getLastSyncInfo(): { date: string; time: string } {
 async function fetchCourses(): Promise<RawCourseData[]> {
   // Skip the first element which contains metadata and filter out non-course entries
   return timetableData.slice(1).filter((item: any) => 
-    item.courseCode && item.courseTitle && item.faculty
+    item.courseCode && item.courseTitle && typeof item.faculty !== 'undefined'
   ) as RawCourseData[];
 }
 
@@ -189,9 +189,9 @@ async function formatCourses(): Promise<Course[]> {
       id: `${course.courseCode}-${index}`,
       code: course.courseCode,
       name: course.courseTitle,
-      professor: course.faculty.replace('@ashoka.edu.in', '').replace(/\./g, ' ').split(' ').map(word => 
+      professor: course.faculty?.replace('@ashoka.edu.in', '').replace(/\./g, ' ').split(' ').map(word => 
         word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' '),
+      ).join(' ') || 'TBA',
       department: getDepartmentFromCourseCode(course.courseCode),
       location,
       description: course.description || 'No description available',
