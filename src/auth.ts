@@ -70,7 +70,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } else if (process.env.HOR_MEMBERS?.split(',').includes(email)) {
           token.role = 'hor_member';
           token.access = ['platform'];
-        } else if (email.includes('_ug') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.includes('_ma')) {
+        } else if (email.includes('_ug') || email.includes('_asp') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.includes('_ma')) {
           token.role = 'student';
           token.access = ['platform'];
         } else {
