@@ -9,6 +9,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   type ScheduledCourse,
   TIME_SLOTS,
   DAYS,
@@ -96,83 +101,95 @@ export function TimetableGrid({
                       }`}
                   >
                     {course ? (
-                      <Card
-                        className="h-full p-1 md:p-2 relative group cursor-pointer transition-all hover:shadow-md border-2"
-                        style={{
-                          backgroundColor: course.color + "20",
-                          borderColor: course.color,
-                        }}
-                      >
-                        <div className="absolute top-0.5 md:top-1 right-0.5 md:right-1 flex gap-0.5 md:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
-                            onClick={() => onToggleLock(course.id, day, slot)}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Card
+                            className="h-full p-1 md:p-2 relative group cursor-pointer transition-all hover:shadow-md border-2"
+                            style={{
+                              backgroundColor: course.color + "20",
+                              borderColor: course.color,
+                            }}
                           >
-                            {isLocked ? (
-                              <Lock className="h-2 w-2 md:h-3 md:w-3" />
-                            ) : (
-                              <Unlock className="h-2 w-2 md:h-3 md:w-3" />
-                            )}
-                          </Button>
-
-                          <Popover>
-                            <PopoverTrigger asChild>
+                            <div className="absolute top-0.5 md:top-1 right-0.5 md:right-1 flex gap-0.5 md:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
+                                onClick={() => onToggleLock(course.id, day, slot)}
                               >
-                                <Palette className="h-2 w-2 md:h-3 md:w-3" />
+                                {isLocked ? (
+                                  <Lock className="h-2 w-2 md:h-3 md:w-3" />
+                                ) : (
+                                  <Unlock className="h-2 w-2 md:h-3 md:w-3" />
+                                )}
                               </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-2">
-                              <div className="flex gap-1 flex-wrap max-w-[120px]">
-                                {COURSE_COLORS.map((color) => (
-                                  <button
-                                    key={color}
-                                    onClick={() =>
-                                      onRecolorCourse(
-                                        course.id,
-                                        day,
-                                        slot,
-                                        color
-                                      )
-                                    }
-                                    className="w-6 h-6 rounded border-2 border-muted hover:border-foreground transition-colors"
-                                    style={{ backgroundColor: color }}
-                                  />
-                                ))}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
 
-                          {!isLocked && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
-                              onClick={() =>
-                                onRemoveCourse(course.id, day, slot)
-                              }
-                            >
-                              <X className="h-2 w-2 md:h-3 md:w-3" />
-                            </Button>
-                          )}
-                        </div>
-                        <div className="space-y-0.5 md:space-y-1">
-                          <p
-                            className="font-semibold text-[10px] md:text-xs line-clamp-2"
-                            style={{ color: course.color }}
-                          >
-                            {course.name}
-                          </p>
-                          <p className="text-[8px] md:text-xs text-muted-foreground hidden md:block">
-                            {course.professor}
-                          </p>
-                        </div>
-                      </Card>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
+                                  >
+                                    <Palette className="h-2 w-2 md:h-3 md:w-3" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-2">
+                                  <div className="flex gap-1 flex-wrap max-w-[120px]">
+                                    {COURSE_COLORS.map((color) => (
+                                      <button
+                                        key={color}
+                                        onClick={() =>
+                                          onRecolorCourse(
+                                            course.id,
+                                            day,
+                                            slot,
+                                            color
+                                          )
+                                        }
+                                        className="w-6 h-6 rounded border-2 border-muted hover:border-foreground transition-colors"
+                                        style={{ backgroundColor: color }}
+                                      />
+                                    ))}
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+
+                              {!isLocked && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
+                                  onClick={() =>
+                                    onRemoveCourse(course.id, day, slot)
+                                  }
+                                >
+                                  <X className="h-2 w-2 md:h-3 md:w-3" />
+                                </Button>
+                              )}
+                            </div>
+                            <div className="space-y-0.5 md:space-y-1">
+                              <p
+                                className="font-semibold text-[10px] md:text-xs line-clamp-2"
+                                style={{ color: course.color }}
+                              >
+                                {course.name}
+                              </p>
+                              <p className="text-[8px] md:text-xs text-muted-foreground hidden md:block">
+                                {course.professor}
+                              </p>
+                            </div>
+                          </Card>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[250px]">
+                          <div className="space-y-1">
+                            <p className="font-semibold">{course.name}</p>
+                            <p className="font-semibold">{course.code}</p>
+                            <p className="text-xs">{slot}</p>
+                            <p className="text-xs">{course.professor}</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
                     ) : (
                       <div className="h-full flex items-center justify-center text-muted-foreground text-[10px] md:text-xs">
                         Free
