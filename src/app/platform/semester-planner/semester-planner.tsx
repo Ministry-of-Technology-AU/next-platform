@@ -30,7 +30,7 @@ interface SemesterPlannerClientProps {
 export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlannerClientProps) {
   const { isActive: isTourActive, stopTour } = useTour();
   const [sampleCourseId, setSampleCourseId] = useState<string | null>(null);
-  
+
   const [drafts, setDrafts] = useState<TimetableDraft[]>(() => {
     if (Array.isArray(initialDrafts) && initialDrafts.length > 0) {
       return initialDrafts.map((d: any) => ({
@@ -122,7 +122,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
       if (sampleCourseId && course.id === sampleCourseId) {
         return;
       }
-      
+
       // Check for time conflicts
       const conflictResult = checkTimeConflict(course, activeDraft.courses);
       if (conflictResult.hasConflict) {
@@ -152,10 +152,10 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: [...draft.courses, scheduledCourse],
-                updatedAt: new Date(),
-              }
+              ...draft,
+              courses: [...draft.courses, scheduledCourse],
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -179,10 +179,10 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: draft.courses.filter((c) => c.id !== sampleCourseId),
-                updatedAt: new Date(),
-              }
+              ...draft,
+              courses: draft.courses.filter((c) => c.id !== sampleCourseId),
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -197,12 +197,12 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: draft.courses.map((c) =>
-                  c.id === course.id ? { ...c, color } : c
-                ),
-                updatedAt: new Date(),
-              }
+              ...draft,
+              courses: draft.courses.map((c) =>
+                c.id === course.id ? { ...c, color } : c
+              ),
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -218,18 +218,18 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: draft.courses.filter(
-                  (course) =>
-                    !(
-                      course.id === courseId &&
-                      course.timeSlots.some(
-                        (ts) => ts.day === day && ts.slot === slot
-                      )
+              ...draft,
+              courses: draft.courses.filter(
+                (course) =>
+                  !(
+                    course.id === courseId &&
+                    course.timeSlots.some(
+                      (ts) => ts.day === day && ts.slot === slot
                     )
-                ),
-                updatedAt: new Date(),
-              }
+                  )
+              ),
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -347,21 +347,39 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
       try {
         toast.info("Generating screenshot...", { duration: 2000 });
-        
+
         // Wait a bit to ensure the element is fully rendered
         await new Promise(resolve => setTimeout(resolve, 100));
-        
-        const dataUrl = await toPng(element, {
-          backgroundColor: "#ffffff",
+
+        // Detect if dark mode is active
+        const isDarkMode = document.documentElement.classList.contains("dark");
+
+        // Get the computed background color from the page or use appropriate defaults
+        const backgroundColor = isDarkMode ? "#1a1a1a" : "#ffffff";
+
+        // Find the actual timetable container (the bordered div inside)
+        const timetableContainer = element.querySelector(".border") as HTMLElement;
+        const targetElement = timetableContainer || element;
+
+        const dataUrl = await toPng(targetElement, {
+          backgroundColor: backgroundColor,
           pixelRatio: 2,
-          width: element.scrollWidth,
-          height: element.scrollHeight,
+          width: targetElement.scrollWidth,
+          height: targetElement.scrollHeight,
           style: {
             transform: "none",
             transformOrigin: "top left",
+            overflow: "visible",
           },
           filter: (node) => {
             // Skip script and style nodes that might cause issues
+            // Also skip tooltip content that might be rendered
+            if (node.nodeType === 1) {
+              const el = node as HTMLElement;
+              if (el.getAttribute?.("data-slot") === "tooltip-content") {
+                return false;
+              }
+            }
             return node.tagName !== "SCRIPT" && node.tagName !== "STYLE";
           }
         });
@@ -374,7 +392,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         const draftName = drafts.find((d) => d.id === draftId)?.name || "draft";
         link.download = `timetable-${draftName.replace(/[^a-zA-Z0-9]/g, '-')}.png`;
         link.href = dataUrl;
-        
+
         // Trigger download
         document.body.appendChild(link);
         link.click();
@@ -383,8 +401,8 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         toast.success("Timetable downloaded successfully! 📸", { duration: 3000 });
       } catch (error) {
         console.error("Download error:", error);
-        toast.error(`Failed to download timetable: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
-          duration: 4000 
+        toast.error(`Failed to download timetable: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+          duration: 4000
         });
       }
     },
@@ -417,12 +435,12 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: draft.courses.map((course) =>
-                  course.id === courseId ? { ...course, color } : course
-                ),
-                updatedAt: new Date(),
-              }
+              ...draft,
+              courses: draft.courses.map((course) =>
+                course.id === courseId ? { ...course, color } : course
+              ),
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -470,7 +488,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onDeleteDraft={handleDeleteDraft}
             onSwitchDraft={setActiveDraftId}
             onDownloadTimetable={handleDownloadTimetable}
-              onRenameDraft={handleRenameDraft}
+            onRenameDraft={handleRenameDraft}
           >
             <TourStep
               id="timetable-grid"
