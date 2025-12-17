@@ -163,12 +163,9 @@ export function TimetableGrid({
                         </div>
                         <div className="space-y-0.5 md:space-y-1">
                           <p
-                            className="font-semibold text-[10px] md:text-xs"
+                            className="font-semibold text-[10px] md:text-xs line-clamp-2"
                             style={{ color: course.color }}
                           >
-                            {course.code}
-                          </p>
-                          <p className="text-[9px] md:text-xs text-muted-foreground line-clamp-2 hidden sm:block">
                             {course.name}
                           </p>
                           <p className="text-[8px] md:text-xs text-muted-foreground hidden md:block">
