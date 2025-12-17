@@ -33,6 +33,9 @@ interface TimetableGridProps {
   lockedCourses: Set<string>;
 }
 
+// The evening slot that should be hidden by default
+const EVENING_SLOT = "8:00pm-9:30pm";
+
 export function TimetableGrid({
   courses,
   onRemoveCourse,
@@ -49,6 +52,16 @@ export function TimetableGrid({
   const getCourseKey = (courseId: string, day: string, slot: string) => {
     return `${courseId}-${day}-${slot}`;
   };
+
+  // Check if any course uses the evening slot
+  const hasEveningCourse = courses.some((course) =>
+    course.timeSlots.some((ts) => ts.slot === EVENING_SLOT)
+  );
+
+  // Filter time slots to hide evening slot if not needed
+  const visibleTimeSlots = TIME_SLOTS.filter(
+    (slot) => slot !== EVENING_SLOT || hasEveningCourse
+  );
 
   return (
     <div className="w-full overflow-x-auto">
@@ -71,10 +84,10 @@ export function TimetableGrid({
         </div>
 
         {/* Time slots */}
-        {TIME_SLOTS.map((slot, slotIndex) => (
+        {visibleTimeSlots.map((slot, slotIndex) => (
           <div
             key={slot}
-            className={`grid grid-cols-6 ${slotIndex < TIME_SLOTS.length - 1 ? "border-b border-border" : ""
+            className={`grid grid-cols-6 ${slotIndex < visibleTimeSlots.length - 1 ? "border-b border-border" : ""
               }`}
           >
             <div className="font-medium text-center p-2 md:p-4 bg-muted dark:bg-muted/40 border-r border-border text-xs md:text-sm">
