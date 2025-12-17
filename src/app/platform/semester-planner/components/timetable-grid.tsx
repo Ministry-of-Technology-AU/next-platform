@@ -56,9 +56,8 @@ export function TimetableGrid({
           {DAYS.map((day, index) => (
             <div
               key={day}
-              className={`font-semibold text-center p-2 md:p-4 bg-muted dark:bg-muted/40 text-xs md:text-sm ${
-                index < DAYS.length - 1 ? "border-r border-border" : ""
-              }`}
+              className={`font-semibold text-center p-2 md:p-4 bg-muted dark:bg-muted/40 text-xs md:text-sm ${index < DAYS.length - 1 ? "border-r border-border" : ""
+                }`}
             >
               <span className="hidden sm:inline">{day}</span>
               <span className="sm:hidden">{day.slice(0, 3)}</span>
@@ -70,9 +69,8 @@ export function TimetableGrid({
         {TIME_SLOTS.map((slot, slotIndex) => (
           <div
             key={slot}
-            className={`grid grid-cols-6 ${
-              slotIndex < TIME_SLOTS.length - 1 ? "border-b border-border" : ""
-            }`}
+            className={`grid grid-cols-6 ${slotIndex < TIME_SLOTS.length - 1 ? "border-b border-border" : ""
+              }`}
           >
             <div className="font-medium text-center p-2 md:p-4 bg-muted dark:bg-muted/40 border-r border-border text-xs md:text-sm">
               <span className="hidden sm:inline">{slot}</span>
@@ -81,7 +79,7 @@ export function TimetableGrid({
 
             {slot === "LUNCH" ? (
               <div className="col-span-5 p-2 md:p-4 bg-yellow-50 text-center text-xs md:text-sm text-yellow-800 font-medium">
-                🍽️ <span className="hidden sm:inline">Lunch Break</span><span className="sm:hidden">Lunch</span>
+                <span className="hidden sm:inline">Lunch Break</span><span className="sm:hidden">Lunch</span>
               </div>
             ) : (
               DAYS.map((day, dayIndex) => {
@@ -94,9 +92,8 @@ export function TimetableGrid({
                 return (
                   <div
                     key={`${day}-${slot}`}
-                    className={`p-1 md:p-2 min-h-[60px] md:min-h-[80px] ${
-                      dayIndex < DAYS.length - 1 ? "border-r border-border" : ""
-                    }`}
+                    className={`p-1 md:p-2 min-h-[60px] md:min-h-[80px] ${dayIndex < DAYS.length - 1 ? "border-r border-border" : ""
+                      }`}
                   >
                     {course ? (
                       <Card
