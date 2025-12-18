@@ -149,86 +149,86 @@ export function CourseSelection({
           </ScrollArea>
         </CardContent>
       </Card>
-      
+
       {/* Course Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-3xl overflow-hidden flex flex-col">
           {selectedCourse && (
-        <>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-          <span>{selectedCourse.code}</span>
-          {(selectedCourse as any).hasSaturday && (
-            <Badge variant="destructive" className="text-xs">
-              Saturday Class
-            </Badge>
-          )}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 flex-1 overflow-y-auto">
-            <div>
-          <h3 className="font-semibold text-lg mb-2">{selectedCourse.name}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground">
-            <strong>Professor:</strong> {selectedCourse.professor}
-              </p>
-              <p className="text-muted-foreground">
-            <strong>Department:</strong> {selectedCourse.department}
-              </p>
-              {/* <p className="text-muted-foreground">
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <span>{selectedCourse.code}</span>
+                  {(selectedCourse as any).hasSaturday && (
+                    <Badge variant="destructive" className="text-xs">
+                      Saturday Class
+                    </Badge>
+                  )}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 flex-1 overflow-y-auto">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">{selectedCourse.name}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">
+                        <strong>Professor:</strong> {selectedCourse.professor}
+                      </p>
+                      <p className="text-muted-foreground">
+                        <strong>Department:</strong> {selectedCourse.department}
+                      </p>
+                      {/* <p className="text-muted-foreground">
             <strong>Credits:</strong> {(selectedCourse as any).credits || 'TBA'}
               </p> */}
-            </div>
-            <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-              <div>
-            <p className="font-medium">Location</p>
-            <p className="text-muted-foreground text-sm">
-              {(selectedCourse as any).location || 'TBA'}
-            </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Location</p>
+                        <p className="text-muted-foreground text-sm">
+                          {(selectedCourse as any).location || 'TBA'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {(selectedCourse as any).hasSaturday && (
+                    <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                      <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                        ℹ️ This course has Saturday classes. They will appear on the timetable, but you may need to scroll right to view them.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Prerequisites</h4>
+                  <div className="max-h-32 overflow-y-auto border rounded-md p-3 bg-muted/30">
+                    {(selectedCourse as any).prerequisites && (selectedCourse as any).prerequisites.length > 0 ? (
+                      <ul className="list-disc list-inside space-y-1">
+                        {(selectedCourse as any).prerequisites.map((prereq: string, index: number) => (
+                          <li key={index} className="text-sm text-muted-foreground">{prereq}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">No prerequisites</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Description</h4>
+                  <div className="max-h-60 overflow-y-auto border rounded-md p-3 bg-muted/30">
+                    {(selectedCourse as any).description && (selectedCourse as any).description !== 'No description available' ? (
+                      <div
+                        className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: (selectedCourse as any).description }}
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">No description available</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          {(selectedCourse as any).hasSaturday && (
-            <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-            ⚠️ This course has Saturday classes which won&apos;t appear on the timetable but may create scheduling conflicts.
-              </p>
-            </div>
-          )}
-            </div>
-            
-            <div>
-          <h4 className="font-medium mb-2">Prerequisites</h4>
-          <div className="max-h-32 overflow-y-auto border rounded-md p-3 bg-muted/30">
-            {(selectedCourse as any).prerequisites && (selectedCourse as any).prerequisites.length > 0 ? (
-              <ul className="list-disc list-inside space-y-1">
-            {(selectedCourse as any).prerequisites.map((prereq: string, index: number) => (
-              <li key={index} className="text-sm text-muted-foreground">{prereq}</li>
-            ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">No prerequisites</p>
-            )}
-          </div>
-            </div>
-            
-            <div>
-          <h4 className="font-medium mb-2">Description</h4>
-          <div className="max-h-60 overflow-y-auto border rounded-md p-3 bg-muted/30">
-            {(selectedCourse as any).description && (selectedCourse as any).description !== 'No description available' ? (
-              <div 
-            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: (selectedCourse as any).description }}
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground italic">No description available</p>
-            )}
-          </div>
-            </div>
-          </div>
-        </>
+            </>
           )}
         </DialogContent>
       </Dialog>

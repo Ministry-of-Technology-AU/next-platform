@@ -159,7 +159,16 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             : draft
         )
       );
-      toast.success(`${course.code} added to timetable`, { duration: 2000 });
+      const hasSaturday = course.timeSlots.some((ts) => ts.day === "Saturday");
+
+      if (hasSaturday) {
+        toast.success(
+          `${course.code} added. This includes Saturday classes - scroll right to view.`,
+          { duration: 4000 }
+        );
+      } else {
+        toast.success(`${course.code} added to timetable`, { duration: 2000 });
+      }
     },
     [activeDraftId, activeDraft.courses, checkTimeConflict, sampleCourseId]
   );
