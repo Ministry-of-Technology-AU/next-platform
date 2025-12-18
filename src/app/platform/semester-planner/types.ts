@@ -13,7 +13,7 @@ export interface Course {
 }
 
 export interface TimeSlot {
-  day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
+  day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
   slot: string;
 }
 
@@ -46,6 +46,15 @@ export const DAYS = [
   "Wednesday",
   "Thursday",
   "Friday",
+] as const;
+
+export const DAYS_WITH_SATURDAY = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
 ] as const;
 
 export const COURSE_COLORS = [
