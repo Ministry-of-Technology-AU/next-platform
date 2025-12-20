@@ -39,45 +39,72 @@ export function ReviewsTable({ paginatedCourses, sortField, sortDirection, handl
               </div>
             </TableHead>
           ))}
-          <TableHead className="text-gray dark:text-gray-light">
-            <span className="text-xs sm:text-sm">Action</span>
+          <TableHead className="hidden sm:table-cell text-gray dark:text-gray-light">
+            <span className="text-xs sm:text-sm"></span>
           </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {paginatedCourses.length > 0 ? (
           paginatedCourses.map((course: CourseWithReviews) => {
-            const hasReviews = course.reviews && course.reviews.length > 0;
-            const greyedOutClasses = hasReviews ? "" : "opacity-60 bg-gray-50 dark:bg-gray-800/30";
+            const reviewCount = course.reviews?.length || 0;
+            const hasReviews = reviewCount > 0;
+            const textOpacityClass = hasReviews ? "" : "opacity-60";
 
             return (
               <Dialog key={course.id}>
                 <DialogTrigger asChild>
-                  <TableRow className={`cursor-pointer hover:bg-neutral-extralight transition-colors ${greyedOutClasses}`}>
-                    <TableCell className="text-xs sm:text-sm">{course.courseCode}</TableCell>
+                  <TableRow className="cursor-pointer hover:bg-neutral-extralight transition-colors">
+                    <TableCell className="text-xs sm:text-sm">
+                      <span className={textOpacityClass}>{course.courseCode}</span>
+                    </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium text-xs sm:text-sm">{course.courseName}</div>
-                        <div className="text-xs text-gray sm:hidden">
+                        <div className="font-medium text-xs sm:text-sm flex items-center gap-2 flex-wrap">
+                          <span className={`flex-1 min-w-0 ${textOpacityClass}`}>{course.courseName}</span>
+                          <span className={`text-gray dark:text-gray-light font-normal whitespace-nowrap ${textOpacityClass}`}>
+                            ({reviewCount})
+                          </span>
+                          {/* Mobile: Add Review button inline */}
+                          <Button
+                            variant="animatedGhost"
+                            size="sm"
+                            className="sm:hidden h-7 w-7 p-0 text-primary-bright hover:text-secondary-dark dark:text-secondary-dark hover:dark:text-primary-bright flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/platform/course-reviews/add/${course.id}`
+                            }}
+                          >
+                            <CirclePlus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className={`text-xs text-gray sm:hidden mt-1 ${textOpacityClass}`}>
                           {course.semester} {course.year}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs sm:text-sm">{course.faculty}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-xs sm:text-sm">{course.semester}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-xs sm:text-sm">{course.year}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-xs sm:text-sm">
+                      <span className={textOpacityClass}>{course.faculty}</span>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell text-xs sm:text-sm">
+                      <span className={textOpacityClass}>{course.semester}</span>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell text-xs sm:text-sm">
+                      <span className={textOpacityClass}>{course.year}</span>
+                    </TableCell>
+                    {/* Desktop: Add Review button in separate column */}
+                    <TableCell className="hidden sm:table-cell">
                       <Button
                         variant="animatedGhost"
                         size="sm"
-                        className="h-8 text-xs px-2 sm:px-3 text-primary-bright hover:text-secondary-dark dark:text-secondary-dark hover:dark:text-primary-bright"
+                        className="h-8 text-xs px-3 text-primary-bright hover:text-secondary-dark dark:text-secondary-dark hover:dark:text-primary-bright cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation();
                           window.location.href = `/platform/course-reviews/add/${course.id}`
                         }}
                       >
-                        <CirclePlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                        <span className="sm:inline">Add Review</span>
+                        <CirclePlus className="w-4 h-4 mr-2" />
+                        Add Review
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -140,7 +167,7 @@ export function ReviewsTableSkeleton({ entriesPerPage = 10 }: { entriesPerPage?:
             </div>
           </TableHead>
           <TableHead>
-            <span className="text-xs sm:text-sm">Action</span>
+            <span className="text-xs sm:text-sm"></span>
           </TableHead>
         </TableRow>
       </TableHeader>

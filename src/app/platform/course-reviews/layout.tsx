@@ -36,6 +36,7 @@ export default async function CourseReviewsLayout({
         subheading={
           <span>
             We request that you add your own reviews to help your peers make more informed choices! Currently showing <span className="dark:text-secondary text-primary font-bold">{totalReviews}</span> reviews across all courses.
+            Click on any row to view reviews. The number in parentheses indicates the number of reviews for that course. Use the + Add Review button to contribute your own review.
             Note: All course and faculty names are taken directly from AMS.
           </span>
         }
