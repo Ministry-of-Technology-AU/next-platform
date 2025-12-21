@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { auth } from './auth'
-import { strapiGet, strapiPost } from './lib/apis/strapi'
 
 // Define protected routes and their access requirements
 const ROUTE_ACCESS = {
@@ -13,6 +12,11 @@ export default auth(async function middleware(req) {
   const { pathname } = req.nextUrl
 
   if (pathname.startsWith('/api/auth')) {
+    return NextResponse.next()
+  }
+
+  // Allow the user check-or-create endpoint to avoid infinite loops
+  if (pathname === '/api/platform/users/check-or-create') {
     return NextResponse.next()
   }
 
@@ -46,60 +50,23 @@ export default auth(async function middleware(req) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Check if user exists in Strapi and create if not TODO: Move this logic to create-user endpoint
+  // Check if user exists in Strapi and create if not
+  // This is now handled by an API route to avoid Edge Runtime issues
   try {
-    const userEmail = req.auth.user.email
-    const userName = req.auth.user.name || ''
+    const baseUrl = new URL(req.url).origin;
+    const response = await fetch(`${baseUrl}/api/platform/users/check-or-create`, {
+      method: 'POST',
+      headers: {
+        'Cookie': req.headers.get('cookie') || '',
+      },
+    });
 
-    if (userEmail) {
-      // Check if a user with the same email exists
-      const emailResponse = await strapiGet('/users', {
-        filters: {
-          email: {
-            $eq: userEmail
-          }
-        }
-      })
-
-      if (!emailResponse || emailResponse.length === 0) {
-        // User doesn't exist, need to create them
-        let finalUsername = userName
-        const batch = (userEmail.match(/_([^@]+)@/) || [])[1]?.toUpperCase() || "";
-        // Check if username already exists
-        if (userName) {
-          const usernameResponse = await strapiGet('/users', {
-            filters: {
-              username: {
-                $eq: userName
-              }
-            }
-          })
-
-          // If username exists, append random number
-          if (usernameResponse && usernameResponse.length > 0) {
-            finalUsername = `${userName} ${Math.floor(Math.random() * 100) + 1}`
-          }
-        }
-
-        // Create new user in Strapi
-        const userData = {
-          email: userEmail,
-          username: finalUsername,
-          profile_url: req.auth.user.image || '',
-          password: Math.random().toString(36).slice(-8), // Random password
-          role: 1,
-          confirmed: true,
-          blocked: false,
-          batch: batch
-        }
-
-        console.log('Creating new user in Strapi:', userEmail)
-        console.log('User data:', userData)
-        await strapiPost('/users', userData)
-      }
+    // Don't block the request if user creation fails
+    if (!response.ok) {
+      console.error('Failed to check/create user:', response.statusText);
     }
   } catch (error) {
-    console.error('Error checking/creating user in Strapi:', error)
+    console.error('Error checking/creating user:', error);
     // Continue with the request even if user creation fails
   }
 
