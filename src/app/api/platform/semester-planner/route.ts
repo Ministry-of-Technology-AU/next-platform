@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-// import { strapiGet, strapiPut } from "@/lib/apis/strapi";
+import { strapiGet } from "@/lib/apis/strapi";
 import timetableData from "@/data/timetable-planner.json";
 
 interface RawCourseData {
@@ -35,7 +35,7 @@ interface Course {
 
 function parseTimeSlots(classDetails: string[]): TimeSlot[] {
   const timeSlots: TimeSlot[] = [];
-  
+
   if (!classDetails || classDetails.length === 0) {
     return timeSlots;
   }
@@ -47,7 +47,7 @@ function parseTimeSlots(classDetails: string[]): TimeSlot[] {
 
   while ((match = dayTimePattern.exec(classString)) !== null) {
     const [, day, startTime, endTime] = match;
-    
+
     // Convert 24-hour format to 12-hour format
     const formatTime = (time: string) => {
       const [hours, minutes] = time.split(':');
@@ -58,11 +58,11 @@ function parseTimeSlots(classDetails: string[]): TimeSlot[] {
     };
 
     const formattedSlot = `${formatTime(startTime)}-${formatTime(endTime)}`;
-    
+
     // Map day names and validate
     const dayMap: { [key: string]: TimeSlot['day'] } = {
       'Monday': 'Monday',
-      'Tuesday': 'Tuesday', 
+      'Tuesday': 'Tuesday',
       'Wednesday': 'Wednesday',
       'Thursday': 'Thursday',
       'Friday': 'Friday',
@@ -104,7 +104,7 @@ function parseLocation(classDetails: string[]): string {
 function getDepartmentFromCourseCode(courseCode: string): string {
   // Extract department from course code (e.g., "CS-101" -> "Computer Science")
   const prefix = courseCode.split('-')[0];
-  
+
   const departmentMap: { [key: string]: string } = {
     'CS': 'Computer Science',
     'MATH': 'Mathematics',
@@ -116,7 +116,7 @@ function getDepartmentFromCourseCode(courseCode: string): string {
     'ECO': 'Economics',
     'BIO': 'Biology',
     'CHEM': 'Chemistry',
-    'MAT': 'Mathematics',        
+    'MAT': 'Mathematics',
     'POL': 'Political Science',
     'PSY': 'Psychology',
     'FC': 'Foundation Course',
@@ -137,7 +137,25 @@ function getDepartmentFromCourseCode(courseCode: string): string {
 //   return 2;
 // }
 
-function getLastSyncInfo(): { date: string; time: string } {
+async function fetchSemesterPlannerData(): Promise<any[]> {
+  try {
+    const response = await strapiGet('/semester-planner-sync');
+
+    // The response structure for single types is: { data: { id, attributes: { current } } }
+    if (!response?.data?.attributes?.current) {
+      console.warn('Invalid Strapi response structure, falling back to local JSON');
+      return timetableData as any[];
+    }
+
+    console.log('Successfully fetched semester planner data from Strapi');
+    return response.data.attributes.current;
+  } catch (error) {
+    console.warn('Error fetching semester planner data from Strapi, falling back to local JSON:', error instanceof Error ? error.message : error);
+    return timetableData as any[];
+  }
+}
+
+function getLastSyncInfo(timetableData: any[]): { date: string; time: string } {
   const metadata = timetableData[0] as any;
   return {
     date: metadata.dateLastFetched || 'Unknown',
@@ -146,8 +164,10 @@ function getLastSyncInfo(): { date: string; time: string } {
 }
 
 async function fetchCourses(): Promise<RawCourseData[]> {
+  const timetableData = await fetchSemesterPlannerData();
+
   // Skip the first element which contains metadata and filter out non-course entries
-  return timetableData.slice(1).filter((item: any) => 
+  return timetableData.slice(1).filter((item: any) =>
     item.courseCode && item.courseTitle && typeof item.faculty !== 'undefined'
   ) as RawCourseData[];
 }
@@ -165,7 +185,7 @@ function parsePrerequisites(prerequisites: any[]): string[] {
       const courses = prereqGroup.RequiredCourses.split(',').map((course: string) => {
         return course.trim().replace(/\s+/g, ' ');
       }).filter((course: string) => course.length > 0);
-      
+
       parsedPrereqs.push(...courses);
     }
   });
@@ -176,20 +196,20 @@ function parsePrerequisites(prerequisites: any[]): string[] {
 
 async function formatCourses(): Promise<Course[]> {
   const rawCourses = await fetchCourses();
-  
+
   return rawCourses.map((course, index) => {
     const timeSlots = parseTimeSlots(course.classDetails);
     const location = parseLocation(course.classDetails);
     const hasSaturday = timeSlots.some(slot => slot.day === 'Saturday');
-    
+
     // Parse prerequisites using the new function
     const prerequisites = parsePrerequisites(course.prerequisites || []);
-    
+
     return {
       id: `${course.courseCode}-${index}`,
       code: course.courseCode,
       name: course.courseTitle,
-      professor: course.faculty?.replace('@ashoka.edu.in', '').replace(/\./g, ' ').split(' ').map(word => 
+      professor: course.faculty?.replace('@ashoka.edu.in', '').replace(/\./g, ' ').split(' ').map(word =>
         word.charAt(0).toUpperCase() + word.slice(1)
       ).join(' ') || 'TBA',
       department: getDepartmentFromCourseCode(course.courseCode),
@@ -205,9 +225,10 @@ async function formatCourses(): Promise<Course[]> {
 
 export async function GET() {
   try {
+    const timetableData = await fetchSemesterPlannerData();
     const courses = await formatCourses();
-    const syncInfo = getLastSyncInfo();
-    
+    const syncInfo = getLastSyncInfo(timetableData);
+
     return NextResponse.json({
       success: true,
       data: {
@@ -251,7 +272,7 @@ export async function POST(request: NextRequest) {
 
     // TODO: Implement user identification (from session/auth)
     // For now, using userEmail from request body as placeholder
-    
+
     try {
       // TODO: Replace with actual user identification logic
       // Step 1: Get user by email (you'll need to implement this based on your auth system)
@@ -292,7 +313,7 @@ export async function POST(request: NextRequest) {
       // Placeholder response - replace with actual Strapi implementation
       console.log('Draft data to save:', draftData);
       console.log('User email (if provided):', userEmail);
-      
+
       return NextResponse.json({
         success: true,
         message: 'Draft saved successfully (placeholder implementation)',
