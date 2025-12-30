@@ -25,7 +25,7 @@ import {
 } from "../types";
 
 interface TimetableGridProps {
-  courses: Course[];
+  courses: ScheduledCourse[];
   onRemoveCourse: (courseId: string, day: string, slot: string) => void;
   onToggleLock: (courseId: string, day: string, slot: string) => void;
   onRecolorCourse: (
