@@ -2,8 +2,8 @@
 
 import type React from "react";
 
-import { useState } from "react";
-import { Plus, Copy, Download, Trash2, Save } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Copy, Download, Trash2, Save, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -14,6 +14,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { TourStep } from "@/components/guided-tour";
 import type { TimetableDraft } from "../types";
@@ -27,6 +32,8 @@ interface DraftTabsProps {
   onSwitchDraft: (draftId: string) => void;
   onDownloadTimetable: (draftId: string) => void;
   onRenameDraft: (draftId: string, newName: string) => void;
+  onToggleFullScreen: () => void;
+  isFullScreenMode?: boolean;
   children: React.ReactNode;
 }
 
@@ -39,6 +46,8 @@ export function DraftTabs({
   onSwitchDraft,
   onDownloadTimetable,
   onRenameDraft,
+  onToggleFullScreen,
+  isFullScreenMode = false,
   children,
 }: DraftTabsProps) {
   const [newDraftName, setNewDraftName] = useState("");
@@ -67,7 +76,7 @@ export function DraftTabs({
     }
   };
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = useCallback(async () => {
     const activeDraft = drafts.find(d => d.id === activeDraftId);
     if (!activeDraft) {
       toast.error("Active draft not found");
@@ -97,7 +106,41 @@ export function DraftTabs({
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [drafts, activeDraftId]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case 'n':
+            e.preventDefault();
+            setIsCreateOpen(true);
+            break;
+          case 'b':
+            e.preventDefault();
+            setDuplicateSourceId(activeDraftId);
+            setIsDuplicateOpen(true);
+            break;
+          case 's':
+            e.preventDefault();
+            handleSaveDraft();
+            break;
+          case 'd':
+            e.preventDefault();
+            onDownloadTimetable(activeDraftId);
+            break;
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeDraftId, onDownloadTimetable, handleSaveDraft]); // handleSaveDraft is stable enough or can be added if useCallback wrapped (it's not but depends on state, wait)
+
+  // Fix: handleSaveDraft depends on drafts and activeDraftId, so we need to include it in dependency or use a ref/wrapper.
+  // Since handleSaveDraft is defined in render, we should probably wrap it in useCallback or just include it in deps if we move it?
+  // Actually, allow me to just add the effect and let it run. But handleSaveDraft changes every render because it's not memoized.
+  // I should memoize handleSaveDraft first.
 
   const startEditing = (draftId: string, currentName: string) => {
     setEditingDraftId(draftId);
@@ -150,9 +193,8 @@ export function DraftTabs({
                         }
                       }}
                       onDoubleClick={() => startEditing(draft.id, draft.name)}
-                      className={`h-fit relative group px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 cursor-pointer select-none ${
-                        isActive ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'
-                      }`}
+                      className={`h-fit relative group px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 cursor-pointer select-none ${isActive ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'
+                        }`}
                     >
                       {isEditing ? (
                         <input
@@ -195,7 +237,7 @@ export function DraftTabs({
         </TourStep>
 
         {/* Buttons */}
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:flex-shrink-0 items-center">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto flex-shrink-0 items-center justify-end">
           <TourStep
             id="create-draft"
             order={1}
@@ -205,11 +247,23 @@ export function DraftTabs({
           >
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
-                  <Plus className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">New Draft</span>
-                  <span className="sm:hidden">New</span>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
+                      <Plus className="h-3.5 w-3.5 mr-1.5" />
+                      <span className="hidden sm:inline">New Draft</span>
+                      <span className="sm:hidden">New</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="flex items-center gap-2">
+                      New Draft
+                      <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                        <span className="text-xs">Alt</span>N
+                      </kbd>
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -239,11 +293,23 @@ export function DraftTabs({
           >
             <Dialog open={isDuplicateOpen} onOpenChange={setIsDuplicateOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
-                  <Copy className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Duplicate</span>
-                  <span className="sm:hidden">Copy</span>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
+                      <Copy className="h-3.5 w-3.5 mr-1.5" />
+                      <span className="hidden sm:inline">Duplicate</span>
+                      <span className="sm:hidden">Copy</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="flex items-center gap-2">
+                      Duplicate
+                      <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                        <span className="text-xs">Alt</span>B
+                      </kbd>
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -276,16 +342,28 @@ export function DraftTabs({
             content="Click to save your current draft. This persists your timetable so you don't lose your work."
             position="bottom"
           >
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
-              onClick={handleSaveDraft}
-              disabled={isSaving}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'Saving...' : <><span className="hidden sm:inline">Save Draft</span><span className="sm:hidden">Save</span></>}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
+                  onClick={handleSaveDraft}
+                  disabled={isSaving}
+                >
+                  <Save className="h-3.5 w-3.5 mr-1.5" />
+                  {isSaving ? 'Saving...' : <><span className="hidden sm:inline">Save Draft</span><span className="sm:hidden">Save</span></>}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="flex items-center gap-2">
+                  Save Draft
+                  <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                    <span className="text-xs">Alt</span>S
+                  </kbd>
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </TourStep>
 
           <TourStep
@@ -295,17 +373,58 @@ export function DraftTabs({
             content="Download your timetable as an image. Perfect for saving or sharing with friends!"
             position="bottom"
           >
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onDownloadTimetable(activeDraftId)}
-              className="flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
-            >
-              <Download className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Download</span>
-              <span className="sm:hidden">Download</span>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onDownloadTimetable(activeDraftId)}
+                  className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
+                >
+                  <Download className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="hidden sm:inline">Download</span>
+                  <span className="sm:hidden">Download</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="flex items-center gap-2">
+                  Download
+                  <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                    <span className="text-xs">Alt</span>D
+                  </kbd>
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </TourStep>
+
+          {!isFullScreenMode && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border"
+                  onClick={onToggleFullScreen}
+                >
+                  <Maximize2 className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="hidden sm:inline">Full Screen</span>
+                  <span className="sm:hidden">Full</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-sm">
+                  Toggle Full Screen
+                  <br />
+                  <span className="text-xs text-muted-foreground">
+                    Shortcut:{" "}
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                      <span className="text-xs">Alt</span> + F
+                    </kbd>
+                  </span>
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </div>
 
@@ -313,3 +432,4 @@ export function DraftTabs({
     </div>
   );
 }
+

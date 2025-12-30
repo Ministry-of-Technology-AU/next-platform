@@ -438,6 +438,23 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     []
   );
 
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        setIsFullScreen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleToggleFullScreen = useCallback(() => {
+    setIsFullScreen((prev) => !prev);
+  }, []);
+
   const handleRecolorCourse = useCallback(
     (courseId: string, day: string, slot: string, color: string) => {
       setDrafts((prev) =>
@@ -486,6 +503,38 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         </DialogContent>
       </Dialog>
 
+      {/* Full Screen Timetable Dialog */}
+      <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
+        <DialogContent className="w-[98vw] max-w-[98vw] p-6 overflow-x-auto">
+          <DialogHeader className="mb-4 hidden">
+            {/* Hidden title for accessibility but visually relying on Tabs */}
+            <DialogTitle>Full Screen Timetable</DialogTitle>
+          </DialogHeader>
+          <div className="min-w-[800px]">
+            <DraftTabs
+              drafts={drafts}
+              activeDraftId={activeDraftId}
+              onCreateDraft={handleCreateDraft}
+              onDuplicateDraft={handleDuplicateDraft}
+              onDeleteDraft={handleDeleteDraft}
+              onSwitchDraft={setActiveDraftId}
+              onDownloadTimetable={handleDownloadTimetable}
+              onRenameDraft={handleRenameDraft}
+              onToggleFullScreen={() => { }}
+              isFullScreenMode={true}
+            >
+              <TimetableGrid
+                courses={activeDraft.courses}
+                onRemoveCourse={handleRemoveCourse}
+                onToggleLock={handleToggleLock}
+                onRecolorCourse={handleRecolorCourse}
+                lockedCourses={lockedCourses}
+              />
+            </DraftTabs>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col lg:grid lg:grid-cols-[350px_1fr] gap-6 min-w-0">
         {/* Timetable - shows first on mobile, second on desktop */}
         <div className="order-1 lg:order-2 space-y-4 min-w-0">
@@ -498,6 +547,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onSwitchDraft={setActiveDraftId}
             onDownloadTimetable={handleDownloadTimetable}
             onRenameDraft={handleRenameDraft}
+            onToggleFullScreen={handleToggleFullScreen}
           >
             <TourStep
               id="timetable-grid"

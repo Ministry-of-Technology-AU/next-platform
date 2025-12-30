@@ -22,7 +22,7 @@ export default function SemesterPlannerLayout({
       <Suspense fallback={<Loader />}>
         {children}
       </Suspense>
-      <DeveloperCredits developers={[{ "name": "Soham Tulsyan", 'profileUrl': 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/' }, { "name": "Vansh Bothra" }, { "name": "Ibrahim Khalil" }, { "name": "Previous Teams" }]} />
+      <DeveloperCredits developers={[{ "name": "Soham Tulsyan", 'profileUrl': 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/' }, { "name": "Vansh Bothra" }, { "name": "Ibrahim Khalil", "profileUrl": "https://www.linkedin.com/in/ibrahim-khalil-11a60b185/" }]} />
 
     </div>
   );
