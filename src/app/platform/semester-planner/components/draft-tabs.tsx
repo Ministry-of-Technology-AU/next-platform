@@ -237,7 +237,7 @@ export function DraftTabs({
         </TourStep>
 
         {/* Buttons */}
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto flex-shrink-0 items-center justify-end">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center justify-end">
           <TourStep
             id="create-draft"
             order={1}
@@ -246,25 +246,32 @@ export function DraftTabs({
             position="bottom"
           >
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
-                      <Plus className="h-3.5 w-3.5 mr-1.5" />
-                      <span className="hidden sm:inline">New Draft</span>
-                      <span className="sm:hidden">New</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="flex items-center gap-2">
-                      New Draft
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 px-2.5 text-xs dark:bg-neutral-light dark:border-border flex-1 sm:flex-none"
+                    onClick={() => setIsCreateOpen(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1.5" />
+                    <span className="hidden sm:inline">New Draft</span>
+                    <span className="sm:hidden">New</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">
+                    New Draft
+                    <br />
+                    <span className="text-xs text-muted-foreground">
+                      Shortcut:{" "}
                       <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                        <span className="text-xs">Alt</span>N
+                        <span className="text-xs">Alt + N</span>
                       </kbd>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </DialogTrigger>
+                    </span>
+                  </p>
+                </TooltipContent>
+              </Tooltip>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Create New Draft</DialogTitle>
@@ -292,25 +299,35 @@ export function DraftTabs({
             position="bottom"
           >
             <Dialog open={isDuplicateOpen} onOpenChange={setIsDuplicateOpen}>
-              <DialogTrigger asChild>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs dark:bg-neutral-light dark:border-border flex-1 sm:flex-none">
-                      <Copy className="h-3.5 w-3.5 mr-1.5" />
-                      <span className="hidden sm:inline">Duplicate</span>
-                      <span className="sm:hidden">Copy</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="flex items-center gap-2">
-                      Duplicate
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 px-2.5 text-xs dark:bg-neutral-light dark:border-border flex-1 sm:flex-none"
+                    onClick={() => {
+                      setDuplicateSourceId(activeDraftId);
+                      setIsDuplicateOpen(true);
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5 mr-1.5" />
+                    <span className="hidden sm:inline">Duplicate</span>
+                    <span className="sm:hidden">Copy</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">
+                    Duplicate Draft
+                    <br />
+                    <span className="text-xs text-muted-foreground">
+                      Shortcut:{" "}
                       <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                        <span className="text-xs">Alt</span>B
+                        <span className="text-xs">Alt + B</span>
                       </kbd>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </DialogTrigger>
+                    </span>
+                  </p>
+                </TooltipContent>
+              </Tooltip>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Duplicate Draft</DialogTitle>
@@ -322,10 +339,7 @@ export function DraftTabs({
                     onChange={(e) => setDuplicateName(e.target.value)}
                   />
                   <Button
-                    onClick={() => {
-                      setDuplicateSourceId(activeDraftId);
-                      handleDuplicateDraft();
-                    }}
+                    onClick={handleDuplicateDraft}
                     className="w-full "
                   >
                     Duplicate Current Draft
@@ -356,11 +370,15 @@ export function DraftTabs({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p className="flex items-center gap-2">
+                <p className="text-sm">
                   Save Draft
-                  <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                    <span className="text-xs">Alt</span>S
-                  </kbd>
+                  <br />
+                  <span className="text-xs text-muted-foreground">
+                    Shortcut:{" "}
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                      <span className="text-xs">Alt + S</span>
+                    </kbd>
+                  </span>
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -387,11 +405,15 @@ export function DraftTabs({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p className="flex items-center gap-2">
-                  Download
-                  <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                    <span className="text-xs">Alt</span>D
-                  </kbd>
+                <p className="text-sm">
+                  Download Timetable
+                  <br />
+                  <span className="text-xs text-muted-foreground">
+                    Shortcut:{" "}
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                      <span className="text-xs">Alt + D</span>
+                    </kbd>
+                  </span>
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -418,7 +440,7 @@ export function DraftTabs({
                   <span className="text-xs text-muted-foreground">
                     Shortcut:{" "}
                     <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                      <span className="text-xs">Alt</span> + F
+                      <span className="text-xs">Alt + F</span>
                     </kbd>
                   </span>
                 </p>
