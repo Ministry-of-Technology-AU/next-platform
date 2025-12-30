@@ -1,6 +1,7 @@
 "use client";
 
-import { X, Lock, Unlock, Palette } from "lucide-react";
+import { X, Lock, Unlock, Palette, Trash2 } from "lucide-react";
+import { formatProfessorName } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -203,7 +204,7 @@ export function TimetableGrid({
                                 {course.name}
                               </p>
                               <p className="text-[8px] md:text-xs text-muted-foreground hidden md:block">
-                                {course.professor}
+                                {formatProfessorName(course.professor)}
                               </p>
                             </div>
                           </Card>
@@ -213,7 +214,7 @@ export function TimetableGrid({
                             <p className="font-semibold">{course.name}</p>
                             <p className="font-semibold">{course.code}</p>
                             <p className="text-xs">{slot}</p>
-                            <p className="text-xs">{course.professor}</p>
+                            <p className="text-xs">{formatProfessorName(course.professor)}</p>
                           </div>
                         </TooltipContent>
                       </Tooltip>
