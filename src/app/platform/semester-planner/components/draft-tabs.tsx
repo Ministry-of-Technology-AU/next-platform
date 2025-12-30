@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { TourStep } from "@/components/guided-tour";
 import type { TimetableDraft } from "../types";
+import { useIsMac } from "@/hooks/useIsMac";
 
 interface DraftTabsProps {
   drafts: TimetableDraft[];
@@ -50,6 +51,7 @@ export function DraftTabs({
   isFullScreenMode = false,
   children,
 }: DraftTabsProps) {
+  const isMac = useIsMac();
   const [newDraftName, setNewDraftName] = useState("");
   const [duplicateName, setDuplicateName] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -111,13 +113,14 @@ export function DraftTabs({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey) {
+      // Check for Cmd/Ctrl + Shift + Key
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey) {
         switch (e.key.toLowerCase()) {
-          case 'n':
+          case 'm':
             e.preventDefault();
             setIsCreateOpen(true);
             break;
-          case 'b':
+          case 'x':
             e.preventDefault();
             setDuplicateSourceId(activeDraftId);
             setIsDuplicateOpen(true);
@@ -126,10 +129,11 @@ export function DraftTabs({
             e.preventDefault();
             handleSaveDraft();
             break;
-          case 'd':
+          case 'l':
             e.preventDefault();
             onDownloadTimetable(activeDraftId);
             break;
+          // Fullscreen 'o' is handled in semester-planner.tsx globally
         }
       }
     };
@@ -266,7 +270,7 @@ export function DraftTabs({
                     <span className="text-xs text-muted-foreground">
                       Shortcut:{" "}
                       <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                        <span className="text-xs">Alt + N</span>
+                        <span className="text-xs">{isMac ? "⌘" : "Ctrl"} + Shift + M</span>
                       </kbd>
                     </span>
                   </p>
@@ -322,7 +326,7 @@ export function DraftTabs({
                     <span className="text-xs text-muted-foreground">
                       Shortcut:{" "}
                       <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                        <span className="text-xs">Alt + B</span>
+                        <span className="text-xs">{isMac ? "⌘" : "Ctrl"} + Shift + X</span>
                       </kbd>
                     </span>
                   </p>
@@ -376,7 +380,7 @@ export function DraftTabs({
                   <span className="text-xs text-muted-foreground">
                     Shortcut:{" "}
                     <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                      <span className="text-xs">Alt + S</span>
+                      <span className="text-xs">{isMac ? "⌘" : "Ctrl"} + Shift + S</span>
                     </kbd>
                   </span>
                 </p>
@@ -411,7 +415,7 @@ export function DraftTabs({
                   <span className="text-xs text-muted-foreground">
                     Shortcut:{" "}
                     <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                      <span className="text-xs">Alt + D</span>
+                      <span className="text-xs">{isMac ? "⌘" : "Ctrl"} + Shift + L</span>
                     </kbd>
                   </span>
                 </p>
@@ -440,8 +444,9 @@ export function DraftTabs({
                   <span className="text-xs text-muted-foreground">
                     Shortcut:{" "}
                     <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                      <span className="text-xs">Alt + F</span>
+                      <span className="text-xs">{isMac ? "⌘" : "Ctrl"} + Shift + O</span>
                     </kbd>
+                    <span className="ml-[0.5px]"></span>
                   </span>
                 </p>
               </TooltipContent>

@@ -442,11 +442,13 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+      // Check for Cmd/Ctrl + Shift + O
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'o') {
         e.preventDefault();
-        setIsFullScreen((prev) => !prev);
+        handleToggleFullScreen();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
