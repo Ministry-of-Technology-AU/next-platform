@@ -3,6 +3,7 @@
 import { X, Lock, Unlock, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Popover,
   PopoverContent,
@@ -77,8 +78,8 @@ export function TimetableGrid({
   const lunchColSpan = hasSaturdayCourse ? "col-span-6" : "col-span-5";
 
   return (
-    <div className={`w-full ${hasSaturdayCourse ? "overflow-x-auto" : "overflow-x-hidden"}`}>
-      <div className={`${hasSaturdayCourse ? "min-w-[700px] md:min-w-[950px]" : "min-w-[600px] md:min-w-[800px]"} border border-border rounded-lg overflow-hidden`}>
+    <ScrollArea className="w-full rounded-md border">
+      <div className={`${hasSaturdayCourse ? "min-w-[700px] md:min-w-[950px]" : "min-w-[600px] md:min-w-[800px]"} border-b border-r rounded-lg overflow-hidden`}>
         {/* Header */}
         <div className={`grid ${gridCols} border-b border-border`}>
           <div className="font-semibold text-center p-2 md:p-4 bg-muted dark:bg-muted/40 border-r border-border text-xs md:text-sm">
@@ -228,6 +229,7 @@ export function TimetableGrid({
           </div>
         ))}
       </div>
-    </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }
