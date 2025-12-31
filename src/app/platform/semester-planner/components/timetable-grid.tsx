@@ -82,7 +82,7 @@ export function TimetableGrid({
   const lunchColSpan = hasSaturdayCourse ? "col-span-6" : "col-span-5";
 
   return (
-    <ScrollArea className="w-full rounded-md border">
+    <ScrollArea className="w-full rounded-md border" type="always">
       <div
         id={id}
         className={`${hasSaturdayCourse ? "min-w-[700px] md:min-w-[950px]" : "min-w-[600px] md:min-w-[800px]"} border-b border-r rounded-lg overflow-hidden`}

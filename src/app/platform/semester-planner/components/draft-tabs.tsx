@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Copy, Download, Trash2, Save, Maximize2 } from "lucide-react";
+import { Plus, Copy, Download, Trash2, Save, Maximize2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -258,9 +258,8 @@ export function DraftTabs({
                     className="h-8 px-2.5 text-xs dark:bg-neutral-light dark:border-border flex-1 sm:flex-none"
                     onClick={() => setIsCreateOpen(true)}
                   >
-                    <Plus className="h-3.5 w-3.5 mr-1.5" />
-                    <span className="hidden sm:inline">New Draft</span>
-                    <span className="sm:hidden">New</span>
+                    <Plus className="h-3.5 w-3.5 xl:mr-1.5" />
+                    <span className="hidden xl:inline">New Draft</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -314,9 +313,8 @@ export function DraftTabs({
                       setIsDuplicateOpen(true);
                     }}
                   >
-                    <Copy className="h-3.5 w-3.5 mr-1.5" />
-                    <span className="hidden sm:inline">Duplicate</span>
-                    <span className="sm:hidden">Copy</span>
+                    <Copy className="h-3.5 w-3.5 xl:mr-1.5" />
+                    <span className="hidden xl:inline">Duplicate</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -369,8 +367,8 @@ export function DraftTabs({
                   onClick={handleSaveDraft}
                   disabled={isSaving}
                 >
-                  <Save className="h-3.5 w-3.5 mr-1.5" />
-                  {isSaving ? 'Saving...' : <><span className="hidden sm:inline">Save Draft</span><span className="sm:hidden">Save</span></>}
+                  <Save className="h-3.5 w-3.5 xl:mr-1.5" />
+                  {isSaving ? 'Saving...' : <span className="hidden xl:inline">Save Draft</span>}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -403,9 +401,8 @@ export function DraftTabs({
                   onClick={() => onDownloadTimetable(activeDraftId)}
                   className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
                 >
-                  <Download className="h-3.5 w-3.5 mr-1.5" />
-                  <span className="hidden sm:inline">Download</span>
-                  <span className="sm:hidden">Download</span>
+                  <Download className="h-3.5 w-3.5 xl:mr-1.5" />
+                  <span className="hidden xl:inline">Download</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -423,6 +420,32 @@ export function DraftTabs({
             </Tooltip>
           </TourStep>
 
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-block cursor-not-allowed">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled
+                  className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border opacity-70 pointer-events-none"
+                >
+                  <Calendar className="h-3.5 w-3.5 xl:mr-1.5" />
+                  <span className="hidden xl:inline">Calendar Sync</span>
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-sm">
+                Sync to your Calendar
+                <br />
+                <span className="text-xs text-gray">
+                  <span className="ml-[0.5px]"></span>
+                  Coming very soon!
+                </span>
+              </p>
+            </TooltipContent>
+          </Tooltip>
+
           {!isFullScreenMode && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -432,9 +455,8 @@ export function DraftTabs({
                   className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border"
                   onClick={onToggleFullScreen}
                 >
-                  <Maximize2 className="h-3.5 w-3.5 mr-1.5" />
-                  <span className="hidden sm:inline">Full Screen</span>
-                  <span className="sm:hidden">Full</span>
+                  <Maximize2 className="h-3.5 w-3.5 xl:mr-1.5" />
+                  <span className="hidden xl:inline">Full Screen</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
