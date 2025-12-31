@@ -1,8 +1,10 @@
 "use client";
 
-import { X, Lock, Unlock, Palette } from "lucide-react";
+import { X, Lock, Unlock, Palette, Trash2 } from "lucide-react";
+import { formatProfessorName } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Popover,
   PopoverContent,
@@ -19,6 +21,7 @@ import {
   DAYS,
   DAYS_WITH_SATURDAY,
   COURSE_COLORS,
+  type Course, // Added type Course based on the provided Code Edit
 } from "../types";
 
 interface TimetableGridProps {
@@ -32,6 +35,7 @@ interface TimetableGridProps {
     color: string
   ) => void;
   lockedCourses: Set<string>;
+  id?: string; // Added this line
 }
 
 // The evening slot that should be hidden by default
@@ -43,6 +47,7 @@ export function TimetableGrid({
   onToggleLock,
   onRecolorCourse,
   lockedCourses,
+  id = "timetable-grid", // Destructured and defaulted id
 }: TimetableGridProps) {
   const getCourseForSlot = (day: string, slot: string) => {
     return courses.find((course) =>
@@ -77,8 +82,11 @@ export function TimetableGrid({
   const lunchColSpan = hasSaturdayCourse ? "col-span-6" : "col-span-5";
 
   return (
-    <div className={`w-full ${hasSaturdayCourse ? "overflow-x-auto" : "overflow-x-hidden"}`}>
-      <div className={`${hasSaturdayCourse ? "min-w-[700px] md:min-w-[950px]" : "min-w-[600px] md:min-w-[800px]"} border border-border rounded-lg overflow-hidden`}>
+    <ScrollArea className="w-full rounded-md border" type="always">
+      <div
+        id={id}
+        className={`${hasSaturdayCourse ? "min-w-[700px] md:min-w-[950px]" : "min-w-[600px] md:min-w-[800px]"} border-b border-r rounded-lg overflow-hidden`}
+      >
         {/* Header */}
         <div className={`grid ${gridCols} border-b border-border`}>
           <div className="font-semibold text-center p-2 md:p-4 bg-muted dark:bg-muted/40 border-r border-border text-xs md:text-sm">
@@ -202,7 +210,7 @@ export function TimetableGrid({
                                 {course.name}
                               </p>
                               <p className="text-[8px] md:text-xs text-muted-foreground hidden md:block">
-                                {course.professor}
+                                {formatProfessorName(course.professor)}
                               </p>
                             </div>
                           </Card>
@@ -212,7 +220,7 @@ export function TimetableGrid({
                             <p className="font-semibold">{course.name}</p>
                             <p className="font-semibold">{course.code}</p>
                             <p className="text-xs">{slot}</p>
-                            <p className="text-xs">{course.professor}</p>
+                            <p className="text-xs">{formatProfessorName(course.professor)}</p>
                           </div>
                         </TooltipContent>
                       </Tooltip>
@@ -228,6 +236,7 @@ export function TimetableGrid({
           </div>
         ))}
       </div>
-    </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }

@@ -23,6 +23,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { Course } from "../types"
 import { TourStep } from "@/components/guided-tour";
 
+import { formatProfessorName } from "../utils";
+
 interface CourseSelectionProps {
   courses: Course[];
   onAddCourse: (course: Course) => void; // Remove color parameter
@@ -56,10 +58,11 @@ export function CourseSelection({
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
+      const formattedProfName = formatProfessorName(course.professor);
       const matchesSearch =
         course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.professor.toLowerCase().includes(searchTerm.toLowerCase());
+        formattedProfName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesDepartment =
         departmentFilter === "all" || course.department === departmentFilter;
 
@@ -128,7 +131,7 @@ export function CourseSelection({
                         {course.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Prof. {course.professor}
+                        Prof. {formatProfessorName(course.professor)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {course.department}
@@ -171,7 +174,7 @@ export function CourseSelection({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">
-                        <strong>Professor:</strong> {selectedCourse.professor}
+                        <strong>Professor:</strong> {formatProfessorName(selectedCourse.professor)}
                       </p>
                       <p className="text-muted-foreground">
                         <strong>Department:</strong> {selectedCourse.department}
