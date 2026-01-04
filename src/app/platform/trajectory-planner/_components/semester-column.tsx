@@ -1,13 +1,15 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import type { Semester } from "../types"
 import { CourseCard } from "./course-card"
 import { useCoursePlanner } from "../course-planner-context"
 import { cn } from "@/lib/utils"
-import { AlertCircle, Trash2 } from "lucide-react"
+import { AlertCircle, Trash2, Pencil, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SemesterColumnProps {
@@ -15,13 +17,44 @@ interface SemesterColumnProps {
 }
 
 export function SemesterColumn({ semester }: SemesterColumnProps) {
-    const { getSemesterCredits, deleteSemester } = useCoursePlanner()
+    const { getSemesterCredits, deleteSemester, getSemesterGPA, updateSemester } = useCoursePlanner()
     const { setNodeRef, isOver } = useDroppable({
         id: semester.id,
     })
 
+    const [isEditingName, setIsEditingName] = useState(false)
+    const [editedName, setEditedName] = useState(semester.name)
+    const inputRef = useRef<HTMLInputElement>(null)
+
     const credits = getSemesterCredits(semester.id)
+    const gpa = getSemesterGPA(semester.id)
     const isBelowMinimum = credits < 16 && semester.courses.length > 0
+
+    // Focus input when entering edit mode
+    useEffect(() => {
+        if (isEditingName && inputRef.current) {
+            inputRef.current.focus()
+            inputRef.current.select()
+        }
+    }, [isEditingName])
+
+    const handleSaveName = () => {
+        if (editedName.trim()) {
+            updateSemester(semester.id, { name: editedName.trim() })
+        } else {
+            setEditedName(semester.name) // Reset to original if empty
+        }
+        setIsEditingName(false)
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSaveName()
+        } else if (e.key === 'Escape') {
+            setEditedName(semester.name)
+            setIsEditingName(false)
+        }
+    }
 
     return (
         <div className="flex flex-col h-full min-h-[400px]">
@@ -33,7 +66,35 @@ export function SemesterColumn({ semester }: SemesterColumnProps) {
             >
                 <div>
                     <h3 className="font-bold text-sm flex items-center gap-2">
-                        {semester.name}
+                        {isEditingName ? (
+                            <div className="flex items-center gap-1">
+                                <Input
+                                    ref={inputRef}
+                                    value={editedName}
+                                    onChange={(e) => setEditedName(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    onBlur={handleSaveName}
+                                    className="h-6 text-sm font-bold py-0 px-1 w-32"
+                                />
+                            </div>
+                        ) : (
+                            <>
+                                <span
+                                    className="cursor-pointer hover:underline"
+                                    onClick={() => setIsEditingName(true)}
+                                >
+                                    {semester.name}
+                                </span>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5 opacity-0 group-hover:opacity-100 hover:opacity-100 text-muted-foreground hover:text-primary"
+                                    onClick={() => setIsEditingName(true)}
+                                >
+                                    <Pencil size={12} />
+                                </Button>
+                            </>
+                        )}
                         {isBelowMinimum && (
                             <TooltipProvider>
                                 <Tooltip>
@@ -47,10 +108,17 @@ export function SemesterColumn({ semester }: SemesterColumnProps) {
                             </TooltipProvider>
                         )}
                     </h3>
-                    <p className={cn("text-[11px] font-medium", isBelowMinimum ? "text-destructive" : "text-muted-foreground")}>
-                        {credits} Credit{credits !== 1 ? "s" : ""}
-                        {isBelowMinimum && " (Below minimum)"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <p className={cn("text-[11px] font-medium", isBelowMinimum ? "text-destructive" : "text-muted-foreground")}>
+                            {credits} Credit{credits !== 1 ? "s" : ""}
+                            {isBelowMinimum && " (Below minimum)"}
+                        </p>
+                        {gpa !== null && (
+                            <span className="text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                                GPA: {gpa.toFixed(2)}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <Button
                     variant="ghost"

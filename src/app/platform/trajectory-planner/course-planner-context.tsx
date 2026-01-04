@@ -1,8 +1,10 @@
 "use client"
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
-import type { CoursePlannerState, Semester, Course } from "./types"
+import type { CoursePlannerState, Semester, Course, Grade } from "./types"
 import { v4 as uuidv4 } from "uuid"
+import { gradePointsMap } from "./templates"
+import { parseGradeDataForPlanner } from "./parse-cgpa-data"
 
 const DEFAULT_COURSES: Omit<Course, "id">[] = [
     { name: "Economy, Politics, and Society", credits: 4, deptCode: "", type: "FC", isInSemester: false },
@@ -10,7 +12,7 @@ const DEFAULT_COURSES: Omit<Course, "id">[] = [
     { name: "Great Books", credits: 4, deptCode: "", type: "FC", isInSemester: false },
     { name: "Quantitative Reasoning and Mathematical Thinking", credits: 4, deptCode: "", type: "FC", isInSemester: false },
     { name: "Principles of Science", credits: 4, deptCode: "", type: "FC", isInSemester: false },
-    { name: "Indian Civilizations", credits: 4, deptCode: "", type: "FC", isInSemester: false },
+    { name: "Indian Civilisations", credits: 4, deptCode: "", type: "FC", isInSemester: false },
     { name: "Environmental Studies", credits: 4, deptCode: "", type: "FC", isInSemester: false },
     { name: "Introduction to Critical Thinking", credits: 4, deptCode: "CW", type: "FC", isInSemester: false },
     { name: "Mind and Behaviour", credits: 4, deptCode: "", type: "FC", isInSemester: false },
@@ -20,12 +22,20 @@ const DEFAULT_COURSES: Omit<Course, "id">[] = [
 
 interface CoursePlannerContextType {
     state: CoursePlannerState
+    selectedDegreeId: string | null
+    setSelectedDegree: (degreeId: string | null) => void
+    loadPreviousSemesters: (cgpaText: string) => { success: boolean; message: string; semestersLoaded: number }
     addCourse: (semesterId: string | null, course: Course) => void
     removeCourse: (courseId: string) => void
     updateCourse: (courseId: string, updates: Partial<Course>) => void
+    updateCourseGrade: (courseId: string, grade: Grade) => void
+    updateSemester: (semesterId: string, updates: Partial<Semester>) => void
     moveCourse: (courseId: string, fromSemesterId: string | null, toSemesterId: string | null, newIndex?: number) => void
     deleteSemester: (semesterId: string) => void
     getSemesterCredits: (semesterId: string) => number
+    getSemesterGPA: (semesterId: string) => number | null
+    getCGPA: () => number | null
+    getCreditsByType: () => { major: number; minor: number; fc: number; cc: number; openCredits: number; total: number }
     exportState: () => string
     importState: (jsonString: string) => void
 }
@@ -63,17 +73,107 @@ export function CoursePlannerProvider({ children }: { children: ReactNode }) {
         }
     })
 
+    // Selected degree template (persisted in localStorage)
+    const [selectedDegreeId, setSelectedDegreeIdState] = useState<string | null>(() => {
+        if (typeof window !== "undefined") {
+            return localStorage.getItem("selected-degree-id")
+        }
+        return null
+    })
+
     useEffect(() => {
         localStorage.setItem("course-planner-state", JSON.stringify(state))
     }, [state])
 
+    // Persist degree selection
+    const setSelectedDegree = (degreeId: string | null) => {
+        setSelectedDegreeIdState(degreeId)
+        if (typeof window !== "undefined") {
+            if (degreeId) {
+                localStorage.setItem("selected-degree-id", degreeId)
+            } else {
+                localStorage.removeItem("selected-degree-id")
+            }
+        }
+    }
+
+    // Load previous semesters from CGPA planner data
+    const loadPreviousSemesters = (cgpaText: string): { success: boolean; message: string; semestersLoaded: number } => {
+        try {
+            const parsed = parseGradeDataForPlanner(cgpaText)
+
+            if (parsed.semesters.length === 0) {
+                return { success: false, message: "No semesters found in the pasted data", semestersLoaded: 0 }
+            }
+
+            setState((prev) => {
+                // Get names of taken FC/CC courses to filter from tray
+                const takenFCCC = new Set(
+                    parsed.takenCourseNames.filter(name => {
+                        const lower = name.toLowerCase()
+                        return DEFAULT_COURSES.some(dc =>
+                            dc.name.toLowerCase() === lower ||
+                            lower.includes(dc.name.toLowerCase().substring(0, 15))
+                        )
+                    })
+                )
+
+                // Filter out taken FC/CC from available courses
+                const filteredAvailableCourses = prev.availableCourses.filter(course => {
+                    if (course.type === "FC" || course.type === "CC") {
+                        const courseLower = course.name.toLowerCase()
+                        return !parsed.takenCourseNames.some(taken =>
+                            taken === courseLower ||
+                            courseLower.includes(taken.substring(0, 15)) ||
+                            taken.includes(courseLower.substring(0, 15))
+                        )
+                    }
+                    return true
+                })
+
+                // Replace semesters with parsed ones + remaining empty semesters
+                const totalSemesters = Math.max(8, parsed.semesters.length)
+                const newSemesters: Semester[] = []
+
+                for (let i = 0; i < totalSemesters; i++) {
+                    if (i < parsed.semesters.length) {
+                        newSemesters.push({
+                            ...parsed.semesters[i],
+                            id: `semester-${i + 1}`,
+                        })
+                    } else {
+                        newSemesters.push({
+                            id: `semester-${i + 1}`,
+                            name: `Semester ${i + 1}`,
+                            courses: [],
+                        })
+                    }
+                }
+
+                return {
+                    semesters: newSemesters,
+                    availableCourses: filteredAvailableCourses,
+                }
+            })
+
+            return {
+                success: true,
+                message: `Loaded ${parsed.semesters.length} semesters with ${parsed.takenCourseNames.length} courses`,
+                semestersLoaded: parsed.semesters.length
+            }
+        } catch (error) {
+            console.error("Error parsing CGPA data:", error)
+            return { success: false, message: "Failed to parse the pasted data", semestersLoaded: 0 }
+        }
+    }
+
     const addCourse = (semesterId: string | null, course: Course) => {
         setState((prev) => {
             if (semesterId === null) {
-                // Add to available courses
+                // Prepend to available courses (so new course appears at beginning)
                 return {
                     ...prev,
-                    availableCourses: [...prev.availableCourses, { ...course, isInSemester: false }],
+                    availableCourses: [{ ...course, isInSemester: false }, ...prev.availableCourses],
                 }
             }
 
@@ -95,6 +195,15 @@ export function CoursePlannerProvider({ children }: { children: ReactNode }) {
                 courses: sem.courses.filter((c) => c.id !== courseId),
             })),
             availableCourses: prev.availableCourses.filter((c) => c.id !== courseId),
+        }))
+    }
+
+    const updateSemester = (semesterId: string, updates: Partial<Semester>) => {
+        setState((prev) => ({
+            ...prev,
+            semesters: prev.semesters.map((sem) =>
+                sem.id === semesterId ? { ...sem, ...updates } : sem
+            ),
         }))
     }
 
@@ -187,6 +296,86 @@ export function CoursePlannerProvider({ children }: { children: ReactNode }) {
         return semester.courses.reduce((sum, course) => sum + course.credits, 0)
     }
 
+    const updateCourseGrade = (courseId: string, grade: Grade) => {
+        setState((prev) => ({
+            ...prev,
+            semesters: prev.semesters.map((sem) => ({
+                ...sem,
+                courses: sem.courses.map((c) => (c.id === courseId ? { ...c, grade } : c)),
+            })),
+        }))
+    }
+
+    const getSemesterGPA = (semesterId: string): number | null => {
+        const semester = state.semesters.find((s) => s.id === semesterId)
+        if (!semester) return null
+
+        const coursesWithGrades = semester.courses.filter(
+            (c) => c.grade && c.grade !== 'P' && gradePointsMap[c.grade] !== undefined
+        )
+
+        if (coursesWithGrades.length === 0) return null
+
+        let totalGradePoints = 0
+        let totalCredits = 0
+
+        for (const course of coursesWithGrades) {
+            if (course.grade && course.grade !== 'P') {
+                const gradePoints = gradePointsMap[course.grade] ?? 0
+                totalGradePoints += gradePoints * course.credits
+                totalCredits += course.credits
+            }
+        }
+
+        return totalCredits > 0 ? totalGradePoints / totalCredits : null
+    }
+
+    const getCGPA = (): number | null => {
+        let totalGradePoints = 0
+        let totalCredits = 0
+
+        for (const semester of state.semesters) {
+            for (const course of semester.courses) {
+                if (course.grade && course.grade !== 'P' && gradePointsMap[course.grade] !== undefined) {
+                    const gradePoints = gradePointsMap[course.grade] ?? 0
+                    totalGradePoints += gradePoints * course.credits
+                    totalCredits += course.credits
+                }
+            }
+        }
+
+        return totalCredits > 0 ? totalGradePoints / totalCredits : null
+    }
+
+    const getCreditsByType = (): { major: number; minor: number; fc: number; cc: number; openCredits: number; total: number } => {
+        const credits = { major: 0, minor: 0, fc: 0, cc: 0, openCredits: 0, total: 0 }
+
+        for (const semester of state.semesters) {
+            for (const course of semester.courses) {
+                credits.total += course.credits
+                switch (course.type) {
+                    case "Major":
+                        credits.major += course.credits
+                        break
+                    case "Minor":
+                        credits.minor += course.credits
+                        break
+                    case "FC":
+                        credits.fc += course.credits
+                        break
+                    case "CC":
+                        credits.cc += course.credits
+                        break
+                    case "Open":
+                        credits.openCredits += course.credits
+                        break
+                }
+            }
+        }
+
+        return credits
+    }
+
     const exportState = (): string => {
         return JSON.stringify(state, null, 2)
     }
@@ -205,12 +394,20 @@ export function CoursePlannerProvider({ children }: { children: ReactNode }) {
         <CoursePlannerContext.Provider
             value={{
                 state,
+                selectedDegreeId,
+                setSelectedDegree,
+                loadPreviousSemesters,
                 addCourse,
                 removeCourse,
                 updateCourse,
+                updateCourseGrade,
+                updateSemester,
                 moveCourse,
                 deleteSemester,
                 getSemesterCredits,
+                getSemesterGPA,
+                getCGPA,
+                getCreditsByType,
                 exportState,
                 importState,
             }}

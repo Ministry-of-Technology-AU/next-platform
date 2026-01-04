@@ -15,6 +15,7 @@ import { useCoursePlanner } from "../course-planner-context"
 import { SemesterColumn } from "./semester-column"
 import { CourseCard } from "./course-card"
 import { AvailableCoursesTray } from "./available-courses-tray"
+import { SummaryAndTemplateTable } from "./summary-and-template-table"
 import type { Course } from "../types"
 import { Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -120,6 +121,8 @@ export function CoursePlannerBoard() {
                         Save Trajectory Plan
                     </Button>
                 </div>
+
+                <SummaryAndTemplateTable />
 
                 <AvailableCoursesTray />
 

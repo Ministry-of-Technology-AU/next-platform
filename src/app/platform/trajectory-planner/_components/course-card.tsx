@@ -1,18 +1,19 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import type { Course, Credits, CourseType, DepartmentCode } from "../types"
+import type { Course, Credits, CourseType, DepartmentCode, Grade } from "../types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCoursePlanner } from "../course-planner-context"
 import { cn } from "@/lib/utils"
-import { GripVertical, Trash2, Pencil } from "lucide-react"
+import { GripVertical, Trash2, Pencil, Undo2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { gradeOptions } from "../templates"
 
 interface CourseCardProps {
     course: Course
@@ -20,13 +21,28 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course, isDragging }: CourseCardProps) {
-    const { updateCourse, removeCourse } = useCoursePlanner()
+    const { updateCourse, removeCourse, updateCourseGrade, moveCourse, state } = useCoursePlanner()
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: course.id })
 
     const [isEditMode, setIsEditMode] = useState(false)
+    const cardRef = useRef<HTMLDivElement>(null)
 
     const isInSemester = course.isInSemester || false
     const showEditable = !isInSemester || isEditMode
+
+    // Handle click outside to exit edit mode
+    useEffect(() => {
+        if (!isEditMode) return
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+                setIsEditMode(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [isEditMode])
 
     const style = {
         transform: CSS.Translate.toString(transform),
@@ -49,6 +65,11 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
         updateCourse(course.id, { type: value as CourseType })
     }
 
+    const handleGradeChange = (value: string) => {
+        const grade = value === "none" ? null : (value as Grade)
+        updateCourseGrade(course.id, grade)
+    }
+
     const getBadgeColor = (type: CourseType) => {
         switch (type) {
             case "Major":
@@ -59,7 +80,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                 return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
             case "CC":
                 return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
-            case "Open Credits":
+            case "Open":
                 return "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
             default:
                 return "bg-gray-100 text-gray-700"
@@ -67,7 +88,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
     }
 
     return (
-        <div ref={setNodeRef} style={style} className={cn("group relative", isDragging && "opacity-50")}>
+        <div ref={(node) => { setNodeRef(node); (cardRef as any).current = node; }} style={style} className={cn("group relative", isDragging && "opacity-50")}>
             <Card className="hover:shadow-md transition-shadow border-muted bg-card">
                 <CardContent className="p-3 space-y-3">
                     <div className="flex items-start gap-2">
@@ -94,13 +115,31 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     {course.type}
                                 </Badge>
                                 {course.deptCode && (
-                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-amber-800">
                                         {course.deptCode}
                                     </Badge>
                                 )}
                                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/20 text-primary">
                                     {course.credits} Credits
                                 </Badge>
+                                {/* Grade badge for courses in semester */}
+                                {isInSemester && course.grade && (
+                                    <Badge
+                                        variant="outline"
+                                        className={cn(
+                                            "text-[10px] px-1.5 py-0 font-bold",
+                                            course.grade === 'A' || course.grade === 'A-'
+                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 border-emerald-500/50"
+                                                : course.grade.startsWith('B')
+                                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 border-blue-500/50"
+                                                    : course.grade.startsWith('C')
+                                                        ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 border-yellow-500/50"
+                                                        : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 border-red-500/50"
+                                        )}
+                                    >
+                                        {course.grade}
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                         <div className="flex gap-1">
@@ -108,22 +147,63 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                    className={cn(
+                                        "h-6 w-6 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10",
+                                        isEditMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                    )}
                                     onClick={() => setIsEditMode(!isEditMode)}
+                                    title={isEditMode ? "Save changes" : "Edit course"}
                                 >
-                                    <Pencil size={14} />
+                                    {isEditMode ? <Check size={14} /> : <Pencil size={14} />}
                                 </Button>
                             )}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => removeCourse(course.id)}
-                            >
-                                <Trash2 size={14} />
-                            </Button>
+                            {isInSemester ? (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                    onClick={() => {
+                                        // Find which semester this course is in
+                                        const fromSemester = state.semesters.find(s => s.courses.some(c => c.id === course.id))
+                                        if (fromSemester) {
+                                            moveCourse(course.id, fromSemester.id, null)
+                                        }
+                                    }}
+                                    title="Move back to tray"
+                                >
+                                    <Undo2 size={14} />
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => removeCourse(course.id)}
+                                    title="Delete course"
+                                >
+                                    <Trash2 size={14} />
+                                </Button>
+                            )}
                         </div>
                     </div>
+
+                    {/* Grade selector for courses in semester */}
+                    {isInSemester && !isEditMode && (
+                        <div className="pt-1 border-t border-border/50">
+                            <Select value={course.grade || "none"} onValueChange={handleGradeChange}>
+                                <SelectTrigger className="h-7 text-xs bg-muted/30 border-none shadow-none">
+                                    <SelectValue placeholder="Select Grade" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {gradeOptions.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
 
                     {showEditable && (
                         <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/50">
@@ -163,7 +243,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     <SelectItem value="CC">CC</SelectItem>
                                     <SelectItem value="Major">Major</SelectItem>
                                     <SelectItem value="Minor">Minor</SelectItem>
-                                    <SelectItem value="Open Credits">Open</SelectItem>
+                                    <SelectItem value="Open">Open</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
