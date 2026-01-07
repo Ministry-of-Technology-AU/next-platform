@@ -220,7 +220,7 @@ export function SummaryAndTemplateTable() {
             {/* Degree Selection & Actions - Below Summary */}
             <div className="flex flex-wrap items-center gap-3 mt-4">
                 <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
-                    <SelectTrigger className="w-[220px]">
+                    <SelectTrigger className="w-[250px]">
                         <SelectValue placeholder="Select degree template..." />
                     </SelectTrigger>
                     <SelectContent>
