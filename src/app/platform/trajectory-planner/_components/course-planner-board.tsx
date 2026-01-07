@@ -118,16 +118,12 @@ export function CoursePlannerBoard() {
             onDragEnd={handleDragEnd}
         >
             <div className="flex flex-col gap-8">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Course Trajectory Planner</h1>
-                        <p className="text-sm text-muted-foreground">Plan your academic journey semester by semester</p>
-                    </div>
+                {/* <div className="flex items-center justify-end">
                     <Button onClick={handleSave} className="gap-2">
                         <Save size={16} />
                         Save Trajectory Plan
                     </Button>
-                </div>
+                </div> */}
 
                 <SummaryAndTemplateTable />
 
