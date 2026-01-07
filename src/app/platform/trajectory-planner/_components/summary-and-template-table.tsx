@@ -26,10 +26,10 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+    Disclosure,
+    DisclosureContent,
+    DisclosureTrigger,
+} from "@/components/ui/disclosure"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
@@ -118,17 +118,19 @@ export function SummaryAndTemplateTable() {
         <>
             {/* Academic Summary - Collapsible */}
             <Card className="border-border bg-card">
-                <Collapsible open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
+                <Disclosure open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
                     <CardHeader className="pb-6">
-                        <CollapsibleTrigger className="flex items-center justify-between w-full cursor-pointer">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <GraduationCap size={20} />
-                                Academic Summary
-                            </CardTitle>
-                            {isSummaryOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                        </CollapsibleTrigger>
+                        <DisclosureTrigger className="w-full">
+                            <div className="flex items-center justify-between w-full cursor-pointer">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <GraduationCap size={20} />
+                                    Academic Summary
+                                </CardTitle>
+                                {isSummaryOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                            </div>
+                        </DisclosureTrigger>
                     </CardHeader>
-                    <CollapsibleContent>
+                    <DisclosureContent>
                         <CardContent className="pt-0">
                             <Table>
                                 <TableHeader>
@@ -211,8 +213,8 @@ export function SummaryAndTemplateTable() {
                                 </p>
                             )}
                         </CardContent>
-                    </CollapsibleContent>
-                </Collapsible>
+                    </DisclosureContent>
+                </Disclosure>
             </Card>
 
             {/* Degree Selection & Actions - Below Summary */}

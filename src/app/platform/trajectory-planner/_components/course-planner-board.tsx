@@ -94,13 +94,20 @@ export function CoursePlannerBoard() {
         }
     }
 
-    const handleSave = () => {
-        const jsonState = exportState()
-        console.log("[v0] Course Planner State (ready for DB):")
-        console.log(jsonState)
+    const [isSaving, setIsSaving] = useState(false)
 
-        // Also show a brief success message
-        console.log("[v0] State logged above. Copy this JSON to persist to your database.")
+    const handleSave = () => {
+        setIsSaving(true)
+        // Simulate save delay
+        setTimeout(() => {
+            const jsonState = exportState()
+            console.log("[v0] Course Planner State (ready for DB):")
+            console.log(jsonState)
+
+            // Also show a brief success message
+            console.log("[v0] State logged above. Copy this JSON to persist to your database.")
+            setIsSaving(false)
+        }, 1000)
     }
 
     return (
@@ -134,6 +141,56 @@ export function CoursePlannerBoard() {
                     ))}
                 </div>
             </div>
+
+            <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className={`
+                fixed
+                bottom-6
+                right-6
+                z-50
+                h-14
+                w-14
+                rounded-full
+                flex
+                items-center
+                justify-center
+                bg-primary/70
+                shadow-lg
+                transition-all
+                duration-300
+                group
+                hover:w-56
+                hover:rounded-3xl
+                hover:justify-start
+                px-4
+                overflow-hidden
+                ${isSaving ? 'opacity-70' : ''}
+              `}
+                style={{ minWidth: "3.5rem" }}
+            >
+                <span className="flex items-center w-full justify-center group-hover:justify-start">
+                    <Save
+                        className={`w-15 h-15 flex-shrink-0 text-center ${isSaving ? 'animate-pulse' : ''}`}
+                        strokeWidth={2.5}
+                    />
+                    <span
+                        className={`
+                    ml-4
+                    text-lg
+                    font-semibold
+                    whitespace-nowrap
+                    hidden
+                    group-hover:inline
+                    transition-all
+                    duration-300
+                  `}
+                    >
+                        {isSaving ? 'Saving...' : 'Save Trajectory'}
+                    </span>
+                </span>
+            </Button>
 
             <DragOverlay>{activeCourse ? <CourseCard course={activeCourse} isDragging /> : null}</DragOverlay>
         </DndContext>
