@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useCoursePlanner } from "../course-planner-context"
-import { degreeTemplates } from "../templates"
+import { degreeTemplates, idealTrajectories } from "../templates"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { FileDown, GraduationCap, Upload } from "lucide-react"
+import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import type { Course } from "../types"
 import {
@@ -25,7 +25,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
 
 export function SummaryAndTemplateTable() {
     const {
@@ -40,10 +46,11 @@ export function SummaryAndTemplateTable() {
     } = useCoursePlanner()
 
     const [selectedTemplate, setSelectedTemplate] = useState<string>(selectedDegreeId || "")
-    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
     const [showLoadDialog, setShowLoadDialog] = useState(false)
+    const [showTrajectoryDialog, setShowTrajectoryDialog] = useState(false)
     const [cgpaInput, setCgpaInput] = useState("")
     const [loadResult, setLoadResult] = useState<{ success: boolean; message: string } | null>(null)
+    const [isSummaryOpen, setIsSummaryOpen] = useState(true)
 
     // Sync selectedTemplate with saved degree
     useEffect(() => {
@@ -59,36 +66,17 @@ export function SummaryAndTemplateTable() {
     }
 
     const currentTemplate = degreeTemplates.find((t) => t.id === selectedTemplate)
+    const currentTrajectory = idealTrajectories.find((t) => t.templateId === selectedTemplate)
     const currentCredits = getCreditsByType()
     const cgpa = getCGPA()
 
     // Get semester GPAs for display
     const semesterGPAs = state.semesters
-        .map((sem, index) => ({
+        .map((sem) => ({
             name: sem.name,
             gpa: getSemesterGPA(sem.id),
         }))
         .filter((s) => s.gpa !== null)
-
-    const handleApplyTemplate = () => {
-        if (!currentTemplate) return
-        setShowConfirmDialog(true)
-    }
-
-    const confirmApplyTemplate = () => {
-        if (!currentTemplate) return
-
-        // Add all courses from the template to available courses
-        currentTemplate.defaultCourses.forEach((course) => {
-            const newCourse: Course = {
-                ...course,
-                id: uuidv4(),
-            }
-            addCourse(null, newCourse)
-        })
-
-        setShowConfirmDialog(false)
-    }
 
     const handleLoadPreviousSemesters = () => {
         if (!cgpaInput.trim()) {
@@ -108,153 +96,172 @@ export function SummaryAndTemplateTable() {
         }
     }
 
+    const addCourseToTray = (course: Omit<Course, 'id'>) => {
+        const newCourse: Course = {
+            ...course,
+            id: uuidv4(),
+        }
+        addCourse(null, newCourse)
+    }
+
+    const addSemesterCoursesToTray = (courses: Omit<Course, 'id'>[]) => {
+        courses.forEach((course) => {
+            const newCourse: Course = {
+                ...course,
+                id: uuidv4(),
+            }
+            addCourse(null, newCourse)
+        })
+    }
+
     return (
         <>
+            {/* Academic Summary - Collapsible */}
             <Card className="border-border bg-card">
-                <CardHeader className="pb-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <GraduationCap size={20} />
-                            Academic Summary
-                        </CardTitle>
-                        <div className="flex flex-wrap gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-1"
-                                onClick={() => setShowLoadDialog(true)}
-                            >
-                                <Upload size={14} />
-                                Load Existing
-                            </Button>
-                            <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
-                                <SelectTrigger className="w-[200px]">
-                                    <SelectValue placeholder="Select template..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {degreeTemplates.map((template) => (
-                                        <SelectItem key={template.id} value={template.id}>
-                                            {template.name} ({template.batch})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Button
-                                onClick={handleApplyTemplate}
-                                disabled={!selectedTemplate}
-                                size="sm"
-                                className="gap-1"
-                            >
-                                <FileDown size={14} />
-                                Load
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Type</TableHead>
-                                <TableHead className="text-right">Completed</TableHead>
-                                <TableHead className="text-right">Required</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell>Major</TableCell>
-                                <TableCell className="text-right">{currentCredits.major}</TableCell>
-                                <TableCell className="text-right text-muted-foreground">
-                                    {currentTemplate?.requiredCredits.major ?? "-"}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Minor</TableCell>
-                                <TableCell className="text-right">{currentCredits.minor}</TableCell>
-                                <TableCell className="text-right text-muted-foreground">
-                                    {currentTemplate?.requiredCredits.minor ?? "-"}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>FC</TableCell>
-                                <TableCell className="text-right">{currentCredits.fc}</TableCell>
-                                <TableCell className="text-right text-muted-foreground">
-                                    {currentTemplate?.requiredCredits.fc ?? "-"}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>CC</TableCell>
-                                <TableCell className="text-right">{currentCredits.cc}</TableCell>
-                                <TableCell className="text-right text-muted-foreground">
-                                    {currentTemplate?.requiredCredits.cc ?? "-"}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Open</TableCell>
-                                <TableCell className="text-right">{currentCredits.openCredits}</TableCell>
-                                <TableCell className="text-right text-muted-foreground">
-                                    {currentTemplate?.requiredCredits.openCredits ?? "-"}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow className="font-semibold">
-                                <TableCell>Total Credits</TableCell>
-                                <TableCell className="text-right">{currentCredits.total}</TableCell>
-                                <TableCell className="text-right text-muted-foreground">
-                                    {currentTemplate?.requiredCredits.total ?? "-"}
-                                </TableCell>
-                            </TableRow>
-                            {cgpa !== null && (
-                                <TableRow className="font-semibold border-t-2">
-                                    <TableCell>CGPA</TableCell>
-                                    <TableCell className="text-right">{cgpa.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-muted-foreground">4.00</TableCell>
-                                </TableRow>
+                <Collapsible open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
+                    <CardHeader className="pb-6">
+                        <CollapsibleTrigger className="flex items-center justify-between w-full cursor-pointer">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <GraduationCap size={20} />
+                                Academic Summary
+                            </CardTitle>
+                            {isSummaryOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </CollapsibleTrigger>
+                    </CardHeader>
+                    <CollapsibleContent>
+                        <CardContent className="pt-0">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead className="text-right">Completed</TableHead>
+                                        <TableHead className="text-right">Required</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>Major</TableCell>
+                                        <TableCell className="text-right">{currentCredits.major}</TableCell>
+                                        <TableCell className="text-right text-muted-foreground">
+                                            {currentTemplate?.requiredCredits.major ?? "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>Minor</TableCell>
+                                        <TableCell className="text-right">{currentCredits.minor}</TableCell>
+                                        <TableCell className="text-right text-muted-foreground">
+                                            {currentTemplate?.requiredCredits.minor ?? "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>FC</TableCell>
+                                        <TableCell className="text-right">{currentCredits.fc}</TableCell>
+                                        <TableCell className="text-right text-muted-foreground">
+                                            {currentTemplate?.requiredCredits.fc ?? "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>CC</TableCell>
+                                        <TableCell className="text-right">{currentCredits.cc}</TableCell>
+                                        <TableCell className="text-right text-muted-foreground">
+                                            {currentTemplate?.requiredCredits.cc ?? "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>Open</TableCell>
+                                        <TableCell className="text-right">{currentCredits.openCredits}</TableCell>
+                                        <TableCell className="text-right text-muted-foreground">
+                                            {currentTemplate?.requiredCredits.openCredits ?? "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="font-semibold">
+                                        <TableCell>Total Credits</TableCell>
+                                        <TableCell className="text-right">{currentCredits.total}</TableCell>
+                                        <TableCell className="text-right text-muted-foreground">
+                                            {currentTemplate?.requiredCredits.total ?? "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                    {cgpa !== null && (
+                                        <TableRow className="font-semibold border-t-2">
+                                            <TableCell>CGPA</TableCell>
+                                            <TableCell className="text-right">{cgpa.toFixed(2)}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">4.00</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+
+                            {/* Semester GPAs */}
+                            {semesterGPAs.length > 0 && (
+                                <div className="mt-4 pt-4 border-t">
+                                    <p className="text-sm text-muted-foreground mb-2">Semester GPAs</p>
+                                    <div className="flex flex-wrap gap-3 text-sm">
+                                        {semesterGPAs.map((sem) => (
+                                            <span key={sem.name}>
+                                                {sem.name}: <span className="font-semibold">{sem.gpa?.toFixed(2)}</span>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
-                        </TableBody>
-                    </Table>
 
-                    {/* Semester GPAs */}
-                    {semesterGPAs.length > 0 && (
-                        <div className="mt-4 pt-4 border-t">
-                            <p className="text-sm text-muted-foreground mb-2">Semester GPAs</p>
-                            <div className="flex flex-wrap gap-3 text-sm">
-                                {semesterGPAs.map((sem) => (
-                                    <span key={sem.name}>
-                                        {sem.name}: <span className="font-semibold">{sem.gpa?.toFixed(2)}</span>
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {cgpa === null && (
-                        <p className="text-sm text-muted-foreground text-center mt-4">
-                            Add grades to courses in semesters to see GPA calculations
-                        </p>
-                    )}
-                </CardContent>
+                            {cgpa === null && (
+                                <p className="text-sm text-muted-foreground text-center mt-4">
+                                    Add grades to courses in semesters to see GPA calculations
+                                </p>
+                            )}
+                        </CardContent>
+                    </CollapsibleContent>
+                </Collapsible>
             </Card>
 
-            {/* Load Template Dialog */}
-            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Load {currentTemplate?.name} Template?</DialogTitle>
-                        <DialogDescription>
-                            This will add {currentTemplate?.defaultCourses.length} courses to your available courses tray.
-                            You can then drag them to your desired semesters.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
-                            Cancel
-                        </Button>
-                        <Button onClick={confirmApplyTemplate}>
-                            Load Courses
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Degree Selection & Actions - Below Summary */}
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+                <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+                    <SelectTrigger className="w-[220px]">
+                        <SelectValue placeholder="Select degree template..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {degreeTemplates.map((template) => (
+                            <SelectItem key={template.id} value={template.id}>
+                                {template.name} ({template.batch})
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => setShowLoadDialog(true)}
+                >
+                    <Upload size={14} />
+                    Load Existing
+                </Button>
+
+                <Button
+                    onClick={() => setShowTrajectoryDialog(true)}
+                    disabled={!selectedTemplate || !currentTrajectory}
+                    size="sm"
+                    className="gap-1"
+                >
+                    <Map size={14} />
+                    Ideal Trajectory
+                </Button>
+
+                {currentTrajectory?.policyDocPath && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => window.open(currentTrajectory.policyDocPath, '_blank')}
+                    >
+                        <FileText size={14} />
+                        View Policy
+                    </Button>
+                )}
+            </div>
 
             {/* Load Previous Semesters Dialog */}
             <Dialog open={showLoadDialog} onOpenChange={setShowLoadDialog}>
@@ -280,16 +287,169 @@ export function SummaryAndTemplateTable() {
                         )}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                            setShowLoadDialog(false)
-                            setCgpaInput("")
-                            setLoadResult(null)
-                        }}>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setShowLoadDialog(false)
+                                setCgpaInput("")
+                                setLoadResult(null)
+                            }}
+                        >
                             Cancel
                         </Button>
                         <Button onClick={handleLoadPreviousSemesters}>
                             <Upload size={14} className="mr-2" />
                             Load Semesters
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Ideal Trajectory Dialog */}
+            <Dialog open={showTrajectoryDialog} onOpenChange={setShowTrajectoryDialog}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Ideal Trajectory - {currentTemplate?.name}</DialogTitle>
+                        <DialogDescription>
+                            View the recommended course sequence. Click +Add to add courses to your available tray.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {currentTrajectory && (
+                        <div className="space-y-4">
+                            {/* Two-column layout like the screenshot */}
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Monsoon Semesters (odd) */}
+                                <div className="space-y-3">
+                                    <div className="font-semibold text-sm bg-amber-100 dark:bg-amber-900/30 px-3 py-2 rounded">
+                                        Monsoon Semester
+                                    </div>
+                                    {currentTrajectory.semesters
+                                        .filter((s) => s.semester % 2 === 1)
+                                        .map((sem) => (
+                                            <div key={sem.semester} className="border rounded-lg overflow-hidden">
+                                                <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-900/20 px-3 py-2">
+                                                    <span className="font-medium text-sm">{sem.name}</span>
+                                                    {sem.courses.length > 0 && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-6 text-xs gap-1"
+                                                            onClick={() => addSemesterCoursesToTray(sem.courses)}
+                                                        >
+                                                            <Plus size={12} />
+                                                            Add All
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                                {sem.courses.length > 0 ? (
+                                                    <div className="divide-y">
+                                                        {sem.courses.map((course, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="flex items-center justify-between px-3 py-2 text-sm hover:bg-muted/50"
+                                                            >
+                                                                <span>
+                                                                    {course.name}
+                                                                    {course.credits !== 4 && (
+                                                                        <span className="text-muted-foreground ml-1">
+                                                                            ({course.credits} credits)
+                                                                        </span>
+                                                                    )}
+                                                                </span>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-6 text-xs gap-1 text-primary hover:text-primary"
+                                                                    onClick={() => addCourseToTray(course)}
+                                                                >
+                                                                    <Plus size={12} />
+                                                                    Add
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="px-3 py-2 text-sm text-muted-foreground italic">
+                                                        Electives / Open credits
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                </div>
+
+                                {/* Spring Semesters (even) */}
+                                <div className="space-y-3">
+                                    <div className="font-semibold text-sm bg-blue-100 dark:bg-blue-900/30 px-3 py-2 rounded">
+                                        Spring Semester
+                                    </div>
+                                    {currentTrajectory.semesters
+                                        .filter((s) => s.semester % 2 === 0)
+                                        .map((sem) => (
+                                            <div key={sem.semester} className="border rounded-lg overflow-hidden">
+                                                <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 px-3 py-2">
+                                                    <span className="font-medium text-sm">{sem.name}</span>
+                                                    {sem.courses.length > 0 && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-6 text-xs gap-1"
+                                                            onClick={() => addSemesterCoursesToTray(sem.courses)}
+                                                        >
+                                                            <Plus size={12} />
+                                                            Add All
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                                {sem.courses.length > 0 ? (
+                                                    <div className="divide-y">
+                                                        {sem.courses.map((course, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="flex items-center justify-between px-3 py-2 text-sm hover:bg-muted/50"
+                                                            >
+                                                                <span>
+                                                                    {course.name}
+                                                                    {course.credits !== 4 && (
+                                                                        <span className="text-muted-foreground ml-1">
+                                                                            ({course.credits} credits)
+                                                                        </span>
+                                                                    )}
+                                                                </span>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-6 text-xs gap-1 text-primary hover:text-primary"
+                                                                    onClick={() => addCourseToTray(course)}
+                                                                >
+                                                                    <Plus size={12} />
+                                                                    Add
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="px-3 py-2 text-sm text-muted-foreground italic">
+                                                        Electives / Open credits
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+
+                            {/* Notes */}
+                            {currentTrajectory.notes && (
+                                <p className="text-sm text-muted-foreground mt-4 italic">
+                                    {currentTrajectory.notes}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowTrajectoryDialog(false)}>
+                            Close
                         </Button>
                     </DialogFooter>
                 </DialogContent>
