@@ -6,7 +6,7 @@ import { degreeTemplates, idealTrajectories } from "../templates"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText } from "lucide-react"
+import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import type { Course } from "../types"
 import {
@@ -30,6 +30,14 @@ import {
     DisclosureContent,
     DisclosureTrigger,
 } from "@/components/ui/disclosure"
+import {
+    CommandDialog,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
@@ -48,6 +56,7 @@ export function SummaryAndTemplateTable() {
     const [selectedTemplate, setSelectedTemplate] = useState<string>(selectedDegreeId || "")
     const [showLoadDialog, setShowLoadDialog] = useState(false)
     const [showTrajectoryDialog, setShowTrajectoryDialog] = useState(false)
+    const [showContactDialog, setShowContactDialog] = useState(false)
     const [cgpaInput, setCgpaInput] = useState("")
     const [loadResult, setLoadResult] = useState<{ success: boolean; message: string } | null>(null)
     const [isSummaryOpen, setIsSummaryOpen] = useState(true)
@@ -263,6 +272,16 @@ export function SummaryAndTemplateTable() {
                         View Policy
                     </Button>
                 )}
+
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => setShowContactDialog(true)}
+                >
+                    <Contact size={14} />
+                    Contact Reps
+                </Button>
             </div>
 
             {/* Load Previous Semesters Dialog */}
@@ -456,6 +475,63 @@ export function SummaryAndTemplateTable() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Contact Reps Dialog */}
+            <CommandDialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+                <CommandInput placeholder="Search representatives..." />
+                <CommandList>
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandGroup heading="Department Representatives">
+                        {[
+                            { dept: "Computer Science", email: "cs.rep@ashoka.edu.in" },
+                            { dept: "Physics", email: "physics.rep@ashoka.edu.in" },
+                            { dept: "Mathematics", email: "math.rep@ashoka.edu.in" },
+                            { dept: "Biology", email: "biology.rep@ashoka.edu.in" },
+                            { dept: "Economics", email: "econ.rep@ashoka.edu.in" },
+                            { dept: "English", email: "english.rep@ashoka.edu.in" },
+                            { dept: "History", email: "history.rep@ashoka.edu.in" },
+                            { dept: "Psychology", email: "psychology.rep@ashoka.edu.in" },
+                            { dept: "Sociology/Anthropology", email: "socanth.rep@ashoka.edu.in" },
+                            { dept: "Political Science", email: "polsci.rep@ashoka.edu.in" },
+                            { dept: "Chemistry", email: "chemistry.rep@ashoka.edu.in" },
+                            { dept: "Philosophy", email: "philosophy.rep@ashoka.edu.in" },
+                        ].map((rep) => (
+                            <CommandItem
+                                key={rep.dept}
+                                className="flex items-center justify-between cursor-default"
+                            >
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <span className="font-medium truncate">{rep.dept} Representative</span>
+                                    <span
+                                        className="text-xs text-muted-foreground hover:underline cursor-pointer truncate hidden sm:inline-block"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            navigator.clipboard.writeText(rep.email)
+                                        }}
+                                        title="Click to copy email"
+                                    >
+                                        {rep.email}
+                                    </span>
+                                </div>
+                                <Button
+                                    variant="animatedGhost"
+                                    size="icon"
+                                    className="h-8 w-8 text-primary hover:text-primary/80 hover:underline dark:text-secondary shrink-0"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        window.open(
+                                            `https://mail.google.com/mail/?view=cm&fs=1&to=${rep.email}`,
+                                            "_blank",
+                                        )
+                                    }}
+                                >
+                                    <Mail size={16} />
+                                </Button>
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                </CommandList>
+            </CommandDialog>
         </>
     )
 }
