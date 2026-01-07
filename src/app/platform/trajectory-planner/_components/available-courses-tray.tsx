@@ -1,7 +1,7 @@
 "use client"
 
 import { useDroppable } from "@dnd-kit/core"
-import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable"
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useCoursePlanner } from "../course-planner-context"
 import { CourseCard } from "./course-card"
 import { cn } from "@/lib/utils"
@@ -26,35 +26,33 @@ export function AvailableCoursesTray() {
     }
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-3 h-full flex flex-col">
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Available Courses</h2>
-                <Button onClick={addNewCourse} size="sm" className="h-8 gap-1">
-                    <Plus size={16} /> Add Course
+                <h2 className="text-lg font-bold">Courses</h2>
+                <Button onClick={addNewCourse} size="sm" className="h-7 text-xs gap-1">
+                    <Plus size={14} /> Add
                 </Button>
             </div>
 
             <div
                 ref={setNodeRef}
                 className={cn(
-                    "min-h-[140px] p-4 rounded-xl border border-dashed transition-colors flex gap-4 overflow-x-auto bg-muted/10",
+                    "flex-1 min-h-[150px] p-2 rounded-xl border border-dashed transition-colors flex flex-col gap-3 overflow-y-auto bg-muted/10 custom-scrollbar",
                     isOver ? "border-primary bg-primary/5" : "border-border",
                 )}
             >
-                <SortableContext items={state.availableCourses.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
-                    {state.availableCourses.map((course) => (
-                        <div key={course.id} className="min-w-[240px]">
-                            <CourseCard course={course} />
+                <SortableContext items={state.availableCourses.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                    {state.availableCourses.length > 0 ? (
+                        state.availableCourses.map((course) => (
+                            <CourseCard key={course.id} course={course} />
+                        ))
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-4 text-center">
+                            <p className="text-sm font-medium">No courses</p>
+                            <p className="text-xs mt-1">Add or drag courses here</p>
                         </div>
-                    ))}
+                    )}
                 </SortableContext>
-
-                {state.availableCourses.length === 0 && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-                        <p className="text-sm font-medium">No courses in tray</p>
-                        <p className="text-xs">Drag courses here to park them or click "Add Course"</p>
-                    </div>
-                )}
             </div>
         </div>
     )

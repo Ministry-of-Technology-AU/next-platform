@@ -127,14 +127,22 @@ export function CoursePlannerBoard() {
 
                 <SummaryAndTemplateTable />
 
-                <AvailableCoursesTray />
+                <div className="flex flex-col md:flex-row gap-6 h-full items-start">
+                    {/* Available Course Tray Side Panel */}
+                    <div className="w-full md:w-64 shrink-0 top-24 sticky self-start max-h-[calc(100vh-120px)] overflow-hidden flex flex-col">
+                        <AvailableCoursesTray />
+                    </div>
 
-                <div className="flex flex-wrap gap-6 justify-center md:justify-start">
-                    {state.semesters.map((semester) => (
-                        <div key={semester.id} className="w-full md:w-[320px] shrink-0">
-                            <SemesterColumn semester={semester} />
+                    {/* Semester Columns */}
+                    <div className="flex-1 w-full overflow-x-auto pb-4">
+                        <div className="flex gap-6 min-w-max pb-24 px-1">
+                            {state.semesters.map((semester) => (
+                                <div key={semester.id} className="w-full md:w-[320px] shrink-0">
+                                    <SemesterColumn semester={semester} />
+                                </div>
+                            ))}
                         </div>
-                    ))}
+                    </div>
                 </div>
             </div>
 

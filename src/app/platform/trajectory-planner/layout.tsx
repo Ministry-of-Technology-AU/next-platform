@@ -2,6 +2,7 @@ import React from 'react';
 import PageTitle from '@/components/page-title';
 import DeveloperCredits from '@/components/developer-credits';
 import { Map, Route } from 'lucide-react';
+import { OrientationDialog } from '@/components/orientation-dialog';
 
 export default function TrajectoryPlannerLayout({
     children,
@@ -27,6 +28,7 @@ export default function TrajectoryPlannerLayout({
                 {children}
 
                 <DeveloperCredits developers={developers} />
+                <OrientationDialog />
             </div>
         </div>
     );

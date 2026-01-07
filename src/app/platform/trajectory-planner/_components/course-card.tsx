@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCoursePlanner } from "../course-planner-context"
 import { cn } from "@/lib/utils"
-import { GripVertical, Trash2, Pencil, Undo2, Check } from "lucide-react"
+import { GripVertical, Trash2, Pencil, Undo2, Check, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { gradeOptions } from "../templates"
 
@@ -70,20 +70,21 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
         updateCourseGrade(course.id, grade)
     }
 
+    // Using global colors as requested
     const getBadgeColor = (type: CourseType) => {
         switch (type) {
             case "Major":
-                return "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                return "bg-primary/10 text-primary border-primary/20"
             case "Minor":
-                return "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                return "bg-secondary/20 text-secondary-extradark border-secondary/20"
             case "FC":
-                return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                return "bg-green/15 text-green-dark border-green/20"
             case "CC":
-                return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                return "bg-blue/15 text-blue-dark border-blue/20"
             case "Open":
-                return "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
+                return "bg-gray/15 text-gray-dark border-gray/20"
             default:
-                return "bg-gray-100 text-gray-700"
+                return "bg-gray/15 text-gray-dark border-gray/20"
         }
     }
 
@@ -108,37 +109,50 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     className="h-7 text-sm font-semibold border-none focus-visible:ring-1 focus-visible:ring-primary p-0 bg-transparent shadow-none"
                                 />
                             ) : (
-                                <h4 className="text-sm font-semibold leading-tight">{course.name}</h4>
+                                <h4 className="text-sm font-semibold leading-tight text-left">{course.name}</h4>
                             )}
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                                <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", getBadgeColor(course.type))}>
+                            <div className="flex flex-wrap gap-1.5 mt-2 items-center">
+                                <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 border", getBadgeColor(course.type))}>
                                     {course.type}
                                 </Badge>
                                 {course.deptCode && (
-                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-amber-800">
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-secondary/30 text-secondary-extradark hover:bg-secondary/40 border-transparent">
                                         {course.deptCode}
                                     </Badge>
                                 )}
-                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/20 text-primary">
-                                    {course.credits} Credits
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/20 text-primary">
+                                    {course.credits} Cr
                                 </Badge>
-                                {/* Grade badge for courses in semester */}
-                                {isInSemester && course.grade && (
-                                    <Badge
-                                        variant="outline"
-                                        className={cn(
-                                            "text-[10px] px-1.5 py-0 font-bold",
-                                            course.grade === 'A' || course.grade === 'A-'
-                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 border-emerald-500/50"
-                                                : course.grade.startsWith('B')
-                                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 border-blue-500/50"
-                                                    : course.grade.startsWith('C')
-                                                        ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 border-yellow-500/50"
-                                                        : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 border-red-500/50"
-                                        )}
-                                    >
-                                        {course.grade}
-                                    </Badge>
+
+                                {/* Grade Selector Badge Replacement */}
+                                {isInSemester && !isEditMode && (
+                                    <div className="relative">
+                                        <Select value={course.grade || "none"} onValueChange={handleGradeChange}>
+                                            <SelectTrigger
+                                                className={cn(
+                                                    "h-5 text-[10px] px-1.5 gap-1 rounded-full border shadow-none bg-transparent hover:bg-muted/50 focus:ring-0 flex items-center",
+                                                    course.grade
+                                                        ? (course.grade.startsWith('A')
+                                                            ? "bg-green/10 text-green-dark border-green/20"
+                                                            : course.grade.startsWith('B')
+                                                                ? "bg-blue/10 text-blue-dark border-blue/20"
+                                                                : "bg-gray/10 text-gray-dark border-gray/20")
+                                                        : "bg-muted/30 text-muted-foreground border-transparent"
+                                                )}
+                                            >
+                                                <span className="font-bold leading-none translate-y-[0.5px]">{course.grade || "Gr"}</span>
+                                                <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">No Grade</SelectItem>
+                                                {gradeOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -186,24 +200,6 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                             )}
                         </div>
                     </div>
-
-                    {/* Grade selector for courses in semester */}
-                    {isInSemester && !isEditMode && (
-                        <div className="pt-1 border-t border-border/50">
-                            <Select value={course.grade || "none"} onValueChange={handleGradeChange}>
-                                <SelectTrigger className="h-7 text-xs bg-muted/30 border-none shadow-none">
-                                    <SelectValue placeholder="Select Grade" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {gradeOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
 
                     {showEditable && (
                         <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/50">
