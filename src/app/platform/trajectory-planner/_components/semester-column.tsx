@@ -7,16 +7,17 @@ import type { Semester } from "../types"
 import { CourseCard } from "./course-card"
 import { useCoursePlanner } from "../course-planner-context"
 import { cn } from "@/lib/utils"
-import { AlertCircle, Trash2, Pencil, Check } from "lucide-react"
+import { AlertCircle, Trash2, Pencil, Check, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SemesterColumnProps {
     semester: Semester
+    onHide?: () => void
 }
 
-export function SemesterColumn({ semester }: SemesterColumnProps) {
+export function SemesterColumn({ semester, onHide }: SemesterColumnProps) {
     const { getSemesterCredits, deleteSemester, getSemesterGPA, updateSemester } = useCoursePlanner()
     const { setNodeRef, isOver } = useDroppable({
         id: semester.id,
@@ -120,14 +121,25 @@ export function SemesterColumn({ semester }: SemesterColumnProps) {
                         )}
                     </div>
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => deleteSemester(semester.id)}
-                >
-                    <Trash2 size={14} />
-                </Button>
+                <div className="flex items-center">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        onClick={onHide}
+                        title="Hide semester"
+                    >
+                        <Eye size={14} />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => deleteSemester(semester.id)}
+                    >
+                        <Trash2 size={14} />
+                    </Button>
+                </div>
             </div>
 
             <div

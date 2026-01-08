@@ -17,12 +17,23 @@ import { CourseCard } from "./course-card"
 import { AvailableCoursesTray } from "./available-courses-tray"
 import { SummaryAndTemplateTable } from "./summary-and-template-table"
 import type { Course } from "../types"
-import { Save } from "lucide-react"
+import { Save, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function CoursePlannerBoard() {
     const { state, moveCourse, exportState } = useCoursePlanner()
     const [activeCourse, setActiveCourse] = useState<Course | null>(null)
+    const [hiddenSemesterIds, setHiddenSemesterIds] = useState<string[]>([])
+
+    const toggleSemesterVisibility = (id: string) => {
+        setHiddenSemesterIds(prev =>
+            prev.includes(id)
+                ? prev.filter(sid => sid !== id)
+                : [...prev, id]
+        )
+    }
+
+    const visibleSemesters = state.semesters.filter(s => !hiddenSemesterIds.includes(s.id))
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -129,18 +140,47 @@ export function CoursePlannerBoard() {
 
                 <div className="flex flex-col md:flex-row gap-6 h-full items-start">
                     {/* Available Course Tray Side Panel */}
-                    <div className="w-full md:w-64 shrink-0 top-24 sticky self-start max-h-[calc(100vh-120px)] overflow-hidden flex flex-col">
+                    <div className="w-full md:w-64 shrink-0 top-24 sticky self-start max-h-[calc(100vh-160px)] overflow-hidden flex flex-col">
                         <AvailableCoursesTray />
                     </div>
 
                     {/* Semester Columns */}
                     <div className="flex-1 w-full overflow-x-auto pb-4">
-                        <div className="flex gap-6 min-w-max pb-24 px-1">
-                            {state.semesters.map((semester) => (
-                                <div key={semester.id} className="w-full md:w-[320px] shrink-0">
-                                    <SemesterColumn semester={semester} />
+                        <div className="flex flex-col gap-4 min-w-max pb-24 px-1">
+                            {/* Hidden Semesters Button Array */}
+                            {hiddenSemesterIds.length > 0 && (
+                                <div className="flex gap-2 items-center p-2 bg-muted/20 rounded-lg border border-dashed text-sm">
+                                    <span className="text-muted-foreground font-medium px-1 flex items-center gap-1">
+                                        <EyeOff size={14} />
+                                        Hidden Semesters:
+                                    </span>
+                                    {state.semesters
+                                        .filter(s => hiddenSemesterIds.includes(s.id))
+                                        .map(s => (
+                                            <Button
+                                                key={s.id}
+                                                variant="secondary"
+                                                size="sm"
+                                                className="h-7 text-xs gap-1.5"
+                                                onClick={() => toggleSemesterVisibility(s.id)}
+                                            >
+                                                <Eye size={12} />
+                                                {s.name}
+                                            </Button>
+                                        ))}
                                 </div>
-                            ))}
+                            )}
+
+                            <div className="flex gap-6">
+                                {visibleSemesters.map((semester) => (
+                                    <div key={semester.id} className="w-full md:w-[320px] shrink-0">
+                                        <SemesterColumn
+                                            semester={semester}
+                                            onHide={() => toggleSemesterVisibility(semester.id)}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>

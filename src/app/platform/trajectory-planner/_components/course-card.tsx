@@ -130,7 +130,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                         <Select value={course.grade || "none"} onValueChange={handleGradeChange}>
                                             <SelectTrigger
                                                 className={cn(
-                                                    "h-5 text-[10px] px-1.5 gap-1 rounded-full border shadow-none bg-transparent hover:bg-muted/50 focus:ring-0 flex items-center",
+                                                    "h-5 text-[10px] px-1.5 gap-1 rounded-full border shadow-none bg-transparent hover:bg-muted/50 focus:ring-0 flex items-center min-w-[50px] justify-between",
                                                     course.grade
                                                         ? (course.grade.startsWith('A')
                                                             ? "bg-green/10 text-green-dark border-green/20"
@@ -141,10 +141,13 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                                 )}
                                             >
                                                 <span className="font-bold leading-none translate-y-[0.5px]">{course.grade || "Gr"}</span>
-                                                <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+                                                {/* Chevron is automatically added by SelectTrigger often, but if not, we keep it simple. User mentioned double arrows, so likely removing this fixes it. */}
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">No Grade</SelectItem>
+                                                {/* "none" option removed as it is likely in gradeOptions, or we rely on gradeOptions containing it. 
+                                                    Wait, templates.ts shows gradeOptions HAS { value: "none", label: "No Grade" }. 
+                                                    So we must NOT add it manually here. 
+                                                */}
                                                 {gradeOptions.map((option) => (
                                                     <SelectItem key={option.value} value={option.value}>
                                                         {option.label}
