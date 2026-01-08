@@ -8,6 +8,9 @@ import { cn } from "@/lib/utils"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { v4 as uuidv4 } from "uuid"
+import {
+    ScrollArea
+} from "@/components/ui/scroll-area"
 
 export function AvailableCoursesTray() {
     const { state, addCourse } = useCoursePlanner()
