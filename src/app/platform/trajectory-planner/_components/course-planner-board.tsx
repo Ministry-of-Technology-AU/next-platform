@@ -6,6 +6,7 @@ import {
     DragOverlay,
     type DragStartEvent,
     PointerSensor,
+    TouchSensor,
     useSensor,
     useSensors,
     rectIntersection,
@@ -41,6 +42,12 @@ export function CoursePlannerBoard() {
         useSensor(PointerSensor, {
             activationConstraint: {
                 distance: 8,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
             },
         }),
     )
@@ -149,8 +156,8 @@ export function CoursePlannerBoard() {
                 <SummaryAndTemplateTable />
 
                 <div className="flex flex-col md:flex-row gap-6 h-full items-start">
-                    {/* Available Course Tray Side Panel */}
-                    <div className="w-full md:w-64 shrink-0 top-24 sticky self-start h-[calc(100vh-160px)] overflow-hidden flex flex-col">
+                    {/* Available Course Tray - Full width on mobile, side panel on desktop */}
+                    <div className="w-full md:w-64 shrink-0 md:sticky md:top-24 md:self-start md:h-[calc(100vh-160px)] overflow-hidden flex flex-col">
                         <AvailableCoursesTray />
                     </div>
 
@@ -245,7 +252,7 @@ export function CoursePlannerBoard() {
                         duration-300
                       "
                     >
-                        {isSaving ? 'Saving' : 'Save Trajectory'}
+                        {isSaving ? 'Saving...' : 'Save Trajectory'}
                     </span>
                 </span>
             </Button>
