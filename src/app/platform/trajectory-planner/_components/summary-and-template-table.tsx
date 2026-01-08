@@ -284,19 +284,19 @@ export function SummaryAndTemplateTable() {
                     Contact Reps
                 </Button>
 
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button disabled variant="outline" size="sm" className="gap-1 cursor-not-allowed opacity-60">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div className="inline-block cursor-not-allowed">
+                            <Button disabled variant="outline" size="sm" className="gap-1 opacity-60 pointer-events-none">
                                 <Save size={14} />
                                 Save Template
                             </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Coming Soon!</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Coming Soon!</p>
+                    </TooltipContent>
+                </Tooltip>
             </div>
 
             {/* Load Previous Semesters Dialog */}

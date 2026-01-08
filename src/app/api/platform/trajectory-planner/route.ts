@@ -2,6 +2,50 @@ import { NextRequest, NextResponse } from "next/server";
 import { strapiPut, strapiGet } from "@/lib/apis/strapi";
 import { getAuthenticatedUser } from "@/lib/auth";
 
+export async function GET() {
+    try {
+        const user = await getAuthenticatedUser();
+
+        if (!user || !user.email) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        // Get user ID from Strapi using email
+        const userResponse = await strapiGet("users", {
+            filters: {
+                email: user.email
+            },
+            fields: ["id", "email", "course_trajectory"]
+        });
+
+        const users = Array.isArray(userResponse) ? userResponse : (userResponse as any)?.results || [];
+        const strapiUser = users[0];
+
+        if (!strapiUser) {
+            return NextResponse.json(
+                { success: false, error: "User not found in backend" },
+                { status: 404 }
+            );
+        }
+
+        // Return the course trajectory data
+        return NextResponse.json({
+            success: true,
+            data: strapiUser.course_trajectory || null
+        });
+
+    } catch (error) {
+        console.error("Error fetching trajectory:", error);
+        return NextResponse.json(
+            { success: false, error: "Failed to fetch trajectory" },
+            { status: 500 }
+        );
+    }
+}
+
 export async function POST(request: NextRequest) {
     try {
         const user = await getAuthenticatedUser();
