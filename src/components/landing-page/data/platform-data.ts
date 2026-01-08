@@ -34,7 +34,7 @@ export const banners: Array<{
         {
           variant: "default",
           children: "Apply Now!",
-          onClick: () => window.location.href = "mailto:technology.ministry@ashoka.edu.in",
+          onClick: () => window.open("https://linktr.ee/neev.ashoka", "_blank"),
           className: "bg-secondary-light text-green hover:bg-green-light/80 hover:text-secondary-light uppercase font-black",
         }
       ]
