@@ -107,18 +107,32 @@ export function CoursePlannerBoard() {
 
     const [isSaving, setIsSaving] = useState(false)
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setIsSaving(true)
-        // Simulate save delay
-        setTimeout(() => {
+        try {
             const jsonState = exportState()
-            console.log("[v0] Course Planner State (ready for DB):")
-            console.log(jsonState)
+            const response = await fetch("/api/platform/trajectory-planner", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ state: JSON.parse(jsonState) }),
+            })
 
-            // Also show a brief success message
-            console.log("[v0] State logged above. Copy this JSON to persist to your database.")
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to save")
+            }
+
+            console.log("Saved successfully:", data)
+            // You might want to show a toast here in a real app
+        } catch (error) {
+            console.error("Save failed:", error)
+            alert("Failed to save trajectory. Please try again.")
+        } finally {
             setIsSaving(false)
-        }, 1000)
+        }
     }
 
     return (
@@ -129,12 +143,7 @@ export function CoursePlannerBoard() {
             onDragEnd={handleDragEnd}
         >
             <div className="flex flex-col gap-8">
-                {/* <div className="flex items-center justify-end">
-                    <Button onClick={handleSave} className="gap-2">
-                        <Save size={16} />
-                        Save Trajectory Plan
-                    </Button>
-                </div> */}
+
 
                 <SummaryAndTemplateTable />
 

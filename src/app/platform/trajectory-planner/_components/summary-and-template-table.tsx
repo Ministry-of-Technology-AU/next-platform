@@ -6,7 +6,7 @@ import { degreeTemplates, idealTrajectories } from "../templates"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail } from "lucide-react"
+import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail, Save } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import type { Course } from "../types"
 import {
@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/command"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function SummaryAndTemplateTable() {
     const {
@@ -282,6 +283,20 @@ export function SummaryAndTemplateTable() {
                     <Contact size={14} />
                     Contact Reps
                 </Button>
+
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button disabled variant="outline" size="sm" className="gap-1 cursor-not-allowed opacity-60">
+                                <Save size={14} />
+                                Save Template
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Coming Soon!</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
 
             {/* Load Previous Semesters Dialog */}
