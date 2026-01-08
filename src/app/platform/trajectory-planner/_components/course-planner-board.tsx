@@ -19,6 +19,8 @@ import { SummaryAndTemplateTable } from "./summary-and-template-table"
 import type { Course } from "../types"
 import { Save, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "sonner"
 
 export function CoursePlannerBoard() {
     const { state, moveCourse, exportState } = useCoursePlanner()
@@ -125,11 +127,10 @@ export function CoursePlannerBoard() {
                 throw new Error(data.error || "Failed to save")
             }
 
-            console.log("Saved successfully:", data)
-            // You might want to show a toast here in a real app
+            toast.success("Trajectory saved successfully!")
         } catch (error) {
             console.error("Save failed:", error)
-            alert("Failed to save trajectory. Please try again.")
+            toast.error("Failed to save trajectory. Please try again.")
         } finally {
             setIsSaving(false)
         }
@@ -223,24 +224,28 @@ export function CoursePlannerBoard() {
               `}
                 style={{ minWidth: "3.5rem" }}
             >
-                <span className="flex items-center w-full justify-center group-hover:justify-start">
-                    <Save
-                        className={`w-15 h-15 flex-shrink-0 text-center ${isSaving ? 'animate-pulse' : ''}`}
-                        strokeWidth={2.5}
-                    />
+                <span className="flex items-center justify-center group-hover:justify-start">
+                    {isSaving ? (
+                        <Spinner className="w-6 h-6 flex-shrink-0" />
+                    ) : (
+                        <Save
+                            className="w-6 h-6 flex-shrink-0"
+                            strokeWidth={2.5}
+                        />
+                    )}
                     <span
-                        className={`
-                    ml-4
-                    text-lg
-                    font-semibold
-                    whitespace-nowrap
-                    hidden
-                    group-hover:inline
-                    transition-all
-                    duration-300
-                  `}
+                        className="
+                        ml-3
+                        text-lg
+                        font-semibold
+                        whitespace-nowrap
+                        hidden
+                        group-hover:inline
+                        transition-all
+                        duration-300
+                      "
                     >
-                        {isSaving ? 'Saving...' : 'Save Trajectory'}
+                        {isSaving ? 'Saving' : 'Save Trajectory'}
                     </span>
                 </span>
             </Button>
