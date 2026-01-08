@@ -319,8 +319,11 @@ export function CoursePlannerProvider({ children }: { children: ReactNode }) {
         const semester = state.semesters.find((s) => s.id === semesterId)
         if (!semester) return null
 
+        // GPA Calculation:
+        // 1. Exclude 'P' (Pass) and 'TP' (Teaching Practicum) from calculation entirely.
+        // 2. 'F' grade IS included: standard logic maps 'F' to 0.0 points in templates.ts, so it adds to denominator but 0 to numerator.
         const coursesWithGrades = semester.courses.filter(
-            (c) => c.grade && c.grade !== 'P' && gradePointsMap[c.grade] !== undefined
+            (c) => c.grade && c.grade !== 'P' && c.grade !== 'TP' && gradePointsMap[c.grade] !== undefined
         )
 
         if (coursesWithGrades.length === 0) return null
@@ -345,7 +348,7 @@ export function CoursePlannerProvider({ children }: { children: ReactNode }) {
 
         for (const semester of state.semesters) {
             for (const course of semester.courses) {
-                if (course.grade && course.grade !== 'P' && gradePointsMap[course.grade] !== undefined) {
+                if (course.grade && course.grade !== 'P' && course.grade !== 'TP' && gradePointsMap[course.grade] !== undefined) {
                     const gradePoints = gradePointsMap[course.grade] ?? 0
                     totalGradePoints += gradePoints * course.credits
                     totalCredits += course.credits
@@ -361,6 +364,11 @@ export function CoursePlannerProvider({ children }: { children: ReactNode }) {
 
         for (const semester of state.semesters) {
             for (const course of semester.courses) {
+                // If grade is 'F', do NOT count it towards gained credits.
+                // 'P' and 'TP' ARE counted towards credits (just not GPA).
+                // Ungraded (planned) courses are counted as projected credits.
+                if (course.grade === 'F') continue
+
                 credits.total += course.credits
                 switch (course.type) {
                     case "Major":
