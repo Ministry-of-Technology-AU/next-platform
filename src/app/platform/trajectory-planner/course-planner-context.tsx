@@ -44,18 +44,7 @@ const CoursePlannerContext = createContext<CoursePlannerContextType | undefined>
 
 export function CoursePlannerProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<CoursePlannerState>(() => {
-        // Initialize with 8 semesters and default courses
-        if (typeof window !== "undefined") {
-            const saved = localStorage.getItem("course-planner-state")
-            if (saved) {
-                try {
-                    return JSON.parse(saved)
-                } catch (e) {
-                    console.error("[v0] Failed to parse saved state", e)
-                }
-            }
-        }
-
+        // Always initialize with default state for consistent server/client rendering
         const semesters: Semester[] = Array.from({ length: 8 }, (_, i) => ({
             id: `semester-${i + 1}`,
             name: `Semester ${i + 1}`,
@@ -73,17 +62,37 @@ export function CoursePlannerProvider({ children }: { children: ReactNode }) {
         }
     })
 
-    // Selected degree template (persisted in localStorage)
-    const [selectedDegreeId, setSelectedDegreeIdState] = useState<string | null>(() => {
-        if (typeof window !== "undefined") {
-            return localStorage.getItem("selected-degree-id")
-        }
-        return null
-    })
+    // Selected degree template
+    const [selectedDegreeId, setSelectedDegreeIdState] = useState<string | null>(null)
+    const [isInitialized, setIsInitialized] = useState(false)
 
+    // Load from local storage on mount
     useEffect(() => {
-        localStorage.setItem("course-planner-state", JSON.stringify(state))
-    }, [state])
+        if (typeof window !== "undefined") {
+            const savedState = localStorage.getItem("course-planner-state")
+            if (savedState) {
+                try {
+                    setState(JSON.parse(savedState))
+                } catch (e) {
+                    console.error("[v0] Failed to parse saved state", e)
+                }
+            }
+
+            const savedDegree = localStorage.getItem("selected-degree-id")
+            if (savedDegree) {
+                setSelectedDegreeIdState(savedDegree)
+            }
+
+            setIsInitialized(true)
+        }
+    }, [])
+
+    // Persist state updates (only after initialization to avoid overwriting with defaults)
+    useEffect(() => {
+        if (isInitialized) {
+            localStorage.setItem("course-planner-state", JSON.stringify(state))
+        }
+    }, [state, isInitialized])
 
     // Persist degree selection
     const setSelectedDegree = (degreeId: string | null) => {

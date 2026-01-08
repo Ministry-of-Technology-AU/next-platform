@@ -140,7 +140,7 @@ export function CoursePlannerBoard() {
 
                 <div className="flex flex-col md:flex-row gap-6 h-full items-start">
                     {/* Available Course Tray Side Panel */}
-                    <div className="w-full md:w-64 shrink-0 top-24 sticky self-start max-h-[calc(100vh-160px)] overflow-hidden flex flex-col">
+                    <div className="w-full md:w-64 shrink-0 top-24 sticky self-start h-[calc(100vh-160px)] overflow-hidden flex flex-col">
                         <AvailableCoursesTray />
                     </div>
 
