@@ -20,12 +20,12 @@ jobs:
         node-version: '16'
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
     - name: Run tests and lint
-      run: npm test
-           npm ci 
-           npm run lint
+      run: |
+        npm test
+        npm run lint
 
     - name: Build application (validate)
       env:
