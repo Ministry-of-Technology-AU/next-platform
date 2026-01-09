@@ -2,6 +2,7 @@ import React from 'react';
 import PageTitle from '@/components/page-title';
 import DeveloperCredits from '@/components/developer-credits';
 import { Map, Route } from 'lucide-react';
+import { NewToolBanner } from '@/components/new-tool-banner';
 import { OrientationDialog } from '@/components/orientation-dialog';
 
 export default function TrajectoryPlannerLayout({
@@ -15,21 +16,24 @@ export default function TrajectoryPlannerLayout({
     ];
 
     return (
-        <div className="w-full flex flex-col min-h-screen">
-            <div className="container mx-auto px-4 py-6 flex-1 flex flex-col">
-                <div className="mb-6">
-                    <PageTitle
-                        text="Course Trajectory Planner"
-                        subheading="Plan your academic journey semester by semester"
-                        icon={Route}
-                    />
+        <>
+            <NewToolBanner className="mb-6" />
+            <div className="w-full flex flex-col min-h-screen">
+                <div className="container mx-auto px-4 py-6 flex-1 flex flex-col">
+                    <div className="mb-6">
+                        <PageTitle
+                            text="Course Trajectory Planner"
+                            subheading="Plan your academic journey semester by semester"
+                            icon={Route}
+                        />
+                    </div>
+
+                    {children}
+
+                    <DeveloperCredits developers={developers} />
+                    <OrientationDialog />
                 </div>
-
-                {children}
-
-                <DeveloperCredits developers={developers} />
-                <OrientationDialog />
             </div>
-        </div>
+        </>
     );
 }
