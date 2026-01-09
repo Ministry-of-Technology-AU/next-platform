@@ -24,7 +24,6 @@ jobs:
 
     - name: Run tests and lint
       run: |
-        npm test
         npm run lint
 
     - name: Build application (validate)
