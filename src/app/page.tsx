@@ -3,13 +3,10 @@ import PageTitle from "@/components/page-title";
 import { Button } from "@/components/ui/button";
 import { Hammer } from "lucide-react";
 import Image from "next/image";
-import { NewToolBanner } from "@/components/new-tool-banner";
-
 
 export default function LandingPage() {
   return (
     <div className="container pt-12 px-8 flex flex-col items-center">
-      <NewToolBanner className="mb-6" />
       <PageTitle text="This page is under construction" icon={Hammer} subheading="We're working hard to get this page ready for you. Stay tuned!" />
       <Image
         src="/mascot-construction.png"

@@ -1,0 +1,60 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { Announcement, AnnouncementTitle, AnnouncementTag } from "@/components/ui/shadcn-io/announcement";
+import { Button } from "@/components/ui/button";
+import { X } from 'lucide-react';
+
+export function NewToolAlert({ href, title, className }: { href: string, title: string, className?: string }) {
+    const [isVisible, setIsVisible] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    useEffect(() => {
+        // Show the component immediately (but off-screen)
+        setIsVisible(true);
+        // Animate it in after a brief delay to ensure initial render
+        const timer = setTimeout(() => {
+            setIsAnimating(true);
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const handleDismiss = () => {
+        setIsAnimating(false);
+        setTimeout(() => {
+            setIsVisible(false);
+        }, 300); // Wait for animation to complete
+    };
+
+    if (!isVisible) return null;
+
+    return (
+        <div
+            className={`fixed top-20 right-4 z-[100] transition-all duration-300 ease-out ${isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+                } ${className || ''}`}
+        >
+            <div className="relative">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleDismiss}
+                    className="absolute -top-2 -left-2 h-6 w-6 rounded-full bg-background border border-border hover:bg-destructive hover:text-destructive-foreground z-10 shadow-md"
+                    aria-label="Dismiss notification"
+                >
+                    <X className="h-3 w-3" />
+                </Button>
+                <Announcement className="bg-green/20 shadow-lg border-green/30">
+                    <AnnouncementTitle>
+                        <AnnouncementTag className="bg-green/50 ml-1">New Feature Added!</AnnouncementTag>
+                        <Button
+                            variant="animatedGhost"
+                            className="text-left underline text-sm hover:text-primary"
+                            onClick={() => (window.location.href = href)}
+                        >
+                            Check out {title}!
+                        </Button>
+                    </AnnouncementTitle>
+                </Announcement>
+            </div>
+        </div>
+    );
+}
