@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import { TooltipContent, TooltipTrigger, TooltipProvider, Tooltip } from "@/components/ui/tooltip"
+import { TourStep, TourTrigger } from "@/components/guided-tour"
+import { HelpCircle } from "lucide-react"
 
 export function CoursePlannerBoard() {
     const { state, moveCourse, exportState, addSemester } = useCoursePlanner()
@@ -190,10 +192,11 @@ export function CoursePlannerBoard() {
                             )}
 
                             <div className="flex gap-6">
-                                {visibleSemesters.map((semester) => (
+                                {visibleSemesters.map((semester, index) => (
                                     <div key={semester.id} className="w-full md:w-[320px] shrink-0">
                                         <SemesterColumn
                                             semester={semester}
+                                            isFirst={index === 0}
                                             onHide={() => toggleSemesterVisibility(semester.id)}
                                         />
                                     </div>
@@ -201,24 +204,31 @@ export function CoursePlannerBoard() {
 
                                 {/* Add Semester Button */}
                                 <div className="w-full md:w-[320px] shrink-0 flex items-center justify-center min-h-[400px]">
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    onClick={addSemester}
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="h-16 w-16 rounded-full border-2 border-dashed border-primary/50 hover:border-primary hover:bg-primary/10 transition-all"
-                                                    aria-label="Add new semester"
-                                                >
-                                                    <Plus className="h-8 w-8" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                Add New Semester
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
+                                    <TourStep
+                                        id="add-semester"
+                                        title="Add Semester"
+                                        content="Planning for more years? Add as many semesters as you need to visualize your entire degree."
+                                        order={7}
+                                    >
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        onClick={addSemester}
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-16 w-16 rounded-full border-2 border-dashed border-primary/50 hover:border-primary hover:bg-primary/10 transition-all"
+                                                        aria-label="Add new semester"
+                                                    >
+                                                        <Plus className="h-8 w-8" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    Add New Semester
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </TourStep>
                                 </div>
                             </div>
                         </div>
@@ -226,59 +236,67 @@ export function CoursePlannerBoard() {
                 </div>
             </div>
 
-            <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                className={`
-                fixed
-                bottom-6
-                right-6
-                z-50
-                h-14
-                w-14
-                rounded-full
-                flex
-                items-center
-                justify-center
-                bg-primary/70
-                shadow-lg
-                transition-all
-                duration-300
-                group
-                hover:w-56
-                hover:rounded-3xl
-                hover:justify-start
-                px-4
-                overflow-hidden
-                ${isSaving ? 'opacity-70' : ''}
-              `}
-                style={{ minWidth: "3.5rem" }}
+            <TourStep
+                id="save-trajectory"
+                title="Save Trajectory"
+                content="Your progress is automatically synced. Don't forget to hit Save to keep your latest changes!"
+                order={8}
+                position="left"
             >
-                <span className="flex items-center justify-center group-hover:justify-start">
-                    {isSaving ? (
-                        <Spinner className="w-6 h-6 flex-shrink-0" />
-                    ) : (
-                        <Save
-                            className="w-6 h-6 flex-shrink-0"
-                            strokeWidth={2.5}
-                        />
-                    )}
-                    <span
-                        className="
-                        ml-3
-                        text-lg
-                        font-semibold
-                        whitespace-nowrap
-                        hidden
-                        group-hover:inline
-                        transition-all
-                        duration-300
-                      "
-                    >
-                        {isSaving ? 'Saving...' : 'Save Trajectory'}
+                <Button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className={`
+                    fixed
+                    bottom-6
+                    right-6
+                    z-50
+                    h-14
+                    w-14
+                    rounded-full
+                    flex
+                    items-center
+                    justify-center
+                    bg-primary/70
+                    shadow-lg
+                    transition-all
+                    duration-300
+                    group
+                    hover:w-56
+                    hover:rounded-3xl
+                    hover:justify-start
+                    px-4
+                    overflow-hidden
+                    ${isSaving ? 'opacity-70' : ''}
+                `}
+                    style={{ minWidth: "3.5rem" }}
+                >
+                    <span className="flex items-center justify-center group-hover:justify-start">
+                        {isSaving ? (
+                            <Spinner className="w-6 h-6 flex-shrink-0" />
+                        ) : (
+                            <Save
+                                className="w-6 h-6 flex-shrink-0"
+                                strokeWidth={2.5}
+                            />
+                        )}
+                        <span
+                            className="
+                            ml-3
+                            text-lg
+                            font-semibold
+                            whitespace-nowrap
+                            hidden
+                            group-hover:inline
+                            transition-all
+                            duration-300
+                        "
+                        >
+                            {isSaving ? 'Saving...' : 'Save Trajectory'}
+                        </span>
                     </span>
-                </span>
-            </Button>
+                </Button>
+            </TourStep>
 
             <DragOverlay>{activeCourse ? <CourseCard course={activeCourse} isDragging /> : null}</DragOverlay>
         </DndContext>

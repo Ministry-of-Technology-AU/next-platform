@@ -41,6 +41,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TourStep } from "@/components/guided-tour"
 
 export function SummaryAndTemplateTable() {
     const {
@@ -127,140 +128,168 @@ export function SummaryAndTemplateTable() {
     return (
         <>
             {/* Academic Summary - Collapsible */}
-            <Card className="border-border bg-card">
-                <Disclosure open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
-                    <CardHeader className="pb-6">
-                        <DisclosureTrigger className="w-full">
-                            <div className="flex items-center justify-between w-full cursor-pointer">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <GraduationCap size={20} />
-                                    Academic Summary
-                                </CardTitle>
-                                {isSummaryOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                            </div>
-                        </DisclosureTrigger>
-                    </CardHeader>
-                    <DisclosureContent>
-                        <CardContent className="pt-0">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead className="text-right">Completed</TableHead>
-                                        <TableHead className="text-right">Required</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell>Major</TableCell>
-                                        <TableCell className="text-right">{currentCredits.major}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">
-                                            {currentTemplate?.requiredCredits.major ?? "-"}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>Minor</TableCell>
-                                        <TableCell className="text-right">{currentCredits.minor}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">
-                                            {currentTemplate?.requiredCredits.minor ?? "-"}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>FC</TableCell>
-                                        <TableCell className="text-right">{currentCredits.fc}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">
-                                            {currentTemplate?.requiredCredits.fc ?? "-"}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>CC</TableCell>
-                                        <TableCell className="text-right">{currentCredits.cc}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">
-                                            {currentTemplate?.requiredCredits.cc ?? "-"}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>Open</TableCell>
-                                        <TableCell className="text-right">{currentCredits.openCredits}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">
-                                            {currentTemplate?.requiredCredits.openCredits ?? "-"}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow className="font-semibold">
-                                        <TableCell>Total Credits</TableCell>
-                                        <TableCell className="text-right">{currentCredits.total}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">
-                                            {currentTemplate?.requiredCredits.total ?? "-"}
-                                        </TableCell>
-                                    </TableRow>
-                                    {cgpa !== null && (
-                                        <TableRow className="font-semibold border-t-2">
-                                            <TableCell>CGPA</TableCell>
-                                            <TableCell className="text-right">{cgpa.toFixed(2)}</TableCell>
-                                            <TableCell className="text-right text-muted-foreground">4.00</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-
-                            {/* Semester GPAs */}
-                            {semesterGPAs.length > 0 && (
-                                <div className="mt-4 pt-4 border-t">
-                                    <p className="text-sm text-muted-foreground mb-2">Semester GPAs</p>
-                                    <div className="flex flex-wrap gap-3 text-sm">
-                                        {semesterGPAs.map((sem) => (
-                                            <span key={sem.name}>
-                                                {sem.name}: <span className="font-semibold">{sem.gpa?.toFixed(2)}</span>
-                                            </span>
-                                        ))}
-                                    </div>
+            <TourStep
+                id="academic-summary"
+                title="Academic Summary"
+                content="Stay on top of your degree! Monitor your completed vs. required credits and your projected CGPA in real-time."
+                order={1}
+            >
+                <Card className="border-border bg-card">
+                    <Disclosure open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
+                        <CardHeader className="pb-6">
+                            <DisclosureTrigger className="w-full">
+                                <div className="flex items-center justify-between w-full cursor-pointer">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <GraduationCap size={20} />
+                                        Academic Summary
+                                    </CardTitle>
+                                    {isSummaryOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                                 </div>
-                            )}
+                            </DisclosureTrigger>
+                        </CardHeader>
+                        <DisclosureContent>
+                            <CardContent className="pt-0">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead className="text-right">Completed</TableHead>
+                                            <TableHead className="text-right">Required</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <TableRow>
+                                            <TableCell>Major</TableCell>
+                                            <TableCell className="text-right">{currentCredits.major}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                {currentTemplate?.requiredCredits.major ?? "-"}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>Minor</TableCell>
+                                            <TableCell className="text-right">{currentCredits.minor}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                {currentTemplate?.requiredCredits.minor ?? "-"}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>FC</TableCell>
+                                            <TableCell className="text-right">{currentCredits.fc}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                {currentTemplate?.requiredCredits.fc ?? "-"}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>CC</TableCell>
+                                            <TableCell className="text-right">{currentCredits.cc}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                {currentTemplate?.requiredCredits.cc ?? "-"}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>Open</TableCell>
+                                            <TableCell className="text-right">{currentCredits.openCredits}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                {currentTemplate?.requiredCredits.openCredits ?? "-"}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow className="font-semibold">
+                                            <TableCell>Total Credits</TableCell>
+                                            <TableCell className="text-right">{currentCredits.total}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                {currentTemplate?.requiredCredits.total ?? "-"}
+                                            </TableCell>
+                                        </TableRow>
+                                        {cgpa !== null && (
+                                            <TableRow className="font-semibold border-t-2">
+                                                <TableCell>CGPA</TableCell>
+                                                <TableCell className="text-right">{cgpa.toFixed(2)}</TableCell>
+                                                <TableCell className="text-right text-muted-foreground">4.00</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
 
-                            {cgpa === null && (
-                                <p className="text-sm text-muted-foreground text-center mt-4">
-                                    Add grades to courses in semesters to see GPA calculations
-                                </p>
-                            )}
-                        </CardContent>
-                    </DisclosureContent>
-                </Disclosure>
-            </Card>
+                                {/* Semester GPAs */}
+                                {semesterGPAs.length > 0 && (
+                                    <div className="mt-4 pt-4 border-t">
+                                        <p className="text-sm text-muted-foreground mb-2">Semester GPAs</p>
+                                        <div className="flex flex-wrap gap-3 text-sm">
+                                            {semesterGPAs.map((sem) => (
+                                                <span key={sem.name}>
+                                                    {sem.name}: <span className="font-semibold">{sem.gpa?.toFixed(2)}</span>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {cgpa === null && (
+                                    <p className="text-sm text-muted-foreground text-center mt-4">
+                                        Add grades to courses in semesters to see GPA calculations
+                                    </p>
+                                )}
+                            </CardContent>
+                        </DisclosureContent>
+                    </Disclosure>
+                </Card>
+            </TourStep>
 
             {/* Degree Selection & Actions - Below Summary */}
             <div className="flex flex-wrap items-center gap-3 mt-4">
-                <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
-                    <SelectTrigger className="w-[250px]">
-                        <SelectValue placeholder="Select degree template..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {degreeTemplates.map((template) => (
-                            <SelectItem key={template.id} value={template.id}>
-                                {template.name} ({template.batch})
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1"
-                    onClick={() => setShowLoadDialog(true)}
+                <TourStep
+                    id="degree-selection"
+                    title="Degree Selection"
+                    content="Select your major/minor template to see specific graduation requirements tailored to your batch."
+                    order={2}
                 >
-                    <Upload size={14} />
-                    Load Existing
-                </Button>
+                    <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+                        <SelectTrigger className="w-[250px]">
+                            <SelectValue placeholder="Select degree template..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {degreeTemplates.map((template) => (
+                                <SelectItem key={template.id} value={template.id}>
+                                    {template.name} ({template.batch})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </TourStep>
 
-                <Button
-                    onClick={() => setShowTrajectoryDialog(true)}
-                    disabled={!selectedTemplate || !currentTrajectory}
-                    size="sm"
-                    className="gap-1"
+                <TourStep
+                    id="load-existing"
+                    title="Load Existing"
+                    content="Sync with your past! Import your historical grades directly from the CGPA Planner to accurately start your trajectory."
+                    order={3}
                 >
-                    <Map size={14} />
-                    Ideal Trajectory
-                </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setShowLoadDialog(true)}
+                    >
+                        <Upload size={14} />
+                        Load Existing
+                    </Button>
+                </TourStep>
+
+                <TourStep
+                    id="ideal-trajectory"
+                    title="Ideal Trajectory"
+                    content="Lost? View the official recommended course sequence for your degree and add courses to your plan with one click."
+                    order={4}
+                >
+                    <Button
+                        onClick={() => setShowTrajectoryDialog(true)}
+                        disabled={!selectedTemplate || !currentTrajectory}
+                        size="sm"
+                        className="gap-1"
+                    >
+                        <Map size={14} />
+                        Ideal Trajectory
+                    </Button>
+                </TourStep>
 
                 {currentTrajectory?.policyDocPath && (
                     <Button

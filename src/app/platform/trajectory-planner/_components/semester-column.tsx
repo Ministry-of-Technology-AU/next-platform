@@ -11,13 +11,15 @@ import { AlertCircle, Trash2, Pencil, Check, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TourStep } from "@/components/guided-tour"
 
 interface SemesterColumnProps {
     semester: Semester
     onHide?: () => void
+    isFirst?: boolean
 }
 
-export function SemesterColumn({ semester, onHide }: SemesterColumnProps) {
+export function SemesterColumn({ semester, onHide, isFirst }: SemesterColumnProps) {
     const { getSemesterCredits, deleteSemester, getSemesterGPA, updateSemester } = useCoursePlanner()
     const { setNodeRef, isOver } = useDroppable({
         id: semester.id,
@@ -57,7 +59,7 @@ export function SemesterColumn({ semester, onHide }: SemesterColumnProps) {
         }
     }
 
-    return (
+    const content = (
         <div className="flex flex-col h-full min-h-[400px]">
             <div
                 className={cn(
@@ -166,4 +168,19 @@ export function SemesterColumn({ semester, onHide }: SemesterColumnProps) {
             </div>
         </div>
     )
+
+    if (isFirst) {
+        return (
+            <TourStep
+                id="semester-planning"
+                title="Semester Planning"
+                content="Organize your courses by semester. Drag to reorder or move courses between terms to optimize your workload."
+                order={6}
+            >
+                {content}
+            </TourStep>
+        )
+    }
+
+    return content
 }
