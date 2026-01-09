@@ -18,13 +18,14 @@ import { CourseCard } from "./course-card"
 import { AvailableCoursesTray } from "./available-courses-tray"
 import { SummaryAndTemplateTable } from "./summary-and-template-table"
 import type { Course } from "../types"
-import { Save, Eye, EyeOff } from "lucide-react"
+import { Save, Eye, EyeOff, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
+import { TooltipContent, TooltipTrigger, TooltipProvider, Tooltip } from "@/components/ui/tooltip"
 
 export function CoursePlannerBoard() {
-    const { state, moveCourse, exportState } = useCoursePlanner()
+    const { state, moveCourse, exportState, addSemester } = useCoursePlanner()
     const [activeCourse, setActiveCourse] = useState<Course | null>(null)
     const [hiddenSemesterIds, setHiddenSemesterIds] = useState<string[]>([])
 
@@ -197,6 +198,28 @@ export function CoursePlannerBoard() {
                                         />
                                     </div>
                                 ))}
+
+                                {/* Add Semester Button */}
+                                <div className="w-full md:w-[320px] shrink-0 flex items-center justify-center min-h-[400px]">
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    onClick={addSemester}
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-16 w-16 rounded-full border-2 border-dashed border-primary/50 hover:border-primary hover:bg-primary/10 transition-all"
+                                                    aria-label="Add new semester"
+                                                >
+                                                    <Plus className="h-8 w-8" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                Add New Semester
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                             </div>
                         </div>
                     </div>

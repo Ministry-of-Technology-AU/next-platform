@@ -32,6 +32,7 @@ interface CoursePlannerContextType {
     updateSemester: (semesterId: string, updates: Partial<Semester>) => void
     moveCourse: (courseId: string, fromSemesterId: string | null, toSemesterId: string | null, newIndex?: number) => void
     deleteSemester: (semesterId: string) => void
+    addSemester: () => void
     getSemesterCredits: (semesterId: string) => number
     getSemesterGPA: (semesterId: string) => number | null
     getCGPA: () => number | null
@@ -45,7 +46,7 @@ const CoursePlannerContext = createContext<CoursePlannerContextType | undefined>
 export function CoursePlannerProvider({ children, initialData }: { children: ReactNode; initialData?: any }) {
     const [state, setState] = useState<CoursePlannerState>(() => {
         // Always initialize with default state for consistent server/client rendering
-        const semesters: Semester[] = Array.from({ length: 8 }, (_, i) => ({
+        const semesters: Semester[] = Array.from({ length: 4 }, (_, i) => ({
             id: `semester-${i + 1}`,
             name: `Semester ${i + 1}`,
             courses: [],
@@ -149,7 +150,7 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
                 })
 
                 // Replace semesters with parsed ones + remaining empty semesters
-                const totalSemesters = Math.max(8, parsed.semesters.length)
+                const totalSemesters = parsed.semesters.length
                 const newSemesters: Semester[] = []
 
                 for (let i = 0; i < totalSemesters; i++) {
@@ -307,6 +308,21 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
         })
     }
 
+    const addSemester = () => {
+        setState((prev) => {
+            const newSemesterNumber = prev.semesters.length + 1
+            const newSemester: Semester = {
+                id: `semester-${newSemesterNumber}`,
+                name: `Semester ${newSemesterNumber}`,
+                courses: [],
+            }
+            return {
+                ...prev,
+                semesters: [...prev.semesters, newSemester],
+            }
+        })
+    }
+
     const getSemesterCredits = (semesterId: string): number => {
         const semester = state.semesters.find((s) => s.id === semesterId)
         if (!semester) return 0
@@ -429,6 +445,7 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
                 updateSemester,
                 moveCourse,
                 deleteSemester,
+                addSemester,
                 getSemesterCredits,
                 getSemesterGPA,
                 getCGPA,
