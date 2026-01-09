@@ -87,12 +87,12 @@ jobs:
                 exit 0
               else
                 echo "❌ Application health check failed"
-                pm2 logs regform --lines 50 --nostream
+                pm2 logs next-platform --lines 50 --nostream
                 exit 1
               fi
             else
               echo "❌ PM2 process is not running"
-              pm2 logs regform --lines 50 --nostream
+              pm2 logs next-platform --lines 50 --nostream
               exit 1
             fi
             
