@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Announcement, AnnouncementTitle, AnnouncementTag } from "@/components/ui/shadcn-io/announcement";
 import { Button } from "@/components/ui/button";
 import { X } from 'lucide-react';
@@ -7,8 +8,14 @@ import { X } from 'lucide-react';
 export function NewToolAlert({ href, title, className }: { href: string, title: string, className?: string }) {
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
+    const pathname = usePathname();
 
     useEffect(() => {
+        // Don't show the alert if we're already on the page it's linking to
+        if (pathname === href || pathname.startsWith(href + '/')) {
+            return;
+        }
+
         // Show the component immediately (but off-screen)
         setIsVisible(true);
         // Animate it in after a brief delay to ensure initial render
@@ -16,7 +23,7 @@ export function NewToolAlert({ href, title, className }: { href: string, title: 
             setIsAnimating(true);
         }, 1000);
         return () => clearTimeout(timer);
-    }, []);
+    }, [pathname, href]);
 
     const handleDismiss = () => {
         setIsAnimating(false);

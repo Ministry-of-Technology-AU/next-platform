@@ -17,7 +17,7 @@ export default function TrajectoryPlannerLayout({
 
     return (
         <>
-            <NewToolBanner className="mb-6" />
+            <NewToolBanner className='mt-[-24px]' />
             <div className="w-full flex flex-col min-h-screen">
                 <div className="container mx-auto px-4 py-6 flex-1 flex flex-col">
                     <div className="mb-6">
