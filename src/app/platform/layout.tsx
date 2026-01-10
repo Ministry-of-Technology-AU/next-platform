@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
 import { NewToolAlert } from "@/components/new-tool-alert";
+import { WhatsNewModal } from "@/components/whats-new-modal";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -38,7 +39,8 @@ export default function RootLayout({
           autoStart={false}
         >
           <SidebarProvider defaultOpen={false}>
-            <NewToolAlert href="/platform/trajectory-planner" title="Trajectory Planner" />
+            {/* <NewToolAlert href="/platform/trajectory-planner" title="Trajectory Planner" /> */}
+            <WhatsNewModal />
             <div className="flex min-h-screen w-full overflow-x-hidden">
               <AppSidebar />
               <div className="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">

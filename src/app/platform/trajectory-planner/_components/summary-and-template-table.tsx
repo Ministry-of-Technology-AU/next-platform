@@ -250,7 +250,7 @@ export function SummaryAndTemplateTable() {
                         <SelectContent>
                             {degreeTemplates.map((template) => (
                                 <SelectItem key={template.id} value={template.id}>
-                                    {template.name} ({template.batch})
+                                    {template.name}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -282,7 +282,7 @@ export function SummaryAndTemplateTable() {
                 >
                     <Button
                         onClick={() => setShowTrajectoryDialog(true)}
-                        disabled={!selectedTemplate || !currentTrajectory}
+                        disabled={!selectedTemplate}
                         size="sm"
                         className="gap-1"
                     >
@@ -291,12 +291,12 @@ export function SummaryAndTemplateTable() {
                     </Button>
                 </TourStep>
 
-                {currentTrajectory?.policyDocPath && (
+                {(currentTrajectory?.policyDocPath || currentTemplate?.policyDocPath) && (
                     <Button
                         variant="outline"
                         size="sm"
                         className="gap-1"
-                        onClick={() => window.open(currentTrajectory.policyDocPath, '_blank')}
+                        onClick={() => window.open(currentTrajectory?.policyDocPath || currentTemplate?.policyDocPath, '_blank')}
                     >
                         <FileText size={14} />
                         View Policy
@@ -335,7 +335,7 @@ export function SummaryAndTemplateTable() {
                         <DialogTitle>Load Previous Semesters</DialogTitle>
                         <DialogDescription>
                             Paste your grade data from the CGPA Planner. This will import your completed semesters
-                            with courses and grades, and remove already-taken FC/CC courses from the tray.
+                            with courses and grades, please make sure to edit and mark Minor/Open credit courses.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -376,11 +376,13 @@ export function SummaryAndTemplateTable() {
                     <DialogHeader>
                         <DialogTitle>Ideal Trajectory - {currentTemplate?.name}</DialogTitle>
                         <DialogDescription>
-                            View the recommended course sequence. Click +Add to add courses to your available tray.
+                            {currentTrajectory
+                                ? "View the recommended course sequence. Click +Add to add courses to your available tray."
+                                : "View required courses for this degree. Click +Add to add courses to your available tray."}
                         </DialogDescription>
                     </DialogHeader>
 
-                    {currentTrajectory && (
+                    {currentTrajectory ? (
                         <div className="space-y-4">
                             {/* Two-column layout like the screenshot */}
                             <div className="grid grid-cols-2 gap-4">
@@ -509,14 +511,66 @@ export function SummaryAndTemplateTable() {
                                     {currentTrajectory.notes}
                                 </p>
                             )}
-                        </div>
-                    )}
 
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowTrajectoryDialog(false)}>
-                            Close
-                        </Button>
-                    </DialogFooter>
+                            {/* Policy doc reminder */}
+                            <p className="text-xs text-muted-foreground border-t pt-3">
+                                💡 Please refer to the official policy document for the most accurate and up-to-date requirements.
+                            </p>
+                        </div>
+                    ) : currentTemplate ? (
+                        /* Show course list when no trajectory exists */
+                        <div className="space-y-4">
+                            <div className="border rounded-lg overflow-hidden">
+                                <div className="flex items-center justify-between bg-muted/50 px-3 py-2">
+                                    <span className="font-medium text-sm">Required Courses</span>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 text-xs gap-1"
+                                        onClick={() => {
+                                            currentTemplate.defaultCourses.forEach(course => addCourseToTray(course))
+                                        }}
+                                    >
+                                        <Plus size={12} />
+                                        Add All
+                                    </Button>
+                                </div>
+                                <div className="divide-y">
+                                    {currentTemplate.defaultCourses.map((course, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="flex items-center justify-between px-3 py-2 text-sm hover:bg-muted/50"
+                                        >
+                                            <span>
+                                                {course.name}
+                                                <span className="text-muted-foreground ml-1">
+                                                    ({course.credits} credits)
+                                                </span>
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 text-xs gap-1 text-primary hover:text-primary"
+                                                onClick={() => addCourseToTray(course)}
+                                            >
+                                                <Plus size={12} />
+                                                Add
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <p className="text-sm text-muted-foreground italic">
+                                ⚠️ An ideal semester-by-semester trajectory is not yet available for this degree.
+                                Above are the required courses you'll need to complete.
+                            </p>
+
+                            <p className="text-xs text-muted-foreground border-t pt-3">
+                                💡 Please refer to the official policy document for the most accurate and up-to-date requirements.
+                            </p>
+                        </div>
+                    ) : null}
                 </DialogContent>
             </Dialog>
 

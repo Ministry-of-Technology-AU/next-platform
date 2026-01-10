@@ -1,0 +1,27 @@
+{
+    "version": "1.0.0",
+    "lastUpdated": "2025-01-10",
+    "updates": [
+        {
+            "id": "trajectory-planner-launch",
+            "title": "Trajectory Planner",
+            "description": "Plan your entire degree journey! Drag-and-drop courses into semesters, track credits, and visualize your graduation path.",
+            "type": "new",
+            "link": "/platform/trajectory-planner"
+        },
+        {
+            "id": "cgpa-improvements",
+            "title": "CGPA Planner Updates",
+            "description": "Improved grade projections and better visualization of your academic progress with new charts.",
+            "type": "improvement",
+            "link": "/platform/cgpa-planner"
+        },
+        {
+            "id": "timetable-sync",
+            "title": "Timetable Sync",
+            "description": "Your timetable now syncs automatically across devices. Never lose your schedule again!",
+            "type": "feature",
+            "link": "/platform/time-table"
+        }
+    ]
+}

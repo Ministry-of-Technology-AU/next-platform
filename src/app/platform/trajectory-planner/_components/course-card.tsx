@@ -35,9 +35,16 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
         if (!isEditMode) return
 
         const handleClickOutside = (event: MouseEvent) => {
-            if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
-                setIsEditMode(false)
+            const target = event.target as HTMLElement
+            // Don't close if clicking inside the card
+            if (cardRef.current && cardRef.current.contains(target)) {
+                return
             }
+            // Don't close if clicking on Select popover content (which renders in a portal)
+            if (target.closest('[role="listbox"]') || target.closest('[data-radix-popper-content-wrapper]')) {
+                return
+            }
+            setIsEditMode(false)
         }
 
         document.addEventListener('mousedown', handleClickOutside)
@@ -171,8 +178,8 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     {course.credits} Cr
                                 </Badge>
 
-                                {/* Grade Selector Badge */}
-                                {isInSemester && !isEditMode && (
+                                {/* Grade Selector Badge - always visible when in semester */}
+                                {isInSemester && (
                                     <div className="relative">
                                         <Select value={course.grade || "none"} onValueChange={handleGradeChange}>
                                             <SelectTrigger
@@ -213,6 +220,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     <SelectItem value="2">2 Credits</SelectItem>
                                     <SelectItem value="4">4 Credits</SelectItem>
                                     <SelectItem value="8">8 Credits</SelectItem>
+                                    <SelectItem value="12">12 Credits</SelectItem>
                                 </SelectContent>
                             </Select>
 
@@ -227,6 +235,14 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     <SelectItem value="ECO">ECO</SelectItem>
                                     <SelectItem value="MATH">MATH</SelectItem>
                                     <SelectItem value="PHY">PHY</SelectItem>
+                                    <SelectItem value="CHEM">CHEM</SelectItem>
+                                    <SelectItem value="BIO">BIO</SelectItem>
+                                    <SelectItem value="PSY">PSY</SelectItem>
+                                    <SelectItem value="PHIL">PHIL</SelectItem>
+                                    <SelectItem value="ENG">ENG</SelectItem>
+                                    <SelectItem value="HIST">HIST</SelectItem>
+                                    <SelectItem value="POL">POL</SelectItem>
+                                    <SelectItem value="YIF">YIF</SelectItem>
                                     <SelectItem value="HUM">HUM</SelectItem>
                                     <SelectItem value="CW">CW</SelectItem>
                                 </SelectContent>
