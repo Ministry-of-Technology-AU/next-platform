@@ -148,6 +148,7 @@ export function CoursePlannerBoard() {
 
     return (
         <DndContext
+            id="course-planner-dnd"
             sensors={sensors}
             collisionDetection={rectIntersection}
             onDragStart={handleDragStart}
@@ -164,9 +165,15 @@ export function CoursePlannerBoard() {
                         <AvailableCoursesTray />
                     </div>
 
-                    {/* Semester Columns */}
-                    <div className="flex-1 w-full overflow-x-auto pb-4">
-                        <div className="flex flex-col gap-4 min-w-max pb-24 px-1">
+                    {/* Semester Columns - scrollbar on top using CSS flip trick */}
+                    <div
+                        className="flex-1 w-full overflow-x-auto pb-4"
+                        style={{ transform: 'rotateX(180deg)' }}
+                    >
+                        <div
+                            className="flex flex-col gap-4 min-w-max pt-2 pb-4 px-1"
+                            style={{ transform: 'rotateX(180deg)' }}
+                        >
                             {/* Hidden Semesters Button Array */}
                             {hiddenSemesterIds.length > 0 && (
                                 <div className="flex gap-2 items-center p-2 bg-muted/20 rounded-lg border border-dashed text-sm">
@@ -299,6 +306,6 @@ export function CoursePlannerBoard() {
             </TourStep>
 
             <DragOverlay>{activeCourse ? <CourseCard course={activeCourse} isDragging /> : null}</DragOverlay>
-        </DndContext>
+        </DndContext >
     )
 }

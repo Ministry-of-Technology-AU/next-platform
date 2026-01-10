@@ -100,17 +100,64 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                         >
                             <GripVertical size={18} />
                         </button>
-                        <div className="flex-1 space-y-1">
-                            {showEditable ? (
-                                <Input
-                                    value={course.name}
-                                    onChange={handleNameChange}
-                                    placeholder="Course Name"
-                                    className="h-7 text-sm font-semibold border-none focus-visible:ring-1 focus-visible:ring-primary p-0 bg-transparent shadow-none"
-                                />
-                            ) : (
-                                <h4 className="text-sm font-semibold leading-tight text-left">{course.name}</h4>
-                            )}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                                {showEditable ? (
+                                    <Input
+                                        value={course.name}
+                                        onChange={handleNameChange}
+                                        placeholder="Course Name"
+                                        className="h-7 text-sm font-semibold border-none focus-visible:ring-1 focus-visible:ring-primary p-0 bg-transparent shadow-none"
+                                    />
+                                ) : (
+                                    <h4 className="text-sm font-semibold leading-tight text-left truncate">{course.name}</h4>
+                                )}
+
+                                {/* Action buttons - inline with title */}
+                                <div className="flex gap-0.5 shrink-0">
+                                    {isInSemester && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className={cn(
+                                                "h-5 w-5 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10",
+                                                isEditMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                            )}
+                                            onClick={() => setIsEditMode(!isEditMode)}
+                                            title={isEditMode ? "Save changes" : "Edit course"}
+                                        >
+                                            {isEditMode ? <Check size={12} /> : <Pencil size={12} />}
+                                        </Button>
+                                    )}
+                                    {isInSemester ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                            onClick={() => {
+                                                const fromSemester = state.semesters.find(s => s.courses.some(c => c.id === course.id))
+                                                if (fromSemester) {
+                                                    moveCourse(course.id, fromSemester.id, null)
+                                                }
+                                            }}
+                                            title="Move back to tray"
+                                        >
+                                            <Undo2 size={12} />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => removeCourse(course.id)}
+                                            title="Delete course"
+                                        >
+                                            <Trash2 size={12} />
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="flex flex-wrap gap-1.5 mt-2 items-center">
                                 <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 border", getBadgeColor(course.type))}>
                                     {course.type}
@@ -124,7 +171,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     {course.credits} Cr
                                 </Badge>
 
-                                {/* Grade Selector Badge Replacement */}
+                                {/* Grade Selector Badge */}
                                 {isInSemester && !isEditMode && (
                                     <div className="relative">
                                         <Select value={course.grade || "none"} onValueChange={handleGradeChange}>
@@ -141,13 +188,8 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                                 )}
                                             >
                                                 <span className="font-bold leading-none translate-y-[0.5px]">{course.grade || "Gr"}</span>
-                                                {/* Chevron is automatically added by SelectTrigger often, but if not, we keep it simple. User mentioned double arrows, so likely removing this fixes it. */}
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {/* "none" option removed as it is likely in gradeOptions, or we rely on gradeOptions containing it. 
-                                                    Wait, templates.ts shows gradeOptions HAS { value: "none", label: "No Grade" }. 
-                                                    So we must NOT add it manually here. 
-                                                */}
                                                 {gradeOptions.map((option) => (
                                                     <SelectItem key={option.value} value={option.value}>
                                                         {option.label}
@@ -158,49 +200,6 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     </div>
                                 )}
                             </div>
-                        </div>
-                        <div className="flex gap-1">
-                            {isInSemester && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={cn(
-                                        "h-6 w-6 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10",
-                                        isEditMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                                    )}
-                                    onClick={() => setIsEditMode(!isEditMode)}
-                                    title={isEditMode ? "Save changes" : "Edit course"}
-                                >
-                                    {isEditMode ? <Check size={14} /> : <Pencil size={14} />}
-                                </Button>
-                            )}
-                            {isInSemester ? (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10"
-                                    onClick={() => {
-                                        // Find which semester this course is in
-                                        const fromSemester = state.semesters.find(s => s.courses.some(c => c.id === course.id))
-                                        if (fromSemester) {
-                                            moveCourse(course.id, fromSemester.id, null)
-                                        }
-                                    }}
-                                    title="Move back to tray"
-                                >
-                                    <Undo2 size={14} />
-                                </Button>
-                            ) : (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={() => removeCourse(course.id)}
-                                    title="Delete course"
-                                >
-                                    <Trash2 size={14} />
-                                </Button>
-                            )}
                         </div>
                     </div>
 
@@ -249,6 +248,6 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </div >
     )
 }
