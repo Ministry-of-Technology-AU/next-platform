@@ -92,7 +92,7 @@ export function SummaryAndTemplateTable() {
 
     const handleLoadPreviousSemesters = () => {
         if (!cgpaInput.trim()) {
-            setLoadResult({ success: false, message: "Please paste your CGPA planner data first" })
+            setLoadResult({ success: false, message: "Please paste your AMS data first" })
             return
         }
 
@@ -261,7 +261,7 @@ export function SummaryAndTemplateTable() {
                 <TourStep
                     id="load-existing"
                     title="Load Existing"
-                    content="Sync with your past! Import your historical grades directly from the CGPA Planner to accurately start your trajectory."
+                    content="Sync with your past! Import your historical grades directly from AMS to accurately start your trajectory."
                     order={3}
                 >
                     <Button
@@ -335,13 +335,13 @@ export function SummaryAndTemplateTable() {
                     <DialogHeader>
                         <DialogTitle>Load Previous Semesters</DialogTitle>
                         <DialogDescription>
-                            Paste your grade data from the CGPA Planner. This will import your completed semesters
+                            Paste your grade data from the AMS. This will import your completed semesters
                             with courses and grades, please make sure to edit and mark Minor/Open credit courses.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <Textarea
-                            placeholder="Paste your CGPA planner data here (copy from AMS grade report)..."
+                            placeholder="Paste your AMS data here (copy from AMS grade report)..."
                             value={cgpaInput}
                             onChange={(e) => setCgpaInput(e.target.value)}
                             className="min-h-[200px] font-mono text-xs"

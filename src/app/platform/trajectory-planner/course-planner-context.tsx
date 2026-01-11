@@ -115,7 +115,7 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
         }
     }
 
-    // Load previous semesters from CGPA planner data
+    // Load previous semesters from AMS data
     const loadPreviousSemesters = (cgpaText: string): { success: boolean; message: string; semestersLoaded: number } => {
         try {
             const parsed = parseGradeDataForPlanner(cgpaText)

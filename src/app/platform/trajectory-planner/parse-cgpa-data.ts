@@ -17,7 +17,7 @@ const FC_COURSE_PATTERNS = [
 // Valid department codes
 const VALID_DEPT_CODES = ["CS", "ENT", "ECO", "MATH", "PHY", "HUM", "CW", "PSY", "BIO", "MAT", "POL", "IR"]
 
-// Map CGPA planner grades to trajectory planner Grade type
+// Map AMS grades to trajectory planner Grade type
 export function mapGrade(gradeStr: string | null | undefined): Grade {
     if (!gradeStr || gradeStr === "--" || gradeStr === "Select") return null
 
@@ -133,7 +133,7 @@ export interface ParsedCGPADataForPlanner {
 }
 
 /**
- * Parse CGPA planner text data into trajectory planner format
+ * Parse AMS text data into trajectory planner format
  * Based on parseGradeData from cgpa-planner/useCalculations.tsx
  */
 export function parseGradeDataForPlanner(text: string): ParsedCGPADataForPlanner {
