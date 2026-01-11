@@ -168,7 +168,8 @@ export function AppSidebar() {
                 {category.items.map((item: SidebarItem) => {
                   const IconComponent =
                     iconMap[item.icon as keyof typeof iconMap];
-                  const isActive = pathname === item.href;
+                  const fullHref = `/platform${item.href}`;
+                  const isActive = pathname === fullHref || (item.href !== "/" && pathname.startsWith(`${fullHref}/`));
 
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -200,7 +201,7 @@ export function AppSidebar() {
                           )}>
                             <IconComponent className={cn(
                               "size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0",
-                              item.href === '/trajectory-planner' && !isActive && "text-secondary"
+                              item.href === '/trajectory-planner' && !isActive && "dark:text-secondary text-primary-light"
                             )} />
                           </div>
                           <span className={cn(
