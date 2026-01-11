@@ -439,7 +439,7 @@ export function SummaryAndTemplateTable() {
                                                     </div>
                                                 ) : (
                                                     <div className="px-3 py-2 text-sm text-muted-foreground italic">
-                                                        Electives / Open credits
+                                                        Electives / Open credits / Foundational Courses
                                                     </div>
                                                 )}
                                             </div>

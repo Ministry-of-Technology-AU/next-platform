@@ -27,7 +27,7 @@ export default function TrajectoryPlannerLayout({
                         <TourStep
                             id="trajectory-planner-title"
                             title="Course Trajectory Planner [BETA]"
-                            content="This is the beta version of the course trajectory planner. We're still in the process of adding more major templates, and communicating with reps for policy level implementations. For minors and concentrations, please add the courses manually for now. Let us know your thoughts on our new tool!"
+                            content="This is the beta version of the course trajectory planner. We're still in the process of adding more major templates, and communicating with reps for policy level implementations. For minors and concentrations, please add the courses manually for now. Note that the ideal trajectories are reflected as per the latest batch, and most recent documents published by OAA. Let us know your thoughts on our new tool!"
                             order={0}
                         >
                             <PageTitle

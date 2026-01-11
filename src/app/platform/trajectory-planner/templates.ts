@@ -201,7 +201,7 @@ export const idealTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-ent-4yr",
         notes: "** CS & ENT interdisciplinary major combining core CS courses with Entrepreneurship courses.",
-        policyDocPath: "/policy_docs/CS_ENT_Curriculum.pdf",
+        policyDocPath: "https://docs.google.com/document/d/1OtFP_fcBZQ8V8Esm2U8fHThmugs6y0ND/edit",
         semesters: [
             {
                 semester: 1,
@@ -271,7 +271,7 @@ export const idealTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-ent-research-4yr",
         notes: "** CS & ENT with Research - includes 12-credit Capstone Thesis.",
-        policyDocPath: "/policy_docs/CS_ENT_Research_Curriculum.pdf",
+        policyDocPath: "https://docs.google.com/document/d/1OtFP_fcBZQ8V8Esm2U8fHThmugs6y0ND/edit",
         semesters: [
             {
                 semester: 1,
@@ -343,7 +343,7 @@ export const idealTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-math-track1-4yr",
         notes: "** Incorporate either BIO-1200 or PHY-1220, along with 12 credits of CS or MATH electives. Track 1: Cryptography, Number Theory, Algebra.",
-        policyDocPath: "/policy_docs/CS_MATH_Curriculum.pdf",
+        policyDocPath: "https://docs.google.com/document/d/1yabkBM64wTlEjg0_-mDmtw89M-Z7fa-r/edit",
         semesters: [
             {
                 semester: 1,
@@ -414,7 +414,7 @@ export const idealTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-math-track2-4yr",
         notes: "** Incorporate either BIO-1200 or PHY-1220, along with 12 credits of CS or MATH electives. Track 2: Data Science and Machine Learning.",
-        policyDocPath: "/policy_docs/CS_MATH_Curriculum.pdf",
+        policyDocPath: "https://docs.google.com/document/d/1yabkBM64wTlEjg0_-mDmtw89M-Z7fa-r/edit",
         semesters: [
             {
                 semester: 1,
@@ -548,6 +548,135 @@ export const idealTrajectories: IdealTrajectory[] = [
                 ]
             },
         ]
+    },
+    {
+        templateId: "bio-4yr",
+        notes: "** Core sequence as recommended by the Department of Biology. Electives distributed mainly in years 3–4.",
+        policyDocPath: "https://drive.google.com/drive/folders/1XWvEoidz4iZOpj_GDxvGZDad6eRDUhXp?usp=drive_link",
+        semesters: [
+            { semester: 1, name: "1st Semester", courses: [] },
+            {
+                semester: 2,
+                name: "2nd Semester",
+                courses: [
+                    { name: "Introduction to Biology I: Genetics and Evolution", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Exploring Life in the Neighbourhood Lab", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            {
+                semester: 3,
+                name: "3rd Semester",
+                courses: [
+                    { name: "Introduction to Biology II: Cell Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Chemical Basis of Life", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Laboratory Course 2: Molecular Biology and Biochemistry", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            {
+                semester: 4,
+                name: "4th Semester",
+                courses: [
+                    { name: "Physiology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Introduction to Biology III: Molecular Genetics and Molecular Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Laboratory Course 3: Cell Biology and Genetics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            {
+                semester: 5,
+                name: "5th Semester",
+                courses: [
+                    { name: "Ecology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Bioinformatics and Biostatistics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Ecology and Evolution Lab", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            { semester: 6, name: "6th Semester", courses: [] },
+            {
+                semester: 7,
+                name: "7th Semester",
+                courses: [
+                    { name: "Research Methodology and Ethics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            { semester: 8, name: "8th Semester", courses: [] }
+        ]
+    },
+    {
+        templateId: "bio-research-4yr",
+        notes: "** Includes Thesis Proposal (4 credits) and Thesis (8 credits) in addition to Biology core.",
+        policyDocPath: "https://drive.google.com/drive/folders/1XWvEoidz4iZOpj_GDxvGZDad6eRDUhXp?usp=drive_link",
+        semesters: [
+            { semester: 1, name: "1st Semester", courses: [] },
+            {
+                semester: 2,
+                name: "2nd Semester",
+                courses: [
+                    { name: "Introduction to Biology I: Genetics and Evolution", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Exploring Life in the Neighbourhood Lab", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            {
+                semester: 3,
+                name: "3rd Semester",
+                courses: [
+                    { name: "Introduction to Biology II: Cell Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Chemical Basis of Life", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Laboratory Course 2: Molecular Biology and Biochemistry", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            {
+                semester: 4,
+                name: "4th Semester",
+                courses: [
+                    { name: "Physiology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Introduction to Biology III: Molecular Genetics and Molecular Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Laboratory Course 3: Cell Biology and Genetics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            {
+                semester: 5,
+                name: "5th Semester",
+                courses: [
+                    { name: "Ecology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Bioinformatics and Biostatistics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Ecology and Evolution Lab", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            { semester: 6, name: "6th Semester", courses: [] },
+            {
+                semester: 7,
+                name: "7th Semester",
+                courses: [
+                    { name: "Research Methodology and Ethics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+                    { name: "Thesis Proposal", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            },
+            {
+                semester: 8,
+                name: "8th Semester",
+                courses: [
+                    { name: "Thesis", credits: 8, deptCode: "BIO", type: "Major", isInSemester: false }
+                ]
+            }
+        ]
+    },
+    {
+        templateId: "chem-3yr",
+        notes: "No official recommended trajectory has been listed for this major yet.",
+        policyDocPath: "https://drive.google.com/drive/u/0/folders/1Lq7A3ITYNcqMyynE4S8BavOjLczPe4Sb",
+        semesters: []
+    },
+    {
+        templateId: "chem-4yr",
+        notes: "No official recommended trajectory has been listed for this major yet.",
+        policyDocPath: "https://drive.google.com/drive/u/0/folders/1Lq7A3ITYNcqMyynE4S8BavOjLczPe4Sb",
+        semesters: []
+    },
+    {
+        templateId: "chem-research-4yr",
+        notes: "No official recommended trajectory has been listed for this major yet.",
+        policyDocPath: "https://drive.google.com/drive/u/0/folders/1Lq7A3ITYNcqMyynE4S8BavOjLczPe4Sb",
+        semesters: []
     }
 ]
 
@@ -801,6 +930,120 @@ export const degreeTemplates: DegreeTemplate[] = [
             { name: "Thesis Proposal", credits: 4, deptCode: "PSY", type: "Major", isInSemester: false },
             { name: "Thesis", credits: 8, deptCode: "PSY", type: "Major", isInSemester: false },
         ]
-    }
+    },
+    {
+        id: "bio-4yr",
+        name: "Biology (4 years)",
+        batch: "2024",
+        requiredCredits: {
+            major: 80,
+            minor: 0,
+            fc: 36,
+            cc: 4,
+            openCredits: 38,
+            total: 160
+        },
+        defaultCourses: [
+            { name: "Introduction to Biology I: Genetics and Evolution", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Introduction to Biology II: Cell Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Introduction to Biology III: Molecular Genetics and Molecular Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Chemical Basis of Life", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Ecology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Bioinformatics and Biostatistics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Physiology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Research Methodology and Ethics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Exploring Life in the Neighbourhood Lab", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Laboratory Course 2: Molecular Biology and Biochemistry", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Laboratory Course 3: Cell Biology and Genetics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Ecology and Evolution Lab", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false }
+        ]
+    },
+    {
+        id: "bio-research-4yr",
+        name: "Biology with Research (4 years)",
+        batch: "2024",
+        requiredCredits: {
+            major: 92,
+            minor: 0,
+            fc: 36,
+            cc: 4,
+            openCredits: 26,
+            total: 160
+        },
+        defaultCourses: [
+            { name: "Introduction to Biology I: Genetics and Evolution", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Introduction to Biology II: Cell Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Introduction to Biology III: Molecular Genetics and Molecular Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Chemical Basis of Life", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Ecology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Bioinformatics and Biostatistics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Physiology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Research Methodology and Ethics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Exploring Life in the Neighbourhood Lab", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Laboratory Course 2: Molecular Biology and Biochemistry", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Laboratory Course 3: Cell Biology and Genetics", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Ecology and Evolution Lab", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Thesis Proposal", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
+            { name: "Thesis", credits: 8, deptCode: "BIO", type: "Major", isInSemester: false }
+        ]
+    },
+    {
+        id: "chem-3yr",
+        name: "Chemistry (3 years)",
+        batch: "2024",
+        requiredCredits: {
+            major: 60,
+            minor: 0,
+            fc: 36,
+            cc: 4,
+            openCredits: 0,
+            total: 100
+        },
+        defaultCourses: [
+            { name: "Topics in Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Introductory Physical Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Concepts in Organic Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Introductory Inorganic Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false }
+        ]
+    },
+    {
+        id: "chem-4yr",
+        name: "Chemistry (4 years)",
+        batch: "2024",
+        requiredCredits: {
+            major: 80,
+            minor: 0,
+            fc: 36,
+            cc: 4,
+            openCredits: 36,
+            total: 160
+        },
+        defaultCourses: [
+            { name: "Topics in Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Introductory Physical Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Concepts in Organic Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Introductory Inorganic Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false }
+        ]
+    },
+    {
+        id: "chem-research-4yr",
+        name: "Chemistry with Research (4 years)",
+        batch: "2024",
+        requiredCredits: {
+            major: 92,
+            minor: 0,
+            fc: 36,
+            cc: 4,
+            openCredits: 24,
+            total: 160
+        },
+        defaultCourses: [
+            { name: "Topics in Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Introductory Physical Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Concepts in Organic Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Introductory Inorganic Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
+            { name: "Research Credits", credits: 12, deptCode: "CHM", type: "Major", isInSemester: false }
+        ]
+    },
 ]
 
