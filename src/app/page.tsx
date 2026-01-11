@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Hammer } from "lucide-react";
 import Image from "next/image";
 
-
 export default function LandingPage() {
   return (
     <div className="container pt-12 px-8 flex flex-col items-center">

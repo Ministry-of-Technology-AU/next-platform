@@ -1,21 +1,48 @@
-import PageTitle from "@/components/page-title";
-import Image from "next/image";
-import DeveloperCredits from "@/components/developer-credits";
-import { Route } from "lucide-react";
+import { CoursePlannerProvider } from './course-planner-context';
+import { CoursePlannerBoard } from './_components/course-planner-board';
+import { strapiGet } from "@/lib/apis/strapi";
+import { getAuthenticatedUser } from "@/lib/auth";
 
-export default async function GamesPage() {
+async function fetchTrajectoryData() {
+    try {
+        const user = await getAuthenticatedUser();
+
+        if (!user || !user.email) {
+            return null;
+        }
+
+        // Get user ID from Strapi using email
+        const userResponse = await strapiGet("users", {
+            filters: {
+                email: user.email
+            },
+            fields: ["id", "email", "course_trajectory"]
+        });
+
+        const users = Array.isArray(userResponse) ? userResponse : (userResponse as any)?.results || [];
+        const strapiUser = users[0];
+
+        if (!strapiUser) {
+            return null;
+        }
+
+        // Return the course trajectory data
+        return strapiUser.course_trajectory || null;
+
+    } catch (error) {
+        console.error("Error fetching trajectory:", error);
+        return null;
+    }
+}
+
+export default async function Page() {
+    const trajectoryData = await fetchTrajectoryData();
+
     return (
-        <div className="container py-8">
-            <PageTitle text="Trajectory Planner" icon={Route} subheading="Coming Very Soon!" />
-            <Image
-                src="/mascot.png"
-                alt="Mascot"
-                width={400}
-                height={900}
-                className="mx-auto my-10"
-            />
-            <p className="text-center">We're working on something for you, and it's going to be out very very soon. Stay tuned!</p>
-            <DeveloperCredits developers={[{ "name": "Soham Tulsyan", profileUrl: "https://www.linkedin.com/in/soham-tulsyan-0902482a7/" }, { "name": "Vansh Bothra" }]} />
-        </div>
+        <CoursePlannerProvider initialData={trajectoryData}>
+            <div className="h-full">
+                <CoursePlannerBoard />
+            </div>
+        </CoursePlannerProvider>
     );
 }
