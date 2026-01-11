@@ -204,7 +204,7 @@ export function SummaryAndTemplateTable() {
                                         {cgpa !== null && (
                                             <TableRow className="font-semibold border-t-2">
                                                 <TableCell>CGPA</TableCell>
-                                                <TableCell className="text-right">{cgpa.toFixed(2)}</TableCell>
+                                                <TableCell className="text-right">{(Math.round(cgpa * 100) / 100).toFixed(2)}</TableCell>
                                                 <TableCell className="text-right text-muted-foreground">4.00</TableCell>
                                             </TableRow>
                                         )}
@@ -218,7 +218,7 @@ export function SummaryAndTemplateTable() {
                                         <div className="flex flex-wrap gap-3 text-sm">
                                             {semesterGPAs.map((sem) => (
                                                 <span key={sem.name}>
-                                                    {sem.name}: <span className="font-semibold">{sem.gpa?.toFixed(2)}</span>
+                                                    {sem.name}: <span className="font-semibold">{sem.gpa ? (Math.round(sem.gpa * 100) / 100).toFixed(2) : '-'}</span>
                                                 </span>
                                             ))}
                                         </div>
@@ -583,17 +583,17 @@ export function SummaryAndTemplateTable() {
                     <CommandGroup heading="Department Representatives">
                         {[
                             { dept: "Computer Science", email: "cs.rep@ashoka.edu.in" },
-                            { dept: "Physics", email: "physics.rep@ashoka.edu.in" },
+                            { dept: "Physics", email: "phys.rep@ashoka.edu.in" },
                             { dept: "Mathematics", email: "math.rep@ashoka.edu.in" },
-                            { dept: "Biology", email: "biology.rep@ashoka.edu.in" },
-                            { dept: "Economics", email: "econ.rep@ashoka.edu.in" },
+                            { dept: "Biology", email: "biology_ugrep@ashoka.edu.in" },
+                            { dept: "Economics", email: "econreps@ashoka.edu.in" },
                             { dept: "English", email: "english.rep@ashoka.edu.in" },
-                            { dept: "History", email: "history.rep@ashoka.edu.in" },
-                            { dept: "Psychology", email: "psychology.rep@ashoka.edu.in" },
-                            { dept: "Sociology/Anthropology", email: "socanth.rep@ashoka.edu.in" },
+                            { dept: "History", email: "historyrepresentatives@ashoka.edu.in" },
+                            { dept: "Psychology", email: "psy.rep@ashoka.edu.in" },
+                            { dept: "Sociology/Anthropology", email: "soa.rep@ashoka.edu.in" },
                             { dept: "Political Science", email: "polsci.rep@ashoka.edu.in" },
-                            { dept: "Chemistry", email: "chemistry.rep@ashoka.edu.in" },
-                            { dept: "Philosophy", email: "philosophy.rep@ashoka.edu.in" },
+                            { dept: "Chemistry", email: "chem.rep@ashoka.edu.in" },
+                            { dept: "Philosophy", email: "philosophy.studentrep@ashoka.edu.in" },
                         ].map((rep) => (
                             <CommandItem
                                 key={rep.dept}

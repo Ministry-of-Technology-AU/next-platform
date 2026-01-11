@@ -118,7 +118,7 @@ export function SemesterColumn({ semester, onHide, isFirst }: SemesterColumnProp
                         </p>
                         {gpa !== null && (
                             <span className="text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                                GPA: {gpa.toFixed(2)}
+                                GPA: {(Math.round(gpa * 100) / 100).toFixed(2)}
                             </span>
                         )}
                     </div>
