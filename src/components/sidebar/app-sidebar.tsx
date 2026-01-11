@@ -194,10 +194,19 @@ export function AppSidebar() {
                           className="flex items-center w-full"
                           onClick={handleLinkClick}
                         >
-                          <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0" />
+                          <div className={cn(
+                            "relative transition-all duration-500",
+                            item.href === '/trajectory-planner' && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
+                          )}>
+                            <IconComponent className={cn(
+                              "size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0",
+                              item.href === '/trajectory-planner' && !isActive && "text-secondary"
+                            )} />
+                          </div>
                           <span className={cn(
-                            "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap",
-                            hideLabels && "w-0 opacity-0"
+                            "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",
+                            hideLabels && "w-0 opacity-0 ml-0",
+                            item.href === '/trajectory-planner' && !isActive && "text-secondary font-semibold"
                           )}>
                             {item.title}
                           </span>

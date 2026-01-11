@@ -34,6 +34,7 @@ export function WhatsNewModal() {
     const [isOpen, setIsOpen] = useState(false);
     const [data, setData] = useState<WhatsNewData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [canDismiss, setCanDismiss] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,6 +52,10 @@ export function WhatsNewModal() {
                     // Show modal after a small delay for page to load
                     setTimeout(() => {
                         setIsOpen(true);
+                        // Allow dismiss after 1.5s
+                        setTimeout(() => {
+                            setCanDismiss(true);
+                        }, 1500);
                     }, 1500);
                 }
             } catch (error) {
@@ -88,7 +93,9 @@ export function WhatsNewModal() {
     if (isLoading || !data) return null;
 
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && handleDismiss()}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            if (!open && canDismiss) handleDismiss();
+        }}>
             <DialogContent className="w-sm sm:mx-0 sm:w-2xl sm:max-w-2xl max-h-[80vh] overflow-hidden">
                 <DialogHeader className="pb-2">
                     <DialogTitle className="flex items-center gap-2 text-xl">
@@ -133,10 +140,12 @@ export function WhatsNewModal() {
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t">
-                    <Button onClick={handleDismiss} className="gap-2">
-                        Got it!
-                    </Button>
+                <div className="flex justify-end pt-4 border-t h-[65px]">
+                    {canDismiss && (
+                        <Button onClick={handleDismiss} className="gap-2 animate-in fade-in zoom-in duration-300">
+                            Got it!
+                        </Button>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>

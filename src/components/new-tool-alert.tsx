@@ -5,7 +5,17 @@ import { Announcement, AnnouncementTitle, AnnouncementTag } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { X } from 'lucide-react';
 
-export function NewToolAlert({ href, title, className }: { href: string, title: string, className?: string }) {
+interface NewToolAlertProps {
+    href: string;
+    title: string;
+    className?: string;
+    checkSeenKey?: string;
+    blockIfNewVersion?: boolean;
+}
+
+const WHATS_NEW_STORAGE_KEY = 'whats-new-dismissed-version';
+
+export function NewToolAlert({ href, title, className, checkSeenKey, blockIfNewVersion }: NewToolAlertProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const pathname = usePathname();
@@ -16,6 +26,25 @@ export function NewToolAlert({ href, title, className }: { href: string, title: 
             return;
         }
 
+        // Check if user has already seen this tool
+        if (checkSeenKey) {
+            const hasSeen = localStorage.getItem(checkSeenKey);
+            if (hasSeen) return;
+        }
+
+        // Check if there is a new version pending (so we show the modal instead of this alert first)
+        // AND check if the user has ALREADY dismissed the current version (so modal won't show).
+        // If modal WILL show, we hide this.
+        if (blockIfNewVersion) {
+            // We need to know the current version to check against storage.
+            // Since we don't have it passed prop, we might need to fetch it or assume logic.
+            // Simplified logic: If we want to prioritize the Modal, we should wait until the Modal has been dismissed.
+            // Use the same key as WhatsNewModal
+            const dismissedVersion = localStorage.getItem(WHATS_NEW_STORAGE_KEY);
+            // If NO version is dismissed, it implies a new user or new update -> Modal likely to show -> Hide Alert
+            if (!dismissedVersion) return;
+        }
+
         // Show the component immediately (but off-screen)
         setIsVisible(true);
         // Animate it in after a brief delay to ensure initial render
@@ -23,7 +52,7 @@ export function NewToolAlert({ href, title, className }: { href: string, title: 
             setIsAnimating(true);
         }, 1000);
         return () => clearTimeout(timer);
-    }, [pathname, href]);
+    }, [pathname, href, checkSeenKey, blockIfNewVersion]);
 
     const handleDismiss = () => {
         setIsAnimating(false);

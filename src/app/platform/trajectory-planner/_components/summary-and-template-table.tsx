@@ -55,7 +55,8 @@ export function SummaryAndTemplateTable() {
         loadPreviousSemesters,
     } = useCoursePlanner()
 
-    const [selectedTemplate, setSelectedTemplate] = useState<string>(selectedDegreeId || "")
+    // const [selectedTemplate, setSelectedTemplate] = useState<string>(selectedDegreeId || "")
+    const [selectedTemplate, setSelectedTemplate] = useState<string>("")
     const [showLoadDialog, setShowLoadDialog] = useState(false)
     const [showTrajectoryDialog, setShowTrajectoryDialog] = useState(false)
     const [showContactDialog, setShowContactDialog] = useState(false)
@@ -64,11 +65,11 @@ export function SummaryAndTemplateTable() {
     const [isSummaryOpen, setIsSummaryOpen] = useState(true)
 
     // Sync selectedTemplate with saved degree
-    useEffect(() => {
-        if (selectedDegreeId && selectedDegreeId !== selectedTemplate) {
-            setSelectedTemplate(selectedDegreeId)
-        }
-    }, [selectedDegreeId])
+    // useEffect(() => {
+    //     if (selectedDegreeId && selectedDegreeId !== selectedTemplate) {
+    //         setSelectedTemplate(selectedDegreeId)
+    //     }
+    // }, [selectedDegreeId])
 
     // Persist degree selection when changed
     const handleTemplateChange = (value: string) => {

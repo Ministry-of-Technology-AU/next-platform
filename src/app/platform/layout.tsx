@@ -39,7 +39,12 @@ export default function RootLayout({
           autoStart={false}
         >
           <SidebarProvider defaultOpen={false}>
-            {/* <NewToolAlert href="/platform/trajectory-planner" title="Trajectory Planner" /> */}
+            <NewToolAlert
+              href="/platform/trajectory-planner"
+              title="Trajectory Planner"
+              checkSeenKey="TRAJECTORY_PLANNER_TOUR_SEEN_V1"
+              blockIfNewVersion={true}
+            />
             <WhatsNewModal />
             <div className="flex min-h-screen w-full overflow-x-hidden">
               <AppSidebar />
