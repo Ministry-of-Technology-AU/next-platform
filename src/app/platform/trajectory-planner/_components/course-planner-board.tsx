@@ -161,7 +161,7 @@ export function CoursePlannerBoard() {
 
                 <div className="flex flex-col md:flex-row gap-6 h-full items-start">
                     {/* Available Course Tray - Full width on mobile, side panel on desktop */}
-                    <div className="w-full md:w-64 shrink-0 md:sticky md:top-24 md:self-start md:h-[calc(100vh-160px)] overflow-hidden flex flex-col">
+                    <div className="w-full md:w-64 shrink-0">
                         <AvailableCoursesTray />
                     </div>
 

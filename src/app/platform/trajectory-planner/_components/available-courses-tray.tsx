@@ -34,7 +34,7 @@ export function AvailableCoursesTray() {
             order={5}
             position="right"
         >
-            <div className="space-y-3 h-full flex flex-col">
+            <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold">Courses</h2>
                     <Button onClick={addNewCourse} size="sm" className="h-7 text-xs gap-1">
@@ -45,7 +45,7 @@ export function AvailableCoursesTray() {
                 <div
                     ref={setNodeRef}
                     className={cn(
-                        "flex-1 min-h-[150px] p-2 rounded-xl border border-dashed transition-colors flex flex-col gap-3 overflow-y-auto bg-muted/10 custom-scrollbar",
+                        "max-h-[200px] md:max-h-[700px] p-2 rounded-xl border border-dashed transition-colors flex flex-col gap-3 overflow-y-auto bg-muted/10 custom-scrollbar",
                         isOver ? "border-primary bg-primary/5" : "border-border",
                     )}
                 >
