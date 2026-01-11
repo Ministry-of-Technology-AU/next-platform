@@ -12,15 +12,22 @@ export const banners: Array<{
   gradient: string;
   buttons?: BannerButton[];
 }> = [
-
     {
       id: 1,
-      title: "",
-      subtitle: "",
-      description: "",
-      image: "/z6ggcs3unvoquykoyupo.webp",
+      title: "Course Trajectory Planner Launched!",
+      subtitle: "New Feature!",
+      description: "We just launched the beta version of a new feature!",
+      image: "/yyh4iiocug5dnctfkd5t.webp",
       alt: "Welcome to the Platform!",
       gradient: "",
+      buttons: [
+        {
+          variant: "animatedGhost",
+          children: "Check it out!",
+          onClick: () => window.location.href = "sg.ashoka.edu.in/platform/trajectory-planner",
+          className: "hover:underline text-secondary",
+        }
+      ]
     },
     {
       id: 2,
@@ -41,15 +48,38 @@ export const banners: Array<{
     },
     {
       id: 3,
-      title: "",
-      subtitle: "",
-      description: "",
-      image: "/xvs8kyobnxkrgzgeym5o.webp",
-      alt: "Meet our team!",
+      title: "MoT Inductions for Spring 2025!",
+      subtitle: "INDUCTIONS OPEN!",
+      description: "Deputy HOD Inductions and member inductions for Marketing Department are open!",
+      image: "/yyh4iiocug5dnctfkd5t.webp",
+      alt: "Deputy HOD Inductions and Member inductions for Marketing Department are open!",
       gradient: "",
+      buttons: [
+        {
+          variant: "default",
+          children: "Events Team Applications",
+          onClick: () => window.open("https://forms.gle/haZ5pzDX56MNxuah7", "_blank"),
+          className: "bg-secondary-extradark font-black",
+        },
+        {
+          variant: "default",
+          children: "Marketing Team Applications",
+          onClick: () => window.open("https://forms.gle/vmQu8BtpSwbcam1U7", "_blank"),
+          className: "bg-secondary-extradark font-black",
+        }
+      ]
     },
     {
       id: 4,
+      title: "",
+      subtitle: "",
+      description: "",
+      image: "/z6ggcs3unvoquykoyupo.webp",
+      alt: "Welcome to the Platform!",
+      gradient: "",
+    },
+    {
+      id: 5,
       title: "This space is for your advertisements!",
       subtitle: "Dear Organizations:",
       description: "If you want to advertise here, please reach out to us via mail at technology.ministry@ashoka.edu.in",
