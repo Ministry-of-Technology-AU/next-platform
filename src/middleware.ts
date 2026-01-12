@@ -15,11 +15,6 @@ export default auth(async function middleware(req) {
     return NextResponse.next()
   }
 
-  // Allow the user check-or-create endpoint to avoid infinite loops
-  if (pathname === '/api/platform/users/check-or-create') {
-    return NextResponse.next()
-  }
-
   if (pathname.startsWith('/backend')) {
     return NextResponse.next()
   }
@@ -50,37 +45,18 @@ export default auth(async function middleware(req) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Check if user exists in Strapi and create if not
-  // This is now handled by an API route to avoid Edge Runtime issues
-  try {
-    const baseUrl = new URL(req.url).origin;
-    const response = await fetch(`${baseUrl}/api/platform/users/check-or-create`, {
-      method: 'POST',
-      headers: {
-        'Cookie': req.headers.get('cookie') || '',
-      },
-    });
-
-    // Don't block the request if user creation fails
-    if (!response.ok) {
-      console.error('Failed to check/create user:', response.statusText);
-    }
-  } catch (error) {
-    console.error('Error checking/creating user:', error);
-    // Continue with the request even if user creation fails
-  }
-
-  // console.log('User:', req.auth.user)
+  // Note: User creation in Strapi is now handled in the signIn callback (src/auth.ts)
+  // This runs once at login instead of on every request, improving performance
 
   // Special access control for HOR dashboard
   if (pathname === '/platform/sg-compose/dashboard') {
     const horMembers = (process.env.HOR_MEMBERS || '').split(',').map(email => email.trim())
-    
+
     if (!horMembers.includes(req.auth.user.email)) {
       console.log(`❌ User ${req.auth.user.email} denied access to HOR dashboard`)
       return NextResponse.redirect(new URL('/unauthorized', req.url))
     }
-    
+
     console.log(`✅ User ${req.auth.user.email} granted access to HOR dashboard`)
     return NextResponse.next()
   }
