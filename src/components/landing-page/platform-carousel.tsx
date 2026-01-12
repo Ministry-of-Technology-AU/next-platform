@@ -17,10 +17,10 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
 
   useEffect(() => {
     if (!isAutoPlaying) return;
-    
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length);
-    }, 5000);
+    }, 3500);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
@@ -47,7 +47,7 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
     <div className={`relative w-full max-w-4xl aspect-[16/7] sm:aspect-[16/7] md:aspect-[16/7] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ${className}`}>
       {/* Carousel Images */}
       <div className="relative w-full h-full overflow-hidden max-w-full">
-        <div 
+        <div
           className="flex w-full h-full transition-transform duration-1000 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
@@ -66,41 +66,37 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
                 priority={index === 0}
               />
               <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
-              
+
               {/* Content Overlay */}
-              <div className="absolute inset-0 flex items-center justify-start text-left text-white p-3 sm:p-6 md:p-8">
+              <div className="absolute inset-0 flex items-center justify-start text-left text-white px-8 py-3 sm:px-14 sm:py-6 md:px-16 md:py-8">
                 <div className="sm:max-w-lg max-w-xs">
-                  <div className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${
-                    index === currentSlide 
-                      ? 'animate-in fade-in-0 slide-in-from-bottom-4' 
-                      : 'opacity-0 translate-y-4'
-                  }`}>
+                  <div className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${index === currentSlide
+                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                    : 'opacity-0 translate-y-4'
+                    }`}>
                     {banner.subtitle}
                   </div>
-                  <h1 className={`!text-sm sm:!text-2xl lg:!text-4xl font-extrabold mb-2 sm:mb-4 transition-all duration-1000 delay-150 !text-left ${
-                    index === currentSlide 
-                      ? 'animate-in fade-in-0 slide-in-from-bottom-4' 
-                      : 'opacity-0 translate-y-4'
-                  }`}>
+                  <h1 className={`!text-sm sm:!text-2xl lg:!text-4xl font-extrabold mb-2 sm:mb-4 transition-all duration-1000 delay-150 !text-left ${index === currentSlide
+                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                    : 'opacity-0 translate-y-4'
+                    }`}>
                     {banner.title}
                   </h1>
-                  <p className={`sm:text-sm md:text-base text-[10px] mb-3 sm:mb-6 opacity-90 transition-all duration-1000 delay-300 ${
-                    index === currentSlide 
-                      ? 'animate-in fade-in-0 slide-in-from-bottom-4' 
-                      : 'opacity-0 translate-y-4'
-                  }`}>
+                  <p className={`sm:text-sm md:text-base text-[10px] mb-3 sm:mb-6 opacity-90 transition-all duration-1000 delay-300 ${index === currentSlide
+                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                    : 'opacity-0 translate-y-4'
+                    }`}>
                     {banner.description}
                   </p>
                   {Array.isArray(banner.buttons) && banner.buttons.length > 0 && (
-                    <div className={`flex flex-row flex-wrap gap-2 sm:gap-3 transition-all duration-1000 delay-500 ${
-                      index === currentSlide 
-                        ? 'animate-in fade-in-0 slide-in-from-bottom-4' 
-                        : 'opacity-0 translate-y-4'
-                    }`}>
+                    <div className={`flex flex-row flex-wrap gap-2 sm:gap-3 transition-all duration-1000 delay-500 ${index === currentSlide
+                      ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                      : 'opacity-0 translate-y-4'
+                      }`}>
                       {banner.buttons.slice(0, 2).map((btnProps, i) => (
-                        <Button 
-                          key={i} 
-                          {...btnProps}                           
+                        <Button
+                          key={i}
+                          {...btnProps}
                           variant={btnProps.variant as ButtonVariant}
                           className={`text-xs sm:text-sm ${btnProps.className}`}
                         >
@@ -140,11 +136,10 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
         {banners.map((_, index) => (
           <button
             key={index}
-            className={`sm:w-3 sm:h-3 w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentSlide 
-                ? 'bg-white scale-125' 
-                : 'bg-white/50 hover:bg-white/75'
-            }`}
+            className={`sm:w-3 sm:h-3 w-2 h-2 rounded-full transition-all duration-300 ${index === currentSlide
+              ? 'bg-white scale-125'
+              : 'bg-white/50 hover:bg-white/75'
+              }`}
             onClick={() => goToSlide(index)}
             aria-label={`Go to slide ${index + 1}`}
           />

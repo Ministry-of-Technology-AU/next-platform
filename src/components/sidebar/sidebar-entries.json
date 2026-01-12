@@ -39,6 +39,11 @@
           "title": "CGPA Planner",
           "icon": "Award",
           "href": "/cgpa-planner"
+        },
+        {
+          "title": "Trajectory Planner",
+          "icon": "Route",
+          "href": "/trajectory-planner"
         }
       ]
     },
@@ -79,8 +84,8 @@
         },
         {
           "title": "Borrow Assets",
-          "icon":"ShoppingBag",
-          "href":"/borrow-assets"
+          "icon": "ShoppingBag",
+          "href": "/borrow-assets"
         }
       ]
     },

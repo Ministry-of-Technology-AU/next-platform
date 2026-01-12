@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Nunito, Nunito_Sans} from "next/font/google";
+import { Nunito, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
@@ -17,7 +17,7 @@ const nunito = Nunito({
 
 const nunitoSans = Nunito_Sans({
   variable: "--font-body",
-  weight: ["200","300", "400", "500", "600", "700", "800", "900"],
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
 });
 
@@ -49,7 +49,7 @@ export default function RootLayout({
               <main>
                 {children}
                 <Analytics />
-                <SpeedInsights />                
+                <SpeedInsights />
               </main>
               <Toaster position="top-right" />
             </Suspense>
