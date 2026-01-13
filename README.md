@@ -49,6 +49,21 @@ A Student Engagement Platform developed by the Ministry of Technology.
 </div>
 <p align="center">Dashboard</p>
 
+<img
+  src="https://drive.google.com/uc?export=view&id=10gfSP4URFAktXSWsH8JQHvP1BXdGBLZG"
+  width="800"
+  alt="Platform Insights"
+  style="display:block; margin: 12px auto;"
+/>
+<p align="center">Platform Insights (As of 13th Jan, 2026)</p>
+
+<img
+  src="https://drive.google.com/uc?export=view&id=1NOgkibe5ghhPYcnriTHPv6CcKT6jPmL7"
+  width="800"
+  alt="Profile Section"
+  style="display:block; margin: 12px auto;"
+/>
+<p align="center">Profile Section</p>
 
 
 ## Tech Stack
