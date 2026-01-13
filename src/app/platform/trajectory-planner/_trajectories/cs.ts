@@ -275,7 +275,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-4yr",
         name: "CS (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 38, total: 160 },
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
             { name: "Data Structures", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -291,7 +291,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-research-4yr",
         name: "CS with Research (4 years)",
         batch: "2024",
-        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, openCredits: 26, total: 160 },
+        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 26, total: 160 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
             { name: "Data Structures and Algorithms", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -307,7 +307,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-ent-4yr",
         name: "CS & ENT (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 28, total: 150 },
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 28, total: 150 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
             { name: "Data Structures and Algorithms", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -328,7 +328,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-ent-research-4yr",
         name: "CS & ENT with Research (4 years)",
         batch: "2024",
-        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, openCredits: 16, total: 150 },
+        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 16, total: 150 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
             { name: "Data Structures and Algorithms", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -350,7 +350,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-math-track1-4yr",
         name: "CS + MATH Track 1 (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 38, total: 160 },
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
             { name: "Discrete Mathematics", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -375,7 +375,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-math-track2-4yr",
         name: "CS + MATH Track 2 (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 38, total: 160 },
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
             { name: "Discrete Mathematics", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },

@@ -188,6 +188,13 @@ export function SummaryAndTemplateTable() {
                                             </TableCell>
                                         </TableRow>
                                         <TableRow>
+                                            <TableCell>Concentration</TableCell>
+                                            <TableCell className="text-right">{currentCredits.concentration}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                {currentTemplate?.requiredCredits.concentration ?? "-"}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
                                             <TableCell>Open</TableCell>
                                             <TableCell className="text-right">{currentCredits.openCredits}</TableCell>
                                             <TableCell className="text-right text-muted-foreground">

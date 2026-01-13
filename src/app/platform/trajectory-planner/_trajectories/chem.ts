@@ -27,7 +27,7 @@ export const chemTemplates: DegreeTemplate[] = [
         id: "chem-3yr",
         name: "Chemistry (3 years)",
         batch: "2024",
-        requiredCredits: { major: 60, minor: 0, fc: 36, cc: 4, openCredits: 0, total: 100 },
+        requiredCredits: { major: 60, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 0, total: 100 },
         defaultCourses: [
             { name: "Topics in Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
             { name: "Introductory Physical Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
@@ -39,7 +39,7 @@ export const chemTemplates: DegreeTemplate[] = [
         id: "chem-4yr",
         name: "Chemistry (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 36, total: 160 },
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 36, total: 160 },
         defaultCourses: [
             { name: "Topics in Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
             { name: "Introductory Physical Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
@@ -51,7 +51,7 @@ export const chemTemplates: DegreeTemplate[] = [
         id: "chem-research-4yr",
         name: "Chemistry with Research (4 years)",
         batch: "2024",
-        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, openCredits: 24, total: 160 },
+        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 24, total: 160 },
         defaultCourses: [
             { name: "Topics in Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },
             { name: "Introductory Physical Chemistry", credits: 4, deptCode: "CHM", type: "Major", isInSemester: false },

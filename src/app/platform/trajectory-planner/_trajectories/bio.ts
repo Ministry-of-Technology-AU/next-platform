@@ -98,7 +98,7 @@ export const bioTemplates: DegreeTemplate[] = [
         id: "bio-4yr",
         name: "Biology (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 38, total: 160 },
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             { name: "Introduction to Biology I: Genetics and Evolution", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
             { name: "Introduction to Biology II: Cell Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
@@ -118,7 +118,7 @@ export const bioTemplates: DegreeTemplate[] = [
         id: "bio-research-4yr",
         name: "Biology with Research (4 years)",
         batch: "2024",
-        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, openCredits: 26, total: 160 },
+        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 26, total: 160 },
         defaultCourses: [
             { name: "Introduction to Biology I: Genetics and Evolution", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
             { name: "Introduction to Biology II: Cell Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
