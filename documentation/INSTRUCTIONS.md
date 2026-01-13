@@ -3,24 +3,32 @@
 
 To get started with running the code in the server, do the following:
 
+
 ## Deployment
 
-To deploy this project run
+Clone the project
 
 ```bash
   git clone https://github.com/Ministry-of-Technology-AU/next-platform.git
-``` 
+
+```
+
+Go to the project directory
 
 ```bash
   cd next-platform
 ```
 
+Install dependencies
+
 ```bash
   npm install 
 ```
 
+Start the server
+
 ```bash
-  npm run build && npm run start
+  npm run start
 ```
 
 ## To manage the app using PM2
@@ -28,5 +36,6 @@ To deploy this project run
 ```bash
   pm2 start npm run start --name "next-platform"
 ```
+
 
 
