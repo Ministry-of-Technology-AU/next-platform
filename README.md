@@ -41,7 +41,7 @@ A Student Engagement Platform developed by the Ministry of Technology.
 
 <div style="text-align: center;">
   <img
-    src="https://drive.google.com/uc?export=view&id=1LcslLy9-m38_Ahf_6lWS-6LxYqrPA_Kb"
+    src="public/documentation/screenshots/dashboard.png"
     width="800"
     alt="Dashboard view"
     style="display:block; margin: 0 auto;"
@@ -50,7 +50,7 @@ A Student Engagement Platform developed by the Ministry of Technology.
 <p align="center">Dashboard</p>
 
 <img
-  src="https://drive.google.com/uc?export=view&id=1Oe3cLwXeHtEZmDKQ0qqGPfbahjyT9CP4"
+  src="public/documentation/media/insights.gif"
   width="800"
   alt="Platform Insights"
   style="display:block; margin: 12px auto;"
@@ -58,7 +58,7 @@ A Student Engagement Platform developed by the Ministry of Technology.
 <p align="center">Platform Insights (As of 13th Jan, 2026)</p>
 
 <img
-  src="https://drive.google.com/uc?export=view&id=1NOgkibe5ghhPYcnriTHPv6CcKT6jPmL7"
+  src="public/documentation/screenshots/profile.png"
   width="800"
   alt="Profile Section"
   style="display:block; margin: 12px auto;"
