@@ -34,7 +34,7 @@ Start the server
 ## To manage the app using PM2
 
 ```bash
-  pm2 start npm run start --name "next-platform"
+  pm2 start npm --name "next-platform" -- start
 ```
 
 
