@@ -27,7 +27,7 @@ A Student Engagement Platform developed by the Ministry of Technology.
 
 - Organisations Catalogue - Catalogue of all clubs, societies and ministries at Ashoka University
 
-- WiFI Tickets - Notify the Ministry and IT about WiFi outages and connectivity issues
+- WiFi Tickets - Notify the Ministry and IT about WiFi outages and connectivity issues
 
 - Pool a Cab
 
