@@ -1,11 +1,6 @@
-
-<div style="text-align: center;">
-  <img
-    src="https://drive.google.com/uc?export=view&id=1YnOu4f2pwOOMNDbt2ulxM4zx-TTTxGEW"
-    style="width:200px; height:auto;"
-    alt="Ministry of Technology Logo"
-  />
-</div>
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1YnOu4f2pwOOMNDbt2ulxM4zx-TTTxGEW" width="200" height="200" />
+</p>
 
 # Ashoka University Student Platform
 
