@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="documentation/logo.png" width="200" height="200" />
+  <img src="documentation/media/logo.png" width="200" height="200" />
 </p>
 
 # Ashoka University Student Platform
