@@ -48,7 +48,8 @@ A Student Engagement Platform developed by the Ministry of Technology.
   <img
     src="https://drive.google.com/uc?export=view&id=1LcslLy9-m38_Ahf_6lWS-6LxYqrPA_Kb"
     width="800"
-    alt="Dashboard"
+    alt="Dashboard view"
+    style="display:block; margin: 0 auto;"
   />
 </div>
 
