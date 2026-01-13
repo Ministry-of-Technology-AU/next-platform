@@ -8,6 +8,23 @@ const ORGANIZATION_EMAILS = [
   // Add more organization emails as needed
 ]
 
+// Department Representative emails for trajectory planner management
+const REP_EMAILS = [
+  "cs.rep@ashoka.edu.in",
+  "vansh.bothra_ug25@ashoka.edu.in",
+  "physics.rep@ashoka.edu.in",
+  "math.rep@ashoka.edu.in",
+  "biology_ugrep@ashoka.edu.in",
+  "econreps@ashoka.edu.in",
+  "english.rep@ashoka.edu.in",
+  "history.rep@ashoka.edu.in",
+  "psy.rep@ashoka.edu.in",
+  "socanth.rep@ashoka.edu.in",
+  "polsci.rep@ashoka.edu.in",
+  "chem.rep@ashoka.edu.in",
+  "philosophy.rep@ashoka.edu.in",
+]
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Google({
@@ -70,6 +87,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } else if (process.env.HOR_MEMBERS?.split(',').includes(email)) {
           token.role = 'hor_member';
           token.access = ['platform'];
+        } else if (REP_EMAILS.includes(email)) {
+          token.role = 'rep';
+          token.access = ['platform', 'rep_dashboard'];
         } else if (email.includes('_ug') || email.includes('_asp') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.includes('_ma')) {
           token.role = 'student';
           token.access = ['platform'];

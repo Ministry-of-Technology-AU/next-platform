@@ -243,67 +243,7 @@ export function CoursePlannerBoard() {
                 </div>
             </div>
 
-            <TourStep
-                id="save-trajectory"
-                title="Save Trajectory"
-                content="Your progress is automatically synced. Don't forget to hit Save to keep your latest changes!"
-                order={8}
-                position="left"
-            >
-                <Button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className={`
-                    fixed
-                    bottom-6
-                    right-6
-                    z-50
-                    h-14
-                    w-14
-                    rounded-full
-                    flex
-                    items-center
-                    justify-center
-                    bg-primary/70
-                    shadow-lg
-                    transition-all
-                    duration-300
-                    group
-                    hover:w-56
-                    hover:rounded-3xl
-                    hover:justify-start
-                    px-4
-                    overflow-hidden
-                    ${isSaving ? 'opacity-70' : ''}
-                `}
-                    style={{ minWidth: "3.5rem" }}
-                >
-                    <span className="flex items-center justify-center group-hover:justify-start">
-                        {isSaving ? (
-                            <Spinner className="w-6 h-6 flex-shrink-0" />
-                        ) : (
-                            <Save
-                                className="w-6 h-6 flex-shrink-0"
-                                strokeWidth={2.5}
-                            />
-                        )}
-                        <span
-                            className="
-                            ml-3
-                            text-lg
-                            font-semibold
-                            whitespace-nowrap
-                            hidden
-                            group-hover:inline
-                            transition-all
-                            duration-300
-                        "
-                        >
-                            {isSaving ? 'Saving...' : 'Save Trajectory'}
-                        </span>
-                    </span>
-                </Button>
-            </TourStep>
+
 
             <DragOverlay>{activeCourse ? <CourseCard course={activeCourse} isDragging /> : null}</DragOverlay>
         </DndContext >

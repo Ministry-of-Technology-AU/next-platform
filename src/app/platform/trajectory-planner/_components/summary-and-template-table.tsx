@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { useCoursePlanner } from "../course-planner-context"
-import { degreeTemplates, idealTrajectories } from "../templates"
+import { degreeTemplates as staticTemplates, idealTrajectories as staticTrajectories } from "../templates"
+import type { DegreeTemplate, IdealTrajectory } from "../templates"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail, Save } from "lucide-react"
+import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail, Save, Loader2 } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import type { Course } from "../types"
 import {
@@ -42,6 +43,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { TourStep } from "@/components/guided-tour"
+import { toast } from "sonner"
 
 export function SummaryAndTemplateTable() {
     const {
@@ -53,7 +55,63 @@ export function SummaryAndTemplateTable() {
         selectedDegreeId,
         setSelectedDegree,
         loadPreviousSemesters,
+        exportState,
     } = useCoursePlanner()
+
+    // Save trajectory state
+    const [isSaving, setIsSaving] = useState(false)
+
+    const handleSaveTrajectory = async () => {
+        setIsSaving(true)
+        try {
+            const jsonState = exportState()
+            const response = await fetch("/api/platform/trajectory-planner", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ state: JSON.parse(jsonState) }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to save")
+            }
+
+            toast.success("Trajectory saved successfully!")
+        } catch (error) {
+            console.error("Save failed:", error)
+            toast.error("Failed to save trajectory. Please try again.")
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    // Fetched templates from API (with static fallback)
+    const [degreeTemplates, setDegreeTemplates] = useState<DegreeTemplate[]>(staticTemplates)
+    const [idealTrajectories, setIdealTrajectories] = useState<IdealTrajectory[]>(staticTrajectories)
+
+    // Fetch templates from API on mount
+    useEffect(() => {
+        async function fetchTemplates() {
+            try {
+                const res = await fetch('/api/platform/trajectory-planner/templates')
+                if (res.ok) {
+                    const data = await res.json()
+                    if (data.degreeTemplates?.length > 0) {
+                        setDegreeTemplates(data.degreeTemplates)
+                    }
+                    if (data.idealTrajectories?.length > 0) {
+                        setIdealTrajectories(data.idealTrajectories)
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to fetch templates from API, using static data')
+            }
+        }
+        fetchTemplates()
+    }, [])
 
     // const [selectedTemplate, setSelectedTemplate] = useState<string>(selectedDegreeId || "")
     const [selectedTemplate, setSelectedTemplate] = useState<string>("")
@@ -321,19 +379,24 @@ export function SummaryAndTemplateTable() {
                     Contact Reps
                 </Button>
 
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="inline-block cursor-not-allowed">
-                            <Button disabled variant="outline" size="sm" className="gap-1 opacity-60 pointer-events-none">
-                                <Save size={14} />
-                                Save Template
-                            </Button>
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Coming Soon!</p>
-                    </TooltipContent>
-                </Tooltip>
+                <TourStep
+                    id="save-trajectory"
+                    title="Save Trajectory"
+                    content="Save your course planning progress! Your trajectory will be synced to your account."
+                    order={8}
+                    position="bottom"
+                >
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={handleSaveTrajectory}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        {isSaving ? "Saving..." : "Save Trajectory"}
+                    </Button>
+                </TourStep>
             </div>
 
             {/* Load Previous Semesters Dialog */}
