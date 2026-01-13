@@ -50,7 +50,7 @@ A Student Engagement Platform developed by the Ministry of Technology.
 <p align="center">Dashboard</p>
 
 <img
-  src="https://drive.google.com/uc?export=view&id=10gfSP4URFAktXSWsH8JQHvP1BXdGBLZG"
+  src="https://drive.google.com/uc?export=view&id=1Oe3cLwXeHtEZmDKQ0qqGPfbahjyT9CP4"
   width="800"
   alt="Platform Insights"
   style="display:block; margin: 12px auto;"
