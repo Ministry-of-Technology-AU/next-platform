@@ -1,5 +1,5 @@
 
-![Logo](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/th5xamgrr6se0x5ro4g6.png)
+![Ministry of Technology Logo](https://drive.google.com/uc?export=view&id=1YnOu4f2pwOOMNDbt2ulxM4zx-TTTxGEW)
 
 
 # Ashoka University Student Platform
@@ -57,4 +57,13 @@ If you have any feedback, please reach out to us at technology.ministry@ashoka.e
 ## Support
 
 For support, email technology.ministry@ashoka.edu.in.
+
+
+## Contributors
+
+<a href="https://github.com/Ministry-of-Technology-AU/next-platform/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Ministry-of-Technology-AU/next-platform" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
 
