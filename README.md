@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="public/logo.png" width="200" height="200" />
+  <img src="documentation/logo.png" width="200" height="200" />
 </p>
 
 # Ashoka University Student Platform
@@ -41,7 +41,7 @@ A Student Engagement Platform developed by the Ministry of Technology.
 
 <div style="text-align: center;">
   <img
-    src="public/documentation/screenshots/dashboard.png"
+    src="documentation/screenshots/dashboard.png"
     width="800"
     alt="Dashboard view"
     style="display:block; margin: 0 auto;"
@@ -50,7 +50,7 @@ A Student Engagement Platform developed by the Ministry of Technology.
 <p align="center">Dashboard</p>
 
 <img
-  src="public/documentation/media/insights.gif"
+  src="documentation/media/insights.gif"
   width="800"
   alt="Platform Insights"
   style="display:block; margin: 12px auto;"
@@ -58,7 +58,7 @@ A Student Engagement Platform developed by the Ministry of Technology.
 <p align="center">Platform Insights (As of 13th Jan, 2026)</p>
 
 <img
-  src="public/documentation/screenshots/profile.png"
+  src="documentation/screenshots/profile.png"
   width="800"
   alt="Profile Section"
   style="display:block; margin: 12px auto;"
