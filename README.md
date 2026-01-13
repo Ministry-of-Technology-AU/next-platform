@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
   <img src="https://drive.google.com/uc?export=view&id=1YnOu4f2pwOOMNDbt2ulxM4zx-TTTxGEW" width="200" height="200" />
 </p>
 
