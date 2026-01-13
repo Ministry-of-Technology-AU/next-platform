@@ -44,7 +44,14 @@ A Student Engagement Platform developed by the Ministry of Technology.
 
 ## Screenshots
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+<div style="text-align: center;">
+  <img
+    src="https://drive.google.com/uc?export=view&id=1LcslLy9-m38_Ahf_6lWS-6LxYqrPA_Kb"
+    width="800"
+    alt="Dashboard"
+  />
+</div>
+
 
 
 ## Tech Stack
@@ -58,15 +65,9 @@ A Student Engagement Platform developed by the Ministry of Technology.
 **Utilities:** date-fns, Sonner, Vaul, cmdk
 
 
+## Feedback & Support
 
-## Feedback
-
-If you have any feedback, please reach out to us at technology.ministry@ashoka.edu.in
-
-
-## Support
-
-For support, email technology.ministry@ashoka.edu.in.
+If you have any feedback or need support, please reach out to us at technology.ministry@ashoka.edu.in
 
 
 ## Contributors
