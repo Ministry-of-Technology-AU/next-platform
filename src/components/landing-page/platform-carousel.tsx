@@ -47,7 +47,8 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
     };
   });
 
-  const allBanners = [...adBanners, ...banners];
+  // const allBanners = [...adBanners, ...banners];
+  const allBanners = adBanners.length > 0 ? [...adBanners] : [...banners];
 
   useEffect(() => {
     if (!isAutoPlaying) return;

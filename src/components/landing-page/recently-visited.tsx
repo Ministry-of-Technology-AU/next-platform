@@ -5,6 +5,53 @@ import Link from 'next/link';
 import { recentlyVisited as staticRecentlyVisited } from './data/platform-data';
 import { TourStep } from '../guided-tour';
 import { LucideIcon } from 'lucide-react';
+import {
+  Home,
+  CalendarSync,
+  Award,
+  Library,
+  Users,
+  Car,
+  CalendarDays,
+  PartyPopper,
+  UserCog,
+  Settings,
+  HelpCircle,
+  ClipboardPenLine,
+  MailPlus,
+  Clock,
+  WifiPen,
+  User,
+  GalleryHorizontalEnd,
+  ShoppingBag,
+  Puzzle,
+  Route
+} from "lucide-react";
+import sidebarData from "@/components/sidebar/sidebar-entries.json";
+
+// Icon mapping from app-sidebar
+const iconMap: Record<string, LucideIcon> = {
+  Home,
+  ClipboardPenLine,
+  CalendarSync,
+  Award,
+  Library,
+  Users,
+  Car,
+  CalendarDays,
+  PartyPopper,
+  UserCog,
+  Settings,
+  HelpCircle,
+  MailPlus,
+  Clock,
+  WifiPen,
+  User,
+  GalleryHorizontalEnd,
+  ShoppingBag,
+  Puzzle,
+  Route
+};
 
 interface RecentlyVisitedProps {
   className?: string;
@@ -30,15 +77,36 @@ export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
 
           // Map paths to metadata
           const mappedItems = paths.map(path => {
-            // Try to find in static data first
-            const found = staticRecentlyVisited.find(item => item.href === path);
-            if (found) {
+            // Find in sidebarData
+            let foundItem: { title: string; icon: string; href: string } | undefined;
+
+            for (const category of sidebarData.categories) {
+              const found = category.items.find(item => `/platform${item.href}` === path || item.href === path || path.endsWith(item.href));
+              if (found) {
+                foundItem = found;
+                break;
+              }
+            }
+
+            if (foundItem) {
+              const Icon = iconMap[foundItem.icon];
               return {
-                name: found.name,
-                href: found.href,
-                icon: found.icon
+                name: foundItem.title,
+                href: path,
+                icon: Icon
               };
             }
+
+            // Fallback to static data if not in sidebar (legacy support?)
+            const staticFound = staticRecentlyVisited.find(item => item.href === path);
+            if (staticFound) {
+              return {
+                name: staticFound.name,
+                href: staticFound.href,
+                icon: staticFound.icon
+              };
+            }
+
             // Fallback: derive name from path
             const name = path.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || "Tool";
             return {
@@ -50,14 +118,6 @@ export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
 
           setItems(mappedItems.slice(0, 4));
         } else {
-          // Fallback to static if nothing in local storage yet (optional, but good for empty state)
-          // For now, let's just show the static ones if local storage is empty, or empty? 
-          // The prompt says "recently visited will come from local storage".
-          // But valid initial state might be empty. 
-          // However, for better UX lets default to static if empty so it doesn't look broken initially?
-          // Prompt says: "The recently visited will come from local storage."
-          // It also says "Make a normal single object saved against a local storage key."
-          // I will stick to local storage. If empty, it's empty.
           setItems([]);
         }
       } catch (e) {
