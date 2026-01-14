@@ -14,7 +14,7 @@
 
 <div style="text-align: center;">
   <img
-    src="documentation/screenshots/cgpa-planner.png"
+    src="/screenshots/cgpa-planner.png"
     width="800"
     alt="Dashboard view"
     style="display:block; margin: 0 auto;"
@@ -24,7 +24,7 @@
 
 <div style="text-align: center;">
   <img
-    src="documentation/screenshots/orgs-catalogue.png"
+    src="/screenshots/orgs-catalogue.png"
     width="800"
     alt="Dashboard view"
     style="display:block; margin: 0 auto;"
@@ -34,7 +34,7 @@
 
 <div style="text-align: center;">
   <img
-    src="documentation/screenshots/sem-planner.png"
+    src="/screenshots/sem-planner.png"
     width="800"
     alt="Dashboard view"
     style="display:block; margin: 0 auto;"
