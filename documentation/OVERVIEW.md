@@ -4,7 +4,7 @@
 
 <div style="text-align: center;">
   <img
-    src="documentation/screenshots/sg-compose.png"
+    src="/screenshots/sg-compose.png"
     width="800"
     alt="Dashboard view"
     style="display:block; margin: 0 auto;"
