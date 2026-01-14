@@ -11,6 +11,7 @@
   />
 </div>
 <p align="center">SG Compose</p>
+<p align="center">Email composer to draft and send approved emails to the Ashokan student community from the Student Government email </p>
 
 <div style="text-align: center;">
   <img
@@ -21,6 +22,7 @@
   />
 </div>
 <p align="center">CGPA Planner</p>
+<p align="center">Simulates future CGPA scenarios based on expected grades</p>
 
 <div style="text-align: center;">
   <img
@@ -31,6 +33,7 @@
   />
 </div>
 <p align="center">Organisations Catalogue</p>
+<p align="center">Catalogue of all clubs, societies and ministries at Ashoka University</p>
 
 <div style="text-align: center;">
   <img
@@ -41,3 +44,4 @@
   />
 </div>
 <p align="center">Semester Planner</p>
+<p align="center">Plan and organize your course schedule</p>
