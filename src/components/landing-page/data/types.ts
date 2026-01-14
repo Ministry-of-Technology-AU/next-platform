@@ -7,3 +7,24 @@ export type BannerButton = React.ComponentProps<typeof Button> & {
   variant?: ButtonVariant;
   className?: string; // Allows full customization
 };
+
+export interface Advertisement {
+  id: number;
+  attributes: {
+    isActive: boolean;
+    title: string;
+    subtitle: string;
+    description: string;
+    gradient: string;
+    order: number;
+    banner_image?: {
+      data: Array<{
+        attributes: {
+          url: string;
+          alternativeText?: string;
+        }
+      }>
+    };
+    buttons?: any; // JSON type in Strapi
+  }
+}

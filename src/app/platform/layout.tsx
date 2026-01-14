@@ -9,6 +9,7 @@ import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
 import { NewToolAlert } from "@/components/new-tool-alert";
 import { WhatsNewModal } from "@/components/whats-new-modal";
+import { RecentPageTracker } from "@/components/landing-page/recent-page-tracker";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -46,6 +47,7 @@ export default function RootLayout({
               blockIfNewVersion={true}
             />
             <WhatsNewModal />
+            <RecentPageTracker />
             <div className="flex min-h-screen w-full overflow-x-hidden">
               <AppSidebar />
               <div className="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">
