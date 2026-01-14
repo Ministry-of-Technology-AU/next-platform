@@ -76,6 +76,12 @@ A Student Engagement Platform developed by the Ministry of Technology.
 
 **Utilities:** date-fns, Sonner, Vaul, cmdk
 
+## More Information 
+
+For information on deploying to server, [click here](documentation/INSTRUCTIONS.md)
+
+For detailed information on the platform's features, [click here](documentation/OVERVIEW.md)
+
 
 ## Feedback & Support
 
