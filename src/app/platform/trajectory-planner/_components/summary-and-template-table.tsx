@@ -5,7 +5,16 @@ import { useCoursePlanner } from "../course-planner-context"
 import { degreeTemplates as staticTemplates, idealTrajectories as staticTrajectories } from "../templates"
 import type { DegreeTemplate, IdealTrajectory } from "../templates"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxGroup,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+    ComboboxTrigger,
+} from "@/components/ui/shadcn-io/combobox"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail, Save, Loader2 } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
@@ -309,18 +318,30 @@ export function SummaryAndTemplateTable() {
                     content="Select your major/minor template to see specific graduation requirements tailored to your batch."
                     order={2}
                 >
-                    <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
-                        <SelectTrigger className="w-[250px]">
-                            <SelectValue placeholder="Select degree template..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {degreeTemplates.map((template) => (
-                                <SelectItem key={template.id} value={template.id}>
-                                    {template.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Combobox
+                        data={degreeTemplates.map((t) => ({ label: t.name, value: t.id }))}
+                        value={selectedTemplate}
+                        onValueChange={handleTemplateChange}
+                        type="degree template"
+                    >
+                        <ComboboxTrigger className="w-[250px]" />
+                        <ComboboxContent>
+                            <ComboboxInput />
+                            <ComboboxList>
+                                <ComboboxEmpty />
+                                <ComboboxGroup>
+                                    {degreeTemplates.map((template) => (
+                                        <ComboboxItem
+                                            key={template.id}
+                                            value={template.id}
+                                        >
+                                            {template.name}
+                                        </ComboboxItem>
+                                    ))}
+                                </ComboboxGroup>
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
                 </TourStep>
 
                 <TourStep

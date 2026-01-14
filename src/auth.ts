@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import { Noto_Sans_Ogham } from "next/font/google"
 
 // Special admin emails list for organization access
 const ORGANIZATION_EMAILS = [
@@ -23,6 +24,7 @@ const REP_EMAILS = [
   "polsci.rep@ashoka.edu.in",
   "chem.rep@ashoka.edu.in",
   "philosophy.rep@ashoka.edu.in",
+  "soham.tulsyan_ug2023@ashoka.edu.in",
 ]
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

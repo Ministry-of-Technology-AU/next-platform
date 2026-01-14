@@ -3,7 +3,8 @@
 
 export const REP_TO_DEPT: Record<string, string> = {
     // "vansh.bothra_ug25@ashoka.edu.in": "CS",
-    "cs.rep@ashoka.edu.in": "CS",
+    // "cs.rep@ashoka.edu.in": "CS",
+    "soham.tulsyan_ug2023@ashoka.edu.in": "CS",
     "physics.rep@ashoka.edu.in": "PHY",
     "math.rep@ashoka.edu.in": "MATH",
     "biology_ugrep@ashoka.edu.in": "BIO",
