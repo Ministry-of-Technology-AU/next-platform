@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-import { Noto_Sans_Ogham } from "next/font/google"
+import { strapiGet, strapiPost } from "./lib/apis/strapi"
 
 // Special admin emails list for organization access
 const ORGANIZATION_EMAILS = [
@@ -26,6 +26,68 @@ const REP_EMAILS = [
   "philosophy.rep@ashoka.edu.in",
   "soham.tulsyan_ug2023@ashoka.edu.in",
 ]
+
+/**
+ * Creates a user in Strapi if they don't already exist.
+ * Called once during sign-in, not on every request.
+ */
+async function createUserInStrapiIfNotExists(user: { email: string; name?: string | null; image?: string | null }) {
+  const userEmail = user.email
+  const userName = user.name || ''
+
+  try {
+    // Check if a user with the same email exists
+    const emailResponse = await strapiGet('/users', {
+      filters: {
+        email: {
+          $eq: userEmail
+        }
+      }
+    })
+
+    if (!emailResponse || emailResponse.length === 0) {
+      // User doesn't exist, need to create them
+      let finalUsername = userName
+      const batch = (userEmail.match(/_([^@]+)@/) || [])[1]?.toUpperCase() || ""
+
+      // Check if username already exists
+      if (userName) {
+        const usernameResponse = await strapiGet('/users', {
+          filters: {
+            username: {
+              $eq: userName
+            }
+          }
+        })
+
+        // If username exists, append random number
+        if (usernameResponse && usernameResponse.length > 0) {
+          finalUsername = `${userName} ${Math.floor(Math.random() * 100) + 1}`
+        }
+      }
+
+      // Create new user in Strapi
+      const userData = {
+        email: userEmail,
+        username: finalUsername,
+        profile_url: user.image || '',
+        password: Math.random().toString(36).slice(-8), // Random password
+        role: 1,
+        confirmed: true,
+        blocked: false,
+        batch: batch
+      }
+
+      console.log('Creating new user in Strapi:', userEmail)
+      await strapiPost('/users', userData)
+      console.log('Successfully created user in Strapi:', userEmail)
+    }
+  } catch (error) {
+    // Log error but don't block sign-in - user can still use the app
+    // They just won't have a Strapi record until next login attempt
+    console.error('Error checking/creating user in Strapi:', error)
+  }
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -55,6 +117,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.log(`Rejected sign-in attempt from: ${user.email}`);
         return false;
       }
+
+      // Create user in Strapi if they don't exist (runs once at login)
+      await createUserInStrapiIfNotExists({
+        email: user.email,
+        name: user.name,
+        image: user.image
+      });
 
       console.log(`Successful sign-in: ${user.email}`);
       return true;

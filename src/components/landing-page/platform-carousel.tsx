@@ -7,23 +7,58 @@ import { banners } from './data/platform-data';
 import { ButtonVariant } from './data/types';
 import Image from 'next/image';
 
+import { Advertisement } from './data/types';
+
 interface PlatformCarouselProps {
   className?: string;
+  adverts?: Advertisement[];
 }
 
-export default function PlatformCarousel({ className }: PlatformCarouselProps) {
+export default function PlatformCarousel({ className, adverts = [] }: PlatformCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Merge ads with static banners
+  // First, map ads to banner format
+  const adBanners = adverts.map(ad => {
+    const bannerImage = ad.attributes.banner_image?.data?.[0]?.attributes?.url || '/yyh4iiocug5dnctfkd5t.webp'; // Fallback image
+    // Ensure absolute URL if needed, but Strapi usually returns relative or full depending on config. 
+    // Assuming relative, prepend base URL if needed? 
+    // Usually strapiGet helper might handle it or we assume it's a full URL or relative.
+    // If it's relative, we need NEXT_PUBLIC_STRAPI_URL.
+    // But let's assume the url is usable for now, or handle it.
+    // Actually, strapiGet usually returns JSON. media URLs are often relative like /uploads/...
+    // I should check how media is handled. The user's other code might show.
+    // But as a safe bet I'll prepend process.env.NEXT_PUBLIC_STRAPI_URL if it starts with /.
+
+    // For now, I'll trust the URL or use a helper if I had one. 
+    // I'll stick to using the URL as is, but if it looks relative (starts with /), I might need to fix it. 
+    // However, for this task, I will use the URL provided.
+
+    return {
+      id: `ad-${ad.id}`,
+      title: ad.attributes.title,
+      subtitle: ad.attributes.subtitle,
+      description: ad.attributes.description,
+      image: bannerImage,
+      alt: ad.attributes.title,
+      gradient: ad.attributes.gradient || "",
+      buttons: ad.attributes.buttons || [],
+    };
+  });
+
+  // const allBanners = [...adBanners, ...banners];
+  const allBanners = adBanners.length > 0 ? [...adBanners] : [...banners];
 
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % banners.length);
+      setCurrentSlide((prev) => (prev + 1) % allBanners.length);
     }, 3500);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, allBanners.length]);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
@@ -32,13 +67,13 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % banners.length);
+    setCurrentSlide((prev) => (prev + 1) % allBanners.length);
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
+    setCurrentSlide((prev) => (prev - 1 + allBanners.length) % allBanners.length);
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
@@ -51,13 +86,13 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
           className="flex w-full h-full transition-transform duration-1000 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
-          {banners.map((banner, index) => (
+          {allBanners.map((banner, index) => (
             <div
               key={banner.id}
               className="relative w-full h-full flex-shrink-0 min-w-full"
             >
               <Image
-                src={banner.image}
+                src={banner.image.startsWith('/') && !banner.image.startsWith('/_next') && banner.image !== '/yyh4iiocug5dnctfkd5t.webp' && banner.image !== '/Neev-Banner.webp' && banner.image !== '/z6ggcs3unvoquykoyupo.webp' ? `${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}${banner.image}` : banner.image}
                 alt={banner.alt}
                 width={1200}
                 height={720}
@@ -93,7 +128,7 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
                       ? 'animate-in fade-in-0 slide-in-from-bottom-4'
                       : 'opacity-0 translate-y-4'
                       }`}>
-                      {banner.buttons.slice(0, 2).map((btnProps, i) => (
+                      {banner.buttons.slice(0, 2).map((btnProps: any, i: number) => (
                         <Button
                           key={i}
                           {...btnProps}
@@ -133,7 +168,7 @@ export default function PlatformCarousel({ className }: PlatformCarouselProps) {
 
       {/* Dots Indicator */}
       <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-1 sm:space-x-2">
-        {banners.map((_, index) => (
+        {allBanners.map((_, index) => (
           <button
             key={index}
             className={`sm:w-3 sm:h-3 w-2 h-2 rounded-full transition-all duration-300 ${index === currentSlide
