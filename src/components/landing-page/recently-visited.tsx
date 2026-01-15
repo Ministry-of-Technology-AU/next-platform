@@ -67,61 +67,78 @@ export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
   const [items, setItems] = useState<VisitedItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
+  // Fallback paths in priority order
+  const FALLBACK_PATHS = [
+    '/platform/trajectory-planner',
+    '/platform/organisations-catalog',
+    '/platform/events-calendar',
+    '/platform/course-reviews'
+  ];
+
+  const mapPathToItem = (path: string): VisitedItem => {
+    // Find in sidebarData
+    let foundItem: { title: string; icon: string; href: string } | undefined;
+
+    for (const category of sidebarData.categories) {
+      const found = category.items.find(item => `/platform${item.href}` === path || item.href === path || path.endsWith(item.href));
+      if (found) {
+        foundItem = found;
+        break;
+      }
+    }
+
+    if (foundItem) {
+      const Icon = iconMap[foundItem.icon];
+      return {
+        name: foundItem.title,
+        href: path,
+        icon: Icon
+      };
+    }
+
+    // Fallback to static data if not in sidebar
+    const staticFound = staticRecentlyVisited.find(item => item.href === path);
+    if (staticFound) {
+      return {
+        name: staticFound.name,
+        href: staticFound.href,
+        icon: staticFound.icon
+      };
+    }
+
+    // Fallback: derive name from path
+    const name = path.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || "Tool";
+    return {
+      name: name,
+      href: path,
+      icon: null
+    };
+  };
+
   useEffect(() => {
     setMounted(true);
     const updateItems = () => {
       try {
         const stored = localStorage.getItem("recently-visited");
-        if (stored) {
-          const paths: string[] = JSON.parse(stored);
+        let paths: string[] = stored ? JSON.parse(stored) : [];
 
-          // Map paths to metadata
-          const mappedItems = paths.map(path => {
-            // Find in sidebarData
-            let foundItem: { title: string; icon: string; href: string } | undefined;
-
-            for (const category of sidebarData.categories) {
-              const found = category.items.find(item => `/platform${item.href}` === path || item.href === path || path.endsWith(item.href));
-              if (found) {
-                foundItem = found;
-                break;
-              }
+        // Fill with fallbacks if less than 4 items
+        if (paths.length < 4) {
+          for (const fallbackPath of FALLBACK_PATHS) {
+            if (paths.length >= 4) break;
+            if (!paths.includes(fallbackPath)) {
+              paths.push(fallbackPath);
             }
-
-            if (foundItem) {
-              const Icon = iconMap[foundItem.icon];
-              return {
-                name: foundItem.title,
-                href: path,
-                icon: Icon
-              };
-            }
-
-            // Fallback to static data if not in sidebar (legacy support?)
-            const staticFound = staticRecentlyVisited.find(item => item.href === path);
-            if (staticFound) {
-              return {
-                name: staticFound.name,
-                href: staticFound.href,
-                icon: staticFound.icon
-              };
-            }
-
-            // Fallback: derive name from path
-            const name = path.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || "Tool";
-            return {
-              name: name,
-              href: path,
-              icon: null
-            };
-          });
-
-          setItems(mappedItems.slice(0, 4));
-        } else {
-          setItems([]);
+          }
         }
+
+        // Map paths to items
+        const mappedItems = paths.map(mapPathToItem);
+        setItems(mappedItems.slice(0, 4));
       } catch (e) {
         console.error("Error parsing recently visited", e);
+        // On error, show fallbacks
+        setItems(FALLBACK_PATHS.map(mapPathToItem));
       }
     };
 
