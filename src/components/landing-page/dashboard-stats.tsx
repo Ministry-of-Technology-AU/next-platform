@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
-import { 
-  Users, 
-  BookOpen, 
+import {
+  Users,
+  BookOpen,
   Activity,
   Car,
   Handshake,
@@ -26,7 +26,7 @@ export default function DashboardStats() {
   useEffect(() => {
     async function fetchMetrics() {
       try {
-        const res = await fetch("/api/platform/metrics", { cache: 'no-store' });
+        const res = await fetch("/api/platform/landing-page/metrics", { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
         const data = await res.json();
         setStats({
@@ -53,7 +53,7 @@ export default function DashboardStats() {
           <Activity className="size-4 sm:size-5 md:size-6 text-primary" />
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Platform Insights</h2>
         </div>
-        
+
         <div className="flex items-center justify-center min-h-[300px] bg-gradient-to-r from-[#60150a] to-[#87281b] rounded-lg">
           <div className="flex flex-col items-center gap-4 text-white">
             <Loader2 className="size-8 animate-spin" />
@@ -70,7 +70,7 @@ export default function DashboardStats() {
         <Activity className="size-4 sm:size-5 md:size-6 text-primary" />
         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Platform Insights</h2>
       </div>
-      
+
       <BentoGrid className="max-w-6xl mx-auto px-2 sm:px-4">
         {/* Active Users - Large card */}
         <BentoGridItem
