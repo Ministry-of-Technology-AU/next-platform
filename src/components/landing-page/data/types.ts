@@ -6,6 +6,8 @@ export type ButtonVariant = "default" | "outline" | "link" | "destructive" | "se
 export type BannerButton = React.ComponentProps<typeof Button> & {
   variant?: ButtonVariant;
   className?: string; // Allows full customization
+  url?: string; // Support for links (especially for JSON data from Strapi)
+  style?: React.CSSProperties; // Detailed inline styling support
 };
 
 export interface Advertisement {

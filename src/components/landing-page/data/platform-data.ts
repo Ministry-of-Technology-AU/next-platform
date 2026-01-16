@@ -70,3 +70,29 @@ export const recentlyVisited = [
     lastVisited: new Date('2024-10-05'),
   },
 ];
+
+// Tailwind Safelist to ensure custom colors from Strapi are generated
+// This is needed because Tailwind JIT doesn't scan the database for classes
+export const tailwindSafelist = [
+  // Backgrounds
+  'bg-primary', 'bg-primary-light', 'bg-primary-extralight', 'bg-primary-dark', 'bg-primary-extradark', 'bg-primary-bright',
+  'bg-secondary', 'bg-secondary-light', 'bg-secondary-extralight', 'bg-secondary-dark', 'bg-secondary-extradark',
+  'bg-green', 'bg-green-light', 'bg-green-extralight', 'bg-green-dark', 'bg-green-extradark',
+  'bg-blue', 'bg-blue-light', 'bg-blue-extralight', 'bg-blue-dark', 'bg-blue-extradark',
+  'bg-gray', 'bg-gray-light', 'bg-gray-extralight', 'bg-gray-dark',
+  'bg-black', 'bg-white', 'bg-bg', 'bg-neutral-light',
+
+  // Text Colors
+  'text-primary', 'text-primary-light', 'text-primary-extralight', 'text-primary-dark', 'text-primary-extradark', 'text-primary-bright',
+  'text-secondary', 'text-secondary-light', 'text-secondary-extralight', 'text-secondary-dark', 'text-secondary-extradark',
+  'text-green', 'text-green-light', 'text-green-extralight', 'text-green-dark', 'text-green-extradark',
+  'text-blue', 'text-blue-light', 'text-blue-extralight', 'text-blue-dark', 'text-blue-extradark',
+  'text-gray', 'text-gray-light', 'text-gray-extralight', 'text-gray-dark',
+  'text-black', 'text-white', 'text-bg', 'text-neutral-light',
+
+  // Hover states (if needed)
+  'hover:bg-primary', 'hover:bg-primary-dark', 'hover:bg-secondary', 'hover:bg-secondary-extradark',
+
+  // Font weights
+  'font-black', 'font-bold', 'font-extrabold', 'font-medium', 'font-semibold'
+];

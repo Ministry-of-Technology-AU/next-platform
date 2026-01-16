@@ -128,16 +128,50 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
                       ? 'animate-in fade-in-0 slide-in-from-bottom-4'
                       : 'opacity-0 translate-y-4'
                       }`}>
-                      {banner.buttons.slice(0, 2).map((btnProps: any, i: number) => (
-                        <Button
-                          key={i}
-                          {...btnProps}
-                          variant={btnProps.variant as ButtonVariant}
-                          className={`text-xs sm:text-sm ${btnProps.className}`}
-                        >
-                          {btnProps.children}
-                        </Button>
-                      ))}
+                      {banner.buttons.slice(0, 2).map((btnProps: any, i: number) => {
+                        const { url, className: btnClassName, style: btnStyle, ...otherProps } = btnProps;
+
+                        // Smart Hex Extraction Logic
+                        const hexStyles: React.CSSProperties = {};
+                        const filteredClasses = (btnClassName || "").split(" ").filter((cls: string) => {
+                          const bgMatch = cls.match(/^bg-\[#([A-Fa-f0-9]+)\]$/);
+                          if (bgMatch) {
+                            hexStyles.backgroundColor = `#${bgMatch[1]}`;
+                            return false;
+                          }
+                          const textMatch = cls.match(/^text-\[#([A-Fa-f0-9]+)\]$/);
+                          if (textMatch) {
+                            hexStyles.color = `#${textMatch[1]}`;
+                            return false;
+                          }
+                          const borderMatch = cls.match(/^border-\[#([A-Fa-f0-9]+)\]$/);
+                          if (borderMatch) {
+                            hexStyles.borderColor = `#${borderMatch[1]}`;
+                            return false;
+                          }
+                          return true;
+                        });
+
+                        const finalStyle = { ...hexStyles, ...btnStyle };
+                        const finalClassName = `text-xs sm:text-sm ${filteredClasses.join(" ")}`;
+
+                        const handleClick = url
+                          ? () => window.open(url, '_blank')
+                          : otherProps.onClick;
+
+                        return (
+                          <Button
+                            key={i}
+                            {...otherProps}
+                            onClick={handleClick}
+                            style={finalStyle}
+                            variant={otherProps.variant as ButtonVariant}
+                            className={finalClassName}
+                          >
+                            {otherProps.children}
+                          </Button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
