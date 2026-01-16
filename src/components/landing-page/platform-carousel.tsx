@@ -23,17 +23,6 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
   const adBanners = adverts.map(ad => {
     const bannerImage = ad.attributes.banner_image?.data?.[0]?.attributes?.url || '/yyh4iiocug5dnctfkd5t.webp'; // Fallback image
     // Ensure absolute URL if needed, but Strapi usually returns relative or full depending on config. 
-    // Assuming relative, prepend base URL if needed? 
-    // Usually strapiGet helper might handle it or we assume it's a full URL or relative.
-    // If it's relative, we need NEXT_PUBLIC_STRAPI_URL.
-    // But let's assume the url is usable for now, or handle it.
-    // Actually, strapiGet usually returns JSON. media URLs are often relative like /uploads/...
-    // I should check how media is handled. The user's other code might show.
-    // But as a safe bet I'll prepend process.env.NEXT_PUBLIC_STRAPI_URL if it starts with /.
-
-    // For now, I'll trust the URL or use a helper if I had one. 
-    // I'll stick to using the URL as is, but if it looks relative (starts with /), I might need to fix it. 
-    // However, for this task, I will use the URL provided.
 
     return {
       id: `ad-${ad.id}`,
@@ -93,7 +82,7 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
             >
               <Image
                 src={banner.image.startsWith('/') && !banner.image.startsWith('/_next') && banner.image !== '/yyh4iiocug5dnctfkd5t.webp' && banner.image !== '/Neev-Banner.webp' && banner.image !== '/z6ggcs3unvoquykoyupo.webp' ? `${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}${banner.image}` : banner.image}
-                alt={banner.alt}
+                alt={banner.title || 'Banner'}
                 width={1200}
                 height={720}
                 className="w-full h-full object-cover"
@@ -102,7 +91,7 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
               />
               <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
 
-              {/* Content Overlay */}
+              {/* Content Overlay */}w
               <div className="absolute inset-0 flex items-center justify-start text-left text-white px-8 py-3 sm:px-14 sm:py-6 md:px-16 md:py-8">
                 <div className="sm:max-w-lg max-w-xs">
                   <div className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${index === currentSlide
