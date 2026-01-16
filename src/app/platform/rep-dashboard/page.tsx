@@ -27,7 +27,7 @@ interface DeptInfo {
 }
 
 export default function RepDashboardPage() {
-    const { data: session, status } = useSession()
+    const { data: session } = useSession()
     const [deptInfo, setDeptInfo] = useState<DeptInfo | null>(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -35,17 +35,6 @@ export default function RepDashboardPage() {
     const [success, setSuccess] = useState<string | null>(null)
     const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set())
     const [expandedTrajectories, setExpandedTrajectories] = useState<Set<string>>(new Set())
-
-    // Auth check
-    useEffect(() => {
-        if (status === "loading") return
-        if (!session?.user) {
-            redirect("/")
-        }
-        if (session.user.role !== "rep" && !session.user.access?.includes("rep_dashboard")) {
-            redirect("/platform")
-        }
-    }, [session, status])
 
     // Fetch department info
     useEffect(() => {

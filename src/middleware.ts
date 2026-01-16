@@ -4,6 +4,7 @@ import { auth } from './auth'
 // Define protected routes and their access requirements
 const ROUTE_ACCESS = {
   '/platform': ['platform'],
+  '/platform/rep-dashboard': ['rep_dashboard'],
   '/sg-compose': ['platform'],
   '/organization': ['organization'],
 }
@@ -58,6 +59,19 @@ export default auth(async function middleware(req) {
     }
 
     console.log(`✅ User ${req.auth.user.email} granted access to HOR dashboard`)
+    return NextResponse.next()
+  }
+
+  // Special access control for Rep Dashboard
+  if (pathname === '/platform/rep-dashboard') {
+    const userAccess = req.auth.user?.access || []
+
+    if (!userAccess.includes('rep_dashboard')) {
+      console.log(`❌ User ${req.auth.user.email} denied access to Rep Dashboard`)
+      return NextResponse.redirect(new URL('/unauthorized', req.url))
+    }
+
+    console.log(`✅ User ${req.auth.user.email} granted access to Rep Dashboard`)
     return NextResponse.next()
   }
 

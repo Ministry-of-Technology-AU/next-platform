@@ -16,7 +16,7 @@ import {
     ComboboxTrigger,
 } from "@/components/ui/shadcn-io/combobox"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail, Save, Loader2 } from "lucide-react"
+import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail, Save, Loader2, Share2, BookOpen } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import type { Course } from "../types"
 import {
@@ -53,6 +53,8 @@ import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { TourStep } from "@/components/guided-tour"
 import { toast } from "sonner"
+import { ShareTrajectoryDialog } from "./share-trajectory-dialog"
+import { TrajectoryRepositoryDialog } from "./trajectory-repository-dialog"
 
 export function SummaryAndTemplateTable() {
     const {
@@ -127,9 +129,14 @@ export function SummaryAndTemplateTable() {
     const [showLoadDialog, setShowLoadDialog] = useState(false)
     const [showTrajectoryDialog, setShowTrajectoryDialog] = useState(false)
     const [showContactDialog, setShowContactDialog] = useState(false)
+    const [showShareDialog, setShowShareDialog] = useState(false)
+    const [showRepositoryDialog, setShowRepositoryDialog] = useState(false)
     const [cgpaInput, setCgpaInput] = useState("")
     const [loadResult, setLoadResult] = useState<{ success: boolean; message: string } | null>(null)
     const [isSummaryOpen, setIsSummaryOpen] = useState(true)
+
+    // Check if user can share (needs at least 6 semesters)
+    const canShare = state.semesters.length >= 6
 
     // Sync selectedTemplate with saved degree
     // useEffect(() => {
@@ -279,7 +286,7 @@ export function SummaryAndTemplateTable() {
                                             <TableRow className="font-semibold border-t-2">
                                                 <TableCell>CGPA</TableCell>
                                                 <TableCell className="text-right">{(Math.round(cgpa * 100) / 100).toFixed(2)}</TableCell>
-                                                <TableCell className="text-right text-muted-foreground">4.00</TableCell>
+                                                <TableCell className="text-right text-muted-foreground"></TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>
@@ -416,6 +423,54 @@ export function SummaryAndTemplateTable() {
                     >
                         {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                         {isSaving ? "Saving..." : "Save Trajectory"}
+                    </Button>
+                </TourStep>
+
+                <TourStep
+                    id="share-trajectory"
+                    title="Share Trajectory"
+                    content="Share your trajectory with other students! You need at least 6 semesters to share."
+                    order={9}
+                    position="bottom"
+                >
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1"
+                                    onClick={() => setShowShareDialog(true)}
+                                    disabled={!canShare}
+                                >
+                                    <Share2 size={14} />
+                                    Share Trajectory
+                                </Button>
+                            </span>
+                        </TooltipTrigger>
+                        {!canShare && (
+                            <TooltipContent>
+                                <p>Add at least 6 semesters to share</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+                </TourStep>
+
+                <TourStep
+                    id="browse-repository"
+                    title="Browse Repository"
+                    content="Explore trajectories shared by other students and get inspired!"
+                    order={10}
+                    position="bottom"
+                >
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setShowRepositoryDialog(true)}
+                    >
+                        <BookOpen size={14} />
+                        Browse Trajectories
                     </Button>
                 </TourStep>
             </div>
@@ -722,6 +777,27 @@ export function SummaryAndTemplateTable() {
                     </CommandGroup>
                 </CommandList>
             </CommandDialog>
+
+            {/* Share Trajectory Dialog */}
+            <ShareTrajectoryDialog
+                open={showShareDialog}
+                onOpenChange={setShowShareDialog}
+                semesters={state.semesters}
+            />
+
+            {/* Trajectory Repository Dialog */}
+            <TrajectoryRepositoryDialog
+                open={showRepositoryDialog}
+                onOpenChange={setShowRepositoryDialog}
+                onImportCourses={(courses) => {
+                    courses.forEach(course => {
+                        addCourse(null, {
+                            ...course,
+                            id: uuidv4()
+                        } as Course)
+                    })
+                }}
+            />
         </>
     )
 }
