@@ -27,6 +27,7 @@ interface SemesterPlannerClientProps {
   initialDrafts?: TimetableDraft[];
 }
 
+
 export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlannerClientProps) {
   const { isActive: isTourActive, stopTour } = useTour();
   const [sampleCourseId, setSampleCourseId] = useState<string | null>(null);
