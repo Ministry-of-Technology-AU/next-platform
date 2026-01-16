@@ -133,14 +133,14 @@ export function TrajectoryRepositoryDialog({
                                                         <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                                     )}
                                                     <div>
-                                                        <CardTitle className="text-base">{trajectory.title}</CardTitle>
+                                                        <CardTitle className="text-base !text-left">{trajectory.title}</CardTitle>
                                                         <div className="flex items-center gap-3 text-xs mt-1 text-muted-foreground">
                                                             <span className="flex items-center gap-1">
                                                                 <User className="h-3 w-3" />
                                                                 {trajectory.authorName}
                                                             </span>
                                                             {trajectory.batch && (
-                                                                <Badge variant="secondary" className="text-xs">
+                                                                <Badge variant="default" className="text-xs">
                                                                     {trajectory.batch}
                                                                 </Badge>
                                                             )}
