@@ -51,11 +51,11 @@ const INITIAL_ADS: Advertisement[] = [
             banner_image: {
                 data: [{ attributes: { url: "/placeholder-banner-1.jpg" } }]
             },
-            gradient: "from-black/80 via-black/50 to-transparent",
+            gradient: "",
             buttons: [
                 {
                     children: "Explore",
-                    url: "#",
+                    url: "https://",
                     variant: "default" as ButtonVariant,
                     className: "bg-[#ffffff] text-[#000000]",
                     style: { borderRadius: "4px", opacity: 1 }
@@ -85,7 +85,13 @@ export default function AdsManagementPage() {
     // Helper to update a specific button
     const updateButton = (index: number, updates: Partial<BannerButton>) => {
         const currentButtons = [...(ads[activeAdIndex].attributes.buttons || [])];
-        currentButtons[index] = { ...currentButtons[index], ...updates };
+        // Properly merge to ensure all properties are updated
+        currentButtons[index] = {
+            ...currentButtons[index],
+            ...updates,
+            // Ensure style object is properly merged
+            style: updates.style ? { ...currentButtons[index].style, ...updates.style } : currentButtons[index].style
+        };
         updateCurrentAd({ buttons: currentButtons });
     };
 
@@ -94,7 +100,7 @@ export default function AdsManagementPage() {
         if (currentButtons.length < 2) {
             currentButtons.push({
                 children: "New Button",
-                url: "#",
+                url: "https://",
                 variant: "default" as ButtonVariant,
                 className: "",
                 style: { borderRadius: "4px", opacity: 1 }
@@ -135,7 +141,7 @@ export default function AdsManagementPage() {
         setActiveAdIndex(Math.max(0, activeAdIndex - 1));
     };
 
-    // Helper to extract color from className
+    // Helper to extract colors from className and style
     const extractBgColor = (className: string = ""): string => {
         const match = className.match(/bg-\[#([A-Fa-f0-9]+)\]/);
         return match ? `#${match[1]}` : "#ffffff";
@@ -146,16 +152,58 @@ export default function AdsManagementPage() {
         return match ? `#${match[1]}` : "#000000";
     };
 
-    // Helper to update button colors
-    const updateButtonColors = (btnIndex: number, bgColor: string, textColor: string) => {
+    const extractBorderColor = (className: string = ""): string => {
+        const match = className.match(/border-\[#([A-Fa-f0-9]+)\]/);
+        return match ? `#${match[1]}` : "#000000";
+    };
+
+    const extractHoverBgColor = (style: any): string => {
+        return style?.['--hover-bg'] || "#333333";
+    };
+
+    // Helper to update button colors based on variant
+    const updateButtonColors = (btnIndex: number, updates: {
+        bgColor?: string;
+        textColor?: string;
+        borderColor?: string;
+        hoverBgColor?: string;
+    }) => {
         const currentButtons = [...(ads[activeAdIndex].attributes.buttons || [])];
         const btn = currentButtons[btnIndex];
+        const variant = btn.variant || "default";
 
-        // Remove old color classes and add new ones
-        let className = (btn.className || "").replace(/bg-\[#[A-Fa-f0-9]+\]/g, "").replace(/text-\[#[A-Fa-f0-9]+\]/g, "").trim();
-        className = `${className} bg-[${bgColor}] text-[${textColor}]`.trim();
+        // Remove old color classes
+        let className = (btn.className || "")
+            .replace(/bg-\[#[A-Fa-f0-9]+\]/g, "")
+            .replace(/text-\[#[A-Fa-f0-9]+\]/g, "")
+            .replace(/border-\[#[A-Fa-f0-9]+\]/g, "")
+            .replace(/border/g, "")
+            .trim();
 
-        updateButton(btnIndex, { className });
+        // Apply colors based on variant
+        if (variant === "outline") {
+            // Outline: border and text color only, no background
+            if (updates.borderColor) className += ` border border-[${updates.borderColor}]`;
+            if (updates.textColor) className += ` text-[${updates.textColor}]`;
+        } else if (variant === "ghost" || variant === "animatedGhost" || variant === "link") {
+            // Ghost/Link: text color only, no background or border
+            if (updates.textColor) className += ` text-[${updates.textColor}]`;
+        } else {
+            // Default/other variants: background, text, and optional border
+            if (updates.bgColor) className += ` bg-[${updates.bgColor}]`;
+            if (updates.textColor) className += ` text-[${updates.textColor}]`;
+            if (updates.borderColor) className += ` border border-[${updates.borderColor}]`;
+        }
+
+        className = className.trim();
+
+        // Handle hover color via CSS variable
+        const newStyle = { ...btn.style };
+        if (updates.hoverBgColor) {
+            newStyle['--hover-bg'] = updates.hoverBgColor;
+        }
+
+        updateButton(btnIndex, { className, style: newStyle });
     };
 
     if (ads.length === 0) {
@@ -174,6 +222,18 @@ export default function AdsManagementPage() {
 
             <Card className="min-h-[800px] shadow-sm border-2">
                 <CardContent className="p-8 space-y-10">
+                    {/* Instructions */}
+                    <InstructionsField
+                        heading="Banner Upload Guidelines"
+                        body={[
+                            "Recommended image dimensions: 1200x720 pixels (16:7 aspect ratio)",
+                            "Supported formats: JPG, PNG, WebP",
+                            "Maximum file size: 5MB",
+                            "Ensure text overlays are readable - test with the gradient overlay",
+                            "High contrast images work best with text overlays",
+                            "The title, description and subtitle are necessarily going to be white in colour, so choose your image accordingly"
+                        ]}
+                    />
 
                     {/* Top Section: Carousel Preview */}
                     <div className="flex flex-col items-center space-y-4">
@@ -223,7 +283,6 @@ export default function AdsManagementPage() {
                             <Label className="text-base font-semibold mt-2">Description</Label>
                             <TextInput
                                 title=""
-                                isParagraph
                                 placeholder="Enter description text..."
                                 value={currentAd.attributes.description}
                                 onChange={(val) => updateCurrentAd({ description: val })}
@@ -233,7 +292,7 @@ export default function AdsManagementPage() {
                         </div>
 
                         {/* Gradient */}
-                        <div className="grid grid-cols-[100px_1fr_auto] gap-4 items-center">
+                        {/* <div className="grid grid-cols-[100px_1fr_auto] gap-4 items-center">
                             <Label className="text-base font-semibold">Gradient</Label>
                             <TextInput
                                 title=""
@@ -243,12 +302,20 @@ export default function AdsManagementPage() {
                                 className="w-full"
                             />
                             <Button variant="ghost" size="icon" className="text-muted-foreground"><Edit2 className="w-4 h-4" /></Button>
-                        </div>
+                        </div> */}
 
                         {/* Buttons */}
                         {currentAd.attributes.buttons?.map((btn: BannerButton, idx: number) => {
+                            const variant = btn.variant || "default";
                             const bgColor = extractBgColor(btn.className);
                             const textColor = extractTextColor(btn.className);
+                            const borderColor = extractBorderColor(btn.className);
+                            const hoverBgColor = extractHoverBgColor(btn.style);
+
+                            // Determine which color controls to show based on variant
+                            const showBgColor = variant !== "outline" && variant !== "ghost" && variant !== "animatedGhost" && variant !== "link";
+                            const showBorderColor = variant === "outline" || variant === "default" || variant === "secondary" || variant === "animated";
+                            const showHoverBg = variant !== "ghost" && variant !== "animatedGhost" && variant !== "link";
 
                             return (
                                 <div key={idx} className="grid grid-cols-[100px_1fr_1fr_auto] gap-4 items-center">
@@ -294,26 +361,57 @@ export default function AdsManagementPage() {
                                                     {/* Colors */}
                                                     <div className="space-y-2">
                                                         <Label className="text-xs">Colors</Label>
-                                                        <div className="grid grid-cols-2 gap-2">
-                                                            <div className="space-y-1">
-                                                                <Label className="text-xs text-muted-foreground">Background</Label>
-                                                                <Input
-                                                                    type="color"
-                                                                    value={bgColor}
-                                                                    onChange={(e) => updateButtonColors(idx, e.target.value, textColor)}
-                                                                    className="h-8 text-xs"
-                                                                />
-                                                            </div>
+                                                        <div className="grid gap-2" style={{ gridTemplateColumns: showBgColor && showBorderColor ? '1fr 1fr' : '1fr' }}>
+                                                            {/* Text Color - always shown */}
                                                             <div className="space-y-1">
                                                                 <Label className="text-xs text-muted-foreground">Text</Label>
                                                                 <Input
                                                                     type="color"
                                                                     value={textColor}
-                                                                    onChange={(e) => updateButtonColors(idx, bgColor, e.target.value)}
+                                                                    onChange={(e) => updateButtonColors(idx, { textColor: e.target.value })}
                                                                     className="h-8 text-xs"
                                                                 />
                                                             </div>
+
+                                                            {/* Background Color - only for non-outline, non-ghost */}
+                                                            {showBgColor && (
+                                                                <div className="space-y-1">
+                                                                    <Label className="text-xs text-muted-foreground">Background</Label>
+                                                                    <Input
+                                                                        type="color"
+                                                                        value={bgColor}
+                                                                        onChange={(e) => updateButtonColors(idx, { bgColor: e.target.value })}
+                                                                        className="h-8 text-xs"
+                                                                    />
+                                                                </div>
+                                                            )}
+
+                                                            {/* Border Color - for outline and optionally others */}
+                                                            {showBorderColor && (
+                                                                <div className="space-y-1">
+                                                                    <Label className="text-xs text-muted-foreground">Border</Label>
+                                                                    <Input
+                                                                        type="color"
+                                                                        value={borderColor}
+                                                                        onChange={(e) => updateButtonColors(idx, { borderColor: e.target.value })}
+                                                                        className="h-8 text-xs"
+                                                                    />
+                                                                </div>
+                                                            )}
                                                         </div>
+
+                                                        {/* Hover Background Color */}
+                                                        {showHoverBg && (
+                                                            <div className="space-y-1 pt-2 border-t">
+                                                                <Label className="text-xs text-muted-foreground">Hover Background</Label>
+                                                                <Input
+                                                                    type="color"
+                                                                    value={hoverBgColor}
+                                                                    onChange={(e) => updateButtonColors(idx, { hoverBgColor: e.target.value })}
+                                                                    className="h-8 text-xs"
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     {/* Radius */}

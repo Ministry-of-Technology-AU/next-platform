@@ -177,7 +177,20 @@ export default function PlatformCarousel({
                         const finalClassName = `text-xs sm:text-sm ${filteredClasses.join(" ")}`;
 
                         const handleClick = url
-                          ? () => window.open(url, '_blank')
+                          ? () => {
+                            // Validate URL before opening
+                            if (!url || url === '#' || url === 'https://' || url === 'http://') {
+                              return; // Don't open invalid URLs
+                            }
+
+                            // Ensure URL is absolute
+                            let absoluteUrl = url;
+                            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                              absoluteUrl = `https://${url}`;
+                            }
+
+                            window.open(absoluteUrl, '_blank');
+                          }
                           : otherProps.onClick;
 
                         return (
