@@ -192,7 +192,7 @@ export function DraftTabs({
         if (event.origin !== window.location.origin) return;
 
         if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
-          popup?.close();
+          // REMOVED: popup?.close(); - Let the popup close itself
           window.removeEventListener('message', handleMessage);
 
           // Get active draft's courses
@@ -235,7 +235,7 @@ export function DraftTabs({
 
         } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
           toast.error('Failed to connect to Google Calendar');
-          popup?.close();
+          // REMOVED: popup?.close(); - Let the popup close itself
           window.removeEventListener('message', handleMessage);
         }
       };
