@@ -37,7 +37,7 @@ interface DraftTabsProps {
   onDownloadTimetable: (draftId: string) => void;
   onRenameDraft: (draftId: string, newName: string) => void;
   onToggleFullScreen: () => void;
-  syncCalendar: () => Promise<void>;
+  // syncCalendar: () => Promise<void>;
   isFullScreenMode?: boolean;
   children: React.ReactNode;
 }
@@ -52,7 +52,6 @@ export function DraftTabs({
   onDownloadTimetable,
   onRenameDraft,
   onToggleFullScreen,
-  syncCalendar,
   isFullScreenMode = false,
   children,
 }: DraftTabsProps) {
