@@ -12,48 +12,8 @@ export async function GET(request: NextRequest) {
         <html>
           <head>
             <title>Authentication Failed</title>
-            <style>
-              body {
-                font-family: system-ui, -apple-system, sans-serif;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100vh;
-                margin: 0;
-                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-                color: white;
-              }
-              .container {
-                text-align: center;
-                padding: 2rem;
-              }
-              .icon {
-                font-size: 64px;
-                margin-bottom: 1rem;
-              }
-              button {
-                margin-top: 2rem;
-                padding: 12px 24px;
-                font-size: 16px;
-                background: white;
-                color: #ef4444;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
-              }
-              button:hover {
-                background: #f0f0f0;
-              }
-            </style>
           </head>
           <body>
-            <div class="container">
-              <div class="icon">✕</div>
-              <h1>Authentication Failed</h1>
-              <p>Please close this window and try again.</p>
-              <button onclick="window.close()">Close Window</button>
-            </div>
             <script>
               if (window.opener) {
                 window.opener.postMessage(
@@ -64,7 +24,9 @@ export async function GET(request: NextRequest) {
                   window.location.origin
                 );
               }
+              window.close();
             </script>
+            <p>Authentication failed. This window will close automatically.</p>
           </body>
         </html>
       `;
@@ -80,48 +42,8 @@ export async function GET(request: NextRequest) {
         <html>
           <head>
             <title>Authentication Failed</title>
-            <style>
-              body {
-                font-family: system-ui, -apple-system, sans-serif;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100vh;
-                margin: 0;
-                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-                color: white;
-              }
-              .container {
-                text-align: center;
-                padding: 2rem;
-              }
-              .icon {
-                font-size: 64px;
-                margin-bottom: 1rem;
-              }
-              button {
-                margin-top: 2rem;
-                padding: 12px 24px;
-                font-size: 16px;
-                background: white;
-                color: #ef4444;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
-              }
-              button:hover {
-                background: #f0f0f0;
-              }
-            </style>
           </head>
           <body>
-            <div class="container">
-              <div class="icon">✕</div>
-              <h1>Authentication Failed</h1>
-              <p>No authorization code received.</p>
-              <button onclick="window.close()">Close Window</button>
-            </div>
             <script>
               if (window.opener) {
                 window.opener.postMessage(
@@ -132,7 +54,9 @@ export async function GET(request: NextRequest) {
                   window.location.origin
                 );
               }
+              window.close();
             </script>
+            <p>Authentication failed. This window will close automatically.</p>
           </body>
         </html>
       `;
@@ -164,48 +88,8 @@ export async function GET(request: NextRequest) {
         <html>
           <head>
             <title>Authentication Failed</title>
-            <style>
-              body {
-                font-family: system-ui, -apple-system, sans-serif;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100vh;
-                margin: 0;
-                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-                color: white;
-              }
-              .container {
-                text-align: center;
-                padding: 2rem;
-              }
-              .icon {
-                font-size: 64px;
-                margin-bottom: 1rem;
-              }
-              button {
-                margin-top: 2rem;
-                padding: 12px 24px;
-                font-size: 16px;
-                background: white;
-                color: #ef4444;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
-              }
-              button:hover {
-                background: #f0f0f0;
-              }
-            </style>
           </head>
           <body>
-            <div class="container">
-              <div class="icon">✕</div>
-              <h1>Authentication Failed</h1>
-              <p>Token exchange failed. Please try again.</p>
-              <button onclick="window.close()">Close Window</button>
-            </div>
             <script>
               if (window.opener) {
                 window.opener.postMessage(
@@ -216,7 +100,9 @@ export async function GET(request: NextRequest) {
                   window.location.origin
                 );
               }
+              window.close();
             </script>
+            <p>Authentication failed. This window will close automatically.</p>
           </body>
         </html>
       `;
@@ -234,54 +120,8 @@ export async function GET(request: NextRequest) {
       <html>
         <head>
           <title>Authentication Successful</title>
-          <style>
-            body {
-              font-family: system-ui, -apple-system, sans-serif;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 100vh;
-              margin: 0;
-              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-              color: white;
-            }
-            .container {
-              text-align: center;
-              padding: 2rem;
-            }
-            .checkmark {
-              font-size: 64px;
-              margin-bottom: 1rem;
-              animation: scale 0.5s ease-in-out;
-            }
-            button {
-              margin-top: 2rem;
-              padding: 12px 24px;
-              font-size: 16px;
-              background: white;
-              color: #10b981;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-weight: 600;
-            }
-            button:hover {
-              background: #f0f0f0;
-            }
-            @keyframes scale {
-              0% { transform: scale(0); }
-              50% { transform: scale(1.2); }
-              100% { transform: scale(1); }
-            }
-          </style>
         </head>
         <body>
-          <div class="container">
-            <div class="checkmark">✓</div>
-            <h1>Authentication Successful!</h1>
-            <p>You can now close this window.</p>
-            <button onclick="window.close()">Close Window</button>
-          </div>
           <script>
             if (window.opener) {
               window.opener.postMessage(
@@ -292,7 +132,9 @@ export async function GET(request: NextRequest) {
                 window.location.origin
               );
             }
+            window.close();
           </script>
+          <p>Authentication successful! This window will close automatically.</p>
         </body>
       </html>
     `;
@@ -308,48 +150,8 @@ export async function GET(request: NextRequest) {
       <html>
         <head>
           <title>Authentication Failed</title>
-          <style>
-            body {
-              font-family: system-ui, -apple-system, sans-serif;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 100vh;
-              margin: 0;
-              background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-              color: white;
-            }
-            .container {
-              text-align: center;
-              padding: 2rem;
-            }
-            .icon {
-              font-size: 64px;
-              margin-bottom: 1rem;
-            }
-            button {
-              margin-top: 2rem;
-              padding: 12px 24px;
-              font-size: 16px;
-              background: white;
-              color: #ef4444;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-weight: 600;
-            }
-            button:hover {
-              background: #f0f0f0;
-            }
-          </style>
         </head>
         <body>
-          <div class="container">
-            <div class="icon">✕</div>
-            <h1>Authentication Failed</h1>
-            <p>An unexpected error occurred. Please try again.</p>
-            <button onclick="window.close()">Close Window</button>
-          </div>
           <script>
             if (window.opener) {
               window.opener.postMessage(
@@ -357,7 +159,9 @@ export async function GET(request: NextRequest) {
                 window.location.origin
               );
             }
+            window.close();
           </script>
+          <p>Authentication failed. This window will close automatically.</p>
         </body>
       </html>
     `;
