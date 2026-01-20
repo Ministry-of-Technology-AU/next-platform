@@ -574,6 +574,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onRenameDraft={handleRenameDraft}
             onToggleFullScreen={handleToggleFullScreen}
           >
+
             <TourStep
               id="timetable-grid"
               order={5}

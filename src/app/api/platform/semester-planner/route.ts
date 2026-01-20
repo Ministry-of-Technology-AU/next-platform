@@ -126,17 +126,6 @@ function getDepartmentFromCourseCode(courseCode: string): string {
   return departmentMap[prefix] || 'General Studies';
 }
 
-
-
-// function estimateCredits(classCounts: number): number {
-//   // Estimate credits based on class counts
-//   // Most courses with 2 classes per week are 3-4 credits
-//   // Courses with 1 class per week are usually 2-3 credits
-//   if (classCounts === 2) return 4;
-//   if (classCounts === 1) return 3;
-//   return 2;
-// }
-
 async function fetchSemesterPlannerData(): Promise<any[]> {
   try {
     const response = await strapiGet('/semester-planner-sync');
@@ -216,34 +205,12 @@ async function formatCourses(): Promise<Course[]> {
       location,
       description: course.description || 'No description available',
       prerequisites,
-      // credits: estimateCredits(course.classCounts),
       timeSlots,
       hasSaturday
     } as Course;
   }).filter(course => course.timeSlots.length > 0); // Only include courses with valid time slots
 }
 
-export async function GET() {
-  try {
-    const timetableData = await fetchSemesterPlannerData();
-    const courses = await formatCourses();
-    const syncInfo = getLastSyncInfo(timetableData);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        courses,
-        syncInfo
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching courses:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch courses' },
-      { status: 500 }
-    );
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -332,6 +299,58 @@ export async function POST(request: NextRequest) {
     console.error('Error saving draft:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to save draft' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
+
+    // Handle OAuth URL generation
+    if (action === 'oauth-url') {
+      const clientId = process.env.AUTH_GOOGLE_ID;
+      const redirectUri = process.env.CALENDAR_CALLBACK_URL;
+
+      if (!clientId || !redirectUri) {
+        return NextResponse.json(
+          { error: 'OAuth configuration missing' },
+          { status: 500 }
+        );
+      }
+
+      const scope = 'https://www.googleapis.com/auth/calendar.events';
+
+      // Build OAuth URL
+      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      authUrl.searchParams.set('client_id', clientId);
+      authUrl.searchParams.set('redirect_uri', redirectUri);
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('scope', scope);
+      authUrl.searchParams.set('access_type', 'offline');
+      authUrl.searchParams.set('prompt', 'consent');
+
+      return NextResponse.json({ authUrl: authUrl.toString() });
+    }
+
+    // Default: fetch courses
+    const timetableData = await fetchSemesterPlannerData();
+    const courses = await formatCourses();
+    const syncInfo = getLastSyncInfo(timetableData);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        courses,
+        syncInfo
+      }
+    });
+  } catch (error) {
+    console.error('Error in GET handler:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to process request' },
       { status: 500 }
     );
   }

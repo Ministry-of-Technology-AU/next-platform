@@ -139,6 +139,7 @@ function addCourseToGoogleCalendar(course: ScheduledCourse) {
 // The evening slot that should be hidden by default
 const EVENING_SLOT = "8:00pm-9:30pm";
 
+
 export function TimetableGrid({
   courses,
   onRemoveCourse,
