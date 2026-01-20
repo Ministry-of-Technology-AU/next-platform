@@ -189,6 +189,7 @@ export function DraftTabs({
 
       // Listen for OAuth callback
       const handleMessage = async (event: MessageEvent) => {
+
         if (event.origin !== window.location.origin) return;
 
         if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
