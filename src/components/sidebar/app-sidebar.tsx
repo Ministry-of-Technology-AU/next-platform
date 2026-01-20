@@ -38,7 +38,10 @@ import {
   GalleryHorizontalEnd,
   ShoppingBag,
   Puzzle,
-  Route
+  Route,
+  ArrowDownRight,
+  CalendarSearch,
+  Megaphone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -64,7 +67,10 @@ const iconMap = {
   GalleryHorizontalEnd,
   ShoppingBag,
   Puzzle,
-  Route
+  Route,
+  ArrowDownRight,
+  CalendarSearch,
+  Megaphone
 };
 
 interface SidebarItem {
@@ -79,7 +85,21 @@ interface SidebarCategory {
   items: SidebarItem[];
 }
 
-export function AppSidebar() {
+interface SidebarData {
+  categories: SidebarCategory[];
+}
+
+interface AppSidebarProps {
+  data?: SidebarData;
+  basePath?: string;
+  title?: string;
+}
+
+export function AppSidebar({
+  data = sidebarData,
+  basePath = "/platform",
+  title = "Platform"
+}: AppSidebarProps) {
   const pathname = usePathname();
   const { state, open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const isDrawerOpen = isMobile ? openMobile : open;
@@ -146,7 +166,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
             <h3 className="text-lg font-semibold text-primary dark:text-primary-bright truncate leading-tight whitespace-nowrap !text-left">
-              Platform
+              {title}
             </h3>
             <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">
               by Technology Ministry
@@ -156,7 +176,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="p-2 overflow-y-auto min-h-0">
-        {sidebarData.categories.map((category: SidebarCategory) => (
+        {data.categories.map((category: SidebarCategory) => (
           <SidebarGroup key={category.id}>
             {!isCollapsed && (
               <SidebarGroupLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2 py-1">
@@ -168,8 +188,13 @@ export function AppSidebar() {
                 {category.items.map((item: SidebarItem) => {
                   const IconComponent =
                     iconMap[item.icon as keyof typeof iconMap];
-                  const fullHref = `/platform${item.href}`;
-                  const isActive = pathname === fullHref || (item.href !== "/" && pathname.startsWith(`${fullHref}/`));
+
+                  // Ensure basePath doesn't end with / and item.href starts with / unless it's just /
+                  const normalizedBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+                  const normalizedItemHref = item.href === '/' ? '' : (item.href.startsWith('/') ? item.href : `/${item.href}`);
+                  const fullHref = normalizedItemHref === '' ? normalizedBasePath : `${normalizedBasePath}${normalizedItemHref}`;
+
+                  const isActive = pathname === fullHref || (normalizedItemHref !== "" && pathname.startsWith(`${fullHref}/`));
 
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -191,7 +216,7 @@ export function AppSidebar() {
                         tooltip={iconCollapse ? item.title : undefined}
                       >
                         <Link
-                          href={`/platform${item.href}`}
+                          href={fullHref}
                           className="flex items-center w-full"
                           onClick={handleLinkClick}
                         >

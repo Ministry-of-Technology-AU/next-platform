@@ -4,6 +4,7 @@ import "../globals.css";
 import Navbar from "@/components/navbar/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import platformSidebarData from "@/components/sidebar/sidebar-entries.json";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
@@ -49,7 +50,7 @@ export default function RootLayout({
             <WhatsNewModal />
             <RecentPageTracker />
             <div className="flex min-h-screen w-full overflow-x-hidden">
-              <AppSidebar />
+              <AppSidebar data={platformSidebarData} basePath="/platform" title="Platform" />
               <div className="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">
                 <Navbar />
                 <Suspense>

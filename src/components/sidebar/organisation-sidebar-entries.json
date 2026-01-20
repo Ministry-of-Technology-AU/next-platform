@@ -1,0 +1,41 @@
+{
+    "categories": [
+        {
+            "id": "management",
+            "title": "Management",
+            "items": [
+                {
+                    "title": "Dashboard",
+                    "icon": "Home",
+                    "href": "/"
+                },
+                {
+                    "title": "Advertisements",
+                    "icon": "Megaphone",
+                    "href": "/ads"
+                },
+                {
+                    "title": "Meeting Scheduler",
+                    "icon": "CalendarSearch",
+                    "href": "/meeting-scheduler"
+                }
+            ]
+        },
+        {
+            "id": "settings",
+            "title": "Settings",
+            "items": [
+                {
+                    "title": "Organisation Profile",
+                    "icon": "UserCog",
+                    "href": "/profile"
+                },
+                {
+                    "title": "Go to Platform",
+                    "icon": "ArrowDownRight",
+                    "href": "../platform"
+                }
+            ]
+        }
+    ]
+}
