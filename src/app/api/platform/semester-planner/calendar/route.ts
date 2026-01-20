@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { HOLIDAYS_2025_2026, isHoliday } from "@/app/platform/semester-planner/holidays";
+import { HOLIDAYS_2025_2026, isHoliday, isAfterApril2026 } from "@/app/platform/semester-planner/holidays";
 
 interface TimeSlot {
     day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
@@ -69,7 +69,7 @@ async function getAllExistingEvents(accessToken: string): Promise<Set<string>> {
 
     // Get time range for the academic year
     const timeMin = new Date('2025-08-25T00:00:00Z').toISOString();
-    const timeMax = new Date('2026-05-09T23:59:59Z').toISOString();
+    const timeMax = new Date('2026-05-31T23:59:59Z').toISOString();
 
     try {
         const response = await fetch(
@@ -144,7 +144,7 @@ async function createCalendarEvent(
                 dateTime: endDateTime.toISOString(),
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             },
-            recurrence: [`RRULE:FREQ=WEEKLY;COUNT=30;BYDAY=${BYDAY}`],
+            recurrence: [`RRULE:FREQ=WEEKLY;COUNT=34;BYDAY=${BYDAY}`],
             colorId: "1",
         };
 
@@ -187,7 +187,7 @@ async function getEventsOnHolidays(
 
     // Get time range for the academic year
     const timeMin = new Date('2025-08-25T00:00:00Z').toISOString();
-    const timeMax = new Date('2026-05-09T23:59:59Z').toISOString();
+    const timeMax = new Date('2026-05-31T23:59:59Z').toISOString();
 
     try {
         const response = await fetch(
@@ -207,14 +207,14 @@ async function getEventsOnHolidays(
         const data = await response.json();
         const events = data.items || [];
 
-        // Filter events that match our identifier and fall on holidays
+        // Filter events that match our identifier and fall on holidays OR after April 2026
         for (const event of events) {
             if (
                 event.description?.includes(EVENT_IDENTIFIER) &&
                 event.start?.dateTime
             ) {
                 const eventDate = new Date(event.start.dateTime);
-                if (isHoliday(eventDate)) {
+                if (isHoliday(eventDate) || isAfterApril2026(eventDate)) {
                     eventsOnHolidays.push({
                         id: event.id,
                         start: event.start.dateTime,
