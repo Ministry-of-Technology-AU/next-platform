@@ -12,11 +12,23 @@ import { Advertisement } from './data/types';
 interface PlatformCarouselProps {
   className?: string;
   adverts?: Advertisement[];
+  autoPlay?: boolean;
+  manualSlide?: number;
+  onSlideChange?: (index: number) => void;
 }
 
-export default function PlatformCarousel({ className, adverts = [] }: PlatformCarouselProps) {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+export default function PlatformCarousel({
+  className,
+  adverts = [],
+  autoPlay = true,
+  manualSlide,
+  onSlideChange
+}: PlatformCarouselProps) {
+  const [internalSlide, setInternalSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(autoPlay);
+
+  // Use manualSlide if provided, otherwise internal state
+  const currentSlide = manualSlide !== undefined ? manualSlide : internalSlide;
 
   // Merge ads with static banners
   // First, map ads to banner format
@@ -40,31 +52,51 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
   const allBanners = adBanners.length > 0 ? [...adBanners] : [...banners];
 
   useEffect(() => {
+    // Sync internal state if manualSlide changes (optional, but good for switching modes)
+    if (manualSlide !== undefined) {
+      setInternalSlide(manualSlide);
+    }
+  }, [manualSlide]);
+
+  useEffect(() => {
+    setIsAutoPlaying(autoPlay);
+  }, [autoPlay]);
+
+  useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % allBanners.length);
+      const next = (currentSlide + 1) % allBanners.length;
+      if (manualSlide === undefined) {
+        setInternalSlide(next);
+      }
+      onSlideChange?.(next);
     }, 3500);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, allBanners.length]);
+  }, [isAutoPlaying, allBanners.length, currentSlide, manualSlide, onSlideChange]);
 
   const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    if (manualSlide === undefined) {
+      setInternalSlide(index);
+    }
+    onSlideChange?.(index);
+
+    // Only pause autoplay if we are in internal mode and autoplay was initially on
+    if (autoPlay && manualSlide === undefined) {
+      setIsAutoPlaying(false);
+      setTimeout(() => setIsAutoPlaying(true), 10000);
+    }
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % allBanners.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    const next = (currentSlide + 1) % allBanners.length;
+    goToSlide(next);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + allBanners.length) % allBanners.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    const prev = (currentSlide - 1 + allBanners.length) % allBanners.length;
+    goToSlide(prev);
   };
 
   return (
@@ -91,7 +123,7 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
               />
               <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
 
-              {/* Content Overlay */}w
+              {/* Content Overlay */}
               <div className="absolute inset-0 flex items-center justify-start text-left text-white px-8 py-3 sm:px-14 sm:py-6 md:px-16 md:py-8">
                 <div className="sm:max-w-lg max-w-xs">
                   <div className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${index === currentSlide
