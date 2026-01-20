@@ -481,7 +481,7 @@ export default function AdsManagementPage() {
                             <ImageUpload
                                 title=""
                                 value={[]}
-                                description="Upload the main banner image (1200x720 recommended)"
+                                description="Upload the main banner image (1600x700 recommended)"
                                 onChange={(files) => {
                                     if (files.length > 0) {
                                         const url = URL.createObjectURL(files[0]);
@@ -496,9 +496,9 @@ export default function AdsManagementPage() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-4 pt-8">
-                            <Button className="bg-emerald-600 hover:bg-emerald-700 min-w-[120px]" onClick={() => toast.success("Ad Submitted Successfully")}>Submit</Button>
-                            <Button className="bg-blue-900 hover:bg-blue-800 min-w-[120px]" onClick={() => toast.success("Ad Saved")}>Save</Button>
+                        <div className="flex gap-4 pt-2 justify-end">
+                            <Button className="bg-green hover:bg-emerald-700 min-w-[120px]" onClick={() => toast.success("Ad Submitted Successfully")}>Submit</Button>
+                            <Button className="bg-blue hover:bg-blue-800 min-w-[120px]" onClick={() => toast.success("Ad Saved")}>Save</Button>
 
                             <Dialog>
                                 <DialogTrigger asChild>

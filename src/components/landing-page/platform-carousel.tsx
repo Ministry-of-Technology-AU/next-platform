@@ -9,6 +9,39 @@ import Image from 'next/image';
 
 import { Advertisement } from './data/types';
 
+// Hoverable Button Component for custom hover colors
+const HoverableButton = React.forwardRef<HTMLButtonElement, any>(
+  ({ hoverBgColor, style, onMouseEnter, onMouseLeave, ...props }, ref) => {
+    const [isHovered, setIsHovered] = useState(false);
+
+    const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+      setIsHovered(true);
+      onMouseEnter?.(e);
+    };
+
+    const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+      setIsHovered(false);
+      onMouseLeave?.(e);
+    };
+
+    const dynamicStyle = { ...style };
+    if (isHovered && hoverBgColor) {
+      dynamicStyle.backgroundColor = hoverBgColor;
+    }
+
+    return (
+      <Button
+        ref={ref}
+        {...props}
+        style={dynamicStyle}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      />
+    );
+  }
+);
+HoverableButton.displayName = "HoverableButton";
+
 interface PlatformCarouselProps {
   className?: string;
   adverts?: Advertisement[];
@@ -193,17 +226,20 @@ export default function PlatformCarousel({
                           }
                           : otherProps.onClick;
 
+                        const hoverBgColor = btnStyle?.['--hover-bg'];
+
                         return (
-                          <Button
+                          <HoverableButton
                             key={i}
                             {...otherProps}
                             onClick={handleClick}
+                            hoverBgColor={hoverBgColor}
                             style={finalStyle}
                             variant={otherProps.variant as ButtonVariant}
                             className={finalClassName}
                           >
                             {otherProps.children}
-                          </Button>
+                          </HoverableButton>
                         );
                       })}
                     </div>
