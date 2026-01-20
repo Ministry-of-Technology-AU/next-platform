@@ -40,6 +40,12 @@ export default function RootLayout({
                 <TourProvider
                     autoStart={false}
                 >
+                    <NewToolAlert
+                        href="/organisations/ads"
+                        title="Create Advertisements"
+                        checkSeenKey="ADS_TOUR_SEEN_V1"
+                        blockIfNewVersion={true}
+                    />
                     <SidebarProvider defaultOpen={false}>
                         <RecentPageTracker />
                         <div className="flex min-h-screen w-full overflow-x-hidden">
