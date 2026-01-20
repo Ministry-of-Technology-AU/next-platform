@@ -105,3 +105,9 @@ export function isWithinSemester(date: Date): boolean {
     return (dateStr >= monsoonStart && dateStr <= monsoonEnd) ||
         (dateStr >= springStart && dateStr <= springEnd);
 }
+
+// Helper function to check if a date is after April 2026
+export function isAfterApril2026(date: Date): boolean {
+    const dateStr = date.toISOString().split('T')[0];
+    return dateStr > '2026-04-30';
+}
