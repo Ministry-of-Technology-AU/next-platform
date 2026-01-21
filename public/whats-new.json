@@ -1,27 +1,20 @@
 {
-    "version": "1.0.0",
-    "lastUpdated": "2025-01-10",
+    "version": "1.0.1",
+    "lastUpdated": "2025-01-21",
     "updates": [
         {
-            "id": "trajectory-planner-launch",
-            "title": "Trajectory Planner",
-            "description": "Plan your entire degree journey! Drag-and-drop courses into semesters, track credits, and visualize your graduation path.",
+            "id": "calendar-sync-launch",
+            "title": "Calendar Syncing!",
+            "description": "Sync your semester planner with Google Calendar!",
             "type": "new",
+            "link": "/platform/semester-planner"
+        },
+        {
+            "id": "better-trajectory-planner",
+            "title": "Improved Trajectory Planner!",
+            "description": "We've added a lot of new templates to the trajectory planner, and are constantly adding more. We're also collaborating with reps to add more templates and details!",
+            "type": "improvement",
             "link": "/platform/trajectory-planner"
-        },
-        {
-            "id": "inductions-open",
-            "title": "Members Inductions for the Product Marketing team are open!",
-            "description": "Member inductions for the marketing team are now open for the Ministry of Technology!",
-            "type": "inductions",
-            "link": "https://forms.gle/vmQu8BtpSwbcam1U7"
-        },
-        {
-            "id": "inductions-open",
-            "title": "Deputy HOD Inductions for the Events team are open!",
-            "description": "Deputy HOD inductions for the events team are now open for the Ministry of Technology!",
-            "type": "inductions",
-            "link": "https://forms.gle/haZ5pzDX56MNxuah7"
         }
     ]
 }

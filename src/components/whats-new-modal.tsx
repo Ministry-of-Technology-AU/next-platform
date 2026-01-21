@@ -96,7 +96,10 @@ export function WhatsNewModal() {
         <Dialog open={isOpen} onOpenChange={(open) => {
             if (!open && canDismiss) handleDismiss();
         }}>
-            <DialogContent className="w-sm sm:mx-0 sm:w-2xl sm:max-w-2xl max-h-[80vh] overflow-hidden">
+            <DialogContent
+                className="w-sm sm:mx-0 sm:w-2xl sm:max-w-2xl max-h-[80vh] overflow-hidden"
+                showCloseButton={canDismiss}
+            >
                 <DialogHeader className="pb-2">
                     <DialogTitle className="flex items-center gap-2 text-xl">
                         <Sparkles className="h-5 w-5 text-primary" />
@@ -128,7 +131,7 @@ export function WhatsNewModal() {
                                                         size="sm"
                                                         className="h-auto p-0 mt-2 text-primary gap-1"
                                                     >
-                                                        Try it out <ArrowRight size={14} />
+                                                        Check it out <ArrowRight size={14} />
                                                     </Button>
                                                 </Link>
                                             )}
