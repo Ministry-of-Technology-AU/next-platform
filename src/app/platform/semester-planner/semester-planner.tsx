@@ -577,7 +577,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
             <TourStep
               id="timetable-grid"
-              order={5}
+              order={9}
               title="Timetable Grid"
               content="This is your timetable grid. Courses appear here once you add them. You can see time slots for each day, lock courses, and change their colors."
               position="left"

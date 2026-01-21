@@ -338,7 +338,7 @@ export function DraftTabs({
         <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center justify-end">
           <TourStep
             id="create-draft"
-            order={1}
+            order={4}
             title="Create New Draft"
             content="Click here to create a new draft. A draft is a snapshot of your current timetable that you can save and come back to later."
             position="bottom"
@@ -390,7 +390,7 @@ export function DraftTabs({
 
           <TourStep
             id="duplicate-draft"
-            order={2}
+            order={5}
             title="Duplicate Draft"
             content="Duplicate your current draft to create a copy. This is useful when you want to experiment with variations of your timetable."
             position="bottom"
@@ -447,7 +447,7 @@ export function DraftTabs({
 
           <TourStep
             id="save-draft"
-            order={3}
+            order={6}
             title="Save Draft"
             content="Click to save your current draft. This persists your timetable so you don't lose your work."
             position="bottom"
@@ -482,7 +482,7 @@ export function DraftTabs({
 
           <TourStep
             id="download-timetable"
-            order={4}
+            order={7}
             title="Download Timetable"
             content="Download your timetable as an image. Perfect for saving or sharing with friends!"
             position="bottom"
@@ -514,42 +514,50 @@ export function DraftTabs({
             </Tooltip>
           </TourStep>
 
-          <Dialog open={isCalendarSyncOpen} onOpenChange={setIsCalendarSyncOpen}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsCalendarSyncOpen(true)}
-                  className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border"
-                >
-                  <Calendar className="h-3.5 w-3.5 xl:mr-1.5" />
-                  <span className="hidden xl:inline">Calendar Sync</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-sm">
-                  Sync to your Calendar
-                </p>
-              </TooltipContent>
-            </Tooltip>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Connect Google Calendar</DialogTitle>
-                <DialogDescription>
-                  The Google consent screen will open in a new window. You'll be asked to grant permission for this app to access your Google Calendar.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCalendarSyncOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCalendarSync}>
-                  OK
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <TourStep
+            id="calendar-sync"
+            order={8}
+            title="Sync to Calendar"
+            content="Sync your timetable to Google Calendar. Courses will be added as recurring events with holidays automatically excluded."
+            position="bottom"
+          >
+            <Dialog open={isCalendarSyncOpen} onOpenChange={setIsCalendarSyncOpen}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsCalendarSyncOpen(true)}
+                    className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border"
+                  >
+                    <Calendar className="h-3.5 w-3.5 xl:mr-1.5" />
+                    <span className="hidden xl:inline">Calendar Sync</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">
+                    Sync to your Calendar
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Connect Google Calendar</DialogTitle>
+                  <DialogDescription>
+                    The Google consent screen will open in a new window. You'll be asked to grant permission for this app to access your Google Calendar.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCalendarSyncOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCalendarSync}>
+                    OK
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </TourStep>
 
           {/* Syncing Dialog */}
           <Dialog open={isSyncing} onOpenChange={setIsSyncing}>
