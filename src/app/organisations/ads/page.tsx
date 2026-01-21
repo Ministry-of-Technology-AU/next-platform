@@ -45,19 +45,19 @@ const INITIAL_ADS: Advertisement[] = [
         attributes: {
             isActive: true,
             order: 1,
-            title: "Welcome to Ministry of Technology",
-            subtitle: "Innovation & Excellence",
-            description: "Join us in building the future of technology.",
+            title: "Create an Ad!",
+            subtitle: "Make sure you read the guidelines!",
+            description: "This is exactly how your ad will look",
             banner_image: {
                 data: [{ attributes: { url: "/placeholder-banner-1.jpg" } }]
             },
             gradient: "",
             buttons: [
                 {
-                    children: "Explore",
+                    children: "Sample Button",
                     url: "https://",
                     variant: "default" as ButtonVariant,
-                    className: "bg-[#ffffff] text-[#000000]",
+                    className: "",
                     style: { borderRadius: "4px", opacity: 1 }
                 }
             ]
@@ -226,7 +226,7 @@ export default function AdsManagementPage() {
                     <InstructionsField
                         heading="Banner Upload Guidelines"
                         body={[
-                            "Recommended image dimensions: 1200x720 pixels (16:7 aspect ratio)",
+                            "Recommended image dimensions: 1600x700 pixels (16:9 aspect ratio)",
                             "Supported formats: JPG, PNG, WebP",
                             "Maximum file size: 5MB",
                             "Ensure text overlays are readable - test with the gradient overlay",
