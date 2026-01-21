@@ -41,9 +41,9 @@ export default function RootLayout({
         >
           <SidebarProvider defaultOpen={false}>
             <NewToolAlert
-              href="/platform/trajectory-planner"
-              title="Trajectory Planner"
-              checkSeenKey="TRAJECTORY_PLANNER_TOUR_SEEN_V1"
+              href="/platform/semester-planner"
+              title="Calendar Syncing on Sem Planner"
+              checkSeenKey="CALENDAR_SYNC_TOUR_SEEN_V1"
               blockIfNewVersion={true}
             />
             <WhatsNewModal />
