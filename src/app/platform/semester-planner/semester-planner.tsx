@@ -27,6 +27,7 @@ interface SemesterPlannerClientProps {
   initialDrafts?: TimetableDraft[];
 }
 
+
 export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlannerClientProps) {
   const { isActive: isTourActive, stopTour } = useTour();
   const [sampleCourseId, setSampleCourseId] = useState<string | null>(null);
@@ -573,9 +574,10 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onRenameDraft={handleRenameDraft}
             onToggleFullScreen={handleToggleFullScreen}
           >
+
             <TourStep
               id="timetable-grid"
-              order={5}
+              order={9}
               title="Timetable Grid"
               content="This is your timetable grid. Courses appear here once you add them. You can see time slots for each day, lock courses, and change their colors."
               position="left"

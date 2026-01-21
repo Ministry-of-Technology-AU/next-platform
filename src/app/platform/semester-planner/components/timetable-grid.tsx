@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Lock, Unlock, Palette, Trash2 } from "lucide-react";
+import { X, Lock, Unlock, Palette, Trash2, CalendarPlus } from "lucide-react";
 import { formatProfessorName } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -38,8 +38,107 @@ interface TimetableGridProps {
   id?: string; // Added this line
 }
 
+// Map weekday strings to numeric JS weekdays (0 = Sunday, 1 = Monday, ... 6 = Saturday)
+const WEEKDAY_MAP: Record<string, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+};
+
+/**
+ * Returns the next date for a given day of the week
+ */
+function getNextDateForDay(day: string) {
+  const today = new Date();
+  const targetDay = WEEKDAY_MAP[day];
+  if (targetDay === undefined) throw new Error("Invalid day: " + day);
+
+  const diff = (targetDay + 7 - today.getDay()) % 7 || 7; // next occurrence
+  const nextDate = new Date(today);
+  nextDate.setDate(today.getDate() + diff);
+  nextDate.setHours(0, 0, 0, 0);
+  return nextDate;
+}
+
+/**
+ * Converts "8:30am-10:00am" slot into Google Calendar dateTime format for a given date
+ */
+function getGoogleCalendarDates(slot: string, date: Date) {
+  const [startStr, endStr] = slot.split("-");
+
+  const parseTime = (timeStr: string) => {
+    const meridiem = timeStr.slice(-2).toLowerCase();
+    let [hours, minutes] = timeStr
+      .slice(0, -2)
+      .split(":")
+      .map(Number);
+
+    if (meridiem === "pm" && hours < 12) hours += 12;
+    if (meridiem === "am" && hours === 12) hours = 0;
+
+    return { hours, minutes };
+  };
+
+  const start = parseTime(startStr);
+  const end = parseTime(endStr);
+
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
+  const formatDateTime = (d: Date, h: number, m: number) =>
+    `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(h)}${pad(
+      m
+    )}00`;
+
+  const startDateTime = formatDateTime(date, start.hours, start.minutes);
+  const endDateTime = formatDateTime(date, end.hours, end.minutes);
+
+  return `${startDateTime}/${endDateTime}`;
+}
+
+function addCourseToGoogleCalendar(course: ScheduledCourse) {
+  if (!course.timeSlots || course.timeSlots.length === 0) return;
+
+  // 1. Start date: pick the next occurrence of the first slot's day
+  const firstSlot = course.timeSlots[0];
+  const startDate = getNextDateForDay(firstSlot.day);
+
+  // 2. Start/End time for the first slot
+  const dates = getGoogleCalendarDates(firstSlot.slot, startDate);
+
+  // 3. Compute BYDAY for all unique course days
+  const BYDAY = Array.from(new Set(course.timeSlots.map(ts => ts.day)))
+    .map(d => ({
+      Monday: "MO",
+      Tuesday: "TU",
+      Wednesday: "WE",
+      Thursday: "TH",
+      Friday: "FR",
+      Saturday: "SA",
+    }[d]))
+    .join(",");
+
+  // 4. RRULE: weekly, count = 10 weeks (adjust if needed)
+  const rrule = `RRULE:FREQ=WEEKLY;COUNT=30;BYDAY=${BYDAY}`;
+
+  // 5. Build URL
+  const url =
+    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+    `&text=${encodeURIComponent(course.name)}` +
+    `&dates=${dates}` +
+    `&location=${encodeURIComponent(course.location)}` +
+    `&recur=${encodeURIComponent(rrule)}`;
+
+  window.open(url, "_blank");
+}
+
+
 // The evening slot that should be hidden by default
 const EVENING_SLOT = "8:00pm-9:30pm";
+
 
 export function TimetableGrid({
   courses,
@@ -145,19 +244,17 @@ export function TimetableGrid({
                             }}
                           >
                             <div className="absolute top-0.5 md:top-1 right-0.5 md:right-1 flex gap-0.5 md:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Lock / Unlock */}
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
                                 onClick={() => onToggleLock(course.id, day, slot)}
                               >
-                                {isLocked ? (
-                                  <Lock className="h-2 w-2 md:h-3 md:w-3" />
-                                ) : (
-                                  <Unlock className="h-2 w-2 md:h-3 md:w-3" />
-                                )}
+                                {isLocked ? <Lock className="h-2 w-2 md:h-3 md:w-3" /> : <Unlock className="h-2 w-2 md:h-3 md:w-3" />}
                               </Button>
 
+                              {/* Color picker */}
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <Button
@@ -166,6 +263,7 @@ export function TimetableGrid({
                                     className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
                                   >
                                     <Palette className="h-2 w-2 md:h-3 md:w-3" />
+
                                   </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-2">
@@ -173,14 +271,7 @@ export function TimetableGrid({
                                     {COURSE_COLORS.map((color) => (
                                       <button
                                         key={color}
-                                        onClick={() =>
-                                          onRecolorCourse(
-                                            course.id,
-                                            day,
-                                            slot,
-                                            color
-                                          )
-                                        }
+                                        onClick={() => onRecolorCourse(course.id, day, slot, color)}
                                         className="w-6 h-6 rounded border-2 border-muted hover:border-foreground transition-colors"
                                         style={{ backgroundColor: color }}
                                       />
@@ -188,6 +279,18 @@ export function TimetableGrid({
                                   </div>
                                 </PopoverContent>
                               </Popover>
+
+
+                              {/* Add to Google Calendar */}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-4 w-4 md:h-5 md:w-5 p-0 hover:bg-white/80"
+                                onClick={() => addCourseToGoogleCalendar(course)}
+                              >
+                                <CalendarPlus className="h-2 w-2 md:h-3 md:w-3" />
+                              </Button>
+
 
                               {!isLocked && (
                                 <Button

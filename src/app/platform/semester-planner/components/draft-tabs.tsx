@@ -13,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -23,6 +25,7 @@ import { toast } from "sonner";
 import { TourStep } from "@/components/guided-tour";
 import type { TimetableDraft } from "../types";
 import { useIsMac } from "@/hooks/useIsMac";
+import { ScheduledCourse } from "../types";
 
 interface DraftTabsProps {
   drafts: TimetableDraft[];
@@ -34,6 +37,7 @@ interface DraftTabsProps {
   onDownloadTimetable: (draftId: string) => void;
   onRenameDraft: (draftId: string, newName: string) => void;
   onToggleFullScreen: () => void;
+  // syncCalendar: () => Promise<void>;
   isFullScreenMode?: boolean;
   children: React.ReactNode;
 }
@@ -56,6 +60,8 @@ export function DraftTabs({
   const [duplicateName, setDuplicateName] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDuplicateOpen, setIsDuplicateOpen] = useState(false);
+  const [isCalendarSyncOpen, setIsCalendarSyncOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [duplicateSourceId, setDuplicateSourceId] = useState("");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
@@ -113,7 +119,6 @@ export function DraftTabs({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check for Cmd/Ctrl + Shift + Key
       if ((e.metaKey || e.ctrlKey) && e.shiftKey) {
         switch (e.key.toLowerCase()) {
           case 'm':
@@ -133,18 +138,12 @@ export function DraftTabs({
             e.preventDefault();
             onDownloadTimetable(activeDraftId);
             break;
-          // Fullscreen 'o' is handled in semester-planner.tsx globally
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeDraftId, onDownloadTimetable, handleSaveDraft]); // handleSaveDraft is stable enough or can be added if useCallback wrapped (it's not but depends on state, wait)
-
-  // Fix: handleSaveDraft depends on drafts and activeDraftId, so we need to include it in dependency or use a ref/wrapper.
-  // Since handleSaveDraft is defined in render, we should probably wrap it in useCallback or just include it in deps if we move it?
-  // Actually, allow me to just add the effect and let it run. But handleSaveDraft changes every render because it's not memoized.
-  // I should memoize handleSaveDraft first.
+  }, [activeDraftId, onDownloadTimetable, handleSaveDraft]);
 
   const startEditing = (draftId: string, currentName: string) => {
     setEditingDraftId(draftId);
@@ -161,6 +160,101 @@ export function DraftTabs({
       onRenameDraft(editingDraftId, editingName.trim());
     }
     cancelEditing();
+  };
+
+  const handleCalendarSync = async () => {
+    setIsCalendarSyncOpen(false);
+
+    try {
+      // Fetch OAuth URL from backend
+      const response = await fetch('/api/platform/semester-planner?action=oauth-url');
+      const data = await response.json();
+
+      if (!data.authUrl) {
+        toast.error('Failed to generate authentication URL');
+        return;
+      }
+
+      // Open OAuth window
+      const width = 500;
+      const height = 600;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+
+      const popup = window.open(
+        data.authUrl,
+        'Google Calendar Authorization',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+
+      // Listen for OAuth callback
+      const handleMessage = async (event: MessageEvent) => {
+
+        if (event.origin !== window.location.origin) return;
+
+        if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+          // REMOVED: popup?.close(); - Let the popup close itself
+          window.removeEventListener('message', handleMessage);
+
+          // Get active draft's courses
+          const activeDraft = drafts.find(d => d.id === activeDraftId);
+          if (!activeDraft || activeDraft.courses.length === 0) {
+            toast.error('No courses to sync');
+            return;
+          }
+
+          // Start syncing
+          setIsSyncing(true);
+
+          try {
+            const syncResponse = await fetch('/api/platform/semester-planner/calendar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                courses: activeDraft.courses,
+                accessToken: event.data.accessToken,
+              }),
+            });
+
+            const syncResult = await syncResponse.json();
+
+            if (!syncResponse.ok || !syncResult.success) {
+              throw new Error(syncResult.error || 'Failed to sync courses');
+            }
+
+            if (syncResult.failed > 0) {
+              toast.warning(`Synced ${syncResult.successful} courses, ${syncResult.failed} failed`);
+            } else {
+              toast.success('Timetable synced to Google Calendar successfully!');
+            }
+          } catch (error) {
+            console.error('Calendar sync error:', error);
+            toast.error('Failed to sync timetable to Google Calendar');
+          } finally {
+            setIsSyncing(false);
+          }
+
+        } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+          toast.error('Failed to connect to Google Calendar');
+          // REMOVED: popup?.close(); - Let the popup close itself
+          window.removeEventListener('message', handleMessage);
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+
+      // Clean up listener if popup is closed manually
+      const checkPopup = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(checkPopup);
+          window.removeEventListener('message', handleMessage);
+        }
+      }, 1000);
+
+    } catch (error) {
+      console.error('Calendar sync error:', error);
+      toast.error('Failed to initiate calendar sync');
+    }
   };
 
   return (
@@ -244,7 +338,7 @@ export function DraftTabs({
         <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center justify-end">
           <TourStep
             id="create-draft"
-            order={1}
+            order={4}
             title="Create New Draft"
             content="Click here to create a new draft. A draft is a snapshot of your current timetable that you can save and come back to later."
             position="bottom"
@@ -296,7 +390,7 @@ export function DraftTabs({
 
           <TourStep
             id="duplicate-draft"
-            order={2}
+            order={5}
             title="Duplicate Draft"
             content="Duplicate your current draft to create a copy. This is useful when you want to experiment with variations of your timetable."
             position="bottom"
@@ -353,7 +447,7 @@ export function DraftTabs({
 
           <TourStep
             id="save-draft"
-            order={3}
+            order={6}
             title="Save Draft"
             content="Click to save your current draft. This persists your timetable so you don't lose your work."
             position="bottom"
@@ -388,7 +482,7 @@ export function DraftTabs({
 
           <TourStep
             id="download-timetable"
-            order={4}
+            order={7}
             title="Download Timetable"
             content="Download your timetable as an image. Perfect for saving or sharing with friends!"
             position="bottom"
@@ -420,31 +514,65 @@ export function DraftTabs({
             </Tooltip>
           </TourStep>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="inline-block cursor-not-allowed">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled
-                  className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border opacity-70 pointer-events-none"
-                >
-                  <Calendar className="h-3.5 w-3.5 xl:mr-1.5" />
-                  <span className="hidden xl:inline">Calendar Sync</span>
-                </Button>
+          <TourStep
+            id="calendar-sync"
+            order={8}
+            title="Sync to Calendar"
+            content="Sync your timetable to Google Calendar. Courses will be added as recurring events with holidays automatically excluded."
+            position="bottom"
+          >
+            <Dialog open={isCalendarSyncOpen} onOpenChange={setIsCalendarSyncOpen}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsCalendarSyncOpen(true)}
+                    className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border"
+                  >
+                    <Calendar className="h-3.5 w-3.5 xl:mr-1.5" />
+                    <span className="hidden xl:inline">Calendar Sync</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">
+                    Sync to your Calendar
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Connect Google Calendar</DialogTitle>
+                  <DialogDescription>
+                    The Google consent screen will open in a new window. You'll be asked to grant permission for this app to access your Google Calendar.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCalendarSyncOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCalendarSync}>
+                    OK
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </TourStep>
+
+          {/* Syncing Dialog */}
+          <Dialog open={isSyncing} onOpenChange={setIsSyncing}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Syncing to Google Calendar</DialogTitle>
+                <DialogDescription>
+                  Please wait while we sync your timetable to Google Calendar...
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="text-sm">
-                Sync to your Calendar
-                <br />
-                <span className="text-xs text-gray">
-                  <span className="ml-[0.5px]"></span>
-                  Coming very soon!
-                </span>
-              </p>
-            </TooltipContent>
-          </Tooltip>
+            </DialogContent>
+          </Dialog>
 
           {!isFullScreenMode && (
             <Tooltip>
@@ -481,4 +609,3 @@ export function DraftTabs({
     </div>
   );
 }
-
