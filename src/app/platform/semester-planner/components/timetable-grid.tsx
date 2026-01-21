@@ -324,6 +324,7 @@ export function TimetableGrid({
                             <p className="font-semibold">{course.code}</p>
                             <p className="text-xs">{slot}</p>
                             <p className="text-xs">{formatProfessorName(course.professor)}</p>
+                            <p className="text-xs">{course.location}</p>
                           </div>
                         </TooltipContent>
                       </Tooltip>
