@@ -23,6 +23,15 @@ interface ScheduledCourse {
 // Unique identifier for events created by this app
 const EVENT_IDENTIFIER = "TIMETABLE_SYNC_2025_2026";
 
+// Timezone for the university (Ashoka is in India)
+const UNIVERSITY_TIMEZONE = "Asia/Kolkata";
+
+// Helper to format date-time in local format (without Z suffix) for Google Calendar
+function formatLocalDateTime(date: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 const WEEKDAY_MAP: Record<string, string> = {
     Monday: "MO",
     Tuesday: "TU",
@@ -137,12 +146,12 @@ async function createCalendarEvent(
             location: course.location,
             description: `[${EVENT_IDENTIFIER}:${course.id}]\n\nCourse Code: ${course.code}\nProfessor: ${course.professor}\nDepartment: ${course.department}\n\n${course.description}`,
             start: {
-                dateTime: startDateTime.toISOString(),
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                dateTime: formatLocalDateTime(startDateTime),
+                timeZone: UNIVERSITY_TIMEZONE,
             },
             end: {
-                dateTime: endDateTime.toISOString(),
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                dateTime: formatLocalDateTime(endDateTime),
+                timeZone: UNIVERSITY_TIMEZONE,
             },
             recurrence: [`RRULE:FREQ=WEEKLY;COUNT=34;BYDAY=${BYDAY}`],
             colorId: "1",
