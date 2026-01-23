@@ -161,7 +161,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } else if (REP_EMAILS.includes(email)) {
           token.role = 'rep';
           token.access = ['platform', 'rep_dashboard'];
-        } else if (email.includes('_ug') || email.includes('_asp') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.includes('_ma')) {
+        } else if (email.includes('_ug') || email.includes('_asp') || email.includes('_vsp') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.includes('_ma')) {
           token.role = 'student';
           token.access = ['platform'];
         } else {
