@@ -15,7 +15,7 @@ const FC_COURSE_PATTERNS = [
 ]
 
 // Valid department codes
-const VALID_DEPT_CODES = ["CS", "ENT", "ECO", "MATH", "PHY", "HUM", "CW", "PSY", "BIO", "MAT", "POL", "IR"]
+const VALID_DEPT_CODES = ["CS", "ENT", "ECO", "MATH", "PHY", "HUM", "CW", "PSY", "BIO", "MAT", "POL", "IR", "HIS", "PHI", "ENG", "CHM", "YIF", "MS", "PA", "AST"]
 
 // Map AMS grades to trajectory planner Grade type
 export function mapGrade(gradeStr: string | null | undefined): Grade {

@@ -5,7 +5,6 @@ export const bioTrajectories: IdealTrajectory[] = [
     {
         templateId: "bio-4yr",
         notes: "** Core sequence as recommended by the Department of Biology. Electives distributed mainly in years 3–4.",
-        policyDocPath: "https://drive.google.com/drive/folders/1XWvEoidz4iZOpj_GDxvGZDad6eRDUhXp?usp=drive_link",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [] },
             {
@@ -47,7 +46,6 @@ export const bioTrajectories: IdealTrajectory[] = [
     {
         templateId: "bio-research-4yr",
         notes: "** Includes Thesis Proposal (4 credits) and Thesis (8 credits) in addition to Biology core.",
-        policyDocPath: "https://drive.google.com/drive/folders/1XWvEoidz4iZOpj_GDxvGZDad6eRDUhXp?usp=drive_link",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [] },
             {
@@ -98,7 +96,8 @@ export const bioTemplates: DegreeTemplate[] = [
         id: "bio-4yr",
         name: "Biology (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 38, total: 160 },
+        policyDocPath: "https://drive.google.com/drive/folders/1XWvEoidz4iZOpj_GDxvGZDad6eRDUhXp?usp=drive_link",
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             { name: "Introduction to Biology I: Genetics and Evolution", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
             { name: "Introduction to Biology II: Cell Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
@@ -118,7 +117,8 @@ export const bioTemplates: DegreeTemplate[] = [
         id: "bio-research-4yr",
         name: "Biology with Research (4 years)",
         batch: "2024",
-        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, openCredits: 26, total: 160 },
+        policyDocPath: "https://drive.google.com/drive/folders/1XWvEoidz4iZOpj_GDxvGZDad6eRDUhXp?usp=drive_link",
+        requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 26, total: 160 },
         defaultCourses: [
             { name: "Introduction to Biology I: Genetics and Evolution", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },
             { name: "Introduction to Biology II: Cell Biology", credits: 4, deptCode: "BIO", type: "Major", isInSemester: false },

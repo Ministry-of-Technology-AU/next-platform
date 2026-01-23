@@ -2,11 +2,21 @@
 
 import { useState, useEffect } from "react"
 import { useCoursePlanner } from "../course-planner-context"
-import { degreeTemplates, idealTrajectories } from "../templates"
+import { degreeTemplates as staticTemplates, idealTrajectories as staticTrajectories } from "../templates"
+import type { DegreeTemplate, IdealTrajectory } from "../templates"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxGroup,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+    ComboboxTrigger,
+} from "@/components/ui/shadcn-io/combobox"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail, Save } from "lucide-react"
+import { ChevronDown, ChevronUp, GraduationCap, Upload, Map, Plus, FileText, Contact, Mail, Save, Loader2, Share2, BookOpen } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import type { Course } from "../types"
 import {
@@ -42,6 +52,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { TourStep } from "@/components/guided-tour"
+import { toast } from "sonner"
+import { ShareTrajectoryDialog } from "./share-trajectory-dialog"
+import { TrajectoryRepositoryDialog } from "./trajectory-repository-dialog"
 
 export function SummaryAndTemplateTable() {
     const {
@@ -53,16 +66,77 @@ export function SummaryAndTemplateTable() {
         selectedDegreeId,
         setSelectedDegree,
         loadPreviousSemesters,
+        exportState,
     } = useCoursePlanner()
+
+    // Save trajectory state
+    const [isSaving, setIsSaving] = useState(false)
+
+    const handleSaveTrajectory = async () => {
+        setIsSaving(true)
+        try {
+            const jsonState = exportState()
+            const response = await fetch("/api/platform/trajectory-planner", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ state: JSON.parse(jsonState) }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to save")
+            }
+
+            toast.success("Trajectory saved successfully!")
+        } catch (error) {
+            console.error("Save failed:", error)
+            toast.error("Failed to save trajectory. Please try again.")
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    // Fetched templates from API (with static fallback)
+    const [degreeTemplates, setDegreeTemplates] = useState<DegreeTemplate[]>(staticTemplates)
+    const [idealTrajectories, setIdealTrajectories] = useState<IdealTrajectory[]>(staticTrajectories)
+
+    // Fetch templates from API on mount
+    useEffect(() => {
+        async function fetchTemplates() {
+            try {
+                const res = await fetch('/api/platform/trajectory-planner/templates')
+                if (res.ok) {
+                    const data = await res.json()
+                    if (data.degreeTemplates?.length > 0) {
+                        setDegreeTemplates(data.degreeTemplates)
+                    }
+                    if (data.idealTrajectories?.length > 0) {
+                        setIdealTrajectories(data.idealTrajectories)
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to fetch templates from API, using static data')
+            }
+        }
+        fetchTemplates()
+    }, [])
 
     // const [selectedTemplate, setSelectedTemplate] = useState<string>(selectedDegreeId || "")
     const [selectedTemplate, setSelectedTemplate] = useState<string>("")
     const [showLoadDialog, setShowLoadDialog] = useState(false)
     const [showTrajectoryDialog, setShowTrajectoryDialog] = useState(false)
     const [showContactDialog, setShowContactDialog] = useState(false)
+    const [showShareDialog, setShowShareDialog] = useState(false)
+    const [showRepositoryDialog, setShowRepositoryDialog] = useState(false)
     const [cgpaInput, setCgpaInput] = useState("")
     const [loadResult, setLoadResult] = useState<{ success: boolean; message: string } | null>(null)
     const [isSummaryOpen, setIsSummaryOpen] = useState(true)
+
+    // Check if user can share (needs at least 6 semesters)
+    const canShare = state.semesters.length >= 6
 
     // Sync selectedTemplate with saved degree
     // useEffect(() => {
@@ -188,6 +262,13 @@ export function SummaryAndTemplateTable() {
                                             </TableCell>
                                         </TableRow>
                                         <TableRow>
+                                            <TableCell>Concentration</TableCell>
+                                            <TableCell className="text-right">{currentCredits.concentration}</TableCell>
+                                            <TableCell className="text-right text-muted-foreground">
+                                                {currentTemplate?.requiredCredits.concentration ?? "-"}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
                                             <TableCell>Open</TableCell>
                                             <TableCell className="text-right">{currentCredits.openCredits}</TableCell>
                                             <TableCell className="text-right text-muted-foreground">
@@ -205,7 +286,7 @@ export function SummaryAndTemplateTable() {
                                             <TableRow className="font-semibold border-t-2">
                                                 <TableCell>CGPA</TableCell>
                                                 <TableCell className="text-right">{(Math.round(cgpa * 100) / 100).toFixed(2)}</TableCell>
-                                                <TableCell className="text-right text-muted-foreground">4.00</TableCell>
+                                                <TableCell className="text-right text-muted-foreground"></TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>
@@ -244,18 +325,30 @@ export function SummaryAndTemplateTable() {
                     content="Select your major/minor template to see specific graduation requirements tailored to your batch."
                     order={2}
                 >
-                    <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
-                        <SelectTrigger className="w-[250px]">
-                            <SelectValue placeholder="Select degree template..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {degreeTemplates.map((template) => (
-                                <SelectItem key={template.id} value={template.id}>
-                                    {template.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Combobox
+                        data={degreeTemplates.map((t) => ({ label: t.name, value: t.id }))}
+                        value={selectedTemplate}
+                        onValueChange={handleTemplateChange}
+                        type="degree template"
+                    >
+                        <ComboboxTrigger className="w-[250px]" />
+                        <ComboboxContent>
+                            <ComboboxInput />
+                            <ComboboxList>
+                                <ComboboxEmpty />
+                                <ComboboxGroup>
+                                    {degreeTemplates.map((template) => (
+                                        <ComboboxItem
+                                            key={template.id}
+                                            value={template.id}
+                                        >
+                                            {template.name}
+                                        </ComboboxItem>
+                                    ))}
+                                </ComboboxGroup>
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
                 </TourStep>
 
                 <TourStep
@@ -292,12 +385,12 @@ export function SummaryAndTemplateTable() {
                     </Button>
                 </TourStep>
 
-                {(currentTrajectory?.policyDocPath || currentTemplate?.policyDocPath) && (
+                {currentTemplate?.policyDocPath && (
                     <Button
                         variant="outline"
                         size="sm"
                         className="gap-1"
-                        onClick={() => window.open(currentTrajectory?.policyDocPath || currentTemplate?.policyDocPath, '_blank')}
+                        onClick={() => window.open(currentTemplate.policyDocPath, '_blank')}
                     >
                         <FileText size={14} />
                         View Policy
@@ -314,19 +407,72 @@ export function SummaryAndTemplateTable() {
                     Contact Reps
                 </Button>
 
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="inline-block cursor-not-allowed">
-                            <Button disabled variant="outline" size="sm" className="gap-1 opacity-60 pointer-events-none">
-                                <Save size={14} />
-                                Save Template
-                            </Button>
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Coming Soon!</p>
-                    </TooltipContent>
-                </Tooltip>
+                <TourStep
+                    id="save-trajectory"
+                    title="Save Trajectory"
+                    content="Save your course planning progress! Your trajectory will be synced to your account."
+                    order={8}
+                    position="bottom"
+                >
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={handleSaveTrajectory}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        {isSaving ? "Saving..." : "Save Trajectory"}
+                    </Button>
+                </TourStep>
+
+                <TourStep
+                    id="share-trajectory"
+                    title="Share Trajectory"
+                    content="Share your trajectory with other students! You need at least 6 semesters to share."
+                    order={9}
+                    position="bottom"
+                >
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1"
+                                    onClick={() => setShowShareDialog(true)}
+                                    disabled={!canShare}
+                                >
+                                    <Share2 size={14} />
+                                    Share Trajectory
+                                </Button>
+                            </span>
+                        </TooltipTrigger>
+                        {!canShare && (
+                            <TooltipContent>
+                                <p>Add at least 6 semesters to share</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+                </TourStep>
+
+                <TourStep
+                    id="browse-repository"
+                    title="Browse Repository"
+                    content="Explore trajectories shared by other students and get inspired!"
+                    order={10}
+                    position="bottom"
+                >
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setShowRepositoryDialog(true)}
+                    >
+                        <BookOpen size={14} />
+                        Browse Trajectories
+                    </Button>
+                </TourStep>
             </div>
 
             {/* Load Previous Semesters Dialog */}
@@ -631,6 +777,27 @@ export function SummaryAndTemplateTable() {
                     </CommandGroup>
                 </CommandList>
             </CommandDialog>
+
+            {/* Share Trajectory Dialog */}
+            <ShareTrajectoryDialog
+                open={showShareDialog}
+                onOpenChange={setShowShareDialog}
+                semesters={state.semesters}
+            />
+
+            {/* Trajectory Repository Dialog */}
+            <TrajectoryRepositoryDialog
+                open={showRepositoryDialog}
+                onOpenChange={setShowRepositoryDialog}
+                onImportCourses={(courses) => {
+                    courses.forEach(course => {
+                        addCourse(null, {
+                            ...course,
+                            id: uuidv4()
+                        } as Course)
+                    })
+                }}
+            />
         </>
     )
 }
