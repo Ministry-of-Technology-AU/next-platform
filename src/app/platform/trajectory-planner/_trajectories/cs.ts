@@ -5,7 +5,6 @@ export const csTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-4yr",
         notes: "** Incorporate either BIO-1200 or PHY-1220, along with 12 credits of Computer Science electives.",
-        policyDocPath: "/policy_docs/CS_Major_Curriculum.pdf",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [{ name: "Calculus", credits: 4, deptCode: "MATH", type: "Major", isInSemester: false }] },
             {
@@ -51,7 +50,6 @@ export const csTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-research-4yr",
         notes: "** Incorporate either BIO-1200 or PHY-1220, along with 16 credits of Computer Science electives.",
-        policyDocPath: "/policy_docs/CS_Research_Curriculum.pdf",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [{ name: "Calculus", credits: 4, deptCode: "MATH", type: "Major", isInSemester: false }] },
             {
@@ -97,7 +95,6 @@ export const csTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-ent-4yr",
         notes: "** CS & ENT interdisciplinary major combining core CS courses with Entrepreneurship courses.",
-        policyDocPath: "https://docs.google.com/document/d/1OtFP_fcBZQ8V8Esm2U8fHThmugs6y0ND/edit",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [{ name: "Calculus", credits: 4, deptCode: "MATH", type: "Major", isInSemester: false }] },
             {
@@ -137,7 +134,6 @@ export const csTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-ent-research-4yr",
         notes: "** CS & ENT with Research - includes 12-credit Capstone Thesis.",
-        policyDocPath: "https://docs.google.com/document/d/1OtFP_fcBZQ8V8Esm2U8fHThmugs6y0ND/edit",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [{ name: "Calculus", credits: 4, deptCode: "MATH", type: "Major", isInSemester: false }] },
             {
@@ -181,7 +177,6 @@ export const csTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-math-track1-4yr",
         notes: "** Incorporate either BIO-1200 or PHY-1220, along with 12 credits of CS or MATH electives. Track 1: Cryptography, Number Theory, Algebra.",
-        policyDocPath: "https://docs.google.com/document/d/1yabkBM64wTlEjg0_-mDmtw89M-Z7fa-r/edit",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [{ name: "Calculus", credits: 4, deptCode: "MATH", type: "Major", isInSemester: false }] },
             {
@@ -226,7 +221,6 @@ export const csTrajectories: IdealTrajectory[] = [
     {
         templateId: "cs-math-track2-4yr",
         notes: "** Incorporate either BIO-1200 or PHY-1220, along with 12 credits of CS or MATH electives. Track 2: Data Science and Machine Learning.",
-        policyDocPath: "https://docs.google.com/document/d/1yabkBM64wTlEjg0_-mDmtw89M-Z7fa-r/edit",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [{ name: "Calculus", credits: 4, deptCode: "MATH", type: "Major", isInSemester: false }] },
             {
@@ -275,6 +269,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-4yr",
         name: "CS (4 years)",
         batch: "2024",
+        policyDocPath: "/policy_docs/CS_Major_Curriculum.pdf",
         requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -291,6 +286,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-research-4yr",
         name: "CS with Research (4 years)",
         batch: "2024",
+        policyDocPath: "/policy_docs/CS_Research_Curriculum.pdf",
         requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 26, total: 160 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -307,6 +303,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-ent-4yr",
         name: "CS & ENT (4 years)",
         batch: "2024",
+        policyDocPath: "https://docs.google.com/document/d/1OtFP_fcBZQ8V8Esm2U8fHThmugs6y0ND/edit",
         requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 28, total: 150 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -328,6 +325,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-ent-research-4yr",
         name: "CS & ENT with Research (4 years)",
         batch: "2024",
+        policyDocPath: "https://docs.google.com/document/d/1OtFP_fcBZQ8V8Esm2U8fHThmugs6y0ND/edit",
         requiredCredits: { major: 92, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 16, total: 150 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -350,6 +348,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-math-track1-4yr",
         name: "CS + MATH Track 1 (4 years)",
         batch: "2024",
+        policyDocPath: "https://docs.google.com/document/d/1yabkBM64wTlEjg0_-mDmtw89M-Z7fa-r/edit",
         requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },
@@ -375,6 +374,7 @@ export const csTemplates: DegreeTemplate[] = [
         id: "cs-math-track2-4yr",
         name: "CS + MATH Track 2 (4 years)",
         batch: "2024",
+        policyDocPath: "https://docs.google.com/document/d/1yabkBM64wTlEjg0_-mDmtw89M-Z7fa-r/edit",
         requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             { name: "Introduction to Computer Science", credits: 4, deptCode: "CS", type: "Major", isInSemester: false },

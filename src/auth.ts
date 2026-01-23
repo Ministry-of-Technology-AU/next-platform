@@ -12,7 +12,7 @@ const ORGANIZATION_EMAILS = [
 // Department Representative emails for trajectory planner management
 const REP_EMAILS = [
   "cs.rep@ashoka.edu.in",
-  "vansh.bothra_ug25@ashoka.edu.in",
+  // "vansh.bothra_ug25@ashoka.edu.in",
   "physics.rep@ashoka.edu.in",
   "math.rep@ashoka.edu.in",
   "biology_ugrep@ashoka.edu.in",

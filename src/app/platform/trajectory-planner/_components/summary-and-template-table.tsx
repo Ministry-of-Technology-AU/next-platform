@@ -385,12 +385,12 @@ export function SummaryAndTemplateTable() {
                     </Button>
                 </TourStep>
 
-                {(currentTrajectory?.policyDocPath || currentTemplate?.policyDocPath) && (
+                {currentTemplate?.policyDocPath && (
                     <Button
                         variant="outline"
                         size="sm"
                         className="gap-1"
-                        onClick={() => window.open(currentTrajectory?.policyDocPath || currentTemplate?.policyDocPath, '_blank')}
+                        onClick={() => window.open(currentTemplate.policyDocPath, '_blank')}
                     >
                         <FileText size={14} />
                         View Policy

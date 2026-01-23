@@ -270,7 +270,7 @@ export default function RepDashboardPage() {
                                                             <ChevronDown className="h-5 w-5 text-muted-foreground" />
                                                         )}
                                                         <div>
-                                                            <CardTitle className="text-base">{template.name}</CardTitle>
+                                                            <CardTitle className="text-base text-left!">{template.name}</CardTitle>
                                                             <CardDescription className="text-xs">
                                                                 ID: {template.id} • Batch: {template.batch} • {template.defaultCourses?.length || 0} courses
                                                             </CardDescription>
@@ -315,6 +315,19 @@ export default function RepDashboardPage() {
                                                             onChange={(e) => updateTemplate(template.id, { batch: e.target.value })}
                                                         />
                                                     </div>
+                                                </div>
+
+                                                {/* Policy Document Path */}
+                                                <div>
+                                                    <Label>Policy Document URL/Path</Label>
+                                                    <Input
+                                                        value={template.policyDocPath || ""}
+                                                        onChange={(e) => updateTemplate(template.id, { policyDocPath: e.target.value })}
+                                                        placeholder="e.g., https://docs.google.com/... or /policy_docs/CS_Major.pdf"
+                                                    />
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Link to Google Doc, PDF, or other policy document for this degree
+                                                    </p>
                                                 </div>
 
                                                 {/* Credit Requirements */}
