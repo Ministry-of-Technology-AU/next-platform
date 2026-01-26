@@ -6,7 +6,7 @@
   <img
     src="/screenshots/sg-compose.png"
     width="800"
-    alt="Dashboard View"
+    alt="SG Compose email composer interface"
     style="display:block; margin: 0 auto;"
   />
 </div>
