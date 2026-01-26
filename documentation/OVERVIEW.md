@@ -4,9 +4,9 @@
 
 <div style="text-align: center;">
   <img
-    src="/screenshots/sg-compose.png"
+    src="./screenshots/sg-compose.png"
     width="800"
-    alt="SG Compose email composer interface"
+    alt="SG Compose Interface"
     style="display:block; margin: 0 auto;"
   />
 </div>
@@ -15,7 +15,7 @@
 
 <div style="text-align: center;">
   <img
-    src="/screenshots/cgpa-planner.png"
+    src="./screenshots/cgpa-planner.png"
     width="800"
     alt="CGPA Planner"
     style="display:block; margin: 0 auto;"
@@ -26,7 +26,7 @@
 
 <div style="text-align: center;">
   <img
-    src="/screenshots/orgs-catalogue.png"
+    src="./screenshots/orgs-catalogue.png"
     width="800"
     alt="Organisations Catalogue"
     style="display:block; margin: 0 auto;"
@@ -37,7 +37,7 @@
 
 <div style="text-align: center;">
   <img
-    src="/screenshots/sem-planner.png"
+    src="./screenshots/sem-planner.png"
     width="800"
     alt="Semester Planner"
     style="display:block; margin: 0 auto;"
@@ -48,7 +48,7 @@
 
 <div style="text-align: center;">
   <img
-    src="/screenshots/wifi-tickets.png"
+    src="./screenshots/wifi-tickets.png"
     width="800"
     alt="WiFi Tickets"
     style="display:block; margin: 0 auto;"
