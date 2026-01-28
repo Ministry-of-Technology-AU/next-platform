@@ -66,8 +66,7 @@ export default function PlatformCarousel({
   // Merge ads with static banners
   // First, map ads to banner format
   const adBanners = adverts.map(ad => {
-    const bannerImage = ad.attributes.banner_image?.data?.[0]?.attributes?.url || '/yyh4iiocug5dnctfkd5t.webp'; // Fallback image
-    // Ensure absolute URL if needed, but Strapi usually returns relative or full depending on config. 
+    const bannerImage = ad.attributes.banner_url || '/yyh4iiocug5dnctfkd5t.webp'; // Fallback image
 
     return {
       id: `ad-${ad.id}`,

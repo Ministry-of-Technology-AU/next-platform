@@ -5,13 +5,12 @@ import PlatformCarousel from "@/components/landing-page/platform-carousel";
 import { Advertisement, ButtonVariant, BannerButton } from "@/components/landing-page/data/types";
 import {
     TextInput,
-    SubmitButton,
     ImageUpload,
     InstructionsField
 } from "@/components/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Edit2, X, Settings2, Megaphone } from "lucide-react";
+import { Plus, X, Settings2, Loader2 } from "lucide-react";
 import {
     Popover,
     PopoverContent,
@@ -43,14 +42,11 @@ const INITIAL_ADS: Advertisement[] = [
     {
         id: 1,
         attributes: {
-            isActive: true,
             order: 1,
             title: "Create an Ad!",
             subtitle: "Make sure you read the guidelines!",
             description: "This is exactly how your ad will look",
-            banner_image: {
-                data: [{ attributes: { url: "/placeholder-banner-1.jpg" } }]
-            },
+            banner_url: "/placeholder-banner-1.jpg",
             gradient: "",
             buttons: [
                 {
@@ -68,6 +64,9 @@ const INITIAL_ADS: Advertisement[] = [
 export default function AdsManagementPage() {
     const [ads, setAds] = useState<Advertisement[]>(INITIAL_ADS);
     const [activeAdIndex, setActiveAdIndex] = useState(0);
+    const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Helper to update current ad
     const updateCurrentAd = (updates: Partial<Advertisement['attributes']>) => {
@@ -119,26 +118,190 @@ export default function AdsManagementPage() {
         const newAd: Advertisement = {
             id: Date.now(),
             attributes: {
-                isActive: true,
                 order: ads.length + 1,
-                title: "New Ad Title",
-                subtitle: "Subtitle",
-                description: "Enter description here",
-                banner_image: {
-                    data: [{ attributes: { url: "" } }]
-                },
+                title: "",
+                subtitle: "",
+                description: "",
+                banner_url: "",
                 gradient: "from-transparent to-transparent",
                 buttons: []
             }
         };
         setAds([...ads, newAd]);
         setActiveAdIndex(ads.length);
+        setUploadedImageFile(null);
     };
 
     const deleteCurrentAd = () => {
         const newAds = ads.filter((_, i) => i !== activeAdIndex);
         setAds(newAds);
         setActiveAdIndex(Math.max(0, activeAdIndex - 1));
+        setUploadedImageFile(null);
+    };
+
+    // Validate form fields
+    const validateForm = (): boolean => {
+        const currentAd = ads[activeAdIndex];
+
+        // Check if banner exists (either uploaded file or existing URL)
+        const hasBannerImage = uploadedImageFile ||
+            (currentAd.attributes.banner_url && !currentAd.attributes.banner_url.includes('placeholder'));
+
+        if (!hasBannerImage) {
+            toast.error("Banner image is required");
+            return false;
+        }
+
+        return true;
+    };
+
+    // Helper to normalize URLs
+    const normalizeUrl = (url: string): string => {
+        if (!url) return '';
+        const trimmed = url.trim();
+        if (!trimmed) return '';
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+            return trimmed;
+        }
+        return `https://${trimmed}`;
+    };
+
+    // Handle Save
+    const handleSave = async () => {
+        if (!validateForm()) return;
+
+        setIsSaving(true);
+        try {
+            const currentAd = ads[activeAdIndex];
+            const formData = new FormData();
+
+            // Add form fields
+            if (currentAd.id && currentAd.id !== 1) {
+                formData.append('id', currentAd.id.toString());
+            }
+            formData.append('title', currentAd.attributes.title);
+            formData.append('subtitle', currentAd.attributes.subtitle);
+            formData.append('description', currentAd.attributes.description);
+            formData.append('gradient', currentAd.attributes.gradient || '');
+            formData.append('order', currentAd.attributes.order?.toString() || '0');
+
+            // Normalize button URLs
+            const normalizedButtons = (currentAd.attributes.buttons || []).map((btn: BannerButton) => ({
+                ...btn,
+                url: normalizeUrl(btn.url || '')
+            }));
+            formData.append('buttons', JSON.stringify(normalizedButtons));
+
+            // Add image if uploaded
+            if (uploadedImageFile) {
+                formData.append('image', uploadedImageFile);
+            } else {
+                // If no new image, pass existing banner_url if available
+                const existingUrl = currentAd.attributes.banner_url;
+                if (existingUrl) {
+                    formData.append('banner_url', existingUrl);
+                }
+            }
+
+            const response = await fetch('/api/organisations/ads/save', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to save ad');
+            }
+
+            toast.success("Ad saved successfully as draft");
+
+            // Update the ad with the response data if available
+            if (result.data) {
+                const newAds = [...ads];
+                newAds[activeAdIndex] = {
+                    id: result.data.id,
+                    attributes: result.data.attributes
+                };
+                setAds(newAds);
+            }
+
+            setUploadedImageFile(null);
+        } catch (error) {
+            console.error('Error saving ad:', error);
+            toast.error((error as Error).message || 'Failed to save ad');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Handle Submit
+    const handleSubmit = async () => {
+        if (!validateForm()) return;
+
+        setIsSubmitting(true);
+        try {
+            const currentAd = ads[activeAdIndex];
+            const formData = new FormData();
+
+            // Add form fields
+            if (currentAd.id && currentAd.id !== 1) {
+                formData.append('id', currentAd.id.toString());
+            }
+            formData.append('title', currentAd.attributes.title);
+            formData.append('subtitle', currentAd.attributes.subtitle);
+            formData.append('description', currentAd.attributes.description);
+            formData.append('gradient', currentAd.attributes.gradient || '');
+            formData.append('order', currentAd.attributes.order?.toString() || '0');
+
+            // Normalize button URLs
+            const normalizedButtons = (currentAd.attributes.buttons || []).map((btn: BannerButton) => ({
+                ...btn,
+                url: normalizeUrl(btn.url || '')
+            }));
+            formData.append('buttons', JSON.stringify(normalizedButtons));
+
+            // Add image if uploaded
+            if (uploadedImageFile) {
+                formData.append('image', uploadedImageFile);
+            } else {
+                // If no new image, pass existing banner_url if available
+                const existingUrl = currentAd.attributes.banner_url;
+                if (existingUrl) {
+                    formData.append('banner_url', existingUrl);
+                }
+            }
+
+            const response = await fetch('/api/organisations/ads/submit', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to submit ad');
+            }
+
+            toast.success("Ad submitted successfully! Email notification sent.");
+
+            // Update the ad with the response data if available
+            if (result.data) {
+                const newAds = [...ads];
+                newAds[activeAdIndex] = {
+                    id: result.data.id,
+                    attributes: result.data.attributes
+                };
+                setAds(newAds);
+            }
+
+            setUploadedImageFile(null);
+        } catch (error) {
+            console.error('Error submitting ad:', error);
+            toast.error((error as Error).message || 'Failed to submit ad');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     // Helper to extract colors from className and style
@@ -182,14 +345,11 @@ export default function AdsManagementPage() {
 
         // Apply colors based on variant
         if (variant === "outline") {
-            // Outline: border and text color only, no background
             if (updates.borderColor) className += ` border border-[${updates.borderColor}]`;
             if (updates.textColor) className += ` text-[${updates.textColor}]`;
         } else if (variant === "ghost" || variant === "animatedGhost" || variant === "link") {
-            // Ghost/Link: text color only, no background or border
             if (updates.textColor) className += ` text-[${updates.textColor}]`;
         } else {
-            // Default/other variants: background, text, and optional border
             if (updates.bgColor) className += ` bg-[${updates.bgColor}]`;
             if (updates.textColor) className += ` text-[${updates.textColor}]`;
             if (updates.borderColor) className += ` border border-[${updates.borderColor}]`;
@@ -231,7 +391,8 @@ export default function AdsManagementPage() {
                             "Maximum file size: 5MB",
                             "Ensure text overlays are readable - test with the gradient overlay",
                             "High contrast images work best with text overlays",
-                            "The title, description and subtitle are necessarily going to be white in colour, so choose your image accordingly"
+                            "The title, description and subtitle are necessarily going to be white in colour, so choose your image accordingly",
+                            "⚠️ Banner image is mandatory - you cannot save or submit without uploading a banner"
                         ]}
                     />
 
@@ -253,8 +414,10 @@ export default function AdsManagementPage() {
                     <div className="space-y-6 max-w-4xl mx-auto">
 
                         {/* Tagline */}
-                        <div className="grid grid-cols-[100px_1fr_auto] gap-4 items-center">
-                            <Label className="text-base font-semibold">Tagline</Label>
+                        <div className="grid grid-cols-[100px_1fr] gap-4 items-center">
+                            <Label className="text-base font-semibold">
+                                Tagline
+                            </Label>
                             <TextInput
                                 title=""
                                 placeholder="Enter title text..."
@@ -262,12 +425,13 @@ export default function AdsManagementPage() {
                                 onChange={(val) => updateCurrentAd({ title: val })}
                                 className="w-full"
                             />
-                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Edit2 className="w-4 h-4" /></Button>
                         </div>
 
                         {/* Subtitle */}
-                        <div className="grid grid-cols-[100px_1fr_auto] gap-4 items-center">
-                            <Label className="text-base font-semibold">Subtitle</Label>
+                        <div className="grid grid-cols-[100px_1fr] gap-4 items-center">
+                            <Label className="text-base font-semibold">
+                                Subtitle
+                            </Label>
                             <TextInput
                                 title=""
                                 placeholder="Enter subtitle text..."
@@ -275,12 +439,13 @@ export default function AdsManagementPage() {
                                 onChange={(val) => updateCurrentAd({ subtitle: val })}
                                 className="w-full"
                             />
-                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Edit2 className="w-4 h-4" /></Button>
                         </div>
 
                         {/* Description */}
-                        <div className="grid grid-cols-[100px_1fr_auto] gap-4 items-start">
-                            <Label className="text-base font-semibold mt-2">Description</Label>
+                        <div className="grid grid-cols-[100px_1fr] gap-4 items-start">
+                            <Label className="text-base font-semibold mt-2">
+                                Description
+                            </Label>
                             <TextInput
                                 title=""
                                 placeholder="Enter description text..."
@@ -288,21 +453,7 @@ export default function AdsManagementPage() {
                                 onChange={(val) => updateCurrentAd({ description: val })}
                                 className="w-full"
                             />
-                            <Button variant="ghost" size="icon" className="text-muted-foreground mt-2"><Edit2 className="w-4 h-4" /></Button>
                         </div>
-
-                        {/* Gradient */}
-                        {/* <div className="grid grid-cols-[100px_1fr_auto] gap-4 items-center">
-                            <Label className="text-base font-semibold">Gradient</Label>
-                            <TextInput
-                                title=""
-                                placeholder="e.g., from-black/80 via-black/50 to-transparent"
-                                value={currentAd.attributes.gradient}
-                                onChange={(val) => updateCurrentAd({ gradient: val })}
-                                className="w-full"
-                            />
-                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Edit2 className="w-4 h-4" /></Button>
-                        </div> */}
 
                         {/* Buttons */}
                         {currentAd.attributes.buttons?.map((btn: BannerButton, idx: number) => {
@@ -312,7 +463,6 @@ export default function AdsManagementPage() {
                             const borderColor = extractBorderColor(btn.className);
                             const hoverBgColor = extractHoverBgColor(btn.style);
 
-                            // Determine which color controls to show based on variant
                             const showBgColor = variant !== "outline" && variant !== "ghost" && variant !== "animatedGhost" && variant !== "link";
                             const showBorderColor = variant === "outline" || variant === "default" || variant === "secondary" || variant === "animated";
                             const showHoverBg = variant !== "ghost" && variant !== "animatedGhost" && variant !== "link";
@@ -362,7 +512,6 @@ export default function AdsManagementPage() {
                                                     <div className="space-y-2">
                                                         <Label className="text-xs">Colors</Label>
                                                         <div className="grid gap-2" style={{ gridTemplateColumns: showBgColor && showBorderColor ? '1fr 1fr' : '1fr' }}>
-                                                            {/* Text Color - always shown */}
                                                             <div className="space-y-1">
                                                                 <Label className="text-xs text-muted-foreground">Text</Label>
                                                                 <Input
@@ -373,7 +522,6 @@ export default function AdsManagementPage() {
                                                                 />
                                                             </div>
 
-                                                            {/* Background Color - only for non-outline, non-ghost */}
                                                             {showBgColor && (
                                                                 <div className="space-y-1">
                                                                     <Label className="text-xs text-muted-foreground">Background</Label>
@@ -386,7 +534,6 @@ export default function AdsManagementPage() {
                                                                 </div>
                                                             )}
 
-                                                            {/* Border Color - for outline and optionally others */}
                                                             {showBorderColor && (
                                                                 <div className="space-y-1">
                                                                     <Label className="text-xs text-muted-foreground">Border</Label>
@@ -400,7 +547,6 @@ export default function AdsManagementPage() {
                                                             )}
                                                         </div>
 
-                                                        {/* Hover Background Color */}
                                                         {showHoverBg && (
                                                             <div className="space-y-1 pt-2 border-t">
                                                                 <Label className="text-xs text-muted-foreground">Hover Background</Label>
@@ -461,34 +607,35 @@ export default function AdsManagementPage() {
                                         <Input
                                             value={btn.url || ""}
                                             onChange={(e) => updateButton(idx, { url: e.target.value })}
-                                            placeholder="https://..."
+                                            placeholder="https://... or example.com"
                                         />
                                     </div>
                                 </div>
                             );
                         })}
 
-                        {/* Add Button Cta */}
+                        {/* Add Button CTA */}
                         {(currentAd.attributes.buttons?.length || 0) < 2 && (
                             <div className="flex justify-start pl-[116px]">
                                 <Button variant="outline" size="sm" onClick={addButton}><Plus className="w-4 h-4 mr-2" /> Add Button</Button>
                             </div>
                         )}
 
-                        {/* Main Image Upload - Placing it clearly */}
+                        {/* Main Image Upload */}
                         <div className="grid grid-cols-[100px_1fr] gap-4 items-start pt-4 border-t">
-                            <Label className="text-base font-semibold mt-2">Banner</Label>
+                            <Label className="text-base font-semibold mt-2">
+                                Banner <span className="text-red-500">*</span>
+                            </Label>
                             <ImageUpload
                                 title=""
                                 value={[]}
                                 description="Upload the main banner image (1600x700 recommended)"
                                 onChange={(files) => {
                                     if (files.length > 0) {
+                                        setUploadedImageFile(files[0]);
                                         const url = URL.createObjectURL(files[0]);
                                         updateCurrentAd({
-                                            banner_image: {
-                                                data: [{ attributes: { url } }]
-                                            }
+                                            banner_url: url
                                         });
                                     }
                                 }}
@@ -497,8 +644,34 @@ export default function AdsManagementPage() {
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-2 justify-end">
-                            <Button className="bg-green hover:bg-emerald-700 min-w-[120px]" onClick={() => toast.success("Ad Submitted Successfully")}>Submit</Button>
-                            <Button className="bg-blue hover:bg-blue-800 min-w-[120px]" onClick={() => toast.success("Ad Saved")}>Save</Button>
+                            <Button
+                                className="bg-green hover:bg-emerald-700 min-w-[120px]"
+                                onClick={handleSubmit}
+                                disabled={isSubmitting || isSaving}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    'Submit'
+                                )}
+                            </Button>
+                            <Button
+                                className="bg-blue hover:bg-blue-800 min-w-[120px]"
+                                onClick={handleSave}
+                                disabled={isSaving || isSubmitting}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    'Save'
+                                )}
+                            </Button>
 
                             <Dialog>
                                 <DialogTrigger asChild>
