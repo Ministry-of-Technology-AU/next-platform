@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { banners } from './data/platform-data';
 import { ButtonVariant } from './data/types';
 import Image from 'next/image';
+import { getOptimizedImageUrl } from '@/lib/apis/cloudinary-url';
 
 import { Advertisement } from './data/types';
 
@@ -66,7 +67,18 @@ export default function PlatformCarousel({
   // Merge ads with static banners
   // First, map ads to banner format
   const adBanners = adverts.map(ad => {
-    const bannerImage = ad.attributes.banner_url || '/yyh4iiocug5dnctfkd5t.webp'; // Fallback image
+    let bannerImage = ad.attributes.banner_url || '/yyh4iiocug5dnctfkd5t.webp'; // Fallback image
+
+    // Apply Cloudinary optimizations if it's a Cloudinary URL
+    if (bannerImage.includes('cloudinary.com')) {
+      bannerImage = getOptimizedImageUrl(bannerImage, {
+        width: 1600,
+        height: 700,
+        quality: 'auto:good',
+        format: 'auto',
+        crop: 'fill'
+      });
+    }
 
     return {
       id: `ad-${ad.id}`,

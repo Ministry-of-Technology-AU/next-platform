@@ -1,11 +1,45 @@
 import { NextResponse } from 'next/server';
 import { strapiPost, strapiPut } from '@/lib/apis/strapi';
-import { uploadImageAndGetEmbedLink } from '@/lib/apis/drive';
+import { uploadImageToCloudinary } from '@/lib/apis/cloudinary';
 import { sendMail } from '@/lib/apis/mail';
 import { auth } from '@/auth';
+import { getUserIdByEmail, getOrganisationIdByUserId } from '@/lib/userid';
 
 export async function POST(request: Request) {
     try {
+        // Get current user session
+        const session = await auth();
+        const email = session?.user?.email;
+
+        if (!email) {
+            return NextResponse.json(
+                { success: false, error: 'User not authenticated' },
+                { status: 401 }
+            );
+        }
+
+        // Get Strapi user ID from email
+        const userId = await getUserIdByEmail(email);
+
+        if (!userId) {
+            return NextResponse.json(
+                { success: false, error: 'User not found in system' },
+                { status: 404 }
+            );
+        }
+        else console.log(userId)
+
+        // Get organisation ID from user ID
+        const organisationId = await getOrganisationIdByUserId(userId);
+
+        if (!organisationId) {
+            return NextResponse.json(
+                { success: false, error: 'You must be part of an organisation to submit ads' },
+                { status: 403 }
+            );
+        }
+        else console.log(organisationId)
+
         const formData = await request.formData();
 
         // Extract form fields
@@ -18,20 +52,19 @@ export async function POST(request: Request) {
         const order = formData.get('order') as string;
         const imageFile = formData.get('image') as File | null;
 
-
-
-        // If image is provided, upload to Drive
+        // If image is provided, upload to Cloudinary
         let bannerUrl = formData.get('banner_url') as string | null;
         if (imageFile && imageFile.size > 0) {
             try {
-                bannerUrl = await uploadImageAndGetEmbedLink(
+                const { url } = await uploadImageToCloudinary(
                     imageFile,
                     `ad-banner-${Date.now()}-${imageFile.name}`
                 );
+                bannerUrl = url;
             } catch (error) {
-                console.error('Error uploading image to Drive:', error);
+                console.error('Cloudinary upload failed:', error);
                 return NextResponse.json(
-                    { success: false, error: 'Failed to upload image to Drive' },
+                    { success: false, error: 'Image upload failed' },
                     { status: 500 }
                 );
             }
@@ -46,37 +79,40 @@ export async function POST(request: Request) {
         }
 
         // Parse buttons JSON
-        let parsedButtons;
-        try {
-            parsedButtons = JSON.parse(buttons);
-        } catch {
-            parsedButtons = [];
+        let parsedButtons = [];
+        if (buttons) {
+            try {
+                parsedButtons = JSON.parse(buttons);
+            } catch (e) {
+                console.error('Failed to parse buttons:', e);
+            }
         }
 
         // Prepare data for Strapi
         const adData = {
             data: {
-                title,
-                subtitle,
-                description,
+                title: title || '',
+                subtitle: subtitle || '',
+                description: description || '',
                 gradient: gradient || '',
                 buttons: parsedButtons,
                 order: parseInt(order) || 0,
                 banner_url: bannerUrl,
+                organisation: organisationId, // Link to organisation
+                publishedAt: null, // Keep as draft (unpublished) - admin must manually publish
             }
         };
 
         let response;
         if (id && id !== 'null' && id !== 'undefined') {
-            // Update existing ad
+            // Update existing ad (keep as draft)
             response = await strapiPut(`/advertisements/${id}`, adData);
         } else {
-            // Create new ad
+            // Create new ad (as draft)
             response = await strapiPost('/advertisements', adData);
         }
 
-        // Get session for email
-        const session = await auth();
+        // Use session for email (already fetched above)
         const senderName = session?.user?.name?.toString().trim() || 'Anonymous';
         const senderEmail = session?.user?.email?.toString().trim() || '';
 
