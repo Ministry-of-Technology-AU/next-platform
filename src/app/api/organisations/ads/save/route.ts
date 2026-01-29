@@ -103,14 +103,35 @@ export async function POST(request: Request) {
             }
         };
 
+        // Determine if ID is a real Strapi ID or a temporary frontend ID
+        // Real Strapi IDs are typically small integers (1, 2, 3, ...)
+        // Frontend temporary IDs are Date.now() timestamps (1769668801472...)
+        const numericId = id ? parseInt(id) : NaN;
+        const isRealStrapiId = id &&
+            id !== 'undefined' &&
+            !isNaN(numericId) &&
+            numericId > 0 &&
+            numericId < 10000; // Threshold to detect temp IDs
+
+        console.log('[SAVE AD] ID validation:', {
+            rawId: id,
+            numericId,
+            isRealStrapiId,
+            operation: isRealStrapiId ? 'UPDATE' : 'CREATE'
+        });
+
         let response;
-        if (id && id !== 'undefined' && !isNaN(parseInt(id))) {
+        if (isRealStrapiId) {
             // Update existing ad (keep as draft)
+            console.log(`[SAVE AD] Updating existing ad with ID: ${id}`);
             response = await strapiPut(`/advertisements/${id}`, adData);
         } else {
             // Create new ad (as draft)
+            console.log('[SAVE AD] Creating new ad');
             response = await strapiPost('/advertisements', adData);
         }
+
+        console.log('[SAVE AD] Success:', response.data);
 
         return NextResponse.json({
             success: true,

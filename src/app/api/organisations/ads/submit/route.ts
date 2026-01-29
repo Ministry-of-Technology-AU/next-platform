@@ -103,14 +103,36 @@ export async function POST(request: Request) {
             }
         };
 
+        // Determine if ID is a real Strapi ID or a temporary frontend ID
+        // Real Strapi IDs are typically small integers (1, 2, 3, ...)
+        // Frontend temporary IDs are Date.now() timestamps or 0 for new ads
+        const numericId = id ? parseInt(id) : NaN;
+        const isRealStrapiId = id &&
+            id !== 'null' &&
+            id !== 'undefined' &&
+            !isNaN(numericId) &&
+            numericId > 0 &&
+            numericId < 10000; // Threshold to detect temp IDs
+
+        console.log('[SUBMIT AD] ID validation:', {
+            rawId: id,
+            numericId,
+            isRealStrapiId,
+            operation: isRealStrapiId ? 'UPDATE' : 'CREATE'
+        });
+
         let response;
-        if (id && id !== 'null' && id !== 'undefined') {
+        if (isRealStrapiId) {
             // Update existing ad (keep as draft)
+            console.log(`[SUBMIT AD] Updating existing ad with ID: ${id}`);
             response = await strapiPut(`/advertisements/${id}`, adData);
         } else {
             // Create new ad (as draft)
+            console.log('[SUBMIT AD] Creating new ad');
             response = await strapiPost('/advertisements', adData);
         }
+
+        console.log('[SUBMIT AD] Success:', response.data);
 
         // Use session for email (already fetched above)
         const senderName = session?.user?.name?.toString().trim() || 'Anonymous';

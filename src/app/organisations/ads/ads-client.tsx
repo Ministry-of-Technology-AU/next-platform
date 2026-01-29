@@ -39,7 +39,7 @@ import { toast } from "sonner";
 
 // Mock ad template (used when creating new ad)
 const MOCK_AD_TEMPLATE: Advertisement = {
-    id: Date.now(),
+    id: 0, // Use 0 for unsaved ads - will be replaced with real Strapi ID after save
     attributes: {
         order: 1,
         title: "Create an Ad!",
@@ -121,7 +121,7 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
 
     const createNewAd = () => {
         const newAd: Advertisement = {
-            id: Date.now(),
+            id: 0, // Use 0 for unsaved ads - will be replaced with real Strapi ID after save
             attributes: {
                 order: ads.length + 1,
                 title: "",
@@ -180,8 +180,9 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
             const currentAd = ads[activeAdIndex];
             const formData = new FormData();
 
-            // Add form fields
-            if (currentAd.id && currentAd.id !== 1) {
+            // Only send ID if it's a real Strapi ID (> 0)
+            // ID of 0 means it's a new, unsaved ad
+            if (currentAd.id && currentAd.id > 0) {
                 formData.append('id', currentAd.id.toString());
             }
             formData.append('title', currentAd.attributes.title);
@@ -203,7 +204,7 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
             } else {
                 // If no new image, pass existing banner_url if available
                 const existingUrl = currentAd.attributes.banner_url;
-                if (existingUrl) {
+                if (existingUrl && !existingUrl.includes('placeholder')) {
                     formData.append('banner_url', existingUrl);
                 }
             }
@@ -221,14 +222,15 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
 
             toast.success("Ad saved successfully as draft");
 
-            // Update the ad with the response data if available
+            // IMPORTANT: Update the ad with the real Strapi ID from the response
             if (result.data) {
                 const newAds = [...ads];
                 newAds[activeAdIndex] = {
-                    id: result.data.id,
+                    id: result.data.id, // This is the real Strapi ID
                     attributes: result.data.attributes
                 };
                 setAds(newAds);
+                console.log('[CLIENT] Updated ad with Strapi ID:', result.data.id);
             }
 
             setUploadedImageFile(null);
@@ -249,8 +251,8 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
             const currentAd = ads[activeAdIndex];
             const formData = new FormData();
 
-            // Add form fields
-            if (currentAd.id && currentAd.id !== 1) {
+            // Only send ID if it's a real Strapi ID (> 0)
+            if (currentAd.id && currentAd.id > 0) {
                 formData.append('id', currentAd.id.toString());
             }
             formData.append('title', currentAd.attributes.title);
@@ -272,7 +274,7 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
             } else {
                 // If no new image, pass existing banner_url if available
                 const existingUrl = currentAd.attributes.banner_url;
-                if (existingUrl) {
+                if (existingUrl && !existingUrl.includes('placeholder')) {
                     formData.append('banner_url', existingUrl);
                 }
             }
@@ -290,7 +292,7 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
 
             toast.success("Ad submitted successfully! Email notification sent.");
 
-            // Update the ad with the response data if available
+            // Update the ad with the real Strapi ID from the response
             if (result.data) {
                 const newAds = [...ads];
                 newAds[activeAdIndex] = {
@@ -298,6 +300,7 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
                     attributes: result.data.attributes
                 };
                 setAds(newAds);
+                console.log('[CLIENT] Updated ad with Strapi ID after submit:', result.data.id);
             }
 
             setUploadedImageFile(null);

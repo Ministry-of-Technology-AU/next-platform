@@ -58,7 +58,11 @@ export async function GET() {
             publicationState: 'preview' // Get both draft and published
         });
 
+        console.log('[GET ADS] Raw Strapi response:', JSON.stringify(response, null, 2));
+
         const ads = response?.data || [];
+
+        console.log(`[GET ADS] Found ${ads.length} ad(s) for organisation ${organisationId}`);
 
         return NextResponse.json({
             success: true,
