@@ -37,7 +37,8 @@ import {
   User,
   GalleryHorizontalEnd,
   ShoppingBag,
-  Puzzle
+  Puzzle,
+  Route
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -62,7 +63,8 @@ const iconMap = {
   User,
   GalleryHorizontalEnd,
   ShoppingBag,
-  Puzzle
+  Puzzle,
+  Route
 };
 
 interface SidebarItem {
@@ -94,7 +96,7 @@ export function AppSidebar() {
   const [iconCollapse, setIconCollapse] = React.useState(isCollapsed);
   const hideLabels = !isDrawerOpen;
   const collapseDelay = 2500; // ms, adjust as needed
-  const collapseTimeout = React.useRef<NodeJS.Timeout | null>(null);  
+  const collapseTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     if (isCollapsed) {
@@ -124,31 +126,31 @@ export function AppSidebar() {
     <Sidebar className="border-r border-border flex flex-col h-screen bg-background xoverflow-y-auto" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-              <div className="flex-shrink-0 cursor-pointer">
-                {/* Light Mode Logo */}
-                <Image
-                  src="/logo.png"
-                  alt="Ministry of Technology"
-                  width={48}
-                  height={48}
-                  className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8 block dark:hidden"
-                />
-                {/* Dark Mode Logo */}
-                <Image
-                  src="/logo.png"
-                  alt="Ministry of Technology"
-                  width={48}
-                  height={48}
-                  className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8 hidden dark:block"
-                />
-              </div>
+          <div className="flex-shrink-0 cursor-pointer">
+            {/* Light Mode Logo */}
+            <Image
+              src="/logo.png"
+              alt="Ministry of Technology"
+              width={48}
+              height={48}
+              className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8 block dark:hidden"
+            />
+            {/* Dark Mode Logo */}
+            <Image
+              src="/logo.png"
+              alt="Ministry of Technology"
+              width={48}
+              height={48}
+              className="rounded-lg object-cover transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:h-8 hidden dark:block"
+            />
+          </div>
           <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
             <h3 className="text-lg font-semibold text-primary dark:text-primary-bright truncate leading-tight whitespace-nowrap !text-left">
-                Platform
-              </h3>
+              Platform
+            </h3>
             <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">
-                by Technology Ministry
-              </p>
+              by Technology Ministry
+            </p>
           </div>
         </div>
       </SidebarHeader>
@@ -166,7 +168,8 @@ export function AppSidebar() {
                 {category.items.map((item: SidebarItem) => {
                   const IconComponent =
                     iconMap[item.icon as keyof typeof iconMap];
-                  const isActive = pathname === item.href;
+                  const fullHref = `/platform${item.href}`;
+                  const isActive = pathname === fullHref || (item.href !== "/" && pathname.startsWith(`${fullHref}/`));
 
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -177,7 +180,7 @@ export function AppSidebar() {
                           "group relative w-full flex items-center transition-all duration-200 ease-in-out",
                           "hover:bg-primary-light/50 hover:text-accent-foreground",
                           isActive &&
-                            "bg-primary text-primary-foreground hover:bg-primary/90",
+                          "bg-primary text-primary-foreground hover:bg-primary/90",
                           // When collapsed
                           "group-data-[state=collapsed]:justify-center",
                           "group-data-[state=collapsed]:gap-0",
@@ -192,10 +195,19 @@ export function AppSidebar() {
                           className="flex items-center w-full"
                           onClick={handleLinkClick}
                         >
-                          <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0" />
+                          <div className={cn(
+                            "relative transition-all duration-500",
+                            item.href === '/trajectory-planner' && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
+                          )}>
+                            <IconComponent className={cn(
+                              "size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0",
+                              item.href === '/trajectory-planner' && !isActive && "dark:text-secondary text-primary-light"
+                            )} />
+                          </div>
                           <span className={cn(
-                            "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap",
-                            hideLabels && "w-0 opacity-0"
+                            "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",
+                            hideLabels && "w-0 opacity-0 ml-0",
+                            item.href === '/trajectory-planner' && !isActive && "text-secondary font-semibold"
                           )}>
                             {item.title}
                           </span>
@@ -212,8 +224,8 @@ export function AppSidebar() {
 
       {!isCollapsed && (<SidebarFooter className="p-4">
         <div className="text-xs text-muted-foreground text-left transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
-            <p>Developed & maintained by</p>
-            <p className="text-primary dark:text-primary-bright text-bold">the Ministry of Technology</p>
+          <p>Developed & maintained by</p>
+          <p className="text-primary dark:text-primary-bright text-bold">the Ministry of Technology</p>
         </div>
       </SidebarFooter>)}
     </Sidebar>

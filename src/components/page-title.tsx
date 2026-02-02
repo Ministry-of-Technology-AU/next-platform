@@ -1,5 +1,6 @@
 import { WritingText } from "./ui/shadcn-io/writing-text";
 import { ExpandableText } from "./expandable-text";
+import React from "react";
 
 function PageTitle({
   text,
@@ -8,7 +9,7 @@ function PageTitle({
   icon: Icon,
 }: {
   text: string;
-  subheading?: string;
+  subheading?: string | React.ReactNode;
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   className?: string;
 }) {
@@ -26,7 +27,13 @@ function PageTitle({
           spacing={9}
           transition={{ type: "spring", bounce: 0, duration: 1, delay: 0.25 }}
         />
-        {subheading && <ExpandableText text={subheading} />}
+        {subheading && (
+          typeof subheading === "string" ? (
+            <ExpandableText text={subheading} />
+          ) : (
+            subheading
+          )
+        )}
       </div>
     </div>
   );

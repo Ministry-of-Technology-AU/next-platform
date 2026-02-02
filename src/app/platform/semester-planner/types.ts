@@ -4,13 +4,16 @@ export interface Course {
   name: string;
   professor: string;
   department: string;
-  type: "Core" | "Elective" | "Lab" | "Seminar";
-  credits: number;
+  location: string;
+  description: string;
+  prerequisites: string[];
+  // credits: number;
   timeSlots: TimeSlot[];
+  hasSaturday: boolean;
 }
 
 export interface TimeSlot {
-  day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
+  day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
   slot: string;
 }
 
@@ -33,7 +36,8 @@ export const TIME_SLOTS = [
   "LUNCH",
   "3:00pm-4:30pm",
   "4:40pm-6:10pm",
-  "6:20pm-8:50pm",
+  "6:20pm-7:50pm",
+  "8:00pm-9:30pm",
 ] as const;
 
 export const DAYS = [
@@ -42,6 +46,15 @@ export const DAYS = [
   "Wednesday",
   "Thursday",
   "Friday",
+] as const;
+
+export const DAYS_WITH_SATURDAY = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
 ] as const;
 
 export const COURSE_COLORS = [

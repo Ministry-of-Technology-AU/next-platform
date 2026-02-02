@@ -7,6 +7,9 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
+import { NewToolAlert } from "@/components/new-tool-alert";
+import { WhatsNewModal } from "@/components/whats-new-modal";
+import { RecentPageTracker } from "@/components/landing-page/recent-page-tracker";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -30,27 +33,35 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (    
-    <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>      
-        <TooltipProvider>
-          <TourProvider
-            autoStart={false}
-          >
-            <SidebarProvider defaultOpen={false}>
-              <div className="flex min-h-screen w-full overflow-x-hidden">
-                <AppSidebar />
-                <div className="flex flex-1 flex-col min-w-0">
-                  <Navbar />
-                  <Suspense>
-                    <main className="flex-1 overflow-auto pt-2 pb-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
-                      {children}
-                    </main>
-                  </Suspense>
-                </div>
+  return (
+    <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
+      <TooltipProvider>
+        <TourProvider
+          autoStart={false}
+        >
+          <SidebarProvider defaultOpen={false}>
+            <NewToolAlert
+              href="/platform/semester-planner"
+              title="Calendar Syncing on Sem Planner"
+              checkSeenKey="CALENDAR_SYNC_TOUR_SEEN_V1"
+              blockIfNewVersion={true}
+            />
+            <WhatsNewModal />
+            <RecentPageTracker />
+            <div className="flex min-h-screen w-full overflow-x-hidden">
+              <AppSidebar />
+              <div className="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">
+                <Navbar />
+                <Suspense>
+                  <main className="flex-1 pt-6 pb-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
+                    {children}
+                  </main>
+                </Suspense>
               </div>
-            </SidebarProvider>
-          </TourProvider>
-        </TooltipProvider> 
-    </div>    
+            </div>
+          </SidebarProvider>
+        </TourProvider>
+      </TooltipProvider>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { strapiGet, strapiPut } from "@/lib/apis/strapi";
+import { strapiGet } from "@/lib/apis/strapi";
 import timetableData from "@/data/timetable-planner.json";
 
 interface RawCourseData {
@@ -15,7 +15,7 @@ interface RawCourseData {
 }
 
 interface TimeSlot {
-  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
+  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
   slot: string;
 }
 
@@ -25,14 +25,17 @@ interface Course {
   name: string;
   professor: string;
   department: string;
-  type: 'Core' | 'Elective' | 'Lab' | 'Seminar';
+  location: string;
+  description: string;
+  prerequisites: string[];
   credits: number;
   timeSlots: TimeSlot[];
+  hasSaturday: boolean;
 }
 
 function parseTimeSlots(classDetails: string[]): TimeSlot[] {
   const timeSlots: TimeSlot[] = [];
-  
+
   if (!classDetails || classDetails.length === 0) {
     return timeSlots;
   }
@@ -44,7 +47,7 @@ function parseTimeSlots(classDetails: string[]): TimeSlot[] {
 
   while ((match = dayTimePattern.exec(classString)) !== null) {
     const [, day, startTime, endTime] = match;
-    
+
     // Convert 24-hour format to 12-hour format
     const formatTime = (time: string) => {
       const [hours, minutes] = time.split(':');
@@ -55,14 +58,15 @@ function parseTimeSlots(classDetails: string[]): TimeSlot[] {
     };
 
     const formattedSlot = `${formatTime(startTime)}-${formatTime(endTime)}`;
-    
+
     // Map day names and validate
     const dayMap: { [key: string]: TimeSlot['day'] } = {
       'Monday': 'Monday',
-      'Tuesday': 'Tuesday', 
+      'Tuesday': 'Tuesday',
       'Wednesday': 'Wednesday',
       'Thursday': 'Thursday',
-      'Friday': 'Friday'
+      'Friday': 'Friday',
+      'Saturday': 'Saturday'
     };
 
     if (dayMap[day]) {
@@ -76,19 +80,43 @@ function parseTimeSlots(classDetails: string[]): TimeSlot[] {
   return timeSlots;
 }
 
+function parseLocation(classDetails: string[]): string {
+  if (!classDetails || classDetails.length === 0) {
+    return 'TBA';
+  }
+
+  // Extract location from classDetails: "Thursday-15:00-16:30 ( AC-03-LR-003 )"
+  const classString = classDetails[0];
+  const locationPattern = /\(\s*([^)]+)\s*\)/g;
+  const locations: string[] = [];
+  let match;
+
+  while ((match = locationPattern.exec(classString)) !== null) {
+    const location = match[1].trim();
+    if (location && !locations.includes(location)) {
+      locations.push(location);
+    }
+  }
+
+  return locations.length > 0 ? locations.join(', ') : 'TBA';
+}
+
 function getDepartmentFromCourseCode(courseCode: string): string {
   // Extract department from course code (e.g., "CS-101" -> "Computer Science")
   const prefix = courseCode.split('-')[0];
-  
+
   const departmentMap: { [key: string]: string } = {
     'CS': 'Computer Science',
     'MATH': 'Mathematics',
-    'PHYS': 'Physics',
+    'PHY': 'Physics',
+    'PHIL': 'Philosophy',
     'ENG': 'English',
+    'ENT': 'Entrepreneurship',
     'HIST': 'History',
-    'ECON': 'Economics',
+    'ECO': 'Economics',
     'BIO': 'Biology',
     'CHEM': 'Chemistry',
+    'MAT': 'Mathematics',
     'POL': 'Political Science',
     'PSY': 'Psychology',
     'FC': 'Foundation Course',
@@ -98,34 +126,25 @@ function getDepartmentFromCourseCode(courseCode: string): string {
   return departmentMap[prefix] || 'General Studies';
 }
 
-function determineCourseType(courseCode: string): Course['type'] {
-  // Determine course type based on course code patterns
-  if (courseCode.startsWith('FC-')) {
-    return 'Core';
+async function fetchSemesterPlannerData(): Promise<any[]> {
+  try {
+    const response = await strapiGet('/semester-planner-sync');
+
+    // The response structure for single types is: { data: { id, attributes: { current } } }
+    if (!response?.data?.attributes?.current) {
+      console.warn('Invalid Strapi response structure, falling back to local JSON');
+      return timetableData as any[];
+    }
+
+    console.log('Successfully fetched semester planner data from Strapi');
+    return response.data.attributes.current;
+  } catch (error) {
+    console.warn('Error fetching semester planner data from Strapi, falling back to local JSON:', error instanceof Error ? error.message : error);
+    return timetableData as any[];
   }
-  if (courseCode.includes('LAB') || courseCode.includes('Lab')) {
-    return 'Lab';
-  }
-  if (courseCode.includes('SEM') || courseCode.includes('Seminar')) {
-    return 'Seminar';
-  }
-  // Default logic: courses ending in numbers like 101, 201 are typically core
-  if (/\d{3}$/.test(courseCode)) {
-    return 'Core';
-  }
-  return 'Elective';
 }
 
-function estimateCredits(classCounts: number): number {
-  // Estimate credits based on class counts
-  // Most courses with 2 classes per week are 3-4 credits
-  // Courses with 1 class per week are usually 2-3 credits
-  if (classCounts >= 3) return 4;
-  if (classCounts === 2) return 3;
-  return 2;
-}
-
-function getLastSyncInfo(): { date: string; time: string } {
+function getLastSyncInfo(timetableData: any[]): { date: string; time: string } {
   const metadata = timetableData[0] as any;
   return {
     date: metadata.dateLastFetched || 'Unknown',
@@ -134,53 +153,64 @@ function getLastSyncInfo(): { date: string; time: string } {
 }
 
 async function fetchCourses(): Promise<RawCourseData[]> {
+  const timetableData = await fetchSemesterPlannerData();
+
   // Skip the first element which contains metadata and filter out non-course entries
-  return timetableData.slice(1).filter((item: any) => 
-    item.courseCode && item.courseTitle && item.faculty
+  return timetableData.slice(1).filter((item: any) =>
+    item.courseCode && item.courseTitle && typeof item.faculty !== 'undefined'
   ) as RawCourseData[];
+}
+
+function parsePrerequisites(prerequisites: any[]): string[] {
+  if (!prerequisites || !Array.isArray(prerequisites)) {
+    return [];
+  }
+
+  const parsedPrereqs: string[] = [];
+
+  prerequisites.forEach(prereqGroup => {
+    if (prereqGroup && prereqGroup.RequiredCourses) {
+      // Split the RequiredCourses string by commas and clean up
+      const courses = prereqGroup.RequiredCourses.split(',').map((course: string) => {
+        return course.trim().replace(/\s+/g, ' ');
+      }).filter((course: string) => course.length > 0);
+
+      parsedPrereqs.push(...courses);
+    }
+  });
+
+  // Remove duplicates and return
+  return [...new Set(parsedPrereqs)];
 }
 
 async function formatCourses(): Promise<Course[]> {
   const rawCourses = await fetchCourses();
-  
+
   return rawCourses.map((course, index) => {
     const timeSlots = parseTimeSlots(course.classDetails);
-    
+    const location = parseLocation(course.classDetails);
+    const hasSaturday = timeSlots.some(slot => slot.day === 'Saturday');
+
+    // Parse prerequisites using the new function
+    const prerequisites = parsePrerequisites(course.prerequisites || []);
+
     return {
       id: `${course.courseCode}-${index}`,
       code: course.courseCode,
       name: course.courseTitle,
-      professor: course.faculty.replace('@ashoka.edu.in', '').replace(/\./g, ' ').split(' ').map(word => 
+      professor: course.faculty?.replace('@ashoka.edu.in', '').replace(/\./g, ' ').split(' ').map(word =>
         word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' '),
+      ).join(' ') || 'TBA',
       department: getDepartmentFromCourseCode(course.courseCode),
-      type: determineCourseType(course.courseCode),
-      credits: estimateCredits(course.classCounts),
-      timeSlots
+      location,
+      description: course.description || 'No description available',
+      prerequisites,
+      timeSlots,
+      hasSaturday
     } as Course;
   }).filter(course => course.timeSlots.length > 0); // Only include courses with valid time slots
 }
 
-export async function GET() {
-  try {
-    const courses = await formatCourses();
-    const syncInfo = getLastSyncInfo();
-    
-    return NextResponse.json({
-      success: true,
-      data: {
-        courses,
-        syncInfo
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching courses:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch courses' },
-      { status: 500 }
-    );
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -209,7 +239,7 @@ export async function POST(request: NextRequest) {
 
     // TODO: Implement user identification (from session/auth)
     // For now, using userEmail from request body as placeholder
-    
+
     try {
       // TODO: Replace with actual user identification logic
       // Step 1: Get user by email (you'll need to implement this based on your auth system)
@@ -250,7 +280,7 @@ export async function POST(request: NextRequest) {
       // Placeholder response - replace with actual Strapi implementation
       console.log('Draft data to save:', draftData);
       console.log('User email (if provided):', userEmail);
-      
+
       return NextResponse.json({
         success: true,
         message: 'Draft saved successfully (placeholder implementation)',
@@ -269,6 +299,58 @@ export async function POST(request: NextRequest) {
     console.error('Error saving draft:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to save draft' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
+
+    // Handle OAuth URL generation
+    if (action === 'oauth-url') {
+      const clientId = process.env.AUTH_GOOGLE_ID;
+      const redirectUri = process.env.CALENDAR_CALLBACK_URL;
+
+      if (!clientId || !redirectUri) {
+        return NextResponse.json(
+          { error: 'OAuth configuration missing' },
+          { status: 500 }
+        );
+      }
+
+      const scope = 'https://www.googleapis.com/auth/calendar.events';
+
+      // Build OAuth URL
+      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      authUrl.searchParams.set('client_id', clientId);
+      authUrl.searchParams.set('redirect_uri', redirectUri);
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('scope', scope);
+      authUrl.searchParams.set('access_type', 'offline');
+      authUrl.searchParams.set('prompt', 'consent');
+
+      return NextResponse.json({ authUrl: authUrl.toString() });
+    }
+
+    // Default: fetch courses
+    const timetableData = await fetchSemesterPlannerData();
+    const courses = await formatCourses();
+    const syncInfo = getLastSyncInfo(timetableData);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        courses,
+        syncInfo
+      }
+    });
+  } catch (error) {
+    console.error('Error in GET handler:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to process request' },
       { status: 500 }
     );
   }

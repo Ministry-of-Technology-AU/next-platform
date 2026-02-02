@@ -83,9 +83,9 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
     }
   }, [id]);
 
-  const subheading = courseDetails 
-    ? `Submit a course review about ${courseDetails.name} (${courseDetails.code}) offered in ${courseDetails.semester} ${courseDetails.year}.`
-    : "Loading course details...";
+  // const subheading = courseDetails 
+  //   ? `Submit a course review about ${courseDetails.name} (${courseDetails.code}) offered in ${courseDetails.semester} ${courseDetails.year}.`
+  //   : "Loading course details...";
   
   // Show loading state
   if (loading) {
@@ -218,15 +218,15 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
     { value: "C+/C/C-", label: " C+ / C / C-" },
     { value: "D+/D/D-", label: " D+ / D / D-" },
     { value: "F", label: " F" },
-    { value: "Have Not Received Grade", label: " Not Received Yet" },
-    { value: "Do Not Wish to Reveal", label: " Do not wish to disclose" },
+    { value: "have not received yet", label: " Not Received Yet" },
+    { value: "do not wish to reveal", label: " Do not wish to disclose" },
   ];
   
   return (
-    <div className="min-h-screen container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+    <div className="min-h-screen container mx-auto sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
       <Form.FormContainer
         onSubmit={handleSubmit}
-        className="max-w-6xl mt-4 sm:mt-6 bg-gray-light-90 p-3 sm:p-4 lg:p-6 rounded-lg shadow-md"
+        className="max-w-6xl mt-4 sm:mt-6 bg-gray-light-90 sm:p-4 lg:p-6 rounded-lg shadow-md"
       >
       <div className="space-y-3 sm:space-y-4">
         <div className="flex items-center justify-center gap-2 sm:gap-3">

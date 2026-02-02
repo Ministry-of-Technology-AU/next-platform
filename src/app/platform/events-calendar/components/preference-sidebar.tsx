@@ -68,7 +68,7 @@ export function PreferencesSidebar({
 
   const getFilteredOrganizations = (category: string) => {
     const searchTerm = searchTerms[category] || "";
-    
+
     return organizations
       .filter((org) => org.category === category)
       .filter((org) =>
@@ -91,11 +91,11 @@ export function PreferencesSidebar({
     // Simply toggle the current category
     const isCurrentlySelected = preferences.selectedCategories.includes(category);
     let newSelected: string[];
-    
+
     if (isCurrentlySelected) {
       // If deselecting, remove from the list
       newSelected = preferences.selectedCategories.filter(cat => cat !== category);
-      
+
       // Make sure we have at least one category selected
       if (newSelected.length === 0) {
         // If we're removing the last category, ensure we keep it selected
@@ -104,7 +104,7 @@ export function PreferencesSidebar({
     } else {
       // If selecting, add to the list
       newSelected = [...preferences.selectedCategories, category];
-      
+
       // Remove "all" if it exists and we have specific categories
       if (newSelected.includes("all") && newSelected.length > 1) {
         newSelected = newSelected.filter(cat => cat !== "all");
@@ -130,7 +130,7 @@ export function PreferencesSidebar({
   const handleSavePreferences = async () => {
     try {
       setIsSaving(true);
-      
+
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
@@ -138,19 +138,19 @@ export function PreferencesSidebar({
         },
         body: JSON.stringify({ preferences }) // Wrap preferences in an object
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to save preferences: ${response.statusText}`);
       }
-      
+
       // Get response data
       const data = await response.json();
-      
+
       // Update preferences with the saved data if it's returned
       if (data && data.data) {
         onPreferencesChange(data.data);
       }
-      
+
       // Show success message
       alert("Preferences saved successfully!");
     } catch (error) {
@@ -183,6 +183,7 @@ export function PreferencesSidebar({
                 selected={selectedDate}
                 onSelect={(date) => date && onDateSelect(date)}
                 className="rounded-md border mx-auto max-w-full w-85"
+                today={new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))}
               />
             )}
           </TourStep>
@@ -241,7 +242,7 @@ export function PreferencesSidebar({
                                 backgroundColor: color,
                                 borderColor:
                                   preferences.categoryColors[category] ===
-                                  color
+                                    color
                                     ? "#000"
                                     : "#d1d5db",
                               }}
@@ -250,7 +251,7 @@ export function PreferencesSidebar({
                         </PopoverContent>
                       </Popover>
                     </div>
-                    
+
                     {/* Separate accordion trigger with just the chevron */}
                     <Accordion11Trigger className="ml-2 p-0">
                       <span className="sr-only">Toggle {category}</span>

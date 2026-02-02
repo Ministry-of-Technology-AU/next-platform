@@ -1,0 +1,20 @@
+{
+    "version": "1.0.2",
+    "lastUpdated": "2026-01-23",
+    "updates": [
+        {
+            "id": "calendar-sync-launch",
+            "title": "Calendar Syncing!",
+            "description": "Sync your semester planner with Google Calendar!",
+            "type": "new",
+            "link": "/platform/semester-planner"
+        },
+        {
+            "id": "trajectory-planner-v2",
+            "title": "Trajectory Planner v2!",
+            "description": "Now you can go through trajectories repository to check trajectories posted by other students/seniors and you can post your own as well! We've also collaborated with reps to create a rep dashboard for them to be able to update their department's respective trajectories and degree requirements!",
+            "type": "improvement",
+            "link": "/platform/trajectory-planner"
+        }
+    ]
+}

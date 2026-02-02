@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<p align="left">
+  <img src="documentation/media/logo.png" width="200" height="200" />
+</p>
 
-## Getting Started
+# Ashoka University Student Platform
 
-First, run the development server:
+A Student Engagement Platform developed by the Ministry of Technology.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+- SG Compose - Email composer to draft and send approved emails to the Ashokan student community from the Student Government email 
 
-To learn more about Next.js, take a look at the following resources:
+- Games and Puzzles (Coming Soon)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Course Reviews - Open platform for students to share experiences with various courses undertaken during their semester
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Semester Planner - Plan and organize your course schedule
 
-## Deploy on Vercel
+- CGPA Planner - Simulates future CGPA scenarios based on expected grades
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Events Calendar - List of upcoming events on campus [Overhaul in progress]
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Trajectory Planner - Plans your academic journey semester by semester 
+
+- Organisations Catalogue - Catalogue of all clubs, societies and ministries at Ashoka University
+
+- WiFi Tickets - Notify the Ministry and IT about WiFi outages and connectivity issues
+
+- Pool a Cab
+
+- Pool a Subscription
+
+- Borrow Assets - Provides Ashokans an opportunity to borrow tech products on an urgent basis from the Ministry of Technology [Updated dynamically with inventory levels]
+
+- Profile Section - View, Update and Deactivate / Delete your account
+
+## Screenshots
+
+<div style="text-align: center;">
+  <img
+    src="documentation/screenshots/dashboard.png"
+    width="800"
+    alt="Dashboard view"
+    style="display:block; margin: 0 auto;"
+  />
+</div>
+<p align="center">Dashboard</p>
+
+<img
+  src="documentation/media/insights.gif"
+  width="800"
+  alt="Platform Insights"
+  style="display:block; margin: 12px auto;"
+/>
+<p align="center">Platform Insights (As of 13th Jan, 2026)</p>
+
+<img
+  src="documentation/screenshots/profile.png"
+  width="800"
+  alt="Profile Section"
+  style="display:block; margin: 12px auto;"
+/>
+<p align="center">Profile Section</p>
+
+
+## Tech Stack
+
+**Core:** Next.js, React, TypeScript
+
+**Styling:** TailwindCSS, ShadCN, Framer Motion
+
+**Backend/Services:** NextAuth, Google APIs, Axios, Nodemailer
+
+**Utilities:** date-fns, Sonner, Vaul, cmdk
+
+## More Information
+
+For information on deploying to server, [click here](documentation/INSTRUCTIONS.md)
+
+For detailed information on the platform's features, [click here](documentation/OVERVIEW.md)
+
+
+## Feedback & Support
+
+If you have any feedback or need support, please reach out to us at technology.ministry@ashoka.edu.in
+
+
+## Contributors
+
+<a href="https://github.com/Ministry-of-Technology-AU/next-platform/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Ministry-of-Technology-AU/next-platform" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).

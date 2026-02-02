@@ -4,6 +4,8 @@ import { ShoppingBag } from 'lucide-react';
 import { cookies } from 'next/headers';
 import { Asset } from './types';
 
+export const dynamic = 'force-dynamic';
+
 async function getAssets(): Promise<Asset[]> {
   try {
       const cookieStore = await cookies();

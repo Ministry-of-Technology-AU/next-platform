@@ -9,6 +9,7 @@ interface MailParams {
     html?: string;
     cc?: string | string[];
     bcc?: string | string[];
+    replyTo?: string;
     attachments?: Array<{
         filename: string;
         content: Buffer | string;
@@ -36,6 +37,7 @@ export async function sendMailSG(params: MailParams): Promise<void> {
         const mailOptions = {
             from: fromHeader,
             to: params.to,
+            replyTo: params.replyTo,
             subject: params.subject,
             text: params.text,
             html: params.html,
@@ -70,6 +72,7 @@ export async function sendMail(params: MailParams): Promise<void> {
         const mailOptions = {
             from: fromHeader,
             to: params.to,
+            replyTo: params.replyTo,
             subject: params.subject,
             text: params.text,
             html: params.html,

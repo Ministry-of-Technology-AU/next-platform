@@ -27,10 +27,11 @@ interface SemesterPlannerClientProps {
   initialDrafts?: TimetableDraft[];
 }
 
+
 export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlannerClientProps) {
   const { isActive: isTourActive, stopTour } = useTour();
   const [sampleCourseId, setSampleCourseId] = useState<string | null>(null);
-  
+
   const [drafts, setDrafts] = useState<TimetableDraft[]>(() => {
     if (Array.isArray(initialDrafts) && initialDrafts.length > 0) {
       return initialDrafts.map((d: any) => ({
@@ -70,13 +71,33 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     }
   }, [initialDrafts]);
   const [lockedCourses, setLockedCourses] = useState<Set<string>>(new Set());
+  // State for color picker
   const [showColorPicker, setShowColorPicker] = useState<{
-    course: Course;
     show: boolean;
+    course: Course | null;
   }>({
-    course: courses[0],
     show: false,
+    course: null,
   });
+
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const handleToggleFullScreen = useCallback(() => {
+    setIsFullScreen((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Cmd/Ctrl + Shift + O
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        handleToggleFullScreen();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleToggleFullScreen]);
 
   const activeDraft = drafts.find((d) => d.id === activeDraftId)!;
 
@@ -122,7 +143,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
       if (sampleCourseId && course.id === sampleCourseId) {
         return;
       }
-      
+
       // Check for time conflicts
       const conflictResult = checkTimeConflict(course, activeDraft.courses);
       if (conflictResult.hasConflict) {
@@ -152,14 +173,23 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: [...draft.courses, scheduledCourse],
-                updatedAt: new Date(),
-              }
+              ...draft,
+              courses: [...draft.courses, scheduledCourse],
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
-      toast.success(`${course.code} added to timetable`, { duration: 2000 });
+      const hasSaturday = course.timeSlots.some((ts) => ts.day === "Saturday");
+
+      if (hasSaturday) {
+        toast.success(
+          `${course.code} added. This includes Saturday classes - scroll right to view.`,
+          { duration: 4000 }
+        );
+      } else {
+        toast.success(`${course.code} added to timetable`, { duration: 2000 });
+      }
     },
     [activeDraftId, activeDraft.courses, checkTimeConflict, sampleCourseId]
   );
@@ -179,10 +209,10 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: draft.courses.filter((c) => c.id !== sampleCourseId),
-                updatedAt: new Date(),
-              }
+              ...draft,
+              courses: draft.courses.filter((c) => c.id !== sampleCourseId),
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -197,12 +227,12 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: draft.courses.map((c) =>
-                  c.id === course.id ? { ...c, color } : c
-                ),
-                updatedAt: new Date(),
-              }
+              ...draft,
+              courses: draft.courses.map((c) =>
+                c.id === course.id ? { ...c, color } : c
+              ),
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -218,18 +248,18 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: draft.courses.filter(
-                  (course) =>
-                    !(
-                      course.id === courseId &&
-                      course.timeSlots.some(
-                        (ts) => ts.day === day && ts.slot === slot
-                      )
+              ...draft,
+              courses: draft.courses.filter(
+                (course) =>
+                  !(
+                    course.id === courseId &&
+                    course.timeSlots.some(
+                      (ts) => ts.day === day && ts.slot === slot
                     )
-                ),
-                updatedAt: new Date(),
-              }
+                  )
+              ),
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -338,30 +368,56 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
   const handleDownloadTimetable = useCallback(
     async (draftId: string) => {
-      const element = document.getElementById("timetable-grid");
-      if (!element) {
-        console.error("Timetable element not found");
-        toast.error("Timetable element not found. Please try again.", { duration: 3000 });
-        return;
+      // We want to capture the fullscreen grid to avoid clipping issues on mobile/narrow screens.
+      // If not already in fullscreen, we'll temporarily switch to it.
+      const wasFullScreen = isFullScreen;
+
+      if (!wasFullScreen) {
+        setIsFullScreen(true);
+        // Wait for dialog animation and render
+        await new Promise(resolve => setTimeout(resolve, 800));
       }
 
       try {
+        const element = document.getElementById("timetable-grid-fullscreen");
+        if (!element) {
+          console.error("Timetable fullscreen element not found");
+          toast.error("Could not find timetable grid. Please try again.", { duration: 3000 });
+          return;
+        }
+
         toast.info("Generating screenshot...", { duration: 2000 });
-        
-        // Wait a bit to ensure the element is fully rendered
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+
+        // Wait a bit more to ensure the element is fully stable
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Detect if dark mode is active
+        const isDarkMode = document.documentElement.classList.contains("dark");
+        const backgroundColor = isDarkMode ? "#09090b" : "#ffffff";
+
         const dataUrl = await toPng(element, {
-          backgroundColor: "#ffffff",
+          backgroundColor: backgroundColor,
           pixelRatio: 2,
           width: element.scrollWidth,
           height: element.scrollHeight,
           style: {
             transform: "none",
             transformOrigin: "top left",
+            overflow: "visible",
+            // Force the element to be the full scroll width/height
+            minWidth: `${element.scrollWidth}px`,
+            minHeight: `${element.scrollHeight}px`,
+            maxWidth: "none",
+            maxHeight: "none",
           },
           filter: (node) => {
             // Skip script and style nodes that might cause issues
+            if (node.nodeType === 1) {
+              const el = node as HTMLElement;
+              if (el.getAttribute?.("data-slot") === "tooltip-content") {
+                return false;
+              }
+            }
             return node.tagName !== "SCRIPT" && node.tagName !== "STYLE";
           }
         });
@@ -374,21 +430,27 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         const draftName = drafts.find((d) => d.id === draftId)?.name || "draft";
         link.download = `timetable-${draftName.replace(/[^a-zA-Z0-9]/g, '-')}.png`;
         link.href = dataUrl;
-        
+
         // Trigger download
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
         toast.success("Timetable downloaded successfully! 📸", { duration: 3000 });
+
       } catch (error) {
         console.error("Download error:", error);
-        toast.error(`Failed to download timetable: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
-          duration: 4000 
+        toast.error(`Failed to download timetable: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+          duration: 4000
         });
+      } finally {
+        // Restore previous state if we toggled it
+        if (!wasFullScreen) {
+          setIsFullScreen(false);
+        }
       }
     },
-    [drafts]
+    [drafts, isFullScreen]
   );
 
   const handleToggleLock = useCallback(
@@ -411,18 +473,20 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     []
   );
 
+
+
   const handleRecolorCourse = useCallback(
     (courseId: string, day: string, slot: string, color: string) => {
       setDrafts((prev) =>
         prev.map((draft) =>
           draft.id === activeDraftId
             ? {
-                ...draft,
-                courses: draft.courses.map((course) =>
-                  course.id === courseId ? { ...course, color } : course
-                ),
-                updatedAt: new Date(),
-              }
+              ...draft,
+              courses: draft.courses.map((course) =>
+                course.id === courseId ? { ...course, color } : course
+              ),
+              updatedAt: new Date(),
+            }
             : draft
         )
       );
@@ -450,11 +514,48 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             {COURSE_COLORS.map((color) => (
               <button
                 key={color}
-                onClick={() => handleColorSelect(showColorPicker.course, color)}
+                onClick={() => {
+                  if (showColorPicker.course) {
+                    handleColorSelect(showColorPicker.course, color);
+                  }
+                }}
                 className="w-12 h-12 rounded-lg border-2 border-muted hover:border-foreground transition-colors"
                 style={{ backgroundColor: color }}
               />
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full Screen Timetable Dialog */}
+      <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
+        <DialogContent className="w-[98vw] max-w-[98vw] p-6 overflow-x-auto">
+          <DialogHeader className="mb-4 hidden">
+            {/* Hidden title for accessibility but visually relying on Tabs */}
+            <DialogTitle>Full Screen Timetable</DialogTitle>
+          </DialogHeader>
+          <div className="min-w-[800px]">
+            <DraftTabs
+              drafts={drafts}
+              activeDraftId={activeDraftId}
+              onCreateDraft={handleCreateDraft}
+              onDuplicateDraft={handleDuplicateDraft}
+              onDeleteDraft={handleDeleteDraft}
+              onSwitchDraft={setActiveDraftId}
+              onDownloadTimetable={handleDownloadTimetable}
+              onRenameDraft={handleRenameDraft}
+              onToggleFullScreen={() => { }}
+              isFullScreenMode={true}
+            >
+              <TimetableGrid
+                courses={activeDraft.courses}
+                onRemoveCourse={handleRemoveCourse}
+                onToggleLock={handleToggleLock}
+                onRecolorCourse={handleRecolorCourse}
+                lockedCourses={lockedCourses}
+                id="timetable-grid-fullscreen"
+              />
+            </DraftTabs>
           </div>
         </DialogContent>
       </Dialog>
@@ -470,11 +571,13 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onDeleteDraft={handleDeleteDraft}
             onSwitchDraft={setActiveDraftId}
             onDownloadTimetable={handleDownloadTimetable}
-              onRenameDraft={handleRenameDraft}
+            onRenameDraft={handleRenameDraft}
+            onToggleFullScreen={handleToggleFullScreen}
           >
+
             <TourStep
               id="timetable-grid"
-              order={5}
+              order={9}
               title="Timetable Grid"
               content="This is your timetable grid. Courses appear here once you add them. You can see time slots for each day, lock courses, and change their colors."
               position="left"
