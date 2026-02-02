@@ -5,7 +5,6 @@ import { Archive, Calendar, Lock, ArrowLeft, Check, X, Clock } from 'lucide-reac
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import PageTitle from '@/components/page-title';
 import { STORAGE_KEYS } from '../types';
 
 interface CompletedPuzzle {
@@ -62,7 +61,7 @@ export default function ArchivesPage() {
 
     if (isLoading) {
         return (
-            <div className="container py-8">
+            <div className="py-6">
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="animate-pulse text-lg">Loading...</div>
                 </div>
@@ -73,14 +72,17 @@ export default function ArchivesPage() {
     // If user hasn't completed today's puzzle, show locked state
     if (!hasCompletedToday) {
         return (
-            <div className="container py-8">
+            <div className="py-6">
                 <div className="flex items-center gap-4 mb-6">
                     <Link href="/platform/games/ashoka-wordle">
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
-                    <PageTitle text="Archives" icon={Archive} />
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <Archive className="h-6 w-6 text-primary" />
+                        Archives
+                    </h2>
                 </div>
 
                 <Card className="max-w-md mx-auto">
@@ -106,14 +108,17 @@ export default function ArchivesPage() {
     }
 
     return (
-        <div className="container py-8">
+        <div className="py-6">
             <div className="flex items-center gap-4 mb-6">
                 <Link href="/platform/games/ashoka-wordle">
                     <Button variant="ghost" size="icon">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                 </Link>
-                <PageTitle text="Archives" icon={Archive} />
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <Archive className="h-6 w-6 text-primary" />
+                    Archives
+                </h2>
             </div>
 
             <p className="text-muted-foreground mb-6">
@@ -153,7 +158,7 @@ export default function ArchivesPage() {
                                             {archive.word}
                                         </p>
                                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                            <span>{completed.guesses}/6 guesses</span>
+                                            <span>{completed.guesses} guesses</span>
                                             <span className="flex items-center gap-1">
                                                 <Clock className="h-3 w-3" />
                                                 {formatTime(completed.time)}

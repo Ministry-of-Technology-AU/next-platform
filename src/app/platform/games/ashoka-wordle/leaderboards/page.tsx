@@ -10,7 +10,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import PageTitle from '@/components/page-title';
 
 export const metadata: Metadata = {
     title: 'Leaderboard | Ashoka Wordle',
@@ -49,14 +48,17 @@ function getRankBadge(rank: number) {
 
 export default function LeaderboardPage() {
     return (
-        <div className="container py-8">
+        <div className="py-6">
             <div className="flex items-center gap-4 mb-6">
                 <Link href="/platform/games/ashoka-wordle">
                     <Button variant="ghost" size="icon">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                 </Link>
-                <PageTitle text="Leaderboard" icon={Trophy} />
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <Trophy className="h-6 w-6 text-secondary" />
+                    Leaderboard
+                </h2>
             </div>
 
             <div className="mb-6 p-4 rounded-lg bg-gray-extralight dark:bg-neutral-light">
@@ -92,7 +94,7 @@ export default function LeaderboardPage() {
                                         {formatTime(entry.time)}
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-center">{entry.guesses}/6</TableCell>
+                                <TableCell className="text-center">{entry.guesses} guesses</TableCell>
                                 <TableCell className="text-center">
                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green/10 text-green">
                                         🔥 {entry.streak} days

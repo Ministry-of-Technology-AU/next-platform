@@ -100,8 +100,8 @@ function updateKeyboardState(
 }
 
 export function WordleProvider({ children, targetWord, isArchive = false }: WordleProviderProps) {
-    const MAX_GUESSES = 6;
     const wordLength = targetWord.length;
+    const MAX_GUESSES = wordLength + 1; // n+1 guesses for an n-letter word
     const normalizedTarget = targetWord.toUpperCase();
 
     // Initialize game data
@@ -234,8 +234,9 @@ export function WordleProvider({ children, targetWord, isArchive = false }: Word
             return;
         }
 
-        // Check if valid word
-        if (!isValidWord(gameData.currentGuess)) {
+        // Check if valid word (allow if it matches the target, even if not in dictionary)
+        const isCorrectAnswer = gameData.currentGuess === normalizedTarget;
+        if (!isCorrectAnswer && !isValidWord(gameData.currentGuess)) {
             toast.error('Not in word list');
             return;
         }
