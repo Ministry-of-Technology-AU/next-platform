@@ -16,7 +16,7 @@ import { Puzzle } from 'lucide-react';
 // Word length: 3-8 letters
 // Players get n+1 guesses for an n-letter word
 // ============================================
-const TODAYS_WORD = 'SOHAM'; // Placeholder - replace with your custom word
+const TODAYS_WORD = 'ASHOKA'; // Placeholder - replace with your custom word
 
 function WordleGame() {
     return (
