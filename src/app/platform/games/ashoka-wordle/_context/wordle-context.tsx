@@ -33,6 +33,12 @@ interface WordleProviderProps {
     children: React.ReactNode;
     targetWord: string; // The word to guess
     isArchive?: boolean; // If true, don't save to today's completion
+    initialProgress?: {
+        guesses: string[];
+        time: number;
+        won: boolean;
+        completed: boolean;
+    } | null;
 }
 
 // Get today's date in YYYY-MM-DD format
@@ -99,14 +105,37 @@ function updateKeyboardState(
     return updated;
 }
 
-export function WordleProvider({ children, targetWord, isArchive = false }: WordleProviderProps) {
+export function WordleProvider({ children, targetWord, isArchive = false, initialProgress }: WordleProviderProps) {
     const wordLength = targetWord.length;
     const MAX_GUESSES = wordLength + 1; // n+1 guesses for an n-letter word
     const normalizedTarget = targetWord.toUpperCase();
 
-    // Initialize game data
+    // Helper to evaluate guesses for rebuilding state
+    const evaluateAllGuesses = useCallback((guesses: string[]) => {
+        return guesses.map(guess => ({
+            word: guess,
+            evaluation: evaluateGuess(guess, normalizedTarget)
+        }));
+    }, [normalizedTarget]);
+
+    // Initialize game data from server or localStorage
     const [gameData, setGameData] = useState<GameData>(() => {
-        // Try to load from localStorage
+        // If we have server-side initial progress, use it
+        if (initialProgress?.completed) {
+            const evaluatedGuesses = evaluateAllGuesses(initialProgress.guesses);
+            return {
+                targetWord: normalizedTarget,
+                guesses: evaluatedGuesses,
+                currentGuess: '',
+                gameState: initialProgress.won ? 'won' : 'lost',
+                startTime: null,
+                endTime: null,
+                elapsedTime: initialProgress.time,
+                date: getTodayDate(),
+            };
+        }
+
+        // Try to load from localStorage for in-progress games
         if (typeof window !== 'undefined' && !isArchive) {
             const saved = localStorage.getItem(STORAGE_KEYS.GAME_STATE);
             if (saved) {
@@ -268,6 +297,7 @@ export function WordleProvider({ children, targetWord, isArchive = false }: Word
 
         // Save completion if won or lost
         if ((isWin || isLoss) && typeof window !== 'undefined' && !isArchive) {
+            // Save to localStorage for quick access
             const completed = localStorage.getItem(STORAGE_KEYS.COMPLETED_PUZZLES);
             let puzzles: Record<string, { guesses: number; time: number; won: boolean }> = {};
 
@@ -286,6 +316,18 @@ export function WordleProvider({ children, targetWord, isArchive = false }: Word
             localStorage.setItem(STORAGE_KEYS.COMPLETED_PUZZLES, JSON.stringify(puzzles));
             setHasPlayedToday(true);
             setTodayStats({ guesses: gameData.guesses.length + 1, time: finalElapsedTime });
+
+            // Save to API (async, don't block UI)
+            const allGuesses = [...gameData.guesses.map(g => g.word), gameData.currentGuess];
+            fetch('/api/platform/games/wordle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    guesses: allGuesses,
+                    time: finalElapsedTime,
+                    won: isWin
+                })
+            }).catch(err => console.error('Failed to save to API:', err));
         }
     }, [gameData, wordLength, normalizedTarget, elapsedTime, isArchive]);
 

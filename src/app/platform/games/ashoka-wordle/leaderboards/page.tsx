@@ -1,4 +1,3 @@
-import { Metadata } from 'next';
 import { Trophy, Medal, Clock, Calendar, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -10,25 +9,72 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { strapiGet } from '@/lib/apis/strapi';
 
-export const metadata: Metadata = {
-    title: 'Leaderboard | Ashoka Wordle',
-    description: 'View the fastest Wordle solvers at Ashoka University',
-};
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
-// Placeholder data - will be replaced with backend data
-const PLACEHOLDER_LEADERBOARD = [
-    { rank: 1, name: 'Alex Kumar', time: 45, guesses: 3, streak: 15, date: '2026-02-02' },
-    { rank: 2, name: 'Priya Singh', time: 52, guesses: 4, streak: 12, date: '2026-02-02' },
-    { rank: 3, name: 'Rahul Verma', time: 67, guesses: 4, streak: 10, date: '2026-02-02' },
-    { rank: 4, name: 'Ananya Sharma', time: 78, guesses: 3, streak: 8, date: '2026-02-02' },
-    { rank: 5, name: 'Vikram Patel', time: 89, guesses: 5, streak: 7, date: '2026-02-02' },
-    { rank: 6, name: 'Neha Gupta', time: 95, guesses: 4, streak: 6, date: '2026-02-02' },
-    { rank: 7, name: 'Arjun Nair', time: 102, guesses: 5, streak: 5, date: '2026-02-02' },
-    { rank: 8, name: 'Kavya Reddy', time: 115, guesses: 6, streak: 4, date: '2026-02-02' },
-    { rank: 9, name: 'Siddharth Joshi', time: 128, guesses: 5, streak: 3, date: '2026-02-02' },
-    { rank: 10, name: 'Meera Iyer', time: 145, guesses: 6, streak: 2, date: '2026-02-02' },
-];
+interface LeaderboardEntry {
+    rank: number;
+    username: string;
+    guesses: number;
+    time: number;
+    score: number;
+}
+
+// Get today's date in YYYY-MM-DD format
+function getTodayDate(): string {
+    return new Date().toISOString().split('T')[0];
+}
+
+// Calculate score: lower is better (guesses * 100 + time in seconds)
+function calculateScore(guesses: number, time: number): number {
+    return guesses * 100 + time;
+}
+
+async function getLeaderboard(): Promise<{ leaderboard: LeaderboardEntry[]; date: string }> {
+    try {
+        const today = getTodayDate();
+
+        // Fetch all users with wordle_data directly from Strapi
+        const usersResponse = await strapiGet('/users', {
+            fields: ['username', 'wordle_data'],
+            pagination: { pageSize: 10000 }
+        });
+
+        const users = usersResponse || [];
+        const leaderboard: LeaderboardEntry[] = [];
+
+        for (const user of users) {
+            const wordleData = user.wordle_data;
+            if (wordleData && wordleData[today] && wordleData[today].won) {
+                const { guesses, time } = wordleData[today];
+                const guessCount = Array.isArray(guesses) ? guesses.length : guesses;
+                leaderboard.push({
+                    rank: 0,
+                    username: user.username || 'Anonymous',
+                    guesses: guessCount,
+                    time,
+                    score: calculateScore(guessCount, time)
+                });
+            }
+        }
+
+        // Sort by score (lower is better)
+        leaderboard.sort((a, b) => a.score - b.score);
+
+        // Assign ranks and take top 10
+        const top10 = leaderboard.slice(0, 10).map((entry, index) => ({
+            ...entry,
+            rank: index + 1
+        }));
+
+        return { leaderboard: top10, date: today };
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        return { leaderboard: [], date: getTodayDate() };
+    }
+}
 
 function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -46,7 +92,9 @@ function getRankBadge(rank: number) {
     return <span className="text-sm font-medium text-muted-foreground">#{rank}</span>;
 }
 
-export default function LeaderboardPage() {
+export default async function LeaderboardPage() {
+    const { leaderboard, date } = await getLeaderboard();
+
     return (
         <div className="py-6">
             <div className="flex items-center gap-4 mb-6">
@@ -64,51 +112,48 @@ export default function LeaderboardPage() {
             <div className="mb-6 p-4 rounded-lg bg-gray-extralight dark:bg-neutral-light">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>Today&apos;s puzzle: {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    <span>Today&apos;s puzzle: {new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
             </div>
 
-            <div className="rounded-lg border overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-16">Rank</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead className="text-center">Time</TableHead>
-                            <TableHead className="text-center">Guesses</TableHead>
-                            <TableHead className="text-center">Streak</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {PLACEHOLDER_LEADERBOARD.map((entry) => (
-                            <TableRow key={entry.rank}>
-                                <TableCell className="font-medium">
-                                    <div className="flex items-center justify-center">
-                                        {getRankBadge(entry.rank)}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="font-medium">{entry.name}</TableCell>
-                                <TableCell className="text-center">
-                                    <div className="flex items-center justify-center gap-1">
-                                        <Clock className="h-4 w-4 text-muted-foreground" />
-                                        {formatTime(entry.time)}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-center">{entry.guesses} guesses</TableCell>
-                                <TableCell className="text-center">
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green/10 text-green">
-                                        🔥 {entry.streak} days
-                                    </span>
-                                </TableCell>
+            {leaderboard.length === 0 ? (
+                <div className="text-center py-12">
+                    <p className="text-lg text-muted-foreground">No completions yet today!</p>
+                    <p className="text-sm text-muted-foreground mt-2">Be the first to complete today&apos;s puzzle.</p>
+                </div>
+            ) : (
+                <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-16">Rank</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead className="text-center">Time</TableHead>
+                                <TableHead className="text-center">Guesses</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-                <p>Leaderboard data is placeholder. Backend integration coming soon!</p>
-            </div>
+                        </TableHeader>
+                        <TableBody>
+                            {leaderboard.map((entry) => (
+                                <TableRow key={entry.rank}>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center justify-center">
+                                            {getRankBadge(entry.rank)}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="font-medium">{entry.username}</TableCell>
+                                    <TableCell className="text-center">
+                                        <div className="flex items-center justify-center gap-1">
+                                            <Clock className="h-4 w-4 text-muted-foreground" />
+                                            {formatTime(entry.time)}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-center">{entry.guesses} guesses</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
         </div>
     );
 }

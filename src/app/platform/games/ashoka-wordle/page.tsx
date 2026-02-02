@@ -1,24 +1,89 @@
-'use client';
-
-import { WordleProvider } from './_context/wordle-context';
-import GameBoard from './_components/GameBoard';
-import Keyboard from './_components/Keyboard';
-import GameTimer from './_components/GameTimer';
-import WinDialog from './_components/WinDialog';
-import LoseDialog from './_components/LoseDialog';
-import AlreadyPlayedBanner from './_components/AlreadyPlayedBanner';
+import { auth } from '@/auth';
+import { strapiGet } from '@/lib/apis/strapi';
+import { getUserIdByEmail } from '@/lib/userid';
+import WordleGameClient from './_components/WordleGameClient';
 import PageTitle from '@/components/page-title';
 import { Puzzle } from 'lucide-react';
 
-// ============================================
-// CUSTOM WORD CONFIGURATION
-// Change this word to set the daily puzzle
-// Word length: 3-8 letters
-// Players get n+1 guesses for an n-letter word
-// ============================================
-const TODAYS_WORD = 'ASHOKA'; // Placeholder - replace with your custom word
+// Force dynamic rendering since we use auth()
+export const dynamic = 'force-dynamic';
 
-function WordleGame() {
+// Get today's date in YYYY-MM-DD format
+function getTodayDate(): string {
+    return new Date().toISOString().split('T')[0];
+}
+
+interface DailyPuzzle {
+    word: string;
+    date: string;
+    hint?: string;
+}
+
+interface UserProgress {
+    guesses: string[];
+    time: number;
+    won: boolean;
+    completed: boolean;
+}
+
+async function getWordleData(): Promise<{
+    puzzle: DailyPuzzle | null;
+    userProgress: UserProgress | null;
+    error?: string;
+}> {
+    try {
+        const session = await auth();
+        const today = getTodayDate();
+
+        // Fetch today's puzzle from Strapi
+        const puzzleResponse = await strapiGet('/games', {
+            filters: {
+                date: { $eq: today }
+            },
+            publicationState: 'live'
+        });
+
+        const puzzles = puzzleResponse?.data || [];
+        if (puzzles.length === 0) {
+            return { puzzle: null, userProgress: null, error: 'No puzzle available for today' };
+        }
+
+        // Strapi v4 returns data in { id, attributes: { word, date, hint } } format
+        const puzzleData = puzzles[0]?.attributes || puzzles[0];
+        const puzzle: DailyPuzzle = {
+            word: (puzzleData.word || puzzleData?.word || '')?.toUpperCase(),
+            date: puzzleData.date,
+            hint: puzzleData.hint
+        };
+
+        // If user is not logged in, return just the puzzle
+        if (!session?.user?.email) {
+            return { puzzle, userProgress: null };
+        }
+
+        // Fetch user's wordle data
+        const userId = await getUserIdByEmail(session.user.email);
+        if (!userId) {
+            return { puzzle, userProgress: null };
+        }
+
+        const userResponse = await strapiGet(`/users/${userId}`, {
+            fields: ['wordle_data']
+        });
+
+        const wordleData = userResponse?.wordle_data || {};
+        const userProgress = wordleData[today] || null;
+
+        return { puzzle, userProgress };
+    } catch (error) {
+        console.error('Error fetching wordle data:', error);
+        return { puzzle: null, userProgress: null, error: 'Failed to load puzzle' };
+    }
+}
+
+export default async function AshokaWordlePage() {
+    const { puzzle, userProgress, error } = await getWordleData();
+
     return (
         <div>
             <PageTitle
@@ -26,36 +91,22 @@ function WordleGame() {
                 icon={Puzzle}
                 subheading="Guess the word! You have n+1 attempts for an n-letter word."
             />
-            <div className="flex flex-col items-center justify-center py-8 gap-6">
-                <div className="flex items-center justify-center w-full">
-                    <GameTimer />
+
+            {error || !puzzle ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                    <p className="text-lg text-muted-foreground">
+                        {error || 'No puzzle available today. Check back later!'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                        Puzzles are uploaded daily by the team.
+                    </p>
                 </div>
-                <AlreadyPlayedBanner />
-                <GameBoard />
-                <Keyboard />
-                <WinDialog />
-                <LoseDialog />
-            </div>
+            ) : (
+                <WordleGameClient
+                    targetWord={puzzle.word}
+                    initialProgress={userProgress}
+                />
+            )}
         </div>
-    );
-}
-
-export default function AshokaWordlePage() {
-    // Validate word length (3-8 letters)
-    const word = TODAYS_WORD.toUpperCase();
-    if (word.length < 3 || word.length > 8) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <p className="text-destructive">
-                    Error: Word must be between 3 and 8 letters. Current word: &quot;{word}&quot; ({word.length} letters)
-                </p>
-            </div>
-        );
-    }
-
-    return (
-        <WordleProvider targetWord={word}>
-            <WordleGame />
-        </WordleProvider>
     );
 }
