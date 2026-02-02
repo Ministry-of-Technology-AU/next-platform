@@ -27,7 +27,11 @@ function formatTime(seconds: number): string {
 }
 
 function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    if (!dateStr) return 'Unknown Date';
+    // Handle ISO date strings from Strapi
+    const date = new Date(dateStr + 'T00:00:00');
+    if (isNaN(date.getTime())) return 'Unknown Date';
+    return date.toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
@@ -58,12 +62,16 @@ async function getArchiveData(): Promise<{
         if (!session?.user?.email) {
             return {
                 hasCompletedToday: false,
-                archives: puzzles.map((p: { id: number; word: string; date: string; hint?: string }) => ({
-                    id: p.id,
-                    word: p.word?.toUpperCase() || '',
-                    date: p.date,
-                    hint: p.hint
-                }))
+                // Handle Strapi v4 format: data is in { id, attributes: { field } }
+                archives: puzzles.map((p: { id: number; attributes?: { word?: string; date?: string; hint?: string }; word?: string; date?: string; hint?: string }) => {
+                    const attrs = p.attributes || p;
+                    return {
+                        id: p.id,
+                        word: (attrs.word || '')?.toUpperCase(),
+                        date: attrs.date || '',
+                        hint: attrs.hint
+                    };
+                })
             };
         }
 
@@ -80,14 +88,16 @@ async function getArchiveData(): Promise<{
             hasCompletedToday = !!wordleData[today]?.completed;
         }
 
-        // Map puzzles with user completion data
-        const archives: ArchivePuzzle[] = puzzles.map((puzzle: { id: number; word: string; date: string; hint?: string }) => {
-            const userData = wordleData[puzzle.date];
+        // Map puzzles with user completion data (handle Strapi v4 format)
+        const archives: ArchivePuzzle[] = puzzles.map((puzzle: { id: number; attributes?: { word?: string; date?: string; hint?: string }; word?: string; date?: string; hint?: string }) => {
+            const attrs = puzzle.attributes || puzzle;
+            const puzzleDate = attrs.date || '';
+            const userData = wordleData[puzzleDate];
             return {
                 id: puzzle.id,
-                word: puzzle.word?.toUpperCase() || '',
-                date: puzzle.date,
-                hint: puzzle.hint,
+                word: (attrs.word || '')?.toUpperCase(),
+                date: puzzleDate,
+                hint: attrs.hint,
                 userCompleted: !!userData?.completed,
                 userWon: userData?.won || false,
                 userGuesses: userData?.guesses?.length || 0,
@@ -170,48 +180,53 @@ export default async function ArchivesPage() {
                     {archives.map((archive) => (
                         <Card
                             key={archive.id}
-                            className={`transition-all hover:shadow-lg ${archive.userCompleted ? 'border-green/50' : ''}`}
+                            className={`transition-all hover:shadow-lg cursor-pointer ${archive.userCompleted ? 'border-green/50' : ''}`}
                         >
-                            <CardHeader className="pb-2">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                                        <span className="font-medium">{formatDate(archive.date)}</span>
+                            <Link href={`/platform/games/ashoka-wordle/archives/${archive.date}`}>
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                                            <span className="font-medium">{formatDate(archive.date)}</span>
+                                        </div>
+                                        {archive.userCompleted && (
+                                            <div className="flex items-center gap-1">
+                                                {archive.userWon ? (
+                                                    <Check className="h-5 w-5 text-green" />
+                                                ) : (
+                                                    <X className="h-5 w-5 text-destructive" />
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                    {archive.userCompleted && (
-                                        <div className="flex items-center gap-1">
-                                            {archive.userWon ? (
-                                                <Check className="h-5 w-5 text-green" />
-                                            ) : (
-                                                <X className="h-5 w-5 text-destructive" />
-                                            )}
+                                </CardHeader>
+                                <CardContent>
+                                    {archive.userCompleted ? (
+                                        <div className="space-y-2">
+                                            <p className="text-2xl font-bold tracking-widest text-primary">
+                                                {archive.word}
+                                            </p>
+                                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                <span>{archive.userGuesses} guesses</span>
+                                                <span className="flex items-center gap-1">
+                                                    <Clock className="h-3 w-3" />
+                                                    {formatTime(archive.userTime || 0)}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">Click to replay</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <p className="text-2xl font-bold tracking-widest text-muted-foreground">
+                                                {'?'.repeat(archive.word.length || 5)}
+                                            </p>
+                                            <Button variant="outline" size="sm" className="w-full">
+                                                Play Now
+                                            </Button>
                                         </div>
                                     )}
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                {archive.userCompleted ? (
-                                    <div className="space-y-2">
-                                        <p className="text-2xl font-bold tracking-widest text-primary">
-                                            {archive.word}
-                                        </p>
-                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                            <span>{archive.userGuesses} guesses</span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="h-3 w-3" />
-                                                {formatTime(archive.userTime || 0)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <p className="text-2xl font-bold tracking-widest text-muted-foreground">
-                                            {'?'.repeat(archive.word.length)}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">Not played</p>
-                                    </div>
-                                )}
-                            </CardContent>
+                                </CardContent>
+                            </Link>
                         </Card>
                     ))}
                 </div>
@@ -219,3 +234,4 @@ export default async function ArchivesPage() {
         </div>
     );
 }
+

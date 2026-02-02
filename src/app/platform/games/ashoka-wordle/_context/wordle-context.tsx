@@ -178,27 +178,23 @@ export function WordleProvider({ children, targetWord, isArchive = false, initia
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const isTimerRunning = gameData.gameState === 'playing' && gameData.startTime !== null;
 
-    // Check if already played today
-    const [hasPlayedToday, setHasPlayedToday] = useState(false);
-    const [todayStats, setTodayStats] = useState<{ guesses: number; time: number } | null>(null);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && !isArchive) {
-            const completed = localStorage.getItem(STORAGE_KEYS.COMPLETED_PUZZLES);
-            if (completed) {
-                try {
-                    const parsed = JSON.parse(completed);
-                    const today = getTodayDate();
-                    if (parsed[today]) {
-                        setHasPlayedToday(true);
-                        setTodayStats(parsed[today]);
-                    }
-                } catch (e) {
-                    console.error('Failed to parse completed puzzles:', e);
-                }
-            }
+    // Check if already played today - use server data (initialProgress) as source of truth
+    const [hasPlayedToday, setHasPlayedToday] = useState(() => {
+        // Server data takes precedence over localStorage
+        if (initialProgress?.completed) {
+            return true;
         }
-    }, [isArchive]);
+        return false;
+    });
+    const [todayStats, setTodayStats] = useState<{ guesses: number; time: number } | null>(() => {
+        if (initialProgress?.completed) {
+            return {
+                guesses: initialProgress.guesses.length,
+                time: initialProgress.time
+            };
+        }
+        return null;
+    });
 
     // Timer effect
     useEffect(() => {

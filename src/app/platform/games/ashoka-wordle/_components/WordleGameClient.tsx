@@ -16,9 +16,10 @@ interface WordleGameClientProps {
         won: boolean;
         completed: boolean;
     } | null;
+    isArchive?: boolean;
 }
 
-export default function WordleGameClient({ targetWord, initialProgress }: WordleGameClientProps) {
+export default function WordleGameClient({ targetWord, initialProgress, isArchive = false }: WordleGameClientProps) {
     // Validate word length (3-8 letters)
     if (targetWord.length < 3 || targetWord.length > 8) {
         return (
@@ -34,12 +35,13 @@ export default function WordleGameClient({ targetWord, initialProgress }: Wordle
         <WordleProvider
             targetWord={targetWord}
             initialProgress={initialProgress}
+            isArchive={isArchive}
         >
             <div className="flex flex-col items-center justify-center py-8 gap-6">
                 <div className="flex items-center justify-center w-full">
                     <GameTimer />
                 </div>
-                <AlreadyPlayedBanner />
+                {!isArchive && <AlreadyPlayedBanner />}
                 <GameBoard />
                 <Keyboard />
                 <WinDialog />
