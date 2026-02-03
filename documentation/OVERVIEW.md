@@ -87,6 +87,10 @@
   />
 </div>
 <p align="center">WiFi Tickets</p>
-
 <p align="center">Notify the Ministry and IT about WiFi outages and connectivity issues</p>
+
+<video src="https://github.com/user-attachments/assets/92e723fe-37dc-4f75-ac3b-ead4a2ed5962" controls title="Pool a Cab" width="700"></video>
+<p align="center">Pool a Cab</p>
+<p align="center">Save money and reduce emissions by sharing cabs with fellow Ashokans</p>
+
 
