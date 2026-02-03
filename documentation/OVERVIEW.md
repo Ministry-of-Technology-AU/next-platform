@@ -1,5 +1,7 @@
 # Detailed overview of all features in the platform
 
+<video src="https://github.com/user-attachments/assets/dfc6a9a4-1d75-4a87-964e-20e4a85a39ef" controls title="Platform Dashboard" width="700"></video>
+
 <video src="https://github.com/user-attachments/assets/6b172b08-b99b-4223-a4aa-99d501e8463c" controls title="Course Reviews" width="700"></video>
 
 <div style="text-align: center;">
@@ -55,4 +57,5 @@
   />
 </div>
 <p align="center">WiFi Tickets</p>
+
 <p align="center">Notify the Ministry and IT about WiFi outages and connectivity issues</p>
