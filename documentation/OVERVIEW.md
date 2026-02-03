@@ -93,4 +93,10 @@
 <p align="center">Pool a Cab</p>
 <p align="center">Save money and reduce emissions by sharing cabs with fellow Ashokans</p>
 
-
+<img
+  src="documentation/screenshots/profile.png"
+  width="800"
+  alt="Profile Section"
+  style="display:block; margin: 12px auto;"
+/>
+<p align="center">Profile Section</p>
