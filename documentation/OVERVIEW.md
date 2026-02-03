@@ -63,17 +63,9 @@
 <p align="center">Events Calendar</p>
 <p align="center">List of upcoming events on campus</p>
 
-<div style="text-align: center;">
-  <img
-    src="./screenshots/trajectory-planner.png"
-    width="800"
-    alt="Trajectory Planner"
-    style="display:block; margin: 0 auto;"
-  />
-</div>
+<video src="https://github.com/user-attachments/assets/fb4f050f-5769-4828-9a5c-332db2cc34ce" controls title="Platform Dashboard" width="700"></video>
 <p align="center">Trajectory Planner</p>
 <p align="center">Plans your academic journey semester by semester</p>
-
 
 <div style="text-align: center;">
   <img
@@ -97,3 +89,4 @@
 <p align="center">WiFi Tickets</p>
 
 <p align="center">Notify the Ministry and IT about WiFi outages and connectivity issues</p>
+
