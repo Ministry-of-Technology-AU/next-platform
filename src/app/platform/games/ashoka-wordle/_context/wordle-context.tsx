@@ -24,8 +24,9 @@ interface WordleContextType {
 
     // Game status
     hasPlayedToday: boolean;
-    todayStats: { guesses: number; time: number; streak: number } | null;
+    todayStats: { guesses: number; time: number; streak: number; maxStreak: number } | null;
     currentStreak: number;
+    maxStreak: number;
 }
 
 const WordleContext = createContext<WordleContextType | undefined>(undefined);
@@ -34,7 +35,8 @@ interface WordleProviderProps {
     children: React.ReactNode;
     targetWord: string; // The word to guess
     isArchive?: boolean; // If true, don't save to today's completion
-    currentStreak?: number; // Top-level streak passed from server
+    currentStreak?: number; // Current streak passed from server
+    maxStreak?: number; // Max streak passed from server
     initialProgress?: {
         guesses: string[];
         time: number;
@@ -43,9 +45,9 @@ interface WordleProviderProps {
     } | null;
 }
 
-// Get today's date in YYYY-MM-DD format
+// Get today's date in YYYY-MM-DD format (India Standard Time)
 function getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 }
 
 // Evaluate a guess against the target word
@@ -107,7 +109,7 @@ function updateKeyboardState(
     return updated;
 }
 
-export function WordleProvider({ children, targetWord, isArchive = false, currentStreak: currentStreakProp = 0, initialProgress }: WordleProviderProps) {
+export function WordleProvider({ children, targetWord, isArchive = false, currentStreak: currentStreakProp = 0, maxStreak: maxStreakProp = 0, initialProgress }: WordleProviderProps) {
     const wordLength = targetWord.length;
     const MAX_GUESSES = wordLength + 1; // n+1 guesses for an n-letter word
     const normalizedTarget = targetWord.toUpperCase();
@@ -188,12 +190,13 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
         }
         return false;
     });
-    const [todayStats, setTodayStats] = useState<{ guesses: number; time: number; streak: number } | null>(() => {
+    const [todayStats, setTodayStats] = useState<{ guesses: number; time: number; streak: number; maxStreak: number } | null>(() => {
         if (initialProgress?.completed) {
             return {
                 guesses: initialProgress.guesses.length,
                 time: initialProgress.time,
-                streak: currentStreakProp
+                streak: currentStreakProp,
+                maxStreak: maxStreakProp
             };
         }
         return null;
@@ -201,6 +204,7 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
 
     // Track current streak (passed from server or updated on game completion)
     const [currentStreak, setCurrentStreak] = useState(currentStreakProp);
+    const [maxStreak, setMaxStreak] = useState(maxStreakProp);
 
     // Timer effect
     useEffect(() => {
@@ -317,9 +321,13 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
 
             localStorage.setItem(STORAGE_KEYS.COMPLETED_PUZZLES, JSON.stringify(puzzles));
             setHasPlayedToday(true);
-            // Streak will be calculated by the API, but we can estimate it for immediate UI
-            // The API will set the actual value
-            setTodayStats({ guesses: gameData.guesses.length + 1, time: finalElapsedTime, streak: isWin ? 1 : 0 });
+
+            // Estimate new streak for immediate UI update (API will confirm)
+            const newStreak = isWin ? currentStreak + 1 : 0;
+            const newMaxStreak = Math.max(maxStreak, newStreak);
+            setTodayStats({ guesses: gameData.guesses.length + 1, time: finalElapsedTime, streak: newStreak, maxStreak: newMaxStreak });
+            setCurrentStreak(newStreak);
+            setMaxStreak(newMaxStreak);
 
             // Save to API (async, don't block UI)
             const allGuesses = [...gameData.guesses.map(g => g.word), gameData.currentGuess];
@@ -333,7 +341,7 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
                 })
             }).catch(err => console.error('Failed to save to API:', err));
         }
-    }, [gameData, wordLength, normalizedTarget, elapsedTime, isArchive]);
+    }, [gameData, wordLength, normalizedTarget, elapsedTime, isArchive, currentStreak, maxStreak]);
 
     // Reset game
     const resetGame = useCallback((newWord?: string) => {
@@ -386,6 +394,7 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
         hasPlayedToday,
         todayStats,
         currentStreak,
+        maxStreak,
     };
 
     return (

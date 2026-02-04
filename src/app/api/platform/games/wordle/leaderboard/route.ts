@@ -1,44 +1,46 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { strapiGet } from '@/lib/apis/strapi';
 import { unstable_cache } from 'next/cache';
 
-interface LeaderboardEntry {
+interface ScoreLeaderboardEntry {
     rank: number;
     username: string;
     guesses: number;
     time: number;
-    streak: number;
 }
 
-// Get today's date in YYYY-MM-DD format
+interface StreakLeaderboardEntry {
+    rank: number;
+    username: string;
+    currentStreak: number;
+    maxStreak: number;
+}
+
+// Get today's date in YYYY-MM-DD format (India Standard Time)
 function getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 }
 
-// Cached leaderboard computation (60 seconds)
-const getCachedLeaderboard = unstable_cache(
+// Cached score leaderboard computation (60 seconds)
+const getCachedScoreLeaderboard = unstable_cache(
     async (date: string) => {
-        // Fetch all users with wordle_data
         const usersResponse = await strapiGet('/users', {
             fields: ['username', 'wordle_data'],
             pagination: { pageSize: 10000 }
         });
 
         const users = usersResponse || [];
-        const leaderboard: LeaderboardEntry[] = [];
+        const leaderboard: ScoreLeaderboardEntry[] = [];
 
         for (const user of users) {
             const wordleData = user.wordle_data;
             if (wordleData && wordleData[date] && wordleData[date].won) {
                 const { guesses, time } = wordleData[date];
-                // Get streak from top-level wordle_data.streak
-                const streak = typeof wordleData.streak === 'number' ? wordleData.streak : 0;
                 leaderboard.push({
                     rank: 0,
                     username: user.username || 'Anonymous',
                     guesses: guesses.length,
-                    time,
-                    streak
+                    time
                 });
             }
         }
@@ -51,27 +53,84 @@ const getCachedLeaderboard = unstable_cache(
             return a.time - b.time;
         });
 
-        // Assign ranks and take top 10
         return leaderboard.slice(0, 10).map((entry, index) => ({
             ...entry,
             rank: index + 1
         }));
     },
-    ['wordle-leaderboard'],
-    { revalidate: 60 } // Cache for 60 seconds
+    ['wordle-leaderboard-score'],
+    { revalidate: 60 }
+);
+
+// Cached streak leaderboard computation (60 seconds)
+const getCachedStreakLeaderboard = unstable_cache(
+    async () => {
+        const usersResponse = await strapiGet('/users', {
+            fields: ['username', 'wordle_data'],
+            pagination: { pageSize: 10000 }
+        });
+
+        const users = usersResponse || [];
+        const leaderboard: StreakLeaderboardEntry[] = [];
+
+        for (const user of users) {
+            const wordleData = user.wordle_data;
+            const currentStreak = typeof wordleData?.streak === 'number' ? wordleData.streak : 0;
+            const maxStreak = typeof wordleData?.maxStreak === 'number' ? wordleData.maxStreak : 0;
+
+            // Only include users with at least some streak history
+            if (currentStreak > 0 || maxStreak > 0) {
+                leaderboard.push({
+                    rank: 0,
+                    username: user.username || 'Anonymous',
+                    currentStreak,
+                    maxStreak
+                });
+            }
+        }
+
+        // Sort by current streak (descending), then max streak (descending)
+        leaderboard.sort((a, b) => {
+            if (b.currentStreak !== a.currentStreak) {
+                return b.currentStreak - a.currentStreak;
+            }
+            return b.maxStreak - a.maxStreak;
+        });
+
+        return leaderboard.slice(0, 10).map((entry, index) => ({
+            ...entry,
+            rank: index + 1
+        }));
+    },
+    ['wordle-leaderboard-streak'],
+    { revalidate: 60 }
 );
 
 /**
  * GET /api/platform/games/wordle/leaderboard
- * Returns top 10 players for today's puzzle (cached)
+ * Query params:
+ *   - type: 'score' (default) | 'streak'
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const { searchParams } = new URL(request.url);
+        const type = searchParams.get('type') || 'score';
         const today = getTodayDate();
-        const leaderboard = await getCachedLeaderboard(today);
 
+        if (type === 'streak') {
+            const leaderboard = await getCachedStreakLeaderboard();
+            return NextResponse.json({
+                success: true,
+                type: 'streak',
+                leaderboard
+            });
+        }
+
+        // Default to score leaderboard
+        const leaderboard = await getCachedScoreLeaderboard(today);
         return NextResponse.json({
             success: true,
+            type: 'score',
             date: today,
             leaderboard
         });

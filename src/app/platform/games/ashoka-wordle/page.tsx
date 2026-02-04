@@ -8,9 +8,9 @@ import { Puzzle } from 'lucide-react';
 // Force dynamic rendering since we use auth()
 export const dynamic = 'force-dynamic';
 
-// Get today's date in YYYY-MM-DD format
+// Get today's date in YYYY-MM-DD format (India Standard Time)
 function getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 }
 
 interface DailyPuzzle {
@@ -30,6 +30,7 @@ async function getWordleData(): Promise<{
     puzzle: DailyPuzzle | null;
     userProgress: UserProgress | null;
     currentStreak: number;
+    maxStreak: number;
     error?: string;
 }> {
     try {
@@ -46,7 +47,7 @@ async function getWordleData(): Promise<{
 
         const puzzles = puzzleResponse?.data || [];
         if (puzzles.length === 0) {
-            return { puzzle: null, userProgress: null, currentStreak: 0, error: 'No puzzle available for today' };
+            return { puzzle: null, userProgress: null, currentStreak: 0, maxStreak: 0, error: 'No puzzle available for today' };
         }
 
         // Strapi v4 returns data in { id, attributes: { word, date, hint } } format
@@ -59,33 +60,34 @@ async function getWordleData(): Promise<{
 
         // If user is not logged in, return just the puzzle
         if (!session?.user?.email) {
-            return { puzzle, userProgress: null, currentStreak: 0 };
+            return { puzzle, userProgress: null, currentStreak: 0, maxStreak: 0 };
         }
 
         // Fetch user's wordle data
         const userId = await getUserIdByEmail(session.user.email);
         if (!userId) {
-            return { puzzle, userProgress: null, currentStreak: 0 };
+            return { puzzle, userProgress: null, currentStreak: 0, maxStreak: 0 };
         }
 
         const userResponse = await strapiGet(`/users/${userId}`, {
             fields: ['wordle_data']
         });
 
-        const wordleData = userResponse?.wordle_data || { streak: 0 };
+        const wordleData = userResponse?.wordle_data || { streak: 0, maxStreak: 0 };
         const userProgress = wordleData[today] || null;
         // Streak is stored at top-level of wordle_data
         const currentStreak = typeof wordleData.streak === 'number' ? wordleData.streak : 0;
+        const maxStreak = typeof wordleData.maxStreak === 'number' ? wordleData.maxStreak : 0;
 
-        return { puzzle, userProgress, currentStreak };
+        return { puzzle, userProgress, currentStreak, maxStreak };
     } catch (error) {
         console.error('Error fetching wordle data:', error);
-        return { puzzle: null, userProgress: null, currentStreak: 0, error: 'Failed to load puzzle' };
+        return { puzzle: null, userProgress: null, currentStreak: 0, maxStreak: 0, error: 'Failed to load puzzle' };
     }
 }
 
 export default async function AshokaWordlePage() {
-    const { puzzle, userProgress, currentStreak, error } = await getWordleData();
+    const { puzzle, userProgress, currentStreak, maxStreak, error } = await getWordleData();
 
     return (
         <div>
@@ -109,6 +111,7 @@ export default async function AshokaWordlePage() {
                     targetWord={puzzle.word}
                     initialProgress={userProgress}
                     currentStreak={currentStreak}
+                    maxStreak={maxStreak}
                 />
             )}
         </div>

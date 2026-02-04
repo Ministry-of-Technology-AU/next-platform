@@ -65,7 +65,7 @@ export function NewToolAlert({ href, title, className, checkSeenKey, blockIfNewV
 
     return (
         <div
-            className={`hidden md:block fixed top-20 right-4 z-[100] transition-all duration-300 ease-out ${isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+            className={`hidden md:block fixed top-20 right-4 z-100 transition-all duration-300 ease-out ${isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
                 } ${className || ''}`}
         >
             <div className="relative">

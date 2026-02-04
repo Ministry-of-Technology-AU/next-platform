@@ -11,10 +11,11 @@ interface WordleGameData {
     completed: boolean;
 }
 
-// Wordle user data structure with top-level streak
+// Wordle user data structure with top-level streak tracking
 interface WordleUserData {
-    streak: number; // Top-level streak counter
-    [date: string]: WordleGameData | number; // Daily progress data (date keys) + streak
+    streak: number;     // Current winning streak
+    maxStreak: number;  // Best ever streak
+    [date: string]: WordleGameData | number; // Daily progress data (date keys) + streak values
 }
 
 interface DailyPuzzle {
@@ -24,9 +25,9 @@ interface DailyPuzzle {
     hint?: string;
 }
 
-// Get today's date in YYYY-MM-DD format
+// Get today's date in YYYY-MM-DD format (India Standard Time)
 function getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 }
 
 /**
@@ -81,9 +82,10 @@ export async function GET(request: NextRequest) {
             fields: ['wordle_data', 'username']
         });
 
-        const wordleData: WordleUserData = userResponse?.wordle_data || { streak: 0 };
+        const wordleData: WordleUserData = userResponse?.wordle_data || { streak: 0, maxStreak: 0 };
         const todaysProgress = wordleData[today] as WordleGameData | undefined || null;
         const currentStreak = typeof wordleData.streak === 'number' ? wordleData.streak : 0;
+        const maxStreak = typeof wordleData.maxStreak === 'number' ? wordleData.maxStreak : 0;
 
         return NextResponse.json({
             success: true,
@@ -95,7 +97,8 @@ export async function GET(request: NextRequest) {
                 maxGuesses: todaysPuzzle.word.length + 1
             },
             userProgress: todaysProgress,
-            currentStreak
+            currentStreak,
+            maxStreak
         });
 
     } catch (error) {
@@ -148,7 +151,7 @@ export async function POST(request: NextRequest) {
             fields: ['wordle_data']
         });
 
-        const wordleData: WordleUserData = userResponse?.wordle_data || { streak: 0 };
+        const wordleData: WordleUserData = userResponse?.wordle_data || { streak: 0, maxStreak: 0 };
         const existingProgress = wordleData[today] as WordleGameData | undefined;
 
         // Check if already completed today
@@ -159,11 +162,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get current streak value
+        // Get current streak and max streak values
         const currentStreak = typeof wordleData.streak === 'number' ? wordleData.streak : 0;
+        const currentMaxStreak = typeof wordleData.maxStreak === 'number' ? wordleData.maxStreak : 0;
 
         // Update streak: increment on win, reset to 0 on loss
         const newStreak = won ? currentStreak + 1 : 0;
+        const newMaxStreak = Math.max(currentMaxStreak, newStreak);
 
         // Update with new game data
         wordleData[today] = {
@@ -173,6 +178,7 @@ export async function POST(request: NextRequest) {
             completed: true
         };
         wordleData.streak = newStreak;
+        wordleData.maxStreak = newMaxStreak;
 
         // Save to Strapi
         await strapiPut(`/users/${userId}`, {
@@ -184,7 +190,8 @@ export async function POST(request: NextRequest) {
             message: 'Game progress saved',
             data: {
                 ...wordleData[today] as WordleGameData,
-                streak: newStreak
+                streak: newStreak,
+                maxStreak: newMaxStreak
             }
         });
 

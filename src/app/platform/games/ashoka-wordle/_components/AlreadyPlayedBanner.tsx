@@ -43,7 +43,7 @@ export default function AlreadyPlayedBanner({ visible = true }: AlreadyPlayedBan
                     </span>
                 )}
             </BannerTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
                 <Link href="/platform/games/ashoka-wordle/leaderboards">
                     <BannerAction className="border-white/30">
                         <Medal className="h-4 w-4 mr-1" />

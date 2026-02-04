@@ -48,7 +48,7 @@ export default function WinDialog() {
         <>
             <ConfettiEffect trigger={showConfetti} />
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-sm sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center justify-center gap-2 text-2xl">
                             <Trophy className="h-8 w-8 text-secondary" />
