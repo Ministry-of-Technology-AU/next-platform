@@ -1,7 +1,14 @@
 {
-    "version": "1.0.2",
-    "lastUpdated": "2026-01-23",
+    "version": "1.0.3",
+    "lastUpdated": "2026-02-04",
     "updates": [
+        {
+            "id": "ashoka-wordle-launch",
+            "title": "🎮 Ashoka Wordle!",
+            "description": "The classic Wordle game with an Ashokan twist! Guess the daily word, track your winning streak, and compete on the leaderboard. New puzzles every day at midnight IST!",
+            "type": "new",
+            "link": "/platform/games/ashoka-wordle"
+        },
         {
             "id": "calendar-sync-launch",
             "title": "Calendar Syncing!",
