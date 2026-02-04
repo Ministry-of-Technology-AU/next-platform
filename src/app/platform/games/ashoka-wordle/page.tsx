@@ -29,6 +29,7 @@ interface UserProgress {
 async function getWordleData(): Promise<{
     puzzle: DailyPuzzle | null;
     userProgress: UserProgress | null;
+    currentStreak: number;
     error?: string;
 }> {
     try {
@@ -45,7 +46,7 @@ async function getWordleData(): Promise<{
 
         const puzzles = puzzleResponse?.data || [];
         if (puzzles.length === 0) {
-            return { puzzle: null, userProgress: null, error: 'No puzzle available for today' };
+            return { puzzle: null, userProgress: null, currentStreak: 0, error: 'No puzzle available for today' };
         }
 
         // Strapi v4 returns data in { id, attributes: { word, date, hint } } format
@@ -58,38 +59,40 @@ async function getWordleData(): Promise<{
 
         // If user is not logged in, return just the puzzle
         if (!session?.user?.email) {
-            return { puzzle, userProgress: null };
+            return { puzzle, userProgress: null, currentStreak: 0 };
         }
 
         // Fetch user's wordle data
         const userId = await getUserIdByEmail(session.user.email);
         if (!userId) {
-            return { puzzle, userProgress: null };
+            return { puzzle, userProgress: null, currentStreak: 0 };
         }
 
         const userResponse = await strapiGet(`/users/${userId}`, {
             fields: ['wordle_data']
         });
 
-        const wordleData = userResponse?.wordle_data || {};
+        const wordleData = userResponse?.wordle_data || { streak: 0 };
         const userProgress = wordleData[today] || null;
+        // Streak is stored at top-level of wordle_data
+        const currentStreak = typeof wordleData.streak === 'number' ? wordleData.streak : 0;
 
-        return { puzzle, userProgress };
+        return { puzzle, userProgress, currentStreak };
     } catch (error) {
         console.error('Error fetching wordle data:', error);
-        return { puzzle: null, userProgress: null, error: 'Failed to load puzzle' };
+        return { puzzle: null, userProgress: null, currentStreak: 0, error: 'Failed to load puzzle' };
     }
 }
 
 export default async function AshokaWordlePage() {
-    const { puzzle, userProgress, error } = await getWordleData();
+    const { puzzle, userProgress, currentStreak, error } = await getWordleData();
 
     return (
         <div>
             <PageTitle
                 text="Ashoka Wordle"
                 icon={Puzzle}
-                subheading="Guess the word! You have n+1 attempts for an n-letter word."
+                subheading="The classic NYT Wordle Game - with an Ashokan theme! We do not condone playing this in class :)"
             />
 
             {error || !puzzle ? (
@@ -105,6 +108,7 @@ export default async function AshokaWordlePage() {
                 <WordleGameClient
                     targetWord={puzzle.word}
                     initialProgress={userProgress}
+                    currentStreak={currentStreak}
                 />
             )}
         </div>

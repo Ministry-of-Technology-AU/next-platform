@@ -11,8 +11,10 @@ interface WordleGameData {
     completed: boolean;
 }
 
+// Wordle user data structure with top-level streak
 interface WordleUserData {
-    [date: string]: WordleGameData;
+    streak: number; // Top-level streak counter
+    [date: string]: WordleGameData | number; // Daily progress data (date keys) + streak
 }
 
 interface DailyPuzzle {
@@ -79,8 +81,9 @@ export async function GET(request: NextRequest) {
             fields: ['wordle_data', 'username']
         });
 
-        const wordleData: WordleUserData = userResponse?.wordle_data || {};
-        const todaysProgress = wordleData[today] || null;
+        const wordleData: WordleUserData = userResponse?.wordle_data || { streak: 0 };
+        const todaysProgress = wordleData[today] as WordleGameData | undefined || null;
+        const currentStreak = typeof wordleData.streak === 'number' ? wordleData.streak : 0;
 
         return NextResponse.json({
             success: true,
@@ -91,7 +94,8 @@ export async function GET(request: NextRequest) {
                 wordLength: todaysPuzzle.word.length,
                 maxGuesses: todaysPuzzle.word.length + 1
             },
-            userProgress: todaysProgress
+            userProgress: todaysProgress,
+            currentStreak
         });
 
     } catch (error) {
@@ -144,15 +148,22 @@ export async function POST(request: NextRequest) {
             fields: ['wordle_data']
         });
 
-        const wordleData: WordleUserData = userResponse?.wordle_data || {};
+        const wordleData: WordleUserData = userResponse?.wordle_data || { streak: 0 };
+        const existingProgress = wordleData[today] as WordleGameData | undefined;
 
         // Check if already completed today
-        if (wordleData[today]?.completed) {
+        if (existingProgress?.completed) {
             return NextResponse.json(
                 { success: false, error: 'Already completed today\'s puzzle' },
                 { status: 400 }
             );
         }
+
+        // Get current streak value
+        const currentStreak = typeof wordleData.streak === 'number' ? wordleData.streak : 0;
+
+        // Update streak: increment on win, reset to 0 on loss
+        const newStreak = won ? currentStreak + 1 : 0;
 
         // Update with new game data
         wordleData[today] = {
@@ -161,6 +172,7 @@ export async function POST(request: NextRequest) {
             won,
             completed: true
         };
+        wordleData.streak = newStreak;
 
         // Save to Strapi
         await strapiPut(`/users/${userId}`, {
@@ -170,7 +182,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             message: 'Game progress saved',
-            data: wordleData[today]
+            data: {
+                ...wordleData[today] as WordleGameData,
+                streak: newStreak
+            }
         });
 
     } catch (error) {
@@ -181,3 +196,4 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+

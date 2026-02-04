@@ -7,17 +7,12 @@ interface LeaderboardEntry {
     username: string;
     guesses: number;
     time: number;
-    score: number;
+    streak: number;
 }
 
 // Get today's date in YYYY-MM-DD format
 function getTodayDate(): string {
     return new Date().toISOString().split('T')[0];
-}
-
-// Calculate score: lower is better (guesses * 100 + time in seconds)
-function calculateScore(guesses: number, time: number): number {
-    return guesses * 100 + time;
 }
 
 // Cached leaderboard computation (60 seconds)
@@ -36,18 +31,25 @@ const getCachedLeaderboard = unstable_cache(
             const wordleData = user.wordle_data;
             if (wordleData && wordleData[date] && wordleData[date].won) {
                 const { guesses, time } = wordleData[date];
+                // Get streak from top-level wordle_data.streak
+                const streak = typeof wordleData.streak === 'number' ? wordleData.streak : 0;
                 leaderboard.push({
                     rank: 0,
                     username: user.username || 'Anonymous',
                     guesses: guesses.length,
                     time,
-                    score: calculateScore(guesses.length, time)
+                    streak
                 });
             }
         }
 
-        // Sort by score (lower is better)
-        leaderboard.sort((a, b) => a.score - b.score);
+        // Sort by guesses first (ascending), then by time (ascending) for ties
+        leaderboard.sort((a, b) => {
+            if (a.guesses !== b.guesses) {
+                return a.guesses - b.guesses;
+            }
+            return a.time - b.time;
+        });
 
         // Assign ranks and take top 10
         return leaderboard.slice(0, 10).map((entry, index) => ({

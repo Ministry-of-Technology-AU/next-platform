@@ -11,7 +11,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Trophy, Clock, Target, Archive } from 'lucide-react';
+import { Trophy, Clock, Target, Archive, Flame } from 'lucide-react';
 import Link from 'next/link';
 import ConfettiEffect from './ConfettiEffect';
 import ShareResultsPopover from './ShareResultsPopover';
@@ -23,11 +23,12 @@ function formatTime(seconds: number): string {
 }
 
 export default function WinDialog() {
-    const { gameData, wordLength, maxGuesses, resetGame } = useWordle();
+    const { gameData, wordLength, maxGuesses, resetGame, todayStats } = useWordle();
     const [open, setOpen] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
 
     const { gameState, guesses, elapsedTime, targetWord } = gameData;
+    const streak = todayStats?.streak || 0;
 
     useEffect(() => {
         if (gameState === 'won') {
@@ -58,16 +59,21 @@ export default function WinDialog() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid grid-cols-2 gap-4 py-4">
-                        <div className="flex flex-col items-center p-4 rounded-lg bg-gray-extralight dark:bg-neutral-light">
-                            <Target className="h-6 w-6 text-green mb-2" />
-                            <span className="text-2xl font-bold">{guesses.length}/{maxGuesses}</span>
-                            <span className="text-sm text-muted-foreground">Guesses</span>
+                    <div className="grid grid-cols-3 gap-3 py-4">
+                        <div className="flex flex-col items-center p-3 rounded-lg bg-gray-extralight dark:bg-neutral-light">
+                            <Target className="h-5 w-5 text-green mb-1" />
+                            <span className="text-xl font-bold">{guesses.length}/{maxGuesses}</span>
+                            <span className="text-xs text-muted-foreground">Guesses</span>
                         </div>
-                        <div className="flex flex-col items-center p-4 rounded-lg bg-gray-extralight dark:bg-neutral-light">
-                            <Clock className="h-6 w-6 text-blue mb-2" />
-                            <span className="text-2xl font-bold">{formatTime(elapsedTime)}</span>
-                            <span className="text-sm text-muted-foreground">Time</span>
+                        <div className="flex flex-col items-center p-3 rounded-lg bg-gray-extralight dark:bg-neutral-light">
+                            <Clock className="h-5 w-5 text-blue mb-1" />
+                            <span className="text-xl font-bold">{formatTime(elapsedTime)}</span>
+                            <span className="text-xs text-muted-foreground">Time</span>
+                        </div>
+                        <div className="flex flex-col items-center p-3 rounded-lg bg-gray-extralight dark:bg-neutral-light">
+                            <Flame className="h-5 w-5 text-orange-500 mb-1" />
+                            <span className="text-xl font-bold">{streak}</span>
+                            <span className="text-xs text-muted-foreground">Streak</span>
                         </div>
                     </div>
 
@@ -83,6 +89,7 @@ export default function WinDialog() {
                             wordLength={wordLength}
                             maxGuesses={maxGuesses}
                             won={true}
+                            streak={streak}
                         />
                         <Link href="/platform/games/ashoka-wordle/archives" className="flex-1">
                             <Button variant="animated" className="w-full">
@@ -100,3 +107,4 @@ export default function WinDialog() {
         </>
     );
 }
+

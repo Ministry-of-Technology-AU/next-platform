@@ -17,6 +17,8 @@ interface ShareResultsPopoverProps {
     maxGuesses: number;
     won: boolean;
     puzzleDate?: string;
+    streak?: number;
+    leaderboardPosition?: number;
 }
 
 function formatTime(seconds: number): string {
@@ -25,13 +27,22 @@ function formatTime(seconds: number): string {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
+function formatDate(dateStr?: string): string {
+    if (!dateStr) {
+        return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 export default function ShareResultsPopover({
     guesses,
     elapsedTime,
     wordLength,
     maxGuesses,
     won,
-    puzzleDate
+    puzzleDate,
+    streak = 0,
+    leaderboardPosition
 }: ShareResultsPopoverProps) {
     const [copied, setCopied] = useState(false);
     const [open, setOpen] = useState(false);
@@ -45,9 +56,35 @@ export default function ShareResultsPopover({
         }).join('')
     ).join('\n');
 
-    const dateStr = puzzleDate || new Date().toLocaleDateString();
+    const dateStr = formatDate(puzzleDate);
     const resultCount = won ? guesses.length : 'X';
-    const shareText = `Ashoka Wordle ${dateStr}\n${resultCount}/${maxGuesses} • ${formatTime(elapsedTime)}\n\n${emojiGrid}\n\nPlay at ashoka.sg/wordle`;
+
+    // Build share text with catchy message
+    const shareLines = [
+        `🎯 Ashoka Wordle - ${dateStr}`,
+        '',
+        won
+            ? `I cracked it in ${resultCount}/${maxGuesses} guesses! ⏱️ ${formatTime(elapsedTime)}`
+            : `${resultCount}/${maxGuesses} - I'll get it next time! 💪`,
+        '',
+        emojiGrid,
+    ];
+
+    // Add streak info if present
+    if (streak > 0) {
+        shareLines.push('');
+        shareLines.push(`🔥 ${streak} day streak!`);
+    }
+
+    // Add leaderboard position if on leaderboard
+    if (leaderboardPosition && leaderboardPosition <= 10) {
+        shareLines.push(`🏆 #${leaderboardPosition} on today's leaderboard`);
+    }
+
+    shareLines.push('');
+    shareLines.push('Play now: sg.ashoka.edu.in/platform/games/ashoka-wordle');
+
+    const shareText = shareLines.join('\n');
 
     const handleCopy = async () => {
         try {
@@ -67,7 +104,8 @@ export default function ShareResultsPopover({
     };
 
     const handleWhatsApp = () => {
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+        // Use whatsapp api with text parameter for better emoji support
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
         window.open(whatsappUrl, '_blank');
         setOpen(false);
     };
@@ -115,3 +153,4 @@ export default function ShareResultsPopover({
         </Popover>
     );
 }
+

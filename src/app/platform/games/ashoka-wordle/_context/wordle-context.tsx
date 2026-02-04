@@ -24,7 +24,8 @@ interface WordleContextType {
 
     // Game status
     hasPlayedToday: boolean;
-    todayStats: { guesses: number; time: number } | null;
+    todayStats: { guesses: number; time: number; streak: number } | null;
+    currentStreak: number;
 }
 
 const WordleContext = createContext<WordleContextType | undefined>(undefined);
@@ -33,6 +34,7 @@ interface WordleProviderProps {
     children: React.ReactNode;
     targetWord: string; // The word to guess
     isArchive?: boolean; // If true, don't save to today's completion
+    currentStreak?: number; // Top-level streak passed from server
     initialProgress?: {
         guesses: string[];
         time: number;
@@ -105,7 +107,7 @@ function updateKeyboardState(
     return updated;
 }
 
-export function WordleProvider({ children, targetWord, isArchive = false, initialProgress }: WordleProviderProps) {
+export function WordleProvider({ children, targetWord, isArchive = false, currentStreak: currentStreakProp = 0, initialProgress }: WordleProviderProps) {
     const wordLength = targetWord.length;
     const MAX_GUESSES = wordLength + 1; // n+1 guesses for an n-letter word
     const normalizedTarget = targetWord.toUpperCase();
@@ -186,15 +188,19 @@ export function WordleProvider({ children, targetWord, isArchive = false, initia
         }
         return false;
     });
-    const [todayStats, setTodayStats] = useState<{ guesses: number; time: number } | null>(() => {
+    const [todayStats, setTodayStats] = useState<{ guesses: number; time: number; streak: number } | null>(() => {
         if (initialProgress?.completed) {
             return {
                 guesses: initialProgress.guesses.length,
-                time: initialProgress.time
+                time: initialProgress.time,
+                streak: currentStreakProp
             };
         }
         return null;
     });
+
+    // Track current streak (passed from server or updated on game completion)
+    const [currentStreak, setCurrentStreak] = useState(currentStreakProp);
 
     // Timer effect
     useEffect(() => {
@@ -311,7 +317,9 @@ export function WordleProvider({ children, targetWord, isArchive = false, initia
 
             localStorage.setItem(STORAGE_KEYS.COMPLETED_PUZZLES, JSON.stringify(puzzles));
             setHasPlayedToday(true);
-            setTodayStats({ guesses: gameData.guesses.length + 1, time: finalElapsedTime });
+            // Streak will be calculated by the API, but we can estimate it for immediate UI
+            // The API will set the actual value
+            setTodayStats({ guesses: gameData.guesses.length + 1, time: finalElapsedTime, streak: isWin ? 1 : 0 });
 
             // Save to API (async, don't block UI)
             const allGuesses = [...gameData.guesses.map(g => g.word), gameData.currentGuess];
@@ -377,6 +385,7 @@ export function WordleProvider({ children, targetWord, isArchive = false, initia
         isTimerRunning,
         hasPlayedToday,
         todayStats,
+        currentStreak,
     };
 
     return (

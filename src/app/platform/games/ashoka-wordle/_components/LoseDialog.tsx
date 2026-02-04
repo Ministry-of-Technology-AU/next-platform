@@ -11,17 +11,21 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { XCircle, Eye, Archive } from 'lucide-react';
+import { XCircle, Eye, Archive, Flame } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoseDialog() {
-    const { gameData, resetGame } = useWordle();
+    const { gameData, resetGame, currentStreak } = useWordle();
     const [open, setOpen] = useState(false);
+    // Store the streak that was broken (the streak before today's loss)
+    const [brokenStreak, setBrokenStreak] = useState(0);
 
     const { gameState, targetWord, elapsedTime, guesses } = gameData;
 
     useEffect(() => {
         if (gameState === 'lost') {
+            // Capture the streak that was broken before updating
+            setBrokenStreak(currentStreak);
             // Delay opening the modal to allow tiles to animate
             const timer = setTimeout(() => {
                 setOpen(true);
@@ -30,7 +34,7 @@ export default function LoseDialog() {
         } else {
             setOpen(false);
         }
-    }, [gameState]);
+    }, [gameState, currentStreak]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -44,6 +48,15 @@ export default function LoseDialog() {
                         You&apos;ve used all your guesses.
                     </DialogDescription>
                 </DialogHeader>
+
+                {brokenStreak > 0 && (
+                    <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700">
+                        <Flame className="h-5 w-5 text-orange-500" />
+                        <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                            Streak Broken! You lost your {brokenStreak} day streak 😢
+                        </span>
+                    </div>
+                )}
 
                 <div className="text-center py-6">
                     <p className="text-sm text-muted-foreground mb-2">The word was</p>
@@ -72,3 +85,4 @@ export default function LoseDialog() {
         </Dialog>
     );
 }
+
