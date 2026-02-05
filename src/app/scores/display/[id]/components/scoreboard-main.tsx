@@ -1,5 +1,7 @@
+'use client';
+
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Team } from '../types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,50 +43,21 @@ export function ScoreboardMain({
     };
 
     const TeamLogo = ({ team, side }: { team: Team, side: 'A' | 'B' }) => {
-        const content = (
-            <div className={`relative w-20 h-20 bg-white/5 rounded-full p-2 flex-shrink-0 border border-white/10 ${isEditable ? 'cursor-pointer group hover:bg-white/10' : ''}`}>
+        return (
+            <div className={`relative w-20 h-20 bg-white/5 rounded-full p-2 flex-shrink-0 border border-white/10`}>
                 <Image
                     src={team.logoUrl || '/placeholder-logo.png'}
                     alt={team.name}
                     fill
-                    className={`object-contain p-2 ${isEditable ? 'group-hover:opacity-50' : ''}`}
+                    className={`object-contain p-2`}
                 />
                 {!team.logoUrl && (
                     <div className="absolute inset-0 flex items-center justify-center font-bold text-xl opacity-50">
                         {team.name.substring(0, 1)}
                     </div>
                 )}
-                {isEditable && (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Pencil className="w-6 h-6 text-white" />
-                    </div>
-                )}
             </div>
         );
-
-        if (isEditable) {
-            return (
-                <Dialog>
-                    <DialogTrigger asChild>
-                        {content}
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                        <DialogTitle className="hidden">Upload Team Logo</DialogTitle>
-                        <FileUpload
-                            title="Upload Team Logo"
-                            accept="image/*"
-                            maxSize={5}
-                            onChange={(files) => {
-                                if (files.length > 0) {
-                                    onTeamLogoChange?.(side, files[0]);
-                                }
-                            }}
-                        />
-                    </DialogContent>
-                </Dialog>
-            );
-        }
-        return content;
     };
 
     const ScoreControls = ({ team, currentScore }: { team: 'A' | 'B', currentScore: number | string }) => {

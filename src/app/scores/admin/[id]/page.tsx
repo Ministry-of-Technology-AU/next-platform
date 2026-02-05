@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { ScoreboardLayout } from "../../display/[id]/components/scoreboard-layout";
 import { ScoreboardHeader } from "../../display/[id]/components/scoreboard-header";
@@ -8,8 +8,9 @@ import { ScoreboardMain } from "../../display/[id]/components/scoreboard-main";
 import { InfoCards } from "../../display/[id]/components/info-cards";
 import { MatchData, AbstractScoreCard } from "../../display/[id]/types";
 import { Button } from "@/components/ui/button";
+import { getMatch, updateMatch, updateScore, endSet } from "@/lib/apis/match-scores";
 
-// Initial Mock Data
+// Initial Mock Data (Fallback)
 const INITIAL_MATCH_DATA: MatchData = {
     id: "match-123",
     leagueName: "Inter-University League",
@@ -33,41 +34,106 @@ const INITIAL_MATCH_DATA: MatchData = {
 
 export default function AdminScoreboardPage() {
     const params = useParams();
-    const [match, setMatch] = useState<MatchData>(INITIAL_MATCH_DATA);
+    const [match, setMatch] = useState<MatchData | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const handleScoreChange = (team: "A" | "B", delta: number) => {
-        if (!match.isLive) return;
-        setMatch((prev) => ({
+    const matchId = params.id as string;
+
+    // Fetch initial data
+    useEffect(() => {
+        if (!matchId || matchId === 'test-id') {
+            // Keep mock data for test-id for verifying UI if needed, or just fail? 
+            // Let's assume real ID is needed, but for 'test-id' we might default to mock or error.
+            if (matchId === 'test-id') {
+                setMatch(INITIAL_MATCH_DATA);
+                setLoading(false);
+                return;
+            }
+        }
+
+        async function load() {
+            try {
+                const data = await getMatch(matchId);
+                if (data) setMatch(data);
+                else console.error("Match not found");
+            } catch (err) {
+                console.error("Failed to load match", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        load();
+    }, [matchId]);
+
+    const handleScoreChange = async (team: "A" | "B", delta: number) => {
+        if (!match || !match.isLive) return;
+
+        const currentScoreA = Number(match.scoreA);
+        const currentScoreB = Number(match.scoreB);
+        const newScoreA = team === "A" ? Math.max(0, currentScoreA + delta) : currentScoreA;
+        const newScoreB = team === "B" ? Math.max(0, currentScoreB + delta) : currentScoreB;
+
+        // Optimistic Update
+        setMatch((prev) => prev ? ({
             ...prev,
-            [team === "A" ? "scoreA" : "scoreB"]: Math.max(0, Number(prev[team === "A" ? "scoreA" : "scoreB"]) + delta),
-        }));
+            scoreA: newScoreA,
+            scoreB: newScoreB,
+        }) : null);
+
+        // API Call
+        try {
+            await updateScore(match.id, newScoreA, newScoreB);
+        } catch (error) {
+            console.error("Failed to update score", error);
+            // Revert state if needed?
+        }
     };
 
-    const handleTeamNameChange = (team: "A" | "B", name: string) => {
-        if (!match.isLive) return;
-        setMatch((prev) => ({
-            ...prev,
-            [team === "A" ? "teamA" : "teamB"]: {
-                ...prev[team === "A" ? "teamA" : "teamB"],
-                name,
-            },
-        }));
+    const handleTeamNameChange = async (team: "A" | "B", name: string) => {
+        if (!match || !match.isLive) return;
+
+        const newTeamA = team === "A" ? { ...match.teamA, name } : match.teamA;
+        const newTeamB = team === "B" ? { ...match.teamB, name } : match.teamB;
+
+        setMatch(prev => prev ? ({ ...prev, teamA: newTeamA, teamB: newTeamB }) : null);
+
+        try {
+            await updateMatch(match.id, {
+                teamA: newTeamA,
+                teamB: newTeamB
+            });
+        } catch (error) {
+            console.error("Failed to update team name", error);
+        }
     };
 
     const handleTeamLogoChange = (team: "A" | "B", file: File) => {
-        if (!match.isLive) return;
-        const url = URL.createObjectURL(file);
-        setMatch((prev) => ({
-            ...prev,
-            [team === "A" ? "teamA" : "teamB"]: {
-                ...prev[team === "A" ? "teamA" : "teamB"],
-                logoUrl: url,
-            },
-        }));
+        // Disabled per requirements
+        console.warn("Logo editing is disabled");
     };
 
-    const handleEndSet = () => {
-        if (!match.isLive) return;
+    // Additional handlers for Header inputs
+    const handleLeagueChange = async (val: string) => {
+        if (!match) return;
+        setMatch(prev => prev ? ({ ...prev, leagueName: val }) : null);
+        try { await updateMatch(match.id, { leagueName: val }); } catch (e) { console.error(e); }
+    };
+
+    const handleMatchTitleChange = async (val: string) => {
+        if (!match) return;
+        setMatch(prev => prev ? ({ ...prev, matchTitle: val }) : null);
+        try { await updateMatch(match.id, { matchTitle: val }); } catch (e) { console.error(e); }
+    };
+
+    const handleSportChange = async (val: string) => {
+        if (!match) return;
+        setMatch(prev => prev ? ({ ...prev, sport: val }) : null);
+        try { await updateMatch(match.id, { sport: val }); } catch (e) { console.error(e); }
+    };
+
+    const handleEndSet = async () => {
+        if (!match || !match.isLive) return;
+
         const newCard: AbstractScoreCard = {
             label: `Set ${match.infoCards.length + 1}`,
             valueA: match.scoreA,
@@ -75,20 +141,36 @@ export default function AdminScoreboardPage() {
             highlight: false,
         };
 
-        setMatch((prev) => ({
+        const newSets = [...match.infoCards, newCard];
+
+        setMatch((prev) => prev ? ({
             ...prev,
             scoreA: 0,
             scoreB: 0,
-            infoCards: [...prev.infoCards, newCard],
-        }));
-    };
+            infoCards: newSets,
+        }) : null);
 
-    const handleEndMatch = () => {
-        if (!match.isLive) return;
-        if (window.confirm("Are you sure you want to end the match? This will freeze all details.")) {
-            setMatch((prev) => ({ ...prev, isLive: false }));
+        try {
+            await endSet(match.id, newSets);
+        } catch (error) {
+            console.error("Failed to end set", error);
         }
     };
+
+    const handleEndMatch = async () => {
+        if (!match || !match.isLive) return;
+        if (window.confirm("Are you sure you want to end the match? This will freeze all details.")) {
+            setMatch((prev) => prev ? ({ ...prev, isLive: false }) : null);
+            try {
+                await updateMatch(match.id, { isLive: false });
+            } catch (error) {
+                console.error("Failed to end match", error);
+            }
+        }
+    };
+
+    if (loading) return <div className="w-full h-screen flex items-center justify-center text-white">Loading...</div>;
+    if (!match) return <div className="w-full h-screen flex items-center justify-center text-white">Match not found</div>;
 
     return (
         <ScoreboardLayout variant="admin">
@@ -97,9 +179,9 @@ export default function AdminScoreboardPage() {
                 matchTitle={match.matchTitle}
                 sport={match.sport}
                 isEditable={match.isLive}
-                onLeagueNameChange={(val) => setMatch((prev) => ({ ...prev, leagueName: val }))}
-                onMatchTitleChange={(val) => setMatch((prev) => ({ ...prev, matchTitle: val }))}
-                onSportChange={(val) => setMatch((prev) => ({ ...prev, sport: val }))}
+                onLeagueNameChange={handleLeagueChange}
+                onMatchTitleChange={handleMatchTitleChange}
+                onSportChange={handleSportChange}
             />
 
             <ScoreboardMain
