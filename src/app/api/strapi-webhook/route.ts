@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     // For match score updates, broadcast immediately
     if (payload.model === 'match-score') {
       const entry = payload.entry;
-      // Send minimal data for instant updates
+      // Send minimal data for instant updates (including sets for live sync)
       const updateData = {
         type: payload.event,
         model: 'match-score',
@@ -43,7 +43,8 @@ export async function POST(req: Request) {
           id: entry.id,
           team_a_score: entry.team_a_score,
           team_b_score: entry.team_b_score,
-          status: entry.status
+          status: entry.status,
+          sets: entry.sets
         }
       };
 
@@ -63,7 +64,8 @@ export async function POST(req: Request) {
           team_a_score: entry.team_a_score,
           team_b_score: entry.team_b_score,
           status: entry.status,
-          date: entry.date
+          date: entry.date,
+          sets: entry.sets
         }
       };
       setTimeout(() => broadcast(JSON.stringify(fullData)), 100);
