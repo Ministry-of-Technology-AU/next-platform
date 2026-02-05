@@ -32,17 +32,17 @@ export function InfoCards({ cards, teamA, teamB }: InfoCardsProps) {
                         className="flex flex-row items-center justify-between px-6 py-3 rounded-full shadow-sm w-full bg-white/60 backdrop-blur-md border border-black"
                     >
                         {/* Set Name */}
-                        <span className="text-gray-600 font-bold text-sm uppercase tracking-widest min-w-[60px]">
+                        <span className="text-gray font-bold text-sm uppercase tracking-widest min-w-[60px]">
                             {card.label}
                         </span>
 
                         {/* Score */}
                         <div className="flex items-center gap-6">
-                            <span className="text-2xl font-black text-gray-800 tabular-nums">
+                            <span className="text-2xl font-black text-black tabular-nums">
                                 {card.valueA || '0'}
                             </span>
-                            <div className="h-6 w-px bg-gray-400/50"></div>
-                            <span className="text-2xl font-black text-gray-800 tabular-nums">
+                            <div className="h-6 w-px bg-gray-light/50"></div>
+                            <span className="text-2xl font-black text-black tabular-nums">
                                 {card.valueB || '0'}
                             </span>
                         </div>
@@ -50,7 +50,7 @@ export function InfoCards({ cards, teamA, teamB }: InfoCardsProps) {
                         {/* Winner Sentence */}
                         <div className="min-w-[150px] flex justify-end text-right">
                             {winnerText && (
-                                <span className="text-sm font-semibold text-gray-700 italic">
+                                <span className="text-sm font-semibold text-gray-dark italic">
                                     {winnerText}
                                 </span>
                             )}
