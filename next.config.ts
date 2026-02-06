@@ -12,7 +12,8 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // Skip type checking only when SKIP_TYPECHECK=true is passed
+    ignoreBuildErrors: process.env.SKIP_TYPECHECK === 'true',
   },
 }
 
