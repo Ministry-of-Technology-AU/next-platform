@@ -1,3 +1,30 @@
+/**
+ * RecentlyVisited Component
+ * 
+ * This component displays up to 4 recently visited platform tools on the landing page.
+ * 
+ * HOW IT WORKS:
+ * 1. Paths are stored in localStorage under key "recently-visited" as a JSON array
+ * 2. The RecentPageTracker component (in layout) tracks page visits and updates storage
+ * 3. This component reads the stored paths and maps them to display items
+ * 
+ * PATH MAPPING:
+ * - First tries to match path against sidebar-entries.json to get title/icon
+ * - Falls back to staticRecentlyVisited data if not found in sidebar
+ * - Final fallback: derives name from path (e.g., "/course-reviews" → "Course Reviews")
+ * 
+ * PATH REDIRECTS:
+ * - Some routes don't exist at their base path (e.g., /sg-compose → /sg-compose/outbox)
+ * - Add redirects to PATH_REDIRECTS map when a stored path needs to link elsewhere
+ * 
+ * FALLBACKS:
+ * - If fewer than 4 items stored, fills with FALLBACK_PATHS
+ * - Default paths: trajectory-planner, organisations-catalog, events-calendar, course-reviews
+ * 
+ * EVENTS:
+ * - Listens to "recently-visited-updated" custom event for same-tab updates
+ * - Listens to "storage" event for cross-tab sync
+ */
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -75,12 +102,20 @@ export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
     '/platform/course-reviews'
   ];
 
+  // Path redirect exceptions (for routes that don't exist at their base path)
+  const PATH_REDIRECTS: Record<string, string> = {
+    '/platform/sg-compose': '/platform/sg-compose/outbox',
+  };
+
   const mapPathToItem = (path: string): VisitedItem => {
+    // Apply path redirects
+    const redirectedPath = PATH_REDIRECTS[path] || path;
+
     // Find in sidebarData
     let foundItem: { title: string; icon: string; href: string } | undefined;
 
     for (const category of sidebarData.categories) {
-      const found = category.items.find(item => `/platform${item.href}` === path || item.href === path || path.endsWith(item.href));
+      const found = category.items.find(item => `/platform${item.href}` === redirectedPath || item.href === redirectedPath || redirectedPath.endsWith(item.href));
       if (found) {
         foundItem = found;
         break;
@@ -91,7 +126,7 @@ export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
       const Icon = iconMap[foundItem.icon];
       return {
         name: foundItem.title,
-        href: path,
+        href: redirectedPath,
         icon: Icon
       };
     }

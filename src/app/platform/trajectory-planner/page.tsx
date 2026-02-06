@@ -3,6 +3,9 @@ import { CoursePlannerBoard } from './_components/course-planner-board';
 import { strapiGet } from "@/lib/apis/strapi";
 import { getAuthenticatedUser } from "@/lib/auth";
 
+// Force dynamic rendering since we use auth headers
+export const dynamic = 'force-dynamic';
+
 async function fetchTrajectoryData() {
     try {
         const user = await getAuthenticatedUser();

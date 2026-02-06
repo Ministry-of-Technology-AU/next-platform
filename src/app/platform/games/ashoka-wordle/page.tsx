@@ -4,6 +4,7 @@ import { getUserIdByEmail } from '@/lib/userid';
 import WordleGameClient from './_components/WordleGameClient';
 import PageTitle from '@/components/page-title';
 import { Puzzle } from 'lucide-react';
+import { DismissNewToolAlert } from '@/components/dismiss-new-tool-alert';
 
 // Force dynamic rendering since we use auth()
 export const dynamic = 'force-dynamic';
@@ -96,6 +97,7 @@ export default async function AshokaWordlePage() {
                 icon={Puzzle}
                 subheading="The classic NYT Wordle Game - with an Ashokan theme! We do not condone playing this in class :)"
             />
+            <DismissNewToolAlert storageKey='ASHOKA_WORDLE_ALERT_SEEN_V1' />
 
             {error || !puzzle ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-4">

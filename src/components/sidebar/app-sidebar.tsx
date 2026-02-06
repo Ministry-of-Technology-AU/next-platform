@@ -126,7 +126,7 @@ export function AppSidebar() {
     <Sidebar className="border-r border-border flex flex-col h-screen bg-background xoverflow-y-auto" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <div className="flex-shrink-0 cursor-pointer">
+          <div className="shrink-0 cursor-pointer">
             {/* Light Mode Logo */}
             <Image
               src="/logo.png"
@@ -145,7 +145,7 @@ export function AppSidebar() {
             />
           </div>
           <div className="flex flex-col justify-center min-w-0 overflow-hidden transition-all duration-500 ease-in-out group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
-            <h3 className="text-lg font-semibold text-primary dark:text-primary-bright truncate leading-tight whitespace-nowrap !text-left">
+            <h3 className="text-lg font-semibold text-primary dark:text-primary-bright truncate leading-tight whitespace-nowrap text-left!">
               Platform
             </h3>
             <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">
@@ -197,17 +197,17 @@ export function AppSidebar() {
                         >
                           <div className={cn(
                             "relative transition-all duration-500",
-                            item.href === '/trajectory-planner' && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
+                            item.href === '/games' && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
                           )}>
                             <IconComponent className={cn(
-                              "size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0",
-                              item.href === '/trajectory-planner' && !isActive && "dark:text-secondary text-primary-light"
+                              "size-4 group-data-[state=collapsed]:mx-auto shrink-0",
+                              item.href === '/games' && !isActive && "dark:text-secondary text-primary-light"
                             )} />
                           </div>
                           <span className={cn(
                             "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",
                             hideLabels && "w-0 opacity-0 ml-0",
-                            item.href === '/trajectory-planner' && !isActive && "text-secondary font-semibold"
+                            item.href === '/games' && !isActive && "text-secondary font-semibold"
                           )}>
                             {item.title}
                           </span>

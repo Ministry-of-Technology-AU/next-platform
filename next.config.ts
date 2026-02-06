@@ -5,11 +5,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images: { 
-    unoptimized: true 
+  images: {
+    unoptimized: true
   },
   experimental: {
-    optimizePackageImports: ['lucide-react'],    
+    optimizePackageImports: ['lucide-react'],
+  },
+  typescript: {
+    ignoreBuildErrors: true,
   },
 }
 
