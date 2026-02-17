@@ -151,7 +151,7 @@ interface TextInputProps {
   isDisabled?: boolean;
   value?: string;
   onChange?: (value: string) => void;
-  type?: "text" | "email" | "password" | "number";
+  type?: "text" | "email" | "password" | "number" | "datetime-local";
 }
 
 export function TextInput({
