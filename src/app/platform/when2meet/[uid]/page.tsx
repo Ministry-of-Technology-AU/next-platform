@@ -1,12 +1,15 @@
 "use server";
 
-import { Card } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
-import TimeSlotPage from "./components/TimeSlotPage";
+import { Card, CardHeader } from "@/components/ui/card";
+import { Clock, AlertCircle } from "lucide-react";
+import PageTitle from "@/components/page-title";
+import DeveloperCredits from "@/components/developer-credits";
+import TimeSlotPage from "../components/TimeSlotPage";
 import { cookies } from "next/headers";
-import { TimeTableDraft, TimeTableWithOwnership, When2MeetPageProps } from "./types";
+import { TimeTableDraft, TimeTableWithOwnership, When2MeetPageProps } from "../types";
 import { auth } from "@/auth";
-import { getUserIdByEmail } from "@/lib/userid";
+import { getUserIdByEmail } from "@/lib/userid"; // Adjust path as needed
+import { strapiGet } from "@/lib/apis/strapi";
 
 async function fetchTimeTableData(uid?: string): Promise<{
     data: TimeTableWithOwnership | null;
@@ -58,22 +61,11 @@ async function fetchTimeTableData(uid?: string): Promise<{
             console.log('When2Meet: API result:', result);
 
             if (result.success && result.data) {
-                // Handle both data structures (with or without attributes)
-                const timetableData = result.data.attributes || result.data;
+                const timetableData = result.data.attributes as TimeTableDraft;
                 console.log("TimeTableDraft is ", timetableData);
 
-                // Ensure grid exists
-                if (!timetableData.grid) {
-                    console.error('When2Meet: No grid found in timetable data');
-                    return {
-                        data: null,
-                        error: "Invalid timetable structure"
-                    };
-                }
-
                 // Check if current user is the owner
-                const isOwner = timetableData.grid.owner === currentUserId.toString() ||
-                    timetableData.grid.owner === userEmail;
+                const isOwner = timetableData.grid.owner === currentUserId.toString();
 
                 return {
                     data: {

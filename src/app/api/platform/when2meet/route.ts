@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { strapiGet, strapiPost, strapiPut } from "@/lib/apis/strapi";
 import { getUserIdByEmail } from "@/lib/userid";
-import { TimeTableDraft } from "@/app/platform/when2meet/types";
+import { TimeTableDraft, TimeSlot } from "@/app/platform/when2meet/types";
 
 export async function GET(request: NextRequest) {
     try {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Fetch timetable by UID from Strapi
-        const response = await strapiGet('/time-table-drafts', {
+        const response = await strapiGet('/when2meet-drafts', {
             filters: {
                 uid: {
                     $eq: uid
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
         }
 
         const userId = await getUserIdByEmail(session.user.email);
+
         if (!userId) {
             return NextResponse.json(
                 { success: false, error: "User not found" },
@@ -80,8 +81,14 @@ export async function POST(request: NextRequest) {
             timetableData.grid.uid = uuidv4();
         }
 
-        // Set owner to current user
+        // Set owner to current user ID for auth checks
         timetableData.grid.owner = userId.toString();
+
+        // Initialize users array with both owner ID and email (so they appear in draft list)
+        timetableData.grid.users = [userId.toString()];
+        if (session.user.email && !timetableData.grid.users.includes(session.user.email)) {
+            timetableData.grid.users.push(session.user.email);
+        }
 
         // Create timetable in Strapi
         const response = await strapiPost('/when2meet-drafts', {
@@ -130,7 +137,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { uid, timetable } = body;
+        const { uid, timetable, isAvailabilityUpdate } = body;
 
         if (!uid) {
             return NextResponse.json(
@@ -139,8 +146,8 @@ export async function PUT(request: NextRequest) {
             );
         }
 
-        // Fetch existing timetable to verify ownership
-        const existing = await strapiGet('/time-table-drafts', {
+        // Fetch existing timetable
+        const existing = await strapiGet('/when2meet-drafts', {
             filters: {
                 uid: {
                     $eq: uid
@@ -158,20 +165,60 @@ export async function PUT(request: NextRequest) {
         }
 
         const existingTimetable = timetables[0];
+        const existingData = existingTimetable.attributes || existingTimetable;
 
-        // Verify ownership
-        if (existingTimetable.attributes?.grid?.owner !== userId.toString()) {
+        // If this is an availability update (non-owner saving their availability)
+        if (isAvailabilityUpdate) {
+            const userEmail = session.user.email;
+            const currentGrid = existingData.grid;
+
+            // Update blockedTimes for this user
+            const updatedBlockedTimes = {
+                ...currentGrid.blockedTimes,
+                [userEmail]: timetable.grid.blockedTimes[userEmail] || []
+            };
+
+            // Add user to users array if not already present
+            const updatedUsers = currentGrid.users || [];
+            if (!updatedUsers.includes(userEmail)) {
+                updatedUsers.push(userEmail);
+            }
+
+            // Update only the relevant fields
+            const response = await strapiPut(`/when2meet-drafts/${existingTimetable.id}`, {
+                data: {
+                    grid: {
+                        ...currentGrid,
+                        blockedTimes: updatedBlockedTimes,
+                        users: updatedUsers
+                    }
+                }
+            });
+
+            return NextResponse.json({
+                success: true,
+                data: response,
+                message: "Availability saved successfully"
+            });
+        }
+
+        // For owner updates (full timetable update)
+        if (existingData.grid?.owner !== userId.toString()) {
             return NextResponse.json(
                 { success: false, error: "Not authorized to update this timetable" },
                 { status: 403 }
             );
         }
 
-        // Update timetable
-        const response = await strapiPut(`/time-table-drafts/${existingTimetable.id}`, {
+        // Update timetable (preserve blockedTimes and users from existing data)
+        const response = await strapiPut(`/when2meet-drafts/${existingTimetable.id}`, {
             data: {
                 title: timetable.title,
-                grid: timetable.grid
+                grid: {
+                    ...timetable.grid,
+                    blockedTimes: existingData.grid.blockedTimes || {},
+                    users: existingData.grid.users || []
+                }
             }
         });
 
