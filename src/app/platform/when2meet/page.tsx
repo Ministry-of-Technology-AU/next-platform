@@ -106,7 +106,8 @@ async function fetchTimeTableData(uid?: string): Promise<{
 }
 
 export default async function When2MeetPage({ params }: When2MeetPageProps) {
-    const { data: tt, error } = await fetchTimeTableData(params.uid);
+    const { uid } = await params;
+    const { data: tt, error } = await fetchTimeTableData(uid);
 
     return (
         <div className="mt-2 xs:mt-3 sm:mt-4 md:mt-5 mx-2 xs:mx-3 sm:mx-4 md:mx-6 mb-2 xs:mb-3 sm:mb-4">

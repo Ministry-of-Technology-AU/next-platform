@@ -30,9 +30,9 @@ export interface TimeTableWithOwnership extends TimeTableDraft {
 }
 
 export interface When2MeetPageProps {
-    params: {
+    params: Promise<{
         uid?: string;
-    };
+    }>;
 }
 
 export const TIMESLOT_COLOR = "bg-[#87281B]/20" // just use this at transparency 20% for all users so that the most selected slot appears darkest 
