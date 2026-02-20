@@ -3,7 +3,6 @@
 import { Card, CardHeader } from "@/components/ui/card";
 import { Clock, AlertCircle } from "lucide-react";
 import PageTitle from "@/components/page-title";
-import DeveloperCredits from "@/components/developer-credits";
 import TimeSlotPage from "../components/TimeSlotPage";
 import { cookies } from "next/headers";
 import { TimeTableDraft, TimeTableWithOwnership, When2MeetPageProps } from "../types";

@@ -7,8 +7,10 @@ export interface TimeSlot {
 }
 
 export interface TimeTableGrid {
+    dateMode: 'dates' | 'days',
     startDate: Date,
     endDate: Date,
+    selectedDays?: string[], // e.g. ['Sun', 'Mon', 'Wed'] - used in day mode
     slotMode: "default" | "ashoka" | "custom",
     customSlotDuration: 30 | 60,
     owner: string,

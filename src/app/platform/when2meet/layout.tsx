@@ -16,7 +16,7 @@ export default function When2MeetLayout({
                 icon={CalendarDays}
                 subheading="Create a shared calendar to find the best meeting time with your group. Select your available time slots and share the link with participants."
             />
-            <div className="mt-4 mb-[100px] border-t border-gray-300"></div>
+            <div className="mt-4 mb-[40px] border-t border-gray-300"></div>
             <Suspense fallback={<Loader />}>{children}</Suspense>
             <DeveloperCredits developers={[{ name: "Vaani Goenka" }]} />
         </div>

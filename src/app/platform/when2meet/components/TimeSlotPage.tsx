@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,6 +22,10 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
     const [startDate, setStartDate] = useState<string>('')
     const [endDate, setEndDate] = useState<string>('')
     const [dateColumns, setDateColumns] = useState<string[]>([])
+    const [dateMode, setDateMode] = useState<'dates' | 'days'>('dates')
+    const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set())
+
+    const ALL_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
     const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set())
     const [activeConfig, setActiveConfig] = useState<TimeTableGrid['slotMode']>('ashoka')
     const [showCustomDropdown, setShowCustomDropdown] = useState<boolean>(false)
@@ -37,6 +41,8 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
     const [participantEmails, setParticipantEmails] = useState<string[]>([])
     const [startDatePickerOpen, setStartDatePickerOpen] = useState<boolean>(false)
     const [endDatePickerOpen, setEndDatePickerOpen] = useState<boolean>(false)
+    const [isDragging, setIsDragging] = useState<boolean>(false)
+    const dragModeRef = useRef<'select' | 'deselect'>('select')
 
     const isOwner = data?.isOwner ?? true
     const isDisabled = !isOwner || !!currentUid
@@ -75,9 +81,16 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             setCustomDuration(data.grid.customSlotDuration)
             setOnlyShareOwnerAvail(data.grid.onlyShareOwnerAvail)
             setCurrentUid(data.grid.uid || '')
+            setDateMode(data.grid.dateMode || 'dates')
 
-            // Set participant emails from users array (filter out non-email entries like user IDs)
-            setParticipantEmails((data.grid.users || []).filter((u: string) => u.includes('@')))
+            // Set selected days if in day mode
+            if (data.grid.selectedDays && data.grid.selectedDays.length > 0) {
+                setSelectedDays(new Set(data.grid.selectedDays))
+            }
+
+            // Set participant emails from users array (filter out duplicates and non-email entries)
+            const uniqueEmails = Array.from(new Set((data.grid.users || []).filter((u: string) => u.includes('@'))))
+            setParticipantEmails(uniqueEmails)
 
             // Set dates
             if (data.grid.startDate) {
@@ -104,16 +117,22 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
 
                 if (Array.isArray(userBlockedSlots)) {
                     userBlockedSlots.forEach(slot => {
-                        let dateStr: string
-                        try {
-                            // Use UTC methods to avoid timezone shift
-                            const d = new Date(slot.date)
-                            dateStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
-                        } catch {
-                            dateStr = String(slot.date).split('T')[0]
+                        let colKey: string
+                        if ((data.grid.dateMode || 'dates') === 'days') {
+                            // In day mode, use abbreviated day name as column key
+                            const dayAbbr = slot.day?.substring(0, 3) || 'Mon'
+                            colKey = dayAbbr
+                        } else {
+                            try {
+                                // Use UTC methods to avoid timezone shift
+                                const d = new Date(slot.date)
+                                colKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+                            } catch {
+                                colKey = String(slot.date).split('T')[0]
+                            }
                         }
                         const timeSlot = `${slot.startTime}-${slot.endTime}`
-                        selectedSet.add(`${dateStr}-${timeSlot}`)
+                        selectedSet.add(`${colKey}-${timeSlot}`)
                     })
                 }
 
@@ -124,9 +143,13 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
         }
     }, [data, currentUserEmail])
 
-    // Generate date columns when dates change
+    // Generate date/day columns when dates or selected days change
     useEffect(() => {
-        if (startDate && endDate) {
+        if (dateMode === 'days') {
+            // In day mode, use the selected days as columns
+            const orderedDays = ALL_DAYS.filter(d => selectedDays.has(d))
+            setDateColumns(orderedDays)
+        } else if (startDate && endDate) {
             const start = new Date(startDate)
             const end = new Date(endDate)
             const columns: string[] = []
@@ -139,7 +162,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
         } else {
             setDateColumns([])
         }
-    }, [startDate, endDate])
+    }, [startDate, endDate, dateMode, selectedDays])
 
     // Get users who blocked a specific cell
     const getUsersWhoBlockedCell = (date: string, timeSlot: string): string[] => {
@@ -154,13 +177,17 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             if (!Array.isArray(slots)) return
 
             const hasBlocked = slots.some(slot => {
-                // Normalize the stored date to YYYY-MM-DD for comparison
+                // Normalize the stored date to YYYY-MM-DD or day name for comparison
                 let slotDate: string
-                try {
-                    const d = new Date(slot.date)
-                    slotDate = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
-                } catch {
-                    slotDate = String(slot.date).split('T')[0]
+                if (dateMode === 'days') {
+                    slotDate = slot.day?.substring(0, 3) || String(slot.date)
+                } else {
+                    try {
+                        const d = new Date(slot.date)
+                        slotDate = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+                    } catch {
+                        slotDate = String(slot.date).split('T')[0]
+                    }
                 }
 
                 return slotDate === date &&
@@ -217,6 +244,67 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
         setSelectedSlots(newSelectedSlots)
     }
 
+    // Drag-to-select handlers
+    const handleDragStart = useCallback((date: string, timeSlot: string) => {
+        const cellKey = `${date}-${timeSlot}`
+        const wasSelected = selectedSlots.has(cellKey)
+        dragModeRef.current = wasSelected ? 'deselect' : 'select'
+        setIsDragging(true)
+
+        const newSelectedSlots = new Set(selectedSlots)
+        if (wasSelected) {
+            newSelectedSlots.delete(cellKey)
+        } else {
+            newSelectedSlots.add(cellKey)
+        }
+        setSelectedSlots(newSelectedSlots)
+    }, [selectedSlots])
+
+    const handleDragEnter = useCallback((date: string, timeSlot: string) => {
+        if (!isDragging) return
+        const cellKey = `${date}-${timeSlot}`
+        setSelectedSlots(prev => {
+            const newSet = new Set(prev)
+            if (dragModeRef.current === 'select') {
+                newSet.add(cellKey)
+            } else {
+                newSet.delete(cellKey)
+            }
+            return newSet
+        })
+    }, [isDragging])
+
+    const handleDragEnd = useCallback(() => {
+        setIsDragging(false)
+    }, [])
+
+    // Touch drag support: resolve cell from touch position
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+        if (!isDragging) return
+        const touch = e.touches[0]
+        const el = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement | null
+        if (!el) return
+        const td = el.closest('td[data-cell]') as HTMLElement | null
+        if (!td?.dataset.cell) return
+        const [date, ...rest] = td.dataset.cell.split('-')
+        const dateStr = [date, rest[0], rest[1]].join('-')
+        const timeSlot = rest.slice(2).join('-')
+        if (dateStr && timeSlot) {
+            handleDragEnter(dateStr, timeSlot)
+        }
+    }, [isDragging, handleDragEnter])
+
+    // Global mouseup / touchend to stop dragging
+    useEffect(() => {
+        const stop = () => setIsDragging(false)
+        window.addEventListener('mouseup', stop)
+        window.addEventListener('touchend', stop)
+        return () => {
+            window.removeEventListener('mouseup', stop)
+            window.removeEventListener('touchend', stop)
+        }
+    }, [])
+
     const handleCopyLink = async () => {
         if (shareableLink) {
             await navigator.clipboard.writeText(shareableLink)
@@ -236,56 +324,53 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             const eventTitle = title || "Meeting";
             const [startRaw, endRaw] = timeRange.split('-');
 
-            const parseTimeToDate = (timeStr: string, dateStr: string) => {
-                const modifier = timeStr.slice(-2).toLowerCase(); // am or pm
-                const timeOnly = timeStr.slice(0, -2); // e.g. "8:30"
+            const parseTimeParts = (timeStr: string) => {
+                const modifier = timeStr.slice(-2).toLowerCase(); // "am" or "pm"
+                const timeOnly = timeStr.slice(0, -2);            // e.g. "8:30"
                 let [hours, minutes] = timeOnly.split(':').map(Number);
                 if (isNaN(minutes)) minutes = 0;
 
                 if (modifier === 'pm' && hours < 12) hours += 12;
                 if (modifier === 'am' && hours === 12) hours = 0;
 
-                // Parse date string parts to avoid timezone shifts
-                const dateParts = dateStr.split('-').map(Number);
-                // year, monthIndex (0-11), day, hours, minutes
-                return new Date(dateParts[0], dateParts[1] - 1, dateParts[2], hours, minutes);
+                return { hours, minutes };
             };
 
-            const startDt = parseTimeToDate(startRaw, slotDate);
-            const endDt = parseTimeToDate(endRaw, slotDate);
-
-            // Google Calendar Action TEMPLATE format: YYYYMMDDTHHmmSS
-            const formatForGCal = (date: Date) => {
+            // Format directly from parsed parts + date string — no Date object needed,
+            // so there's zero risk of browser timezone shifting the values.
+            const formatForGCal = (timeStr: string, dateStr: string) => {
+                const { hours, minutes } = parseTimeParts(timeStr);
+                const [year, month, day] = dateStr.split('-').map(Number);
                 const pad = (n: number) => String(n).padStart(2, '0');
-                const y = date.getFullYear();
-                const m = pad(date.getMonth() + 1);
-                const d = pad(date.getDate());
-                const hh = pad(date.getHours());
-                const mm = pad(date.getMinutes());
-                const ss = pad(date.getSeconds());
-                return `${y}${m}${d}T${hh}${mm}${ss}`;
+                return `${year}${pad(month)}${pad(day)}T${pad(hours)}${pad(minutes)}00`;
             };
 
-            const dates = `${formatForGCal(startDt)}/${formatForGCal(endDt)}`;
-            const add = invitees?.join(',') || '';
+            const startFormatted = formatForGCal(startRaw, slotDate);
+            const endFormatted = formatForGCal(endRaw, slotDate);
+            const dates = `${startFormatted}/${endFormatted}`;
 
-            const baseUrl = 'https://calendar.google.com/calendar/render';
-            const params = new URLSearchParams({
-                action: 'TEMPLATE',
-                text: eventTitle,
-                dates: dates,
-                add: add,
-                details: `Scheduled via When2Meet for ${slotDate} ${timeRange}.`,
-                sf: 'true',
-                output: 'xml'
-            });
+            const details = `Scheduled via When2Meet for ${slotDate} ${timeRange}.`;
+            const add = invitees?.join(',') ?? '';
 
-            window.open(`${baseUrl}?${params.toString()}`, '_blank');
+            // Build the query string manually to avoid URLSearchParams encoding
+            // the "/" in `dates` or other characters Google Calendar relies on.
+            const query = [
+                `action=TEMPLATE`,
+                `text=${encodeURIComponent(eventTitle)}`,
+                `dates=${dates}`,                          // slash left unencoded intentionally
+                `ctz=Asia%2FKolkata`,                      // IST
+                `details=${encodeURIComponent(details)}`,
+                `sf=true`,
+                `output=xml`,
+                ...(add ? [`add=${encodeURIComponent(add)}`] : []),
+            ].join('&');
+
+            window.open(`https://calendar.google.com/calendar/render?${query}`, '_blank');
         } catch (error) {
             console.error('Error generating calendar link:', error);
             toast.error('Failed to generate calendar invite');
         }
-    }
+    };
 
     // Save availability for any user (owner or participant)
     const handleSaveAvailability = async () => {
@@ -307,24 +392,43 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             const blockedTimes: TimeSlot[] = []
 
             selectedSlots.forEach(cellKey => {
-                // cellKey format: "2025-02-17-8:30am-10:00am"
-                // Date is always first 10 chars (YYYY-MM-DD), time slot is the rest
-                const dateStr = cellKey.substring(0, 10)
-                const timeSlotStr = cellKey.substring(11) // skip the dash after date
-                const lastDash = timeSlotStr.lastIndexOf('-')
-                const startTime = timeSlotStr.substring(0, lastDash)
-                const endTime = timeSlotStr.substring(lastDash + 1)
-                const date = new Date(dateStr)
-                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-                const day = dayNames[date.getDay()]
+                if (dateMode === 'days') {
+                    // cellKey format: "Mon-8:30am-10:00am"
+                    const firstDash = cellKey.indexOf('-')
+                    const dayAbbr = cellKey.substring(0, firstDash)
+                    const timeSlotStr = cellKey.substring(firstDash + 1)
+                    const lastDash = timeSlotStr.lastIndexOf('-')
+                    const startTime = timeSlotStr.substring(0, lastDash)
+                    const endTime = timeSlotStr.substring(lastDash + 1)
+                    const dayFullNames: Record<string, string> = { 'Sun': 'Sunday', 'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday' }
 
-                blockedTimes.push({
-                    date: date,
-                    day: day as TimeSlot['day'],
-                    startTime: startTime,
-                    endTime: endTime,
-                    slotMode: activeConfig
-                })
+                    blockedTimes.push({
+                        date: new Date(0), // placeholder date for day mode
+                        day: dayFullNames[dayAbbr] as TimeSlot['day'],
+                        startTime: startTime,
+                        endTime: endTime,
+                        slotMode: activeConfig
+                    })
+                } else {
+                    // cellKey format: "2025-02-17-8:30am-10:00am"
+                    // Date is always first 10 chars (YYYY-MM-DD), time slot is the rest
+                    const dateStr = cellKey.substring(0, 10)
+                    const timeSlotStr = cellKey.substring(11) // skip the dash after date
+                    const lastDash = timeSlotStr.lastIndexOf('-')
+                    const startTime = timeSlotStr.substring(0, lastDash)
+                    const endTime = timeSlotStr.substring(lastDash + 1)
+                    const date = new Date(dateStr)
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                    const day = dayNames[date.getDay()]
+
+                    blockedTimes.push({
+                        date: date,
+                        day: day as TimeSlot['day'],
+                        startTime: startTime,
+                        endTime: endTime,
+                        slotMode: activeConfig
+                    })
+                }
             })
 
             // Create updated timetable with current user's availability
@@ -374,8 +478,13 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             return
         }
 
-        if (!startDate || !endDate) {
+        if (dateMode === 'dates' && (!startDate || !endDate)) {
             toast.error('Please select start and end dates')
+            return
+        }
+
+        if (dateMode === 'days' && selectedDays.size === 0) {
+            toast.error('Please select at least one day')
             return
         }
 
@@ -386,30 +495,50 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             const ownerBlockedTimes: TimeSlot[] = []
 
             selectedSlots.forEach(cellKey => {
-                // cellKey format: "YYYY-MM-DD-startTime-endTime"
-                const dateStr = cellKey.substring(0, 10)
-                const timeSlotStr = cellKey.substring(11) // skip the dash after date
-                const lastDash = timeSlotStr.lastIndexOf('-')
-                const startTime = timeSlotStr.substring(0, lastDash)
-                const endTime = timeSlotStr.substring(lastDash + 1)
-                const date = new Date(dateStr)
-                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-                const day = dayNames[date.getDay()]
+                if (dateMode === 'days') {
+                    const firstDash = cellKey.indexOf('-')
+                    const dayAbbr = cellKey.substring(0, firstDash)
+                    const timeSlotStr = cellKey.substring(firstDash + 1)
+                    const lastDash = timeSlotStr.lastIndexOf('-')
+                    const startTime = timeSlotStr.substring(0, lastDash)
+                    const endTime = timeSlotStr.substring(lastDash + 1)
+                    const dayFullNames: Record<string, string> = { 'Sun': 'Sunday', 'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday' }
 
-                ownerBlockedTimes.push({
-                    date: date,
-                    day: day as TimeSlot['day'],
-                    startTime: startTime,
-                    endTime: endTime,
-                    slotMode: activeConfig
-                })
+                    ownerBlockedTimes.push({
+                        date: new Date(0),
+                        day: dayFullNames[dayAbbr] as TimeSlot['day'],
+                        startTime: startTime,
+                        endTime: endTime,
+                        slotMode: activeConfig
+                    })
+                } else {
+                    // cellKey format: "YYYY-MM-DD-startTime-endTime"
+                    const dateStr = cellKey.substring(0, 10)
+                    const timeSlotStr = cellKey.substring(11) // skip the dash after date
+                    const lastDash = timeSlotStr.lastIndexOf('-')
+                    const startTime = timeSlotStr.substring(0, lastDash)
+                    const endTime = timeSlotStr.substring(lastDash + 1)
+                    const date = new Date(dateStr)
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                    const day = dayNames[date.getDay()]
+
+                    ownerBlockedTimes.push({
+                        date: date,
+                        day: day as TimeSlot['day'],
+                        startTime: startTime,
+                        endTime: endTime,
+                        slotMode: activeConfig
+                    })
+                }
             })
 
             const timetable: TimeTableDraft = {
                 title: title,
                 grid: {
-                    startDate: new Date(startDate),
-                    endDate: new Date(endDate),
+                    dateMode: dateMode,
+                    startDate: dateMode === 'dates' ? new Date(startDate) : new Date(0),
+                    endDate: dateMode === 'dates' ? new Date(endDate) : new Date(0),
+                    selectedDays: dateMode === 'days' ? Array.from(selectedDays) : undefined,
                     slotMode: activeConfig,
                     customSlotDuration: customDuration,
                     owner: currentUserEmail,
@@ -479,12 +608,12 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
 
                 <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
                     {/* Left Side - Configuration */}
-                    <Card className="lg:w-80 h-[490px] overflow-y-auto">
+                    <Card className="lg:w-80 h-[520px] overflow-y-auto force-scrollbar">
                         <CardContent className="space-y-4 pt-6">
                             {/* Title */}
                             <div className="space-y-2">
                                 <Label htmlFor="title">
-                                    Event Title
+                                    Title <span className="text-primary">*</span>
                                 </Label>
                                 <Input
                                     id="title"
@@ -496,67 +625,129 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                 />
                             </div>
 
-                            {/* Date Range */}
+                            {/* Schedule Mode Toggle */}
                             <div className="space-y-2">
-                                <Label>Date Range</Label>
-                                <div className="space-y-2">
-                                    <Popover open={startDatePickerOpen} onOpenChange={setStartDatePickerOpen}>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-between font-normal"
-                                                disabled={isDisabled}
-                                            >
-                                                {startDate
-                                                    ? new Date(startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                                                    : 'Start date'}
-                                                <CalendarIcon className="h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={startDate ? new Date(startDate) : undefined}
-                                                captionLayout="dropdown"
-                                                onSelect={(date) => {
-                                                    if (date) {
-                                                        setStartDate(date.toISOString().split('T')[0])
-                                                    }
-                                                    setStartDatePickerOpen(false)
-                                                }}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <Popover open={endDatePickerOpen} onOpenChange={setEndDatePickerOpen}>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-between font-normal"
-                                                disabled={isDisabled}
-                                            >
-                                                {endDate
-                                                    ? new Date(endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                                                    : 'End date'}
-                                                <CalendarIcon className="h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={endDate ? new Date(endDate) : undefined}
-                                                captionLayout="dropdown"
-                                                onSelect={(date) => {
-                                                    if (date) {
-                                                        setEndDate(date.toISOString().split('T')[0])
-                                                    }
-                                                    setEndDatePickerOpen(false)
-                                                }}
-                                                fromDate={startDate ? new Date(startDate) : undefined}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                <Label>Schedule By</Label>
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => { if (!isDisabled) { setDateMode('dates'); setSelectedDays(new Set()); setSelectedSlots(new Set()) } }}
+                                        disabled={isDisabled}
+                                        variant={dateMode === 'dates' ? 'default' : 'outline'}
+                                        className="flex-1"
+                                        size="sm"
+                                    >
+                                        Dates
+                                    </Button>
+                                    <Button
+                                        onClick={() => { if (!isDisabled) { setDateMode('days'); setStartDate(''); setEndDate(''); setSelectedSlots(new Set()) } }}
+                                        disabled={isDisabled}
+                                        variant={dateMode === 'days' ? 'default' : 'outline'}
+                                        className="flex-1"
+                                        size="sm"
+                                    >
+                                        Days
+                                    </Button>
                                 </div>
                             </div>
+
+                            {dateMode === 'dates' ? (
+                                /* Date Range Pickers */
+                                <div className="space-y-2">
+                                    <Label>Date Range</Label>
+                                    <div className="space-y-2">
+                                        <Popover open={startDatePickerOpen} onOpenChange={setStartDatePickerOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-between font-normal"
+                                                    disabled={isDisabled}
+                                                >
+                                                    {startDate
+                                                        ? new Date(startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                        : 'Start date'}
+                                                    <CalendarIcon className="h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={startDate ? new Date(startDate) : undefined}
+                                                    captionLayout="dropdown"
+                                                    onSelect={(date) => {
+                                                        if (date) {
+                                                            setStartDate(date.toISOString().split('T')[0])
+                                                        }
+                                                        setStartDatePickerOpen(false)
+                                                    }}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <Popover open={endDatePickerOpen} onOpenChange={setEndDatePickerOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-between font-normal"
+                                                    disabled={isDisabled}
+                                                >
+                                                    {endDate
+                                                        ? new Date(endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                        : 'End date'}
+                                                    <CalendarIcon className="h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={endDate ? new Date(endDate) : undefined}
+                                                    captionLayout="dropdown"
+                                                    onSelect={(date) => {
+                                                        if (date) {
+                                                            setEndDate(date.toISOString().split('T')[0])
+                                                        }
+                                                        setEndDatePickerOpen(false)
+                                                    }}
+                                                    fromDate={startDate ? new Date(startDate) : undefined}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Day Selector */
+                                <div className="space-y-2">
+                                    <Label>Select Days</Label>
+                                    <div className="flex gap-1">
+                                        {ALL_DAYS.map((day) => {
+                                            const isActive = selectedDays.has(day)
+                                            const dayLabel = day.charAt(0) // S, M, T, W, T, F, S
+                                            return (
+                                                <button
+                                                    key={day}
+                                                    onClick={() => {
+                                                        if (isDisabled) return
+                                                        const newDays = new Set(selectedDays)
+                                                        if (newDays.has(day)) {
+                                                            newDays.delete(day)
+                                                        } else {
+                                                            newDays.add(day)
+                                                        }
+                                                        setSelectedDays(newDays)
+                                                    }}
+                                                    disabled={isDisabled}
+                                                    className={`flex-1 h-9 rounded-md text-sm font-medium transition-colors border ${isActive
+                                                        ? 'text-white border-transparent'
+                                                        : 'bg-background border-border text-foreground hover:bg-muted'
+                                                        }`}
+                                                    style={isActive ? { backgroundColor: 'var(--color-primary)' } : undefined}
+                                                    title={day}
+                                                >
+                                                    {dayLabel}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Time Slot Mode */}
                             <div className="space-y-2">
@@ -604,7 +795,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                     {!currentUid && (
                                         <Button
                                             onClick={handleGenerateLink}
-                                            disabled={isGeneratingLink || !title.trim() || !startDate || !endDate}
+                                            disabled={isGeneratingLink || !title.trim() || (dateMode === 'dates' ? (!startDate || !endDate) : selectedDays.size === 0)}
                                             className="w-full bg-primary text-white hover:bg-primary/90"
                                         >
                                             {isGeneratingLink ? (
@@ -666,64 +857,109 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                     </Card>
 
                     {/* Middle Column */}
-                    <div className="lg:w-74 h-[490px] overflow-y-auto space-y-4 pr-2">
+                    <div className="lg:w-74 h-[520px] overflow-y-auto force-scrollbar space-y-4 pr-2">
                         {/* Top TimeSlot */}
                         <Card className="h-fit">
                             <CardContent className="pt-6">
                                 <div className="flex items-center gap-2 mb-3">
                                     <Trophy className="h-5 w-5" />
-                                    <span className="font-semibold text-sm">Top TimeSlot</span>
+                                    <span className="font-semibold text-sm">Top time slots</span>
                                 </div>
                                 {(() => {
                                     if (!data?.grid.blockedTimes) return (
                                         <p className="text-sm text-muted-foreground">No availability data yet</p>
                                     )
-                                    // Build a map of cellKey -> user count
+                                    // Build a map of cellKey -> unique users
                                     const slotCounts: Record<string, { date: string; timeSlot: string; count: number; users: string[] }> = {}
+
+                                    // 1. Process all saved blocked times
                                     Object.entries(data.grid.blockedTimes).forEach(([userEmail, slots]) => {
                                         if (!Array.isArray(slots)) return
+
+                                        // Use a Set to ensure we only count the user once per slot (in case of data noise)
+                                        const userSeenSlots = new Set<string>()
+
                                         slots.forEach(slot => {
                                             let dateStr: string
-                                            try {
-                                                const d = new Date(slot.date)
-                                                dateStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
-                                            } catch {
-                                                dateStr = String(slot.date).split('T')[0]
+                                            if (dateMode === 'days') {
+                                                dateStr = slot.day?.substring(0, 3) || 'Mon'
+                                            } else {
+                                                try {
+                                                    const d = new Date(slot.date)
+                                                    dateStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+                                                } catch {
+                                                    dateStr = String(slot.date).split('T')[0]
+                                                }
                                             }
-                                            const key = `${dateStr}-${slot.startTime}-${slot.endTime}`
-                                            if (!slotCounts[key]) {
-                                                slotCounts[key] = { date: dateStr, timeSlot: `${slot.startTime}-${slot.endTime}`, count: 0, users: [] }
+
+                                            const timeRange = `${slot.startTime}-${slot.endTime}`
+                                            const key = `${dateStr}-${timeRange}`
+
+                                            if (!userSeenSlots.has(key)) {
+                                                userSeenSlots.add(key)
+
+                                                // If this is the current user, skip counting their SAVED state here
+                                                // We will use their LOCAL state instead for real-time accuracy
+                                                if (userEmail === currentUserEmail) return
+
+                                                if (!slotCounts[key]) {
+                                                    slotCounts[key] = { date: dateStr, timeSlot: timeRange, count: 0, users: [] }
+                                                }
+                                                slotCounts[key].count++
+                                                slotCounts[key].users.push(userEmail)
                                             }
-                                            slotCounts[key].count++
-                                            slotCounts[key].users.push(userEmail)
                                         })
                                     })
+
+                                    // 2. Process current user's local selection
+                                    if (currentUserEmail) {
+                                        selectedSlots.forEach(cellKey => {
+                                            if (!slotCounts[cellKey]) {
+                                                // Need to parse cellKey to get date and time
+                                                const firstDash = cellKey.indexOf('-')
+                                                const dateStr = cellKey.substring(0, firstDash)
+                                                const timeRange = cellKey.substring(firstDash + 1)
+                                                slotCounts[cellKey] = { date: dateStr, timeSlot: timeRange, count: 0, users: [] }
+                                            }
+                                            slotCounts[cellKey].count++
+                                            slotCounts[cellKey].users.unshift(currentUserEmail) // Add current user to the front
+                                        })
+                                    }
+
                                     const entries = Object.values(slotCounts)
                                     if (entries.length === 0) return (
                                         <p className="text-sm text-muted-foreground">No availability data yet</p>
                                     )
+
                                     const maxCount = Math.max(...entries.map(e => e.count))
+                                    if (maxCount === 0) return <p className="text-sm text-muted-foreground">No availability data yet</p>
+
                                     const topSlots = entries.filter(e => e.count === maxCount)
                                     const formatDate = (ds: string) => {
+                                        if (dateMode === 'days') return ds
                                         const d = new Date(ds)
                                         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
                                         return `${days[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`
                                     }
                                     return (
-                                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                                        <div className="space-y-2 max-h-40 overflow-y-auto force-scrollbar">
                                             {topSlots.map((slot, idx) => (
-                                                <div key={idx} className="text-sm bg-muted px-3 py-2 rounded border border-border">
+                                                <div
+                                                    key={idx}
+                                                    className="text-sm px-3 py-2 rounded border border-primary/20"
+                                                    style={{ backgroundColor: 'rgba(155, 78, 67, 0.1)' }}
+                                                >
                                                     <div className="flex items-center justify-between">
                                                         <div>
-                                                            <div className="font-medium">{formatDate(slot.date)}</div>
-                                                            <div className="text-xs text-muted-foreground">{slot.timeSlot}</div>
-                                                            <div className="text-xs text-primary font-medium mt-1">{slot.count} {slot.count === 1 ? 'person' : 'people'}</div>
+                                                            <div className="font-semibold text-black">{formatDate(slot.date)}</div>
+                                                            <div className="text-xs text-black/80">{slot.timeSlot}</div>
+                                                            <div className="text-xs text-black font-medium mt-1">{slot.count} {slot.count === 1 ? 'person' : 'people'}</div>
                                                         </div>
                                                         {isOwner && (
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"
-                                                                className="text-xs h-7 px-2"
+                                                                className="text-xs h-7 px-2 text-black"
                                                                 onClick={() => handleSendInvite(slot.date, slot.timeSlot, slot.users)}
                                                             >
                                                                 Send Invite
@@ -749,16 +985,17 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                     <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded-full">{participantEmails.length}</span>
                                 </div>
                                 {participantEmails.length > 0 ? (
-                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                    <div className="space-y-2 max-h-48 overflow-y-auto force-scrollbar">
                                         {participantEmails.map((email, idx) => {
-                                            const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                            const name = email.split('@')[0].split('_')[0].replace(/[.]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
                                             return (
                                                 <div
                                                     key={idx}
-                                                    className="text-sm bg-muted px-3 py-2 rounded border border-border"
+                                                    className="text-sm px-3 py-2"
+
                                                 >
-                                                    <div className="font-medium">{name}</div>
-                                                    <div className="text-xs text-muted-foreground">{email}</div>
+                                                    <div className="font-semibold text-black">{name}</div>
+                                                    <div className="text-xs text-black/80">{email}</div>
                                                 </div>
                                             )
                                         })}
@@ -776,22 +1013,29 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                     {/* Right Side - Timetable */}
                     <div className="flex-1 flex flex-col">
                         {dateColumns.length > 0 ? (
-                            <>
-                                <Card className="flex-1 flex flex-col border-0 shadow-none">
-                                    <CardContent className="p-0 flex-1">
-                                        <div className="h-[490px] overflow-y-auto overflow-x-auto flex justify-center">
+                            <div className="w-fit mx-auto lg:mx-0 lg:ml-auto">
+                                <Card className="flex flex-col border-0 shadow-none bg-transparent">
+                                    <CardContent className="p-0">
+                                        <div className="h-[520px] overflow-y-auto overflow-x-auto force-scrollbar">
                                             <table className="border-separate" style={{ borderSpacing: '3px' }}>
-                                                <thead className="sticky top-0 bg-card z-10">
+                                                <thead className="sticky top-0 z-10">
                                                     <tr>
-                                                        <th className="border border-border p-2 w-[150px] bg-card rounded-[3px]">
+                                                        <th className="border border-border p-2 w-[170px] rounded-[7px] text-white" style={{ backgroundColor: 'var(--color-primary)' }}>
                                                             Time
                                                         </th>
-                                                        {dateColumns.map((date) => {
-                                                            const { day, date: dateDisplay } = formatDateDisplay(date)
+                                                        {dateColumns.map((col) => {
+                                                            if (dateMode === 'days') {
+                                                                return (
+                                                                    <th key={col} className="border border-border p-2 w-[60px] rounded-[7px] text-white" style={{ backgroundColor: 'var(--color-primary)' }}>
+                                                                        <div className="text-sm">{col}</div>
+                                                                    </th>
+                                                                )
+                                                            }
+                                                            const { day, date: dateDisplay } = formatDateDisplay(col)
                                                             return (
-                                                                <th key={date} className="border border-border p-2 w-[60px] bg-card rounded-[3px]">
+                                                                <th key={col} className="border border-border p-2 w-[60px] rounded-[7px] text-white" style={{ backgroundColor: 'var(--color-primary-light)' }}>
                                                                     <div className="text-sm">{day}</div>
-                                                                    <div className="text-xs text-muted-foreground">{dateDisplay}</div>
+                                                                    <div className="text-xs text-white/70">{dateDisplay}</div>
                                                                 </th>
                                                             )
                                                         })}
@@ -800,24 +1044,32 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                 <tbody>
                                                     {allTimeSlots.map((timeSlot) => (
                                                         <tr key={timeSlot}>
-                                                            <td className="border border-border p-2 text-sm bg-muted sticky left-0 z-5 rounded-[3px]">
+                                                            <td className="border border-border p-2 text-sm bg-muted sticky left-0 z-5 rounded-[7px]">
                                                                 {timeSlot}
                                                             </td>
                                                             {dateColumns.map((date) => {
                                                                 const cellKey = `${date}-${timeSlot}`
                                                                 const blockedByUsers = getUsersWhoBlockedCell(date, timeSlot)
-                                                                const userCount = blockedByUsers.length
                                                                 const isSelected = isCellSelected(date, timeSlot)
-                                                                // Count includes other users; if current user selected it, add 1 for visual intensity
-                                                                const effectiveCount = userCount + (isSelected ? 1 : 0)
+
+                                                                // To avoid double-counting the current user if their availability is already saved:
+                                                                // 1. Get unique users from blockedByUsers
+                                                                // 2. If current user has it selected locally but isn't in blockedByUsers yet, add 1
+                                                                // 3. If current user is in blockedByUsers but HASN'T selected it locally (deselected), subtract 1
+
+                                                                const otherUsers = currentUserEmail ? blockedByUsers.filter(email => email !== currentUserEmail) : blockedByUsers
+                                                                const effectiveCount = otherUsers.length + (isSelected ? 1 : 0)
 
                                                                 return (
                                                                     <td
                                                                         key={cellKey}
-                                                                        onClick={() => handleCellClick(date, timeSlot)}
-                                                                        onMouseEnter={() => setHoveredCell(cellKey)}
+                                                                        data-cell={cellKey}
+                                                                        onMouseDown={(e) => { e.preventDefault(); handleDragStart(date, timeSlot) }}
+                                                                        onMouseEnter={() => { setHoveredCell(cellKey); handleDragEnter(date, timeSlot) }}
                                                                         onMouseLeave={() => setHoveredCell(null)}
-                                                                        className={`border p-6 cursor-pointer transition-colors relative rounded-[3px] ${isSelected ? 'border-primary border-2' : 'border-border'}`}
+                                                                        onTouchStart={(e) => { e.preventDefault(); handleDragStart(date, timeSlot) }}
+                                                                        onTouchMove={handleTouchMove}
+                                                                        className={`border p-2 cursor-pointer transition-colors relative rounded-[7px] select-none ${isSelected ? 'border-primary border-2' : 'border-border'}`}
                                                                         style={{
                                                                             backgroundColor: effectiveCount > 0
                                                                                 ? `rgba(135, 40, 27, ${Math.min(effectiveCount / 5, 1) * 0.8})`
@@ -825,12 +1077,16 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                                         }}
                                                                     >
                                                                         {/* Tooltip on hover */}
-                                                                        {hoveredCell === cellKey && blockedByUsers.length > 0 && (
+                                                                        {hoveredCell === cellKey && (effectiveCount > 0) && (
                                                                             <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground border border-border rounded-md shadow-lg whitespace-nowrap text-xs">
                                                                                 <div className="font-semibold mb-1">
-                                                                                    {userCount} {userCount === 1 ? 'person' : 'people'} available:
+                                                                                    {effectiveCount} {effectiveCount === 1 ? 'person' : 'people'} available:
                                                                                 </div>
-                                                                                {blockedByUsers.map((email, idx) => {
+                                                                                {/* Show current user first if selected */}
+                                                                                {isSelected && currentUserEmail && (
+                                                                                    <div className="font-medium text-primary">You</div>
+                                                                                )}
+                                                                                {otherUsers.map((email, idx) => {
                                                                                     const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
                                                                                     return (
                                                                                         <div key={idx} className="text-muted-foreground">
@@ -872,11 +1128,11 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                         </Button>
                                     </div>
                                 )}
-                            </>
+                            </div>
                         ) : (
                             <Card>
                                 <CardContent className="flex items-center justify-center h-[490px] text-muted-foreground">
-                                    {data ? 'Select start and end dates to view the timetable' : 'Create a new timetable to get started'}
+                                    {data ? 'Select dates or days to view the timetable' : 'Create a new timetable to get started'}
                                 </CardContent>
                             </Card>
                         )}

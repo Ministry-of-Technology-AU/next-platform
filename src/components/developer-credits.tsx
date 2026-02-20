@@ -24,7 +24,7 @@ export default function DeveloperCredits({ developers }: DeveloperProps) {
                 <span className="font-bold">{dev.name}</span> {dev.role ? `- ${dev.role}` : ""}
               </a>
             ) : (
-              <span className="font-medium">
+              <span className="text-primary dark:text-secondary-dark font-medium">
                 <span className="font-bold">{dev.name}</span> {dev.role ? `- ${dev.role}` : ""}
               </span>
             )}
