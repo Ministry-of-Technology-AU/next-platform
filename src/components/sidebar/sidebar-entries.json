@@ -60,6 +60,11 @@
           "title": "Organisations Catalogue",
           "icon": "GalleryHorizontalEnd",
           "href": "/organisations-catalog"
+        },
+        {
+          "title": "When2Meowt",
+          "icon": "CalendarSearch",
+          "href": "/when2meet"
         }
       ]
     },

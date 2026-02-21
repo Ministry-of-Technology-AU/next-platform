@@ -9,7 +9,7 @@ export async function getUserIdByEmail(email: string): Promise<number | null> {
         const response = await strapiGet('/users', {
             filters: {
                 email: {
-                    $eq: 'vaani.goenka_ug2024@ashoka.edu.in'
+                    $eq: email
                 }
             }
         })

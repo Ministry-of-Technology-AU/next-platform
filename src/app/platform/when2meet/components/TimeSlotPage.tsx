@@ -27,9 +27,9 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
 
     const ALL_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
     const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set())
-    const [activeConfig, setActiveConfig] = useState<TimeTableGrid['slotMode']>('ashoka')
+    const [activeConfig, setActiveConfig] = useState<TimeTableGrid['slotMode']>('custom')
     const [showCustomDropdown, setShowCustomDropdown] = useState<boolean>(false)
-    const [customDuration, setCustomDuration] = useState<TimeTableGrid['customSlotDuration']>(60)
+    const [customDuration, setCustomDuration] = useState<TimeTableGrid['customSlotDuration']>(30)
     const [onlyShareOwnerAvail, setOnlyShareOwnerAvail] = useState<boolean>(false)
     const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false)
     const [isSavingAvailability, setIsSavingAvailability] = useState<boolean>(false)
@@ -336,35 +336,70 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                 return { hours, minutes };
             };
 
-            // Format directly from parsed parts + date string — no Date object needed,
-            // so there's zero risk of browser timezone shifting the values.
-            const formatForGCal = (timeStr: string, dateStr: string) => {
-                const { hours, minutes } = parseTimeParts(timeStr);
-                const [year, month, day] = dateStr.split('-').map(Number);
-                const pad = (n: number) => String(n).padStart(2, '0');
-                return `${year}${pad(month)}${pad(day)}T${pad(hours)}${pad(minutes)}00`;
-            };
-
-            const startFormatted = formatForGCal(startRaw, slotDate);
-            const endFormatted = formatForGCal(endRaw, slotDate);
-            const dates = `${startFormatted}/${endFormatted}`;
-
             const details = `Scheduled via When2Meet for ${slotDate} ${timeRange}.`;
             const add = invitees?.join(',') ?? '';
 
-            // Build the query string manually to avoid URLSearchParams encoding
-            // the "/" in `dates` or other characters Google Calendar relies on.
-            const query = [
+            let queryParams = [
                 `action=TEMPLATE`,
                 `text=${encodeURIComponent(eventTitle)}`,
-                `dates=${dates}`,                          // slash left unencoded intentionally
                 `ctz=Asia%2FKolkata`,                      // IST
                 `details=${encodeURIComponent(details)}`,
                 `sf=true`,
                 `output=xml`,
                 ...(add ? [`add=${encodeURIComponent(add)}`] : []),
-            ].join('&');
+            ];
 
+            if (dateMode === 'days') {
+                // slotDate is "Mon", "Tue", etc.
+                const dayMap: Record<string, { byDay: string, offset: number }> = {
+                    'Sun': { byDay: 'SU', offset: 0 },
+                    'Mon': { byDay: 'MO', offset: 1 },
+                    'Tue': { byDay: 'TU', offset: 2 },
+                    'Wed': { byDay: 'WE', offset: 3 },
+                    'Thu': { byDay: 'TH', offset: 4 },
+                    'Fri': { byDay: 'FR', offset: 5 },
+                    'Sat': { byDay: 'SA', offset: 6 }
+                };
+
+                const mapping = dayMap[slotDate] || { byDay: 'MO', offset: 1 };
+
+                // Find next occurrence of this day
+                const now = new Date();
+                const today = now.getDay();
+                let daysUntil = mapping.offset - today;
+                if (daysUntil <= 0) daysUntil += 7; // Next occurrence
+
+                const nextDate = new Date(now);
+                nextDate.setDate(now.getDate() + daysUntil);
+
+                const formatForGCal = (timeStr: string, dateObj: Date) => {
+                    const { hours, minutes } = parseTimeParts(timeStr);
+                    const pad = (n: number) => String(n).padStart(2, '0');
+                    return `${dateObj.getFullYear()}${pad(dateObj.getMonth() + 1)}${pad(dateObj.getDate())}T${pad(hours)}${pad(minutes)}00`;
+                };
+
+                const startFormatted = formatForGCal(startRaw, nextDate);
+                const endFormatted = formatForGCal(endRaw, nextDate);
+                const dates = `${startFormatted}/${endFormatted}`;
+
+                queryParams.push(`dates=${dates}`);
+                queryParams.push(`recur=RRULE:FREQ=WEEKLY;BYDAY=${mapping.byDay}`);
+            } else {
+                // dateMode is 'dates', slotDate is "YYYY-MM-DD"
+                const formatForGCal = (timeStr: string, dateStr: string) => {
+                    const { hours, minutes } = parseTimeParts(timeStr);
+                    const [year, month, day] = dateStr.split('-').map(Number);
+                    const pad = (n: number) => String(n).padStart(2, '0');
+                    return `${year}${pad(month)}${pad(day)}T${pad(hours)}${pad(minutes)}00`;
+                };
+
+                const startFormatted = formatForGCal(startRaw, slotDate);
+                const endFormatted = formatForGCal(endRaw, slotDate);
+                const dates = `${startFormatted}/${endFormatted}`;
+                queryParams.push(`dates=${dates}`);
+            }
+
+            const query = queryParams.join('&');
             window.open(`https://calendar.google.com/calendar/render?${query}`, '_blank');
         } catch (error) {
             console.error('Error generating calendar link:', error);
@@ -608,7 +643,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
 
                 <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
                     {/* Left Side - Configuration */}
-                    <Card className="lg:w-80 h-[520px] overflow-y-auto force-scrollbar">
+                    <Card className="lg:w-80 h-[520px] overflow-y-scroll force-scrollbar">
                         <CardContent className="space-y-4 pt-6">
                             {/* Title */}
                             <div className="space-y-2">
@@ -754,12 +789,17 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                 <Label>Time Slot Mode</Label>
                                 <div className="space-y-2">
                                     <Button
-                                        onClick={() => !isDisabled && setActiveConfig('ashoka')}
+                                        onClick={() => {
+                                            if (!isDisabled) {
+                                                setActiveConfig('custom')
+                                                setCustomDuration(30)
+                                            }
+                                        }}
                                         disabled={isDisabled}
-                                        variant={activeConfig === 'ashoka' ? 'default' : 'outline'}
+                                        variant={activeConfig === 'custom' ? 'default' : 'outline'}
                                         className="w-full"
                                     >
-                                        Ashoka Schedule
+                                        30 minutes slot
                                     </Button>
                                     <Button
                                         onClick={() => {
@@ -774,17 +814,12 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                         1 hour slot
                                     </Button>
                                     <Button
-                                        onClick={() => {
-                                            if (!isDisabled) {
-                                                setActiveConfig('custom')
-                                                setCustomDuration(30)
-                                            }
-                                        }}
+                                        onClick={() => !isDisabled && setActiveConfig('ashoka')}
                                         disabled={isDisabled}
-                                        variant={activeConfig === 'custom' ? 'default' : 'outline'}
+                                        variant={activeConfig === 'ashoka' ? 'default' : 'outline'}
                                         className="w-full"
                                     >
-                                        30 minutes slot
+                                        Ashoka Schedule
                                     </Button>
                                 </div>
                             </div>
@@ -857,7 +892,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                     </Card>
 
                     {/* Middle Column */}
-                    <div className="lg:w-74 h-[520px] overflow-y-auto force-scrollbar space-y-4 pr-2">
+                    <div className="lg:w-74 h-[520px] overflow-y-scroll force-scrollbar space-y-4 pr-2">
                         {/* Top TimeSlot */}
                         <Card className="h-fit">
                             <CardContent className="pt-6">
@@ -942,7 +977,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                         return `${days[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`
                                     }
                                     return (
-                                        <div className="space-y-2 max-h-40 overflow-y-auto force-scrollbar">
+                                        <div className="space-y-2 max-h-40 overflow-y-scroll force-scrollbar">
                                             {topSlots.map((slot, idx) => (
                                                 <div
                                                     key={idx}
@@ -951,15 +986,15 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <div>
-                                                            <div className="font-semibold text-black">{formatDate(slot.date)}</div>
-                                                            <div className="text-xs text-black/80">{slot.timeSlot}</div>
-                                                            <div className="text-xs text-black font-medium mt-1">{slot.count} {slot.count === 1 ? 'person' : 'people'}</div>
+                                                            <div className="font-semibold text-foreground">{formatDate(slot.date)}</div>
+                                                            <div className="text-xs text-foreground/80">{slot.timeSlot}</div>
+                                                            <div className="text-xs text-foreground font-medium mt-1">{slot.count} {slot.count === 1 ? 'person' : 'people'}</div>
                                                         </div>
                                                         {isOwner && (
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"
-                                                                className="text-xs h-7 px-2 text-black"
+                                                                className="text-xs h-7 px-2 text-foreground"
                                                                 onClick={() => handleSendInvite(slot.date, slot.timeSlot, slot.users)}
                                                             >
                                                                 Send Invite
@@ -985,7 +1020,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                     <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded-full">{participantEmails.length}</span>
                                 </div>
                                 {participantEmails.length > 0 ? (
-                                    <div className="space-y-2 max-h-48 overflow-y-auto force-scrollbar">
+                                    <div className="space-y-2 max-h-48 overflow-y-scroll force-scrollbar">
                                         {participantEmails.map((email, idx) => {
                                             const name = email.split('@')[0].split('_')[0].replace(/[.]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
                                             return (
@@ -994,8 +1029,8 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                     className="text-sm px-3 py-2"
 
                                                 >
-                                                    <div className="font-semibold text-black">{name}</div>
-                                                    <div className="text-xs text-black/80">{email}</div>
+                                                    <div className="font-semibold text-foreground">{name}</div>
+                                                    <div className="text-xs text-foreground/80">{email}</div>
                                                 </div>
                                             )
                                         })}
@@ -1016,24 +1051,24 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                             <div className="w-fit mx-auto lg:mx-0 lg:ml-auto">
                                 <Card className="flex flex-col border-0 shadow-none bg-transparent">
                                     <CardContent className="p-0">
-                                        <div className="h-[520px] overflow-y-auto overflow-x-auto force-scrollbar">
+                                        <div className="h-[520px] overflow-y-scroll overflow-x-scroll force-scrollbar">
                                             <table className="border-separate" style={{ borderSpacing: '3px' }}>
-                                                <thead className="sticky top-0 z-10">
+                                                <thead className="sticky top-0 z-10 bg-primary-light/60 dark:bg-primary-dark/40 !text-white">
                                                     <tr>
-                                                        <th className="border border-border p-2 w-[170px] rounded-[7px] text-white" style={{ backgroundColor: 'var(--color-primary)' }}>
+                                                        <th className="border border-border p-2 w-[170px] rounded-[7px] text-white">
                                                             Time
                                                         </th>
                                                         {dateColumns.map((col) => {
                                                             if (dateMode === 'days') {
                                                                 return (
-                                                                    <th key={col} className="border border-border p-2 w-[60px] rounded-[7px] text-white" style={{ backgroundColor: 'var(--color-primary)' }}>
+                                                                    <th key={col} className="border border-border p-2 w-[60px] rounded-[7px] text-white">
                                                                         <div className="text-sm">{col}</div>
                                                                     </th>
                                                                 )
                                                             }
                                                             const { day, date: dateDisplay } = formatDateDisplay(col)
                                                             return (
-                                                                <th key={col} className="border border-border p-2 w-[60px] rounded-[7px] text-white" style={{ backgroundColor: 'var(--color-primary-light)' }}>
+                                                                <th key={col} className="border border-border p-2 w-[60px] rounded-[7px]">
                                                                     <div className="text-sm">{day}</div>
                                                                     <div className="text-xs text-white/70">{dateDisplay}</div>
                                                                 </th>

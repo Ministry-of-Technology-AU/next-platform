@@ -38,7 +38,8 @@ import {
   GalleryHorizontalEnd,
   ShoppingBag,
   Puzzle,
-  Route
+  Route,
+  CalendarSearch
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -64,7 +65,8 @@ const iconMap = {
   GalleryHorizontalEnd,
   ShoppingBag,
   Puzzle,
-  Route
+  Route,
+  CalendarSearch
 };
 
 interface SidebarItem {
