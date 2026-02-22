@@ -2,11 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Course, GradeComponent } from "../types";
 import { STORAGE_KEY, newCourse, newComponent, defaultScoreForLetter, computeCourse, getLetterFromPercentage } from "../data";
-import { Plus, Trash2 } from "lucide-react";
-import {HeaderRow} from "./header-row";
-import {ComponentRowView} from "./component-row-view";
+import { Download, Plus, Trash2, Calendar, FileText } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent, TabsContents } from "@/components/ui/shadcn-io/tabs";
+import { Course, Semester, GradeComponent } from "@/lib/cgpa-types";
+import { HeaderRow } from "./header-row";
+import { ComponentRowView } from "./component-row-view";
 import { Star } from "lucide-react";
 import { X } from "lucide-react";
 import { ExtraCreditCard } from "./extra-credit-card";
@@ -24,7 +25,7 @@ export default function GradePlanner() {
         setCourses(parsed);
         return;
       }
-    } catch {}
+    } catch { }
     // default empty course
     setCourses([newCourse()]);
   }, []);
@@ -32,7 +33,7 @@ export default function GradePlanner() {
   const persist = useCallback((next: Course[]) => {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {}
+    } catch { }
   }, []);
 
   const debouncedPersist = useCallback((next: Course[]) => {
@@ -196,6 +197,7 @@ export default function GradePlanner() {
                 course={course}
                 updateExtraCreditField={updateExtraCreditField}
                 onExtraLetterChange={onExtraLetterChange}
+                onRemoveExtraCredit={(courseId) => toggleExtraCredit(courseId)}
               />
             </CardContent>
             <CardFooter className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

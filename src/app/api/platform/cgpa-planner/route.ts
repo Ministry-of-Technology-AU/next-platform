@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { strapiGet, strapiPut } from "@/lib/apis/strapi";
 import { getUserIdByEmail } from "@/lib/userid";
-import { CGPAData } from "./utils";
+import { ParsedCGPAData } from "@/lib/cgpa-types";
 
 /**
  * GET handler for /api/platform/cgpa-planner
@@ -43,8 +43,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Return the CGPA data from user's cgpa_data field
-    const cgpaData: CGPAData = response.cgpa_data;
+    const cgpaData: ParsedCGPAData = response.cgpa_data;
 
     return NextResponse.json({
       success: true,
@@ -55,10 +54,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching CGPA data:", error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Failed to fetch CGPA data",
-        details: (error as Error).message 
+        details: (error as Error).message
       },
       { status: 500 }
     );
@@ -81,8 +80,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const cgpaData = await request.json() as CGPAData;
-    
+    const cgpaData = await request.json() as ParsedCGPAData;
+
     // Validate required fields
     if (!cgpaData.semesters || !Array.isArray(cgpaData.semesters)) {
       return NextResponse.json(
@@ -116,10 +115,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error saving CGPA data:", error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Failed to save CGPA data",
-        details: (error as Error).message 
+        details: (error as Error).message
       },
       { status: 500 }
     );
@@ -164,10 +163,10 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error deleting CGPA data:", error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Failed to delete CGPA data",
-        details: (error as Error).message 
+        details: (error as Error).message
       },
       { status: 500 }
     );

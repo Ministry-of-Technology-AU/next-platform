@@ -1,6 +1,6 @@
 import { memo } from "react";
-import { ComponentRowViewProps } from "../types";
 import { Input } from "@/components/ui/input";
+import { GradeComponent, GradeKey, ComponentRowViewProps } from "@/lib/cgpa-types";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
