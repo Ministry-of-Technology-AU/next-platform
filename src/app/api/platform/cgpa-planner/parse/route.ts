@@ -1,65 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { strapiPut } from "@/lib/apis/strapi";
-import { getUserIdByEmail } from "@/lib/userid";
 import { parseGradeDataText, sanitizeCGPAData } from "@/lib/cgpa-utils";
+
+const CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+function withCors(response: NextResponse) {
+    Object.entries(CORS_HEADERS).forEach(([key, value]) => response.headers.set(key, value));
+    return response;
+}
+
+function jsonResponse(body: unknown, status = 200) {
+    return withCors(NextResponse.json(body, { status }));
+}
+
+export async function OPTIONS() {
+    return withCors(new NextResponse(null, { status: 204 }));
+}
 
 export async function POST(request: NextRequest) {
     try {
-        const { text, saveToStrapi = true } = await request.json();
+        const body = await request.json();
+        const text = typeof body?.text === "string" ? body.text : "";
 
-        if (!text || typeof text !== 'string') {
-            return NextResponse.json(
-                { success: false, error: "Missing or invalid text input" },
-                { status: 400 }
-            );
+        if (!text.trim()) {
+            return jsonResponse({ success: false, error: "Missing or invalid text input" }, 400);
         }
 
         const parsedData = parseGradeDataText(text);
         const sanitizedData = sanitizeCGPAData(parsedData);
 
-        let userId = null;
-        let strapiResponse = null;
-
-        if (saveToStrapi) {
-            const session = await auth();
-            if (!session?.user?.email) {
-                return NextResponse.json(
-                    { success: false, error: "Authentication required to save to Strapi" },
-                    { status: 401 }
-                );
-            }
-
-            userId = await getUserIdByEmail(session.user.email);
-            if (!userId) {
-                return NextResponse.json(
-                    { success: false, error: "User not found" },
-                    { status: 404 }
-                );
-            }
-
-            strapiResponse = await strapiPut(`/users/${userId}`, {
-                cgpa_data: sanitizedData
-            });
-        }
-
-        return NextResponse.json({
+        return jsonResponse({
             success: true,
             data: sanitizedData,
-            message: saveToStrapi ? "CGPA data parsed and saved successfully" : "CGPA data parsed successfully",
-            savedToStrapi: saveToStrapi,
-            userId,
+            message: "CGPA data parsed successfully",
         });
 
     } catch (error) {
         console.error("Error parsing CGPA data:", error);
-        return NextResponse.json(
+        return jsonResponse(
             {
                 success: false,
                 error: "Failed to parse CGPA data",
                 details: (error as Error).message
             },
-            { status: 500 }
+            500
         );
     }
 }

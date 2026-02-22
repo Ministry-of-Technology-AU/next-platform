@@ -202,26 +202,23 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
         }
 
         try {
-            const res = await fetch('/api/platform/cgpa-planner/parse', {
+            const saveRes = await fetch('/api/platform/cgpa-planner', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: gradeInput,
-                    saveToStrapi: true
-                })
+                body: JSON.stringify({ text: gradeInput })
             });
 
-            const data = await res.json();
-            if (data.success && data.data) {
-                setCgpaData(data.data);
+            const saveData = await saveRes.json();
+            if (saveData.success && saveData.data) {
+                setCgpaData(saveData.data);
                 setIsFormView(false);
             } else {
-                console.error(data.error);
-                alert('Failed to parse CGPA data.');
+                console.error(saveData.error);
+                alert('Failed to parse or save CGPA data.');
             }
         } catch (error) {
             console.error('Error posting CGPA data:', error);
-            alert('Error posting CGPA data.');
+            alert('Error processing CGPA data.');
         }
     };
 
