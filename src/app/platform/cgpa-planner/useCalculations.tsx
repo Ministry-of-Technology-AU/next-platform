@@ -98,6 +98,51 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
     const pastSemesters = semesterPartitions.pastUI;
     const currentUpcomingSemester = semesterPartitions.currentUpcoming;
 
+    useEffect(() => {
+        if (cgpaData.semesters.length > 0) return;
+
+        let cancelled = false;
+
+        const hydrateFromBackend = async () => {
+            try {
+                const response = await fetch('/api/platform/cgpa-planner', { cache: 'no-store' });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                if (cancelled) return;
+
+                if (result?.success && result?.data?.semesters?.length > 0) {
+                    setCgpaData(result.data as ParsedCGPAData);
+                    setIsFormView(false);
+                }
+            } catch (error) {
+                if (!cancelled) {
+                    console.error('Failed to hydrate CGPA data from backend:', error);
+                }
+            }
+        };
+
+        const onFocus = () => {
+            void hydrateFromBackend();
+        };
+
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                void hydrateFromBackend();
+            }
+        };
+
+        void hydrateFromBackend();
+        window.addEventListener('focus', onFocus);
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+            cancelled = true;
+            window.removeEventListener('focus', onFocus);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+    }, [cgpaData.semesters.length]);
+
     // Fetch baseline stats from backend when cgpaData changes
     useEffect(() => {
         const calculateStats = () => {
