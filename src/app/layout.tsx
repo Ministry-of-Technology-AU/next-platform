@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
@@ -20,6 +20,12 @@ const nunitoSans = Nunito_Sans({
   weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1
+}
 
 export const metadata: Metadata = {
   title: "Platform",

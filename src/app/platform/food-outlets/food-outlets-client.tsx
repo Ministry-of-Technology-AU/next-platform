@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search, MapPin, Clock, Utensils } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Search, SlidersHorizontal, X, Store, UtensilsCrossed, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import {
     Select,
     SelectContent,
@@ -11,190 +13,313 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { FoodOutlet, FoodItem } from "./types";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { FoodOutlet, FoodItem, FoodType, SearchResult } from "./types";
 import OutletCard from "./_components/outlet-card";
-import FoodItemTable from "./_components/food-item-table";
-import CalorieReportDialog from "./_components/calorie-report-dialog";
-import RatingDialog from "./_components/rating-dialog";
+import OutletItemsModal from "./_components/outlet-items-modal";
 
 interface FoodOutletsClientProps {
     outlets: FoodOutlet[];
 }
 
+const FOOD_TYPES: { value: FoodType | 'all'; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'veg', label: 'Veg' },
+    { value: 'non-veg', label: 'Non-Veg' },
+    { value: 'egg', label: 'Egg' },
+];
+
+const CATEGORIES = [
+    'All',
+    'Snacks',
+    'Main Course',
+    'Beverages',
+    'Coffee',
+    'Desserts',
+    'Pizza',
+    'Rolls',
+];
+
 export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
     const [searchTerm, setSearchTerm] = useState("");
-    const [cuisineFilter, setCuisineFilter] = useState("all");
-    const [statusFilter, setStatusFilter] = useState("all");
+    const [foodTypeFilter, setFoodTypeFilter] = useState<FoodType | 'all'>('all');
+    const [categoryFilter, setCategoryFilter] = useState("All");
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 300]);
     const [selectedOutlet, setSelectedOutlet] = useState<FoodOutlet | null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
-    // Dialog states
-    const [calorieDialogOpen, setCalorieDialogOpen] = useState(false);
-    const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null);
-
-    // Get unique cuisines for filter
-    const availableCuisines = useMemo(() => {
-        const cuisines = [...new Set(outlets.map(o => o.cuisine))];
-        return cuisines.sort();
+    // Calculate max price from all items
+    const maxPrice = useMemo(() => {
+        let max = 0;
+        outlets.forEach(outlet => {
+            outlet.items.forEach(item => {
+                if (item.price > max) max = item.price;
+            });
+        });
+        return Math.ceil(max / 50) * 50; // Round up to nearest 50
     }, [outlets]);
 
-    // Filter outlets
+    // Search results - unified search for outlets and items
+    const searchResults = useMemo((): SearchResult[] => {
+        if (!searchTerm.trim()) return [];
+        const term = searchTerm.toLowerCase();
+        const results: SearchResult[] = [];
+
+        outlets.forEach(outlet => {
+            // Check if outlet name matches
+            if (outlet.name.toLowerCase().includes(term)) {
+                results.push({ type: 'outlet', outlet });
+            }
+
+            // Check items - show item with outlet context
+            outlet.items.forEach(item => {
+                if (item.name.toLowerCase().includes(term)) {
+                    results.push({ type: 'item', outlet, item });
+                }
+            });
+        });
+
+        return results.slice(0, 10); // Limit results
+    }, [outlets, searchTerm]);
+
+    // Filter outlets based on criteria
     const filteredOutlets = useMemo(() => {
         return outlets.filter(outlet => {
-            const matchesSearch =
-                outlet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                outlet.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                outlet.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            // Check if any items match the filters
+            const hasMatchingItems = outlet.items.some(item => {
+                const matchesFoodType = foodTypeFilter === 'all' || item.foodType === foodTypeFilter;
+                const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
+                const matchesPrice = item.price >= priceRange[0] && item.price <= priceRange[1];
+                return matchesFoodType && matchesCategory && matchesPrice;
+            });
 
-            const matchesCuisine = cuisineFilter === "all" || outlet.cuisine === cuisineFilter;
-            const matchesStatus = statusFilter === "all" ||
-                (statusFilter === "open" && outlet.isOpen) ||
-                (statusFilter === "closed" && !outlet.isOpen);
-
-            return matchesSearch && matchesCuisine && matchesStatus;
+            return hasMatchingItems;
         });
-    }, [outlets, searchTerm, cuisineFilter, statusFilter]);
+    }, [outlets, foodTypeFilter, categoryFilter, priceRange]);
 
-    const handleReportCalories = (item: FoodItem) => {
-        setSelectedItem(item);
-        setCalorieDialogOpen(true);
+    const handleOutletClick = useCallback((outlet: FoodOutlet) => {
+        setSelectedOutlet(outlet);
+        setModalOpen(true);
+    }, []);
+
+    const handleSearchResultClick = useCallback((result: SearchResult) => {
+        if (result.type === 'outlet') {
+            setSelectedOutlet(result.outlet);
+            setModalOpen(true);
+            setSearchTerm("");
+        }
+        // Items are not clickable, just display
+    }, []);
+
+    const clearFilters = () => {
+        setFoodTypeFilter('all');
+        setCategoryFilter('All');
+        setPriceRange([0, maxPrice]);
     };
 
-    const handleRateItem = (item: FoodItem) => {
-        setSelectedItem(item);
-        setRatingDialogOpen(true);
-    };
+    const hasActiveFilters = foodTypeFilter !== 'all' || categoryFilter !== 'All' || priceRange[0] > 0 || priceRange[1] < maxPrice;
 
-    const handleCalorieSubmit = (calories: number) => {
-        console.log("Calorie report submitted:", { item: selectedItem, calories });
-        // Backend integration will go here
-        setCalorieDialogOpen(false);
-        setSelectedItem(null);
-    };
-
-    const handleRatingSubmit = (rating: number, review: string) => {
-        console.log("Rating submitted:", { item: selectedItem, rating, review });
-        // Backend integration will go here
-        setRatingDialogOpen(false);
-        setSelectedItem(null);
-    };
-
-    return (
+    // Shared content as JSX element (NOT a component function — avoids remount on state change)
+    const outletsContent = (
         <>
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search outlets or food items..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                    />
+            {/* Search */}
+            <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search outlets or food items..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-10"
+                />
+                {searchTerm && (
+                    <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
+
+                {/* Search Results Dropdown */}
+                {searchResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                        {searchResults.map((result, index) => (
+                            <div
+                                key={`${result.outlet.id}-${result.item?.id || 'outlet'}-${index}`}
+                                onClick={() => handleSearchResultClick(result)}
+                                className={`flex items-center gap-3 p-3 border-b border-border last:border-b-0 ${result.type === 'outlet' ? 'cursor-pointer hover:bg-muted/50' : ''
+                                    }`}
+                            >
+                                {result.type === 'outlet' ? (
+                                    <>
+                                        <Store className="w-5 h-5 text-primary shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium truncate">{result.outlet.name}</p>
+                                            <p className="text-xs text-muted-foreground">{result.outlet.location}</p>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-sm">
+                                            <span className="text-secondary-dark">★ {result.outlet.rating}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <UtensilsCrossed className="w-5 h-5 text-muted-foreground shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium truncate">{result.item?.name}</p>
+                                            <p className="text-xs text-muted-foreground">at {result.outlet.name}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <span className="font-medium">₹{result.item?.price}</span>
+                                            <span className="text-muted-foreground">•</span>
+                                            <span className="text-secondary-dark">★ {result.outlet.rating}</span>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Filters Row */}
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+                {/* Food Type Toggles */}
+                <div className="flex border border-border rounded-lg overflow-hidden">
+                    {FOOD_TYPES.map(type => (
+                        <button
+                            key={type.value}
+                            onClick={() => setFoodTypeFilter(type.value)}
+                            className={`px-3 py-1.5 text-sm transition-colors ${foodTypeFilter === type.value
+                                ? 'bg-primary text-primary-foreground'
+                                : 'hover:bg-muted'
+                                }`}
+                        >
+                            {type.label}
+                        </button>
+                    ))}
                 </div>
 
-                <Select value={cuisineFilter} onValueChange={setCuisineFilter}>
-                    <SelectTrigger className="w-full sm:w-48">
-                        <SelectValue placeholder="All Cuisines" />
+                {/* Category Select */}
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Category" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Cuisines</SelectItem>
-                        {availableCuisines.map(cuisine => (
-                            <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                        {CATEGORIES.map(cat => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
 
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-40">
-                        <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="open">Open Now</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
-                    </SelectContent>
-                </Select>
+                {/* Price Range */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1">
+                            <SlidersHorizontal className="w-4 h-4" />
+                            ₹{priceRange[0]} - ₹{priceRange[1]}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64">
+                        <div className="space-y-4">
+                            <p className="text-sm font-medium">Price Range</p>
+                            <Slider
+                                value={priceRange}
+                                onValueChange={(value) => setPriceRange(value as [number, number])}
+                                min={0}
+                                max={maxPrice}
+                                step={10}
+                            />
+                            <div className="flex justify-between text-sm text-muted-foreground">
+                                <span>₹{priceRange[0]}</span>
+                                <span>₹{priceRange[1]}</span>
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+
+                {/* Clear Filters */}
+                {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                        <X className="w-4 h-4 mr-1" />
+                        Clear
+                    </Button>
+                )}
             </div>
 
-            {/* Results summary */}
-            <div className="mb-4 text-sm text-muted-foreground">
+            {/* Results count */}
+            <p className="text-sm text-muted-foreground mb-4">
                 {filteredOutlets.length} outlet{filteredOutlets.length !== 1 ? 's' : ''} found
-                {searchTerm && ` matching "${searchTerm}"`}
-            </div>
+            </p>
 
-            {/* Outlets Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Outlet Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {filteredOutlets.map(outlet => (
                     <OutletCard
                         key={outlet.id}
                         outlet={outlet}
-                        isSelected={selectedOutlet?.id === outlet.id}
-                        onSelect={() => setSelectedOutlet(selectedOutlet?.id === outlet.id ? null : outlet)}
+                        onClick={() => handleOutletClick(outlet)}
                     />
                 ))}
             </div>
 
             {/* Empty state */}
             {filteredOutlets.length === 0 && (
-                <div className="text-center py-12 bg-card rounded-lg border border-border">
-                    <Utensils className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <div className="text-center py-12 bg-muted/30 rounded-lg">
+                    <UtensilsCrossed className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-semibold mb-2">No outlets found</h3>
-                    <p className="text-muted-foreground">Try adjusting your search or filters</p>
+                    <p className="text-muted-foreground">Try adjusting your filters</p>
                 </div>
             )}
+        </>
+    );
 
-            {/* Selected Outlet Detail */}
-            {selectedOutlet && (
-                <div className="bg-card rounded-lg border border-border p-6 animate-in slide-in-from-bottom-4 duration-300">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <h2 className="text-2xl font-bold">{selectedOutlet.name}</h2>
-                                <Badge variant={selectedOutlet.isOpen ? "default" : "secondary"}>
-                                    {selectedOutlet.isOpen ? "Open" : "Closed"}
-                                </Badge>
-                            </div>
-                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                    <MapPin className="w-4 h-4" />
-                                    {selectedOutlet.location}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <Clock className="w-4 h-4" />
-                                    {selectedOutlet.openingHours}
-                                </span>
-                            </div>
-                        </div>
-                        <Badge variant="outline" className="self-start">
-                            {selectedOutlet.cuisine}
-                        </Badge>
-                    </div>
-
-                    <p className="text-muted-foreground mb-6">{selectedOutlet.description}</p>
-
-                    <FoodItemTable
-                        items={selectedOutlet.items}
-                        onReportCalories={handleReportCalories}
-                        onRateItem={handleRateItem}
-                    />
+    return (
+        <>
+            {/* Desktop: Direct render */}
+            <div className="hidden lg:block">
+                <div className="bg-card rounded-lg border border-border p-4">
+                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <Store className="w-5 h-5" />
+                        Food Outlets (in and around Ashoka)
+                    </h2>
+                    {outletsContent}
                 </div>
-            )}
+            </div>
 
-            {/* Dialogs */}
-            <CalorieReportDialog
-                open={calorieDialogOpen}
-                onOpenChange={setCalorieDialogOpen}
-                item={selectedItem}
-                onSubmit={handleCalorieSubmit}
-            />
+            {/* Mobile: Accordion */}
+            <div className="lg:hidden">
+                <Accordion type="single" collapsible defaultValue="">
+                    <AccordionItem value="outlets" className="border rounded-lg">
+                        <AccordionTrigger className="px-4 hover:no-underline">
+                            <div className="flex items-center gap-2">
+                                <Store className="w-5 h-5" />
+                                <span className="font-semibold">Food Outlets (in and around Ashoka)</span>
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-4 pb-4">
+                            {outletsContent}
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </div>
 
-            <RatingDialog
-                open={ratingDialogOpen}
-                onOpenChange={setRatingDialogOpen}
-                item={selectedItem}
-                onSubmit={handleRatingSubmit}
+            {/* Items Modal */}
+            <OutletItemsModal
+                outlet={selectedOutlet}
+                open={modalOpen}
+                onOpenChange={setModalOpen}
             />
         </>
     );
 }
+

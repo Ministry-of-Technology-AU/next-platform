@@ -1,4 +1,5 @@
 import FoodOutletsClient from "./food-outlets-client";
+import MealPlanner from "./_components/meal-planner";
 import { cookies } from "next/headers";
 import { FoodOutlet } from "./types";
 
@@ -30,13 +31,26 @@ export default async function FoodOutletsPage() {
     return (
         <div className="min-h-screen">
             <div className="max-w-7xl mx-auto">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-foreground mb-2">Food Outlets</h1>
+                {/* Header */}
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold text-foreground mb-2">Food Feature</h1>
                     <p className="text-muted-foreground">
-                        Discover food options in and around campus. View menus, check calories, and leave ratings.
+                        Explore food outlets in and around Ashoka University
                     </p>
                 </div>
-                <FoodOutletsClient outlets={outlets} />
+
+                {/* Main Content - Split Layout */}
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Left Panel - Food Outlets Explorer (60%) */}
+                    <div className="w-full lg:w-[60%]">
+                        <FoodOutletsClient outlets={outlets} />
+                    </div>
+
+                    {/* Right Panel - Meal Planner (40%) */}
+                    <div className="w-full lg:w-[40%]">
+                        <MealPlanner />
+                    </div>
+                </div>
             </div>
         </div>
     );
