@@ -459,39 +459,3 @@ html.dark .custom-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: #6b7280;
   /* gray-500 */
 }
-
-/* Force scrollbar visibility */
-.force-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--sb-thumb) rgba(0, 0, 0, 0.05);
-}
-
-.dark .force-scrollbar {
-  scrollbar-color: var(--sb-thumb-dark) rgba(255, 255, 255, 0.05);
-}
-
-.force-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-  display: block;
-}
-
-.force-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-
-.force-scrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--sb-thumb);
-  border-radius: 44px;
-  border: 2px solid rgba(0, 0, 0, 0.05);
-}
-
-.dark .force-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.dark .force-scrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--sb-thumb-dark);
-  border: 2px solid rgba(255, 255, 255, 0.05);
-}

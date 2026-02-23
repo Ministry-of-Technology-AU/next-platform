@@ -11,6 +11,7 @@ import { TimeSlot, TimeTableGrid, TimeTableDraft, ASHOKA_TIME_SLOTS, HOUR_SLOTS,
 import { CalendarIcon, Check, ChevronDownIcon, Copy, Loader2, Trophy, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { useSession } from 'next-auth/react'
 
 interface TimeSlotPageProps {
     data: (TimeTableDraft & { isOwner: boolean }) | null
@@ -18,6 +19,7 @@ interface TimeSlotPageProps {
 
 export default function TimeSlotPage({ data }: TimeSlotPageProps) {
     const router = useRouter()
+    const { data: session } = useSession()
     const [title, setTitle] = useState<string>('')
     const [startDate, setStartDate] = useState<string>('')
     const [endDate, setEndDate] = useState<string>('')
@@ -47,31 +49,12 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
     const isOwner = data?.isOwner ?? true
     const isDisabled = !isOwner || !!currentUid
 
-    // Fetch current user email
+    // Update current user email from session
     useEffect(() => {
-        async function fetchCurrentUser() {
-            try {
-                const response = await fetch('/api/auth/me', {
-                    credentials: 'include' // Important: send cookies
-                })
-
-                if (response.ok) {
-                    const result = await response.json()
-                    console.log("User session data:", result)
-                    if (result.email) {
-                        setCurrentUserEmail(result.email)
-                    }
-                } else {
-                    console.error('Failed to fetch user session:', response.status)
-                    toast.error('Please log in to continue')
-                }
-            } catch (error) {
-                console.error('Error fetching current user:', error)
-                toast.error('Failed to fetch user session')
-            }
+        if (session?.user?.email) {
+            setCurrentUserEmail(session.user.email)
         }
-        fetchCurrentUser()
-    }, [])
+    }, [session])
 
     // Initialize state from data when component mounts or data changes
     useEffect(() => {
