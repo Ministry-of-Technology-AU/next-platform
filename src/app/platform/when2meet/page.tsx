@@ -1,0 +1,126 @@
+"use server";
+
+import { Card } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import TimeSlotPage from "./components/TimeSlotPage";
+import { cookies } from "next/headers";
+import { TimeTableDraft, TimeTableWithOwnership, When2MeetPageProps } from "./types";
+import { auth } from "@/auth";
+import { getUserIdByEmail } from "@/lib/userid";
+
+async function fetchTimeTableData(uid?: string): Promise<{
+    data: TimeTableWithOwnership | null;
+    error?: string;
+}> {
+    // If no UID provided, return null (blank timetable)
+    if (!uid) {
+        return { data: null };
+    }
+
+    const cookieStore = await cookies();
+
+    try {
+        // Get current authenticated user
+        const session = await auth();
+        if (!session?.user?.email) {
+            return {
+                data: null,
+                error: "Authentication required to view this timetable"
+            };
+        }
+
+        const userEmail = session.user.email;
+        const currentUserId = await getUserIdByEmail(userEmail);
+
+        if (!currentUserId) {
+            return {
+                data: null,
+                error: "Could not verify user identity"
+            };
+        }
+
+        // Fetch timetable from Strapi
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/when2meet`,
+            {
+                cache: 'no-store',
+                headers: {
+                    'Cookie': cookieStore.toString(),
+                    'uid': uid
+                },
+            }
+        );
+
+        console.log('When2Meet: Response status:', response.status);
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('When2Meet: API result:', result);
+
+            if (result.success && result.data) {
+                // Handle both data structures (with or without attributes)
+                const timetableData = result.data.attributes || result.data;
+                console.log("TimeTableDraft is ", timetableData);
+
+                // Ensure grid exists
+                if (!timetableData.grid) {
+                    console.error('When2Meet: No grid found in timetable data');
+                    return {
+                        data: null,
+                        error: "Invalid timetable structure"
+                    };
+                }
+
+                // Check if current user is the owner
+                const isOwner = timetableData.grid.owner === currentUserId.toString() ||
+                    timetableData.grid.owner === userEmail;
+
+                return {
+                    data: {
+                        ...timetableData,
+                        isOwner
+                    }
+                };
+            } else {
+                console.log('When2Meet: No TimeTableDraft data found in API result.');
+                return {
+                    data: null,
+                    error: "Timetable not found"
+                };
+            }
+        } else {
+            const errorText = await response.text();
+            console.error('When2Meet: Response not OK:', response.status, errorText);
+            return {
+                data: null,
+                error: `Failed to load timetable: ${response.status}`
+            };
+        }
+    } catch (e) {
+        console.error('Error fetching TimeTableDraft Data:', e);
+        return {
+            data: null,
+            error: "An error occurred while loading the timetable"
+        };
+    }
+}
+
+export default async function When2MeetPage({ params }: When2MeetPageProps) {
+    const { uid } = await params;
+    const { data: tt, error } = await fetchTimeTableData(uid);
+
+    return (
+        <div className="mt-2 xs:mt-3 sm:mt-4 md:mt-5 mx-2 xs:mx-3 sm:mx-4 md:mx-6 mb-2 xs:mb-3 sm:mb-4">
+            {error ? (
+                <Card className="p-6">
+                    <div className="flex items-center gap-3 text-destructive">
+                        <AlertCircle className="h-5 w-5" />
+                        <p>{error}</p>
+                    </div>
+                </Card>
+            ) : (
+                <TimeSlotPage data={tt} />
+            )}
+        </div>
+    );
+}
