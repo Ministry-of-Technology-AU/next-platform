@@ -5,11 +5,15 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images: { 
-    unoptimized: true 
+  images: {
+    unoptimized: true
   },
   experimental: {
-    optimizePackageImports: ['lucide-react'],    
+    optimizePackageImports: ['lucide-react'],
+  },
+  typescript: {
+    // Skip type checking only when SKIP_TYPECHECK=true is passed
+    ignoreBuildErrors: process.env.SKIP_TYPECHECK === 'true',
   },
 }
 
