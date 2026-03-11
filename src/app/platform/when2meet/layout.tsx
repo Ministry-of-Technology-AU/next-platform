@@ -12,7 +12,7 @@ export default function When2MeetLayout({
     return (
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
             <PageTitle
-                text="When2Meowt"
+                text="When2Meet"
                 icon={CalendarSearch}
                 subheading="Create a shared calendar to find the best meeting time with your group. Select your available time slots and share the link with participants."
             />
