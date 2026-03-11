@@ -90,7 +90,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             // If UID exists, set the shareable link
             if (data.grid.uid) {
                 const baseUrl = window.location.origin
-                setShareableLink(`${baseUrl}/w/${data.grid.uid}`)
+                setShareableLink(`${baseUrl}/platform/when2meet/${data.grid.uid}`)
             }
 
             // Load blocked times for current user
@@ -601,13 +601,13 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
 
                 setCurrentUid(uid)
                 const baseUrl = window.location.origin
-                const newLink = `${baseUrl}/w/${uid}`
+                const newLink = `${baseUrl}/platform/when2meet/${uid}`
                 setShareableLink(newLink)
 
                 toast.success(currentUid ? 'Link updated successfully!' : 'Shareable link generated!')
 
                 // Navigate to the shareable link
-                router.push(`/w/${uid}`)
+                router.push(`/platform/when2meet/${uid}`)
             } else {
                 const error = await response.json()
                 toast.error(error.error || 'Failed to generate link')
