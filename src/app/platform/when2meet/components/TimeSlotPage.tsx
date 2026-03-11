@@ -607,7 +607,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                 toast.success(currentUid ? 'Link updated successfully!' : 'Shareable link generated!')
 
                 // Navigate to the shareable link
-                router.push(`/platform/when2meet/${uid}`)
+                router.push(`/w/${uid}`)
             } else {
                 const error = await response.json()
                 toast.error(error.error || 'Failed to generate link')
