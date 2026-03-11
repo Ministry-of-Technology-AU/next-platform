@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { TimeSlot, TimeTableGrid, TimeTableDraft, ASHOKA_TIME_SLOTS, HOUR_SLOTS, THIRTY_MIN_SLOTS, TIMESLOT_COLOR } from '../types'
-import { CalendarIcon, Check, ChevronDownIcon, Copy, Loader2, Trophy, Users } from 'lucide-react'
+import { CalendarIcon, Check, ChevronDownIcon, Copy, HelpCircle, Loader2, Trophy, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
@@ -205,7 +205,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
         const date = new Date(dateStr)
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
         const day = days[date.getDay()]
-        const dateDisplay = `${date.getMonth() + 1}/${date.getDate()}`
+        const dateDisplay = `${date.getDate()}/${date.getMonth() + 1}`
         return { day, date: dateDisplay }
     }
 
@@ -645,7 +645,17 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
 
                             {/* Schedule Mode Toggle */}
                             <div className="space-y-2">
-                                <Label>Schedule By</Label>
+                                <div className="flex items-center gap-1.5">
+                                    <Label>Schedule By</Label>
+                                    <div className="relative group">
+                                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-popover text-popover-foreground border border-border rounded-md shadow-lg text-xs opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                                            <p><span className="font-semibold">Dates</span> — pick a specific date range (e.g. Mar 15–20).</p>
+                                            <p className="mt-1"><span className="font-semibold">Days</span> — pick recurring weekdays (e.g. every Mon &amp; Wed), useful for weekly schedules.</p>
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-popover" />
+                                        </div>
+                                    </div>
+                                </div>
                                 <div className="flex gap-2">
                                     <Button
                                         onClick={() => { if (!isDisabled) { setDateMode('dates'); setSelectedDays(new Set()); setSelectedSlots(new Set()) } }}
@@ -967,7 +977,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                         if (dateMode === 'days') return ds
                                         const d = new Date(ds)
                                         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-                                        return `${days[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`
+                                        return `${days[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`
                                     }
                                     return (
                                         <div className="space-y-2 max-h-40 overflow-y-scroll force-scrollbar">
@@ -983,16 +993,14 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                             <div className="text-xs text-foreground/80">{slot.timeSlot}</div>
                                                             <div className="text-xs text-foreground font-medium mt-1">{slot.count} {slot.count === 1 ? 'person' : 'people'}</div>
                                                         </div>
-                                                        {isOwner && (
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="text-xs h-7 px-2 text-foreground"
-                                                                onClick={() => handleSendInvite(slot.date, slot.timeSlot, slot.users)}
-                                                            >
-                                                                Send Invite
-                                                            </Button>
-                                                        )}
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="text-xs h-7 px-2 text-foreground"
+                                                            onClick={() => handleSendInvite(slot.date, slot.timeSlot, slot.users)}
+                                                        >
+                                                            Send Invite
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -1041,7 +1049,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                     {/* Right Side - Timetable */}
                     <div className="flex-1 flex flex-col">
                         {dateColumns.length > 0 ? (
-                            <div className="w-fit mx-auto lg:mx-0 lg:ml-auto">
+                            <div className="w-full lg:w-fit mx-auto lg:mx-0 lg:ml-auto">
                                 <Card className="flex flex-col border-0 shadow-none bg-transparent">
                                     <CardContent className="p-0">
                                         <div className="h-[520px] overflow-y-scroll overflow-x-scroll force-scrollbar">
