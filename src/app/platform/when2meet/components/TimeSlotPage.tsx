@@ -934,9 +934,19 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                         selectedSlots.forEach(cellKey => {
                                             if (!slotCounts[cellKey]) {
                                                 // Need to parse cellKey to get date and time
-                                                const firstDash = cellKey.indexOf('-')
-                                                const dateStr = cellKey.substring(0, firstDash)
-                                                const timeRange = cellKey.substring(firstDash + 1)
+                                                let dateStr: string
+                                                let timeRange: string
+                                                if (dateMode === 'days') {
+                                                    // cellKey format: "Mon-8:30am-10:00am"
+                                                    const firstDash = cellKey.indexOf('-')
+                                                    dateStr = cellKey.substring(0, firstDash)
+                                                    timeRange = cellKey.substring(firstDash + 1)
+                                                } else {
+                                                    // cellKey format: "YYYY-MM-DD-8:30am-10:00am"
+                                                    // Date is always the first 10 chars
+                                                    dateStr = cellKey.substring(0, 10)
+                                                    timeRange = cellKey.substring(11)
+                                                }
                                                 slotCounts[cellKey] = { date: dateStr, timeSlot: timeRange, count: 0, users: [] }
                                             }
                                             slotCounts[cellKey].count++
