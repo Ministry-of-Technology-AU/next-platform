@@ -48,7 +48,9 @@ export function WhatsNewModal() {
 
                 // Check if user has already dismissed this version
                 const dismissedVersion = localStorage.getItem(STORAGE_KEY);
-                if (dismissedVersion !== whatsNewData.version) {
+                const isWhen2MeetPage = window.location.pathname.includes('/when2meet');
+
+                if (dismissedVersion !== whatsNewData.version && !isWhen2MeetPage) {
                     // Show modal after a small delay for page to load
                     setTimeout(() => {
                         setIsOpen(true);

@@ -1,27 +1,13 @@
 {
-    "version": "1.0.3",
-    "lastUpdated": "2026-02-04",
+    "version": "1.0.4",
+    "lastUpdated": "2026-03-12",
     "updates": [
         {
-            "id": "ashoka-wordle-launch",
-            "title": "🎮 Ashoka Wordle!",
-            "description": "The classic Wordle game with an Ashokan twist! Guess the daily word, track your winning streak, and compete on the leaderboard. New puzzles every day at midnight IST!",
+            "id": "when2meet-launch",
+            "title": "When2Meet is here!",
+            "description": "Create a shared calendar to find the best meeting time with your group. Select your available time slots and share the link with participants.",
             "type": "new",
-            "link": "/platform/games/ashoka-wordle"
-        },
-        {
-            "id": "calendar-sync-launch",
-            "title": "Calendar Syncing!",
-            "description": "Sync your semester planner with Google Calendar!",
-            "type": "new",
-            "link": "/platform/semester-planner"
-        },
-        {
-            "id": "trajectory-planner-v2",
-            "title": "Trajectory Planner v2!",
-            "description": "Now you can go through trajectories repository to check trajectories posted by other students/seniors and you can post your own as well! We've also collaborated with reps to create a rep dashboard for them to be able to update their department's respective trajectories and degree requirements!",
-            "type": "improvement",
-            "link": "/platform/trajectory-planner"
+            "link": "/platform/when2meet"
         }
     ]
 }

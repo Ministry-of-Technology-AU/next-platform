@@ -199,17 +199,17 @@ export function AppSidebar() {
                         >
                           <div className={cn(
                             "relative transition-all duration-500",
-                            item.href === '/games' && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
+                            item.href === '/when2meet' && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
                           )}>
                             <IconComponent className={cn(
                               "size-4 group-data-[state=collapsed]:mx-auto shrink-0",
-                              item.href === '/games' && !isActive && "dark:text-secondary text-primary-light"
+                              item.href === '/when2meet' && !isActive && "dark:text-secondary text-primary-light"
                             )} />
                           </div>
                           <span className={cn(
                             "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",
                             hideLabels && "w-0 opacity-0 ml-0",
-                            item.href === '/games' && !isActive && "text-secondary font-semibold"
+                            item.href === '/when2meet' && !isActive && "text-secondary font-semibold"
                           )}>
                             {item.title}
                           </span>
