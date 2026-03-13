@@ -12,6 +12,7 @@ import { CalendarIcon, Check, ChevronDownIcon, Copy, HelpCircle, Loader2, Trophy
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
+import { TourStep } from '@/components/guided-tour'
 
 interface TimeSlotPageProps {
     data: (TimeTableDraft & { isOwner: boolean }) | null
@@ -626,553 +627,584 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
 
                 <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
                     {/* Left Side - Configuration */}
-                    <Card className="lg:w-80 h-[520px] overflow-y-scroll force-scrollbar">
-                        <CardContent className="space-y-4 pt-6">
-                            {/* Title */}
-                            <div className="space-y-2">
-                                <Label htmlFor="title">
-                                    Title <span className="text-primary">*</span>
-                                </Label>
-                                <Input
-                                    id="title"
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    disabled={isDisabled}
-                                    placeholder="Enter event title"
-                                />
-                            </div>
-
-                            {/* Schedule Mode Toggle */}
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-1.5">
-                                    <Label>Schedule By</Label>
-                                    <div className="relative group">
-                                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                                        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-popover text-popover-foreground border border-border rounded-md shadow-lg text-xs opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-                                            <p><span className="font-semibold">Dates</span> — pick a specific date range (e.g. Mar 15–20).</p>
-                                            <p className="mt-1"><span className="font-semibold">Days</span> — pick recurring weekdays (e.g. every Mon &amp; Wed), useful for weekly schedules.</p>
-                                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-popover" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={() => { if (!isDisabled) { setDateMode('dates'); setSelectedDays(new Set()); setSelectedSlots(new Set()) } }}
-                                        disabled={isDisabled}
-                                        variant={dateMode === 'dates' ? 'default' : 'outline'}
-                                        className="flex-1"
-                                        size="sm"
-                                    >
-                                        Dates
-                                    </Button>
-                                    <Button
-                                        onClick={() => { if (!isDisabled) { setDateMode('days'); setStartDate(''); setEndDate(''); setSelectedSlots(new Set()) } }}
-                                        disabled={isDisabled}
-                                        variant={dateMode === 'days' ? 'default' : 'outline'}
-                                        className="flex-1"
-                                        size="sm"
-                                    >
-                                        Days
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {dateMode === 'dates' ? (
-                                /* Date Range Pickers */
+                    <TourStep
+                        id="when2meet-config"
+                        title="Configure Your Meeting"
+                        content="Set a title, choose dates or recurring days, and pick a time slot duration. Then, generate a shareable link for everyone!"
+                        order={1}
+                        className="shrink-0"
+                    >
+                        <Card className="lg:w-80 h-[520px] overflow-y-scroll force-scrollbar shrink-0">
+                            <CardContent className="space-y-4 pt-6">
+                                {/* Title */}
                                 <div className="space-y-2">
-                                    <Label>Date Range</Label>
-                                    <div className="space-y-2">
-                                        <Popover open={startDatePickerOpen} onOpenChange={setStartDatePickerOpen}>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full justify-between font-normal"
-                                                    disabled={isDisabled}
-                                                >
-                                                    {startDate
-                                                        ? new Date(startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                                                        : 'Start date'}
-                                                    <CalendarIcon className="h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={startDate ? new Date(startDate) : undefined}
-                                                    captionLayout="dropdown"
-                                                    onSelect={(date) => {
-                                                        if (date) {
-                                                            setStartDate(date.toISOString().split('T')[0])
-                                                        }
-                                                        setStartDatePickerOpen(false)
-                                                    }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <Popover open={endDatePickerOpen} onOpenChange={setEndDatePickerOpen}>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full justify-between font-normal"
-                                                    disabled={isDisabled}
-                                                >
-                                                    {endDate
-                                                        ? new Date(endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                                                        : 'End date'}
-                                                    <CalendarIcon className="h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={endDate ? new Date(endDate) : undefined}
-                                                    captionLayout="dropdown"
-                                                    onSelect={(date) => {
-                                                        if (date) {
-                                                            setEndDate(date.toISOString().split('T')[0])
-                                                        }
-                                                        setEndDatePickerOpen(false)
-                                                    }}
-                                                    fromDate={startDate ? new Date(startDate) : undefined}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
+                                    <Label htmlFor="title">
+                                        Title <span className="text-primary">*</span>
+                                    </Label>
+                                    <Input
+                                        id="title"
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        disabled={isDisabled}
+                                        placeholder="Enter event title"
+                                    />
                                 </div>
-                            ) : (
-                                /* Day Selector */
+
+                                {/* Schedule Mode Toggle */}
                                 <div className="space-y-2">
-                                    <Label>Select Days</Label>
-                                    <div className="flex gap-1">
-                                        {ALL_DAYS.map((day) => {
-                                            const isActive = selectedDays.has(day)
-                                            const dayLabel = day.charAt(0) // S, M, T, W, T, F, S
-                                            return (
-                                                <button
-                                                    key={day}
-                                                    onClick={() => {
-                                                        if (isDisabled) return
-                                                        const newDays = new Set(selectedDays)
-                                                        if (newDays.has(day)) {
-                                                            newDays.delete(day)
-                                                        } else {
-                                                            newDays.add(day)
-                                                        }
-                                                        setSelectedDays(newDays)
-                                                    }}
-                                                    disabled={isDisabled}
-                                                    className={`flex-1 h-9 rounded-md text-sm font-medium transition-colors border ${isActive
-                                                        ? 'text-white border-transparent'
-                                                        : 'bg-background border-border text-foreground hover:bg-muted'
-                                                        }`}
-                                                    style={isActive ? { backgroundColor: 'var(--color-primary)' } : undefined}
-                                                    title={day}
-                                                >
-                                                    {dayLabel}
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Time Slot Mode */}
-                            <div className="space-y-2">
-                                <Label>Time Slot Mode</Label>
-                                <div className="space-y-2">
-                                    <Button
-                                        onClick={() => {
-                                            if (!isDisabled) {
-                                                setActiveConfig('custom')
-                                                setCustomDuration(30)
-                                            }
-                                        }}
-                                        disabled={isDisabled}
-                                        variant={activeConfig === 'custom' ? 'default' : 'outline'}
-                                        className="w-full"
-                                    >
-                                        30 minutes slot
-                                    </Button>
-                                    <Button
-                                        onClick={() => {
-                                            if (!isDisabled) {
-                                                setActiveConfig('default')
-                                            }
-                                        }}
-                                        disabled={isDisabled}
-                                        variant={activeConfig === 'default' ? 'default' : 'outline'}
-                                        className="w-full"
-                                    >
-                                        1 hour slot
-                                    </Button>
-                                    <Button
-                                        onClick={() => !isDisabled && setActiveConfig('ashoka')}
-                                        disabled={isDisabled}
-                                        variant={activeConfig === 'ashoka' ? 'default' : 'outline'}
-                                        className="w-full"
-                                    >
-                                        Ashoka Schedule
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            {isOwner ? (
-                                <>
-                                    {!currentUid && (
-                                        <Button
-                                            onClick={handleGenerateLink}
-                                            disabled={isGeneratingLink || !title.trim() || (dateMode === 'dates' ? (!startDate || !endDate) : selectedDays.size === 0)}
-                                            className="w-full bg-primary text-white hover:bg-primary/90"
-                                        >
-                                            {isGeneratingLink ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Generating...
-                                                </>
-                                            ) : (
-                                                'Generate Shareable Link'
-                                            )}
-                                        </Button>
-                                    )}
-
-                                    {/* Show shareable link if it exists */}
-                                    {shareableLink && (
-                                        <div className="space-y-2">
-                                            <Label>Shareable Link</Label>
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    type="text"
-                                                    value={shareableLink}
-                                                    readOnly
-                                                    className="flex-1 text-sm"
-                                                />
-                                                <Button
-                                                    onClick={handleCopyLink}
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="flex-shrink-0"
-                                                >
-                                                    {isCopied ? (
-                                                        <Check className="h-4 w-4" />
-                                                    ) : (
-                                                        <Copy className="h-4 w-4" />
-                                                    )}
-                                                </Button>
+                                    <div className="flex items-center gap-1.5">
+                                        <Label>Schedule By</Label>
+                                        <div className="relative group">
+                                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                            <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-popover text-popover-foreground border border-border rounded-md shadow-lg text-xs opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                                                <p><span className="font-semibold">Dates</span> — pick a specific date range (e.g. Mar 15–20).</p>
+                                                <p className="mt-1"><span className="font-semibold">Days</span> — pick recurring weekdays (e.g. every Mon &amp; Wed), useful for weekly schedules.</p>
+                                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-popover" />
                                             </div>
                                         </div>
-                                    )}
-                                </>
-                            ) : (
-                                /* Save availability button for non-owners */
-                                <Button
-                                    onClick={handleSaveAvailability}
-                                    disabled={isSavingAvailability}
-                                    className="w-full bg-primary text-white hover:bg-primary/90"
-                                >
-                                    {isSavingAvailability ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        'Save My Availability'
-                                    )}
-                                </Button>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Middle Column */}
-                    <div className="lg:w-74 h-[520px] overflow-y-scroll force-scrollbar space-y-4 pr-2">
-                        {/* Top TimeSlot */}
-                        <Card className="h-fit">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Trophy className="h-5 w-5" />
-                                    <span className="font-semibold text-sm">Top time slots</span>
-                                </div>
-                                {(() => {
-                                    if (!data?.grid.blockedTimes) return (
-                                        <p className="text-sm text-muted-foreground">No availability data yet</p>
-                                    )
-                                    // Build a map of cellKey -> unique users
-                                    const slotCounts: Record<string, { date: string; timeSlot: string; count: number; users: string[] }> = {}
-
-                                    // 1. Process all saved blocked times
-                                    Object.entries(data.grid.blockedTimes).forEach(([userEmail, slots]) => {
-                                        if (!Array.isArray(slots)) return
-
-                                        // Use a Set to ensure we only count the user once per slot (in case of data noise)
-                                        const userSeenSlots = new Set<string>()
-
-                                        slots.forEach(slot => {
-                                            let dateStr: string
-                                            if (dateMode === 'days') {
-                                                dateStr = slot.day?.substring(0, 3) || 'Mon'
-                                            } else {
-                                                try {
-                                                    const d = new Date(slot.date)
-                                                    dateStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
-                                                } catch {
-                                                    dateStr = String(slot.date).split('T')[0]
-                                                }
-                                            }
-
-                                            const timeRange = `${slot.startTime}-${slot.endTime}`
-                                            const key = `${dateStr}-${timeRange}`
-
-                                            if (!userSeenSlots.has(key)) {
-                                                userSeenSlots.add(key)
-
-                                                // If this is the current user, skip counting their SAVED state here
-                                                // We will use their LOCAL state instead for real-time accuracy
-                                                if (userEmail === currentUserEmail) return
-
-                                                if (!slotCounts[key]) {
-                                                    slotCounts[key] = { date: dateStr, timeSlot: timeRange, count: 0, users: [] }
-                                                }
-                                                slotCounts[key].count++
-                                                slotCounts[key].users.push(userEmail)
-                                            }
-                                        })
-                                    })
-
-                                    // 2. Process current user's local selection
-                                    if (currentUserEmail) {
-                                        selectedSlots.forEach(cellKey => {
-                                            if (!slotCounts[cellKey]) {
-                                                // Need to parse cellKey to get date and time
-                                                let dateStr: string
-                                                let timeRange: string
-                                                if (dateMode === 'days') {
-                                                    // cellKey format: "Mon-8:30am-10:00am"
-                                                    const firstDash = cellKey.indexOf('-')
-                                                    dateStr = cellKey.substring(0, firstDash)
-                                                    timeRange = cellKey.substring(firstDash + 1)
-                                                } else {
-                                                    // cellKey format: "YYYY-MM-DD-8:30am-10:00am"
-                                                    // Date is always the first 10 chars
-                                                    dateStr = cellKey.substring(0, 10)
-                                                    timeRange = cellKey.substring(11)
-                                                }
-                                                slotCounts[cellKey] = { date: dateStr, timeSlot: timeRange, count: 0, users: [] }
-                                            }
-                                            slotCounts[cellKey].count++
-                                            slotCounts[cellKey].users.unshift(currentUserEmail) // Add current user to the front
-                                        })
-                                    }
-
-                                    const entries = Object.values(slotCounts)
-                                    if (entries.length === 0) return (
-                                        <p className="text-sm text-muted-foreground">No availability data yet</p>
-                                    )
-
-                                    const maxCount = Math.max(...entries.map(e => e.count))
-                                    if (maxCount === 0) return <p className="text-sm text-muted-foreground">No availability data yet</p>
-
-                                    const topSlots = entries.filter(e => e.count === maxCount)
-                                    const formatDate = (ds: string) => {
-                                        if (dateMode === 'days') return ds
-                                        const d = new Date(ds)
-                                        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-                                        return `${days[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`
-                                    }
-                                    return (
-                                        <div className="space-y-2 max-h-40 overflow-y-scroll force-scrollbar">
-                                            {topSlots.map((slot, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className="text-sm px-3 py-2 rounded border border-primary/20"
-                                                    style={{ backgroundColor: 'rgba(155, 78, 67, 0.1)' }}
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <div className="font-semibold text-foreground">{formatDate(slot.date)}</div>
-                                                            <div className="text-xs text-foreground/80">{slot.timeSlot}</div>
-                                                            <div className="text-xs text-foreground font-medium mt-1">{slot.count} {slot.count === 1 ? 'person' : 'people'}</div>
-                                                        </div>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="text-xs h-7 px-2 text-foreground"
-                                                            onClick={() => handleSendInvite(slot.date, slot.timeSlot, slot.users)}
-                                                        >
-                                                            Send Invite
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )
-                                })()}
-                            </CardContent>
-                        </Card>
-
-                        {/* People on Draft */}
-                        <Card className="h-fit">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <Users className="h-5 w-5" />
-                                        <span className="font-semibold text-sm">People</span>
                                     </div>
-                                    <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded-full">{participantEmails.length}</span>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            onClick={() => { if (!isDisabled) { setDateMode('dates'); setSelectedDays(new Set()); setSelectedSlots(new Set()) } }}
+                                            disabled={isDisabled}
+                                            variant={dateMode === 'dates' ? 'default' : 'outline'}
+                                            className="flex-1"
+                                            size="sm"
+                                        >
+                                            Dates
+                                        </Button>
+                                        <Button
+                                            onClick={() => { if (!isDisabled) { setDateMode('days'); setStartDate(''); setEndDate(''); setSelectedSlots(new Set()) } }}
+                                            disabled={isDisabled}
+                                            variant={dateMode === 'days' ? 'default' : 'outline'}
+                                            className="flex-1"
+                                            size="sm"
+                                        >
+                                            Days
+                                        </Button>
+                                    </div>
                                 </div>
-                                {participantEmails.length > 0 ? (
-                                    <div className="space-y-2 max-h-48 overflow-y-scroll force-scrollbar">
-                                        {participantEmails.map((email, idx) => {
-                                            const name = email.split('@')[0].split('_')[0].replace(/[.]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-                                            return (
-                                                <div
-                                                    key={idx}
-                                                    className="text-sm px-3 py-2"
 
-                                                >
-                                                    <div className="font-semibold text-foreground">{name}</div>
-                                                    <div className="text-xs text-foreground/80">{email}</div>
-                                                </div>
-                                            )
-                                        })}
+                                {dateMode === 'dates' ? (
+                                    /* Date Range Pickers */
+                                    <div className="space-y-2">
+                                        <Label>Date Range</Label>
+                                        <div className="space-y-2">
+                                            <Popover open={startDatePickerOpen} onOpenChange={setStartDatePickerOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full justify-between font-normal"
+                                                        disabled={isDisabled}
+                                                    >
+                                                        {startDate
+                                                            ? new Date(startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                            : 'Start date'}
+                                                        <CalendarIcon className="h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={startDate ? new Date(startDate) : undefined}
+                                                        captionLayout="dropdown"
+                                                        onSelect={(date) => {
+                                                            if (date) {
+                                                                setStartDate(date.toISOString().split('T')[0])
+                                                            }
+                                                            setStartDatePickerOpen(false)
+                                                        }}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            <Popover open={endDatePickerOpen} onOpenChange={setEndDatePickerOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full justify-between font-normal"
+                                                        disabled={isDisabled}
+                                                    >
+                                                        {endDate
+                                                            ? new Date(endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                            : 'End date'}
+                                                        <CalendarIcon className="h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={endDate ? new Date(endDate) : undefined}
+                                                        captionLayout="dropdown"
+                                                        onSelect={(date) => {
+                                                            if (date) {
+                                                                setEndDate(date.toISOString().split('T')[0])
+                                                            }
+                                                            setEndDatePickerOpen(false)
+                                                        }}
+                                                        fromDate={startDate ? new Date(startDate) : undefined}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-muted-foreground">
-                                        When people join your calendar, it will show here
-                                    </p>
+                                    /* Day Selector */
+                                    <div className="space-y-2">
+                                        <Label>Select Days</Label>
+                                        <div className="flex gap-1">
+                                            {ALL_DAYS.map((day) => {
+                                                const isActive = selectedDays.has(day)
+                                                const dayLabel = day.charAt(0) // S, M, T, W, T, F, S
+                                                return (
+                                                    <button
+                                                        key={day}
+                                                        onClick={() => {
+                                                            if (isDisabled) return
+                                                            const newDays = new Set(selectedDays)
+                                                            if (newDays.has(day)) {
+                                                                newDays.delete(day)
+                                                            } else {
+                                                                newDays.add(day)
+                                                            }
+                                                            setSelectedDays(newDays)
+                                                        }}
+                                                        disabled={isDisabled}
+                                                        className={`flex-1 h-9 rounded-md text-sm font-medium transition-colors border ${isActive
+                                                            ? 'text-white border-transparent'
+                                                            : 'bg-background border-border text-foreground hover:bg-muted'
+                                                            }`}
+                                                        style={isActive ? { backgroundColor: 'var(--color-primary)' } : undefined}
+                                                        title={day}
+                                                    >
+                                                        {dayLabel}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Time Slot Mode */}
+                                <div className="space-y-2">
+                                    <Label>Time Slot Mode</Label>
+                                    <div className="space-y-2">
+                                        <Button
+                                            onClick={() => {
+                                                if (!isDisabled) {
+                                                    setActiveConfig('custom')
+                                                    setCustomDuration(30)
+                                                }
+                                            }}
+                                            disabled={isDisabled}
+                                            variant={activeConfig === 'custom' ? 'default' : 'outline'}
+                                            className="w-full"
+                                        >
+                                            30 minutes slot
+                                        </Button>
+                                        <Button
+                                            onClick={() => {
+                                                if (!isDisabled) {
+                                                    setActiveConfig('default')
+                                                }
+                                            }}
+                                            disabled={isDisabled}
+                                            variant={activeConfig === 'default' ? 'default' : 'outline'}
+                                            className="w-full"
+                                        >
+                                            1 hour slot
+                                        </Button>
+                                        <Button
+                                            onClick={() => !isDisabled && setActiveConfig('ashoka')}
+                                            disabled={isDisabled}
+                                            variant={activeConfig === 'ashoka' ? 'default' : 'outline'}
+                                            className="w-full"
+                                        >
+                                            Ashoka Schedule
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                {isOwner ? (
+                                    <>
+                                        {!currentUid && (
+                                            <Button
+                                                onClick={handleGenerateLink}
+                                                disabled={isGeneratingLink || !title.trim() || (dateMode === 'dates' ? (!startDate || !endDate) : selectedDays.size === 0)}
+                                                className="w-full bg-primary text-white hover:bg-primary/90"
+                                            >
+                                                {isGeneratingLink ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Generating...
+                                                    </>
+                                                ) : (
+                                                    'Generate Shareable Link'
+                                                )}
+                                            </Button>
+                                        )}
+
+                                        {/* Show shareable link if it exists */}
+                                        {shareableLink && (
+                                            <div className="space-y-2">
+                                                <Label>Shareable Link</Label>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        type="text"
+                                                        value={shareableLink}
+                                                        readOnly
+                                                        className="flex-1 text-sm"
+                                                    />
+                                                    <Button
+                                                        onClick={handleCopyLink}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="shrink-0"
+                                                    >
+                                                        {isCopied ? (
+                                                            <Check className="h-4 w-4" />
+                                                        ) : (
+                                                            <Copy className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    /* Save availability button for non-owners */
+                                    <Button
+                                        onClick={handleSaveAvailability}
+                                        disabled={isSavingAvailability}
+                                        className="w-full bg-primary text-white hover:bg-primary/90"
+                                    >
+                                        {isSavingAvailability ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            'Save My Availability'
+                                        )}
+                                    </Button>
                                 )}
                             </CardContent>
                         </Card>
+                    </TourStep>
+
+                    {/* Middle Column */}
+                    <div className="lg:w-74 shrink-0 h-[520px] overflow-y-scroll force-scrollbar space-y-4 pr-2">
+                        {/* Top TimeSlot */}
+                        <TourStep
+                            id="when2meet-invites"
+                            title="Send Everyone Invites"
+                            content="Once people start filling in their availability, the best times will appear here. You can send calendar invites directly from this list!"
+                            order={4}
+                        >
+                            <Card className="h-fit">
+                                <CardContent className="pt-6">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Trophy className="h-5 w-5" />
+                                        <span className="font-semibold text-sm">Top time slots</span>
+                                    </div>
+                                    {(() => {
+                                        if (!data?.grid.blockedTimes) return (
+                                            <p className="text-sm text-muted-foreground">No availability data yet</p>
+                                        )
+                                        // Build a map of cellKey -> unique users
+                                        const slotCounts: Record<string, { date: string; timeSlot: string; count: number; users: string[] }> = {}
+
+                                        // 1. Process all saved blocked times
+                                        Object.entries(data.grid.blockedTimes).forEach(([userEmail, slots]) => {
+                                            if (!Array.isArray(slots)) return
+
+                                            // Use a Set to ensure we only count the user once per slot (in case of data noise)
+                                            const userSeenSlots = new Set<string>()
+
+                                            slots.forEach(slot => {
+                                                let dateStr: string
+                                                if (dateMode === 'days') {
+                                                    dateStr = slot.day?.substring(0, 3) || 'Mon'
+                                                } else {
+                                                    try {
+                                                        const d = new Date(slot.date)
+                                                        dateStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+                                                    } catch {
+                                                        dateStr = String(slot.date).split('T')[0]
+                                                    }
+                                                }
+
+                                                const timeRange = `${slot.startTime}-${slot.endTime}`
+                                                const key = `${dateStr}-${timeRange}`
+
+                                                if (!userSeenSlots.has(key)) {
+                                                    userSeenSlots.add(key)
+
+                                                    // If this is the current user, skip counting their SAVED state here
+                                                    // We will use their LOCAL state instead for real-time accuracy
+                                                    if (userEmail === currentUserEmail) return
+
+                                                    if (!slotCounts[key]) {
+                                                        slotCounts[key] = { date: dateStr, timeSlot: timeRange, count: 0, users: [] }
+                                                    }
+                                                    slotCounts[key].count++
+                                                    slotCounts[key].users.push(userEmail)
+                                                }
+                                            })
+                                        })
+
+                                        // 2. Process current user's local selection
+                                        if (currentUserEmail) {
+                                            selectedSlots.forEach(cellKey => {
+                                                if (!slotCounts[cellKey]) {
+                                                    // Need to parse cellKey to get date and time
+                                                    let dateStr: string
+                                                    let timeRange: string
+                                                    if (dateMode === 'days') {
+                                                        // cellKey format: "Mon-8:30am-10:00am"
+                                                        const firstDash = cellKey.indexOf('-')
+                                                        dateStr = cellKey.substring(0, firstDash)
+                                                        timeRange = cellKey.substring(firstDash + 1)
+                                                    } else {
+                                                        // cellKey format: "YYYY-MM-DD-8:30am-10:00am"
+                                                        // Date is always the first 10 chars
+                                                        dateStr = cellKey.substring(0, 10)
+                                                        timeRange = cellKey.substring(11)
+                                                    }
+                                                    slotCounts[cellKey] = { date: dateStr, timeSlot: timeRange, count: 0, users: [] }
+                                                }
+                                                slotCounts[cellKey].count++
+                                                slotCounts[cellKey].users.unshift(currentUserEmail) // Add current user to the front
+                                            })
+                                        }
+
+                                        const entries = Object.values(slotCounts)
+                                        if (entries.length === 0) return (
+                                            <p className="text-sm text-muted-foreground">No availability data yet</p>
+                                        )
+
+                                        const maxCount = Math.max(...entries.map(e => e.count))
+                                        if (maxCount === 0) return <p className="text-sm text-muted-foreground">No availability data yet</p>
+
+                                        const topSlots = entries.filter(e => e.count === maxCount)
+                                        const formatDate = (ds: string) => {
+                                            if (dateMode === 'days') return ds
+                                            const d = new Date(ds)
+                                            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                                            return `${days[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`
+                                        }
+                                        return (
+                                            <div className="space-y-2 max-h-40 overflow-y-scroll force-scrollbar">
+                                                {topSlots.map((slot, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="text-sm px-3 py-2 rounded border border-primary/20"
+                                                        style={{ backgroundColor: 'rgba(155, 78, 67, 0.1)' }}
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <div className="font-semibold text-foreground">{formatDate(slot.date)}</div>
+                                                                <div className="text-xs text-foreground/80">{slot.timeSlot}</div>
+                                                                <div className="text-xs text-foreground font-medium mt-1">{slot.count} {slot.count === 1 ? 'person' : 'people'}</div>
+                                                            </div>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="text-xs h-7 px-2 text-foreground"
+                                                                onClick={() => handleSendInvite(slot.date, slot.timeSlot, slot.users)}
+                                                            >
+                                                                Send Invite
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )
+                                    })()}
+                                </CardContent>
+                            </Card>
+                        </TourStep>
+
+                        {/* People on Draft */}
+                        <TourStep
+                            id="when2meet-people"
+                            title="People on Draft"
+                            content="See who has already joined the meeting and shared their availability."
+                            order={3}
+                        >
+                            <Card className="h-fit">
+                                <CardContent className="pt-6">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <Users className="h-5 w-5" />
+                                            <span className="font-semibold text-sm">People</span>
+                                        </div>
+                                        <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded-full">{participantEmails.length}</span>
+                                    </div>
+                                    {participantEmails.length > 0 ? (
+                                        <div className="space-y-2 max-h-48 overflow-y-scroll force-scrollbar">
+                                            {participantEmails.map((email, idx) => {
+                                                const name = email.split('@')[0].split('_')[0].replace(/[.]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className="text-sm px-3 py-2"
+
+                                                    >
+                                                        <div className="font-semibold text-foreground">{name}</div>
+                                                        <div className="text-xs text-foreground/80">{email}</div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            When people join your calendar, it will show here
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TourStep>
 
                     </div>
 
                     {/* Right Side - Timetable */}
-                    <div className="flex-1 flex flex-col">
-                        {dateColumns.length > 0 ? (
-                            <div className="w-full lg:w-fit mx-auto lg:mx-0 lg:ml-auto">
-                                <Card className="flex flex-col border-0 shadow-none bg-transparent">
-                                    <CardContent className="p-0">
-                                        <div className="h-[520px] overflow-y-scroll overflow-x-scroll force-scrollbar">
-                                            <table className="border-separate" style={{ borderSpacing: '3px' }}>
-                                                <thead className="sticky top-0 z-10 bg-primary-light/60 dark:bg-primary-dark/40 !text-white">
-                                                    <tr>
-                                                        <th className="border border-border p-2 w-[170px] rounded-[7px] text-white">
-                                                            Time
-                                                        </th>
-                                                        {dateColumns.map((col) => {
-                                                            if (dateMode === 'days') {
+                    <TourStep
+                        id="when2meet-grid"
+                        title="Timetable Box"
+                        content="You will see a calendar here with your selected days/dates and you can mark your availability there."
+                        order={2}
+                        position="left"
+                        className="flex-1 flex flex-col min-w-0"
+                    >
+                        <div className="w-full flex-1 flex flex-col min-w-0 overflow-hidden">
+                            {dateColumns.length > 0 ? (
+                                <div className="w-full overflow-x-auto mx-auto lg:mx-0 lg:ml-auto">
+                                    <Card className="flex flex-col border-0 shadow-none bg-transparent w-full">
+                                        <CardContent className="p-0">
+                                            <div className="h-[520px] overflow-y-scroll overflow-x-auto force-scrollbar">
+                                                <table className="border-separate min-w-full" style={{ borderSpacing: '3px' }}>
+                                                    <thead className="sticky top-0 z-10 bg-primary-light/60 dark:bg-primary-dark/40 text-white!">
+                                                        <tr>
+                                                            <th className="border border-border p-2 w-[170px] rounded-[7px] text-white">
+                                                                Time
+                                                            </th>
+                                                            {dateColumns.map((col) => {
+                                                                if (dateMode === 'days') {
+                                                                    return (
+                                                                        <th key={col} className="border border-border p-2 w-[60px] rounded-[7px] text-white">
+                                                                            <div className="text-sm">{col}</div>
+                                                                        </th>
+                                                                    )
+                                                                }
+                                                                const { day, date: dateDisplay } = formatDateDisplay(col)
                                                                 return (
-                                                                    <th key={col} className="border border-border p-2 w-[60px] rounded-[7px] text-white">
-                                                                        <div className="text-sm">{col}</div>
+                                                                    <th key={col} className="border border-border p-2 w-[60px] rounded-[7px]">
+                                                                        <div className="text-sm">{day}</div>
+                                                                        <div className="text-xs text-white/70">{dateDisplay}</div>
                                                                     </th>
-                                                                )
-                                                            }
-                                                            const { day, date: dateDisplay } = formatDateDisplay(col)
-                                                            return (
-                                                                <th key={col} className="border border-border p-2 w-[60px] rounded-[7px]">
-                                                                    <div className="text-sm">{day}</div>
-                                                                    <div className="text-xs text-white/70">{dateDisplay}</div>
-                                                                </th>
-                                                            )
-                                                        })}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {allTimeSlots.map((timeSlot) => (
-                                                        <tr key={timeSlot}>
-                                                            <td className="border border-border p-2 text-sm bg-muted sticky left-0 z-5 rounded-[7px]">
-                                                                {timeSlot}
-                                                            </td>
-                                                            {dateColumns.map((date) => {
-                                                                const cellKey = `${date}-${timeSlot}`
-                                                                const blockedByUsers = getUsersWhoBlockedCell(date, timeSlot)
-                                                                const isSelected = isCellSelected(date, timeSlot)
-
-                                                                // To avoid double-counting the current user if their availability is already saved:
-                                                                // 1. Get unique users from blockedByUsers
-                                                                // 2. If current user has it selected locally but isn't in blockedByUsers yet, add 1
-                                                                // 3. If current user is in blockedByUsers but HASN'T selected it locally (deselected), subtract 1
-
-                                                                const otherUsers = currentUserEmail ? blockedByUsers.filter(email => email !== currentUserEmail) : blockedByUsers
-                                                                const effectiveCount = otherUsers.length + (isSelected ? 1 : 0)
-
-                                                                return (
-                                                                    <td
-                                                                        key={cellKey}
-                                                                        data-cell={cellKey}
-                                                                        onMouseDown={(e) => { e.preventDefault(); handleDragStart(date, timeSlot) }}
-                                                                        onMouseEnter={() => { setHoveredCell(cellKey); handleDragEnter(date, timeSlot) }}
-                                                                        onMouseLeave={() => setHoveredCell(null)}
-                                                                        onTouchStart={(e) => { e.preventDefault(); handleDragStart(date, timeSlot) }}
-                                                                        onTouchMove={handleTouchMove}
-                                                                        className={`border p-2 cursor-pointer transition-colors relative rounded-[7px] select-none ${isSelected ? 'border-primary border-2' : 'border-border'}`}
-                                                                        style={{
-                                                                            backgroundColor: effectiveCount > 0
-                                                                                ? `rgba(135, 40, 27, ${Math.min(effectiveCount / 5, 1) * 0.8})`
-                                                                                : 'transparent'
-                                                                        }}
-                                                                    >
-                                                                        {/* Tooltip on hover */}
-                                                                        {hoveredCell === cellKey && (effectiveCount > 0) && (
-                                                                            <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground border border-border rounded-md shadow-lg whitespace-nowrap text-xs">
-                                                                                <div className="font-semibold mb-1">
-                                                                                    {effectiveCount} {effectiveCount === 1 ? 'person' : 'people'} available:
-                                                                                </div>
-                                                                                {/* Show current user first if selected */}
-                                                                                {isSelected && currentUserEmail && (
-                                                                                    <div className="font-medium text-primary">You</div>
-                                                                                )}
-                                                                                {otherUsers.map((email, idx) => {
-                                                                                    const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-                                                                                    return (
-                                                                                        <div key={idx} className="text-muted-foreground">
-                                                                                            {name}
-                                                                                        </div>
-                                                                                    )
-                                                                                })}
-                                                                                {/* Arrow pointer */}
-                                                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
-                                                                                    <div className="border-4 border-transparent border-t-popover"></div>
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                    </td>
                                                                 )
                                                             })}
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody>
+                                                        {allTimeSlots.map((timeSlot) => (
+                                                            <tr key={timeSlot}>
+                                                                <td className="border border-border p-2 text-sm bg-muted sticky left-0 z-5 rounded-[7px]">
+                                                                    {timeSlot}
+                                                                </td>
+                                                                {dateColumns.map((date) => {
+                                                                    const cellKey = `${date}-${timeSlot}`
+                                                                    const blockedByUsers = getUsersWhoBlockedCell(date, timeSlot)
+                                                                    const isSelected = isCellSelected(date, timeSlot)
+
+                                                                    // To avoid double-counting the current user if their availability is already saved:
+                                                                    // 1. Get unique users from blockedByUsers
+                                                                    // 2. If current user has it selected locally but isn't in blockedByUsers yet, add 1
+                                                                    // 3. If current user is in blockedByUsers but HASN'T selected it locally (deselected), subtract 1
+
+                                                                    const otherUsers = currentUserEmail ? blockedByUsers.filter(email => email !== currentUserEmail) : blockedByUsers
+                                                                    const effectiveCount = otherUsers.length + (isSelected ? 1 : 0)
+
+                                                                    return (
+                                                                        <td
+                                                                            key={cellKey}
+                                                                            data-cell={cellKey}
+                                                                            onMouseDown={(e) => { e.preventDefault(); handleDragStart(date, timeSlot) }}
+                                                                            onMouseEnter={() => { setHoveredCell(cellKey); handleDragEnter(date, timeSlot) }}
+                                                                            onMouseLeave={() => setHoveredCell(null)}
+                                                                            onTouchStart={(e) => { e.preventDefault(); handleDragStart(date, timeSlot) }}
+                                                                            onTouchMove={handleTouchMove}
+                                                                            className={`border p-2 cursor-pointer transition-colors relative rounded-[7px] select-none ${isSelected ? 'border-primary border-2' : 'border-border'}`}
+                                                                            style={{
+                                                                                backgroundColor: effectiveCount > 0
+                                                                                    ? `rgba(135, 40, 27, ${Math.min(effectiveCount / 5, 1) * 0.8})`
+                                                                                    : 'transparent'
+                                                                            }}
+                                                                        >
+                                                                            {/* Tooltip on hover */}
+                                                                            {hoveredCell === cellKey && (effectiveCount > 0) && (
+                                                                                <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground border border-border rounded-md shadow-lg whitespace-nowrap text-xs">
+                                                                                    <div className="font-semibold mb-1">
+                                                                                        {effectiveCount} {effectiveCount === 1 ? 'person' : 'people'} available:
+                                                                                    </div>
+                                                                                    {/* Show current user first if selected */}
+                                                                                    {isSelected && currentUserEmail && (
+                                                                                        <div className="font-medium text-primary">You</div>
+                                                                                    )}
+                                                                                    {otherUsers.map((email, idx) => {
+                                                                                        const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                                                                        return (
+                                                                                            <div key={idx} className="text-muted-foreground">
+                                                                                                {name}
+                                                                                            </div>
+                                                                                        )
+                                                                                    })}
+                                                                                    {/* Arrow pointer */}
+                                                                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
+                                                                                        <div className="border-4 border-transparent border-t-popover"></div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                        </td>
+                                                                    )
+                                                                })}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                    {currentUid && (
+                                        <div className="flex justify-end mt-4">
+                                            <Button
+                                                onClick={handleSaveAvailability}
+                                                disabled={isSavingAvailability || !currentUid}
+                                                className="bg-primary text-white hover:bg-primary/90"
+                                            >
+                                                {isSavingAvailability ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Saving...
+                                                    </>
+                                                ) : (
+                                                    'Save Availability'
+                                                )}
+                                            </Button>
                                         </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <Card>
+                                    <CardContent className="flex items-center justify-center h-[490px] text-muted-foreground">
+                                        {data ? 'Select dates or days to view the timetable' : 'Create a new timetable to get started'}
                                     </CardContent>
                                 </Card>
-                                {currentUid && (
-                                    <div className="flex justify-end mt-4">
-                                        <Button
-                                            onClick={handleSaveAvailability}
-                                            disabled={isSavingAvailability || !currentUid}
-                                            className="bg-primary text-white hover:bg-primary/90"
-                                        >
-                                            {isSavingAvailability ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Saving...
-                                                </>
-                                            ) : (
-                                                'Save Availability'
-                                            )}
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <Card>
-                                <CardContent className="flex items-center justify-center h-[490px] text-muted-foreground">
-                                    {data ? 'Select dates or days to view the timetable' : 'Create a new timetable to get started'}
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    </TourStep>
                 </div>
             </div>
         </div >
