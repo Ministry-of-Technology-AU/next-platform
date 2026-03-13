@@ -137,8 +137,8 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             const orderedDays = ALL_DAYS.filter(d => selectedDays.has(d))
             setDateColumns(orderedDays)
         } else if (startDate && endDate) {
-            const start = new Date(startDate + 'T00:00:00')
-            const end = new Date(endDate + 'T00:00:00')
+            const start = parseISO(startDate)
+            const end = parseISO(endDate)
             const columns: string[] = []
 
             let current = start
