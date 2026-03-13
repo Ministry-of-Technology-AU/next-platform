@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
 import { TourStep } from '@/components/guided-tour'
+import { format, addDays, parseISO, startOfDay } from 'date-fns'
 
 interface TimeSlotPageProps {
     data: (TimeTableDraft & { isOwner: boolean }) | null
@@ -79,12 +80,13 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             // Set dates
             if (data.grid.startDate) {
                 const d = new Date(data.grid.startDate)
-                const startDateStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+                // If it's a full ISO string from DB, we want the local YYYY-MM-DD
+                const startDateStr = format(d, 'yyyy-MM-dd')
                 setStartDate(startDateStr)
             }
             if (data.grid.endDate) {
                 const d = new Date(data.grid.endDate)
-                const endDateStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+                const endDateStr = format(d, 'yyyy-MM-dd')
                 setEndDate(endDateStr)
             }
 
@@ -108,9 +110,10 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                             colKey = dayAbbr
                         } else {
                             try {
-                                // Use UTC methods to avoid timezone shift
-                                const d = new Date(slot.date)
-                                colKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+                                // Use date-fns to parse and format to avoid timezone shifts
+                                // If it's already a Date object, use it; otherwise parse it
+                                const slotDateObj = typeof slot.date === 'string' ? parseISO(slot.date) : slot.date
+                                colKey = format(slotDateObj, 'yyyy-MM-dd')
                             } catch {
                                 colKey = String(slot.date).split('T')[0]
                             }
@@ -134,12 +137,14 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
             const orderedDays = ALL_DAYS.filter(d => selectedDays.has(d))
             setDateColumns(orderedDays)
         } else if (startDate && endDate) {
-            const start = new Date(startDate)
-            const end = new Date(endDate)
+            const start = parseISO(startDate)
+            const end = parseISO(endDate)
             const columns: string[] = []
 
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                columns.push(new Date(d).toISOString().split('T')[0])
+            let current = start
+            while (current <= end) {
+                columns.push(format(current, 'yyyy-MM-dd'))
+                current = addDays(current, 1)
             }
 
             setDateColumns(columns)
@@ -167,8 +172,8 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                     slotDate = slot.day?.substring(0, 3) || String(slot.date)
                 } else {
                     try {
-                        const d = new Date(slot.date)
-                        slotDate = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+                        const slotDateObj = typeof slot.date === 'string' ? parseISO(slot.date) : slot.date
+                        slotDate = format(slotDateObj, 'yyyy-MM-dd')
                     } catch {
                         slotDate = String(slot.date).split('T')[0]
                     }
@@ -203,10 +208,9 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
     const allTimeSlots = getTimeSlotsForConfig()
 
     const formatDateDisplay = (dateStr: string) => {
-        const date = new Date(dateStr)
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-        const day = days[date.getDay()]
-        const dateDisplay = `${date.getDate()}/${date.getMonth() + 1}`
+        const date = parseISO(dateStr)
+        const day = format(date, 'eee')
+        const dateDisplay = format(date, 'd/M')
         return { day, date: dateDisplay }
     }
 
@@ -699,7 +703,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                         disabled={isDisabled}
                                                     >
                                                         {startDate
-                                                            ? new Date(startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                            ? format(parseISO(startDate), 'dd/MM/yyyy')
                                                             : 'Start date'}
                                                         <CalendarIcon className="h-4 w-4 opacity-50" />
                                                     </Button>
@@ -707,11 +711,11 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                 <PopoverContent className="w-auto overflow-hidden p-0" align="start">
                                                     <Calendar
                                                         mode="single"
-                                                        selected={startDate ? new Date(startDate) : undefined}
+                                                        selected={startDate ? parseISO(startDate) : undefined}
                                                         captionLayout="dropdown"
                                                         onSelect={(date) => {
                                                             if (date) {
-                                                                setStartDate(date.toISOString().split('T')[0])
+                                                                setStartDate(format(date, 'yyyy-MM-dd'))
                                                             }
                                                             setStartDatePickerOpen(false)
                                                         }}
@@ -726,7 +730,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                         disabled={isDisabled}
                                                     >
                                                         {endDate
-                                                            ? new Date(endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                            ? format(parseISO(endDate), 'dd/MM/yyyy')
                                                             : 'End date'}
                                                         <CalendarIcon className="h-4 w-4 opacity-50" />
                                                     </Button>
@@ -734,15 +738,15 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
                                                 <PopoverContent className="w-auto overflow-hidden p-0" align="start">
                                                     <Calendar
                                                         mode="single"
-                                                        selected={endDate ? new Date(endDate) : undefined}
+                                                        selected={endDate ? parseISO(endDate) : undefined}
                                                         captionLayout="dropdown"
                                                         onSelect={(date) => {
                                                             if (date) {
-                                                                setEndDate(date.toISOString().split('T')[0])
+                                                                setEndDate(format(date, 'yyyy-MM-dd'))
                                                             }
                                                             setEndDatePickerOpen(false)
                                                         }}
-                                                        fromDate={startDate ? new Date(startDate) : undefined}
+                                                        fromDate={startDate ? parseISO(startDate) : undefined}
                                                     />
                                                 </PopoverContent>
                                             </Popover>
