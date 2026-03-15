@@ -363,6 +363,15 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
     // Handle keyboard input
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore if active element is an input or textarea
+            if (
+                document.activeElement?.tagName === 'INPUT' ||
+                document.activeElement?.tagName === 'TEXTAREA' ||
+                document.activeElement?.tagName === 'SELECT'
+            ) {
+                return;
+            }
+
             if (e.ctrlKey || e.metaKey || e.altKey) return;
 
             if (e.key === 'Enter') {

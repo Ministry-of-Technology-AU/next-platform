@@ -71,7 +71,7 @@ export default function InviteFriendDialog({ onInviteSent }: InviteFriendDialogP
             <DialogContent className="max-w-sm sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Mail className="h-5 w-5 text-green" />
+                        <Mail className="h-5 w-5 text-primary" />
                         Invite a Friend
                     </DialogTitle>
                     <DialogDescription>
@@ -88,7 +88,7 @@ export default function InviteFriendDialog({ onInviteSent }: InviteFriendDialogP
                         disabled={loading}
                         autoFocus
                     />
-                    <Button type="submit" disabled={loading || !email.trim()} className="bg-green hover:bg-green/90">
+                    <Button type="submit" disabled={loading || !email.trim()} className="bg-primary hover:bg-primary/90">
                         {loading ? (
                             <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

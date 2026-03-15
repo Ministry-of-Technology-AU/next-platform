@@ -140,24 +140,32 @@ export async function POST(request: NextRequest) {
 
         // Send invite email
         const senderName = senderResponse?.username || senderEmail;
-        const acceptUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://platform.ashoka.edu.in'}/platform/games/ashoka-wordle?accept_from=${encodeURIComponent(senderEmail)}`;
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://sg.ashoka.edu.in';
+        const acceptUrl = `${baseUrl}/platform/games/ashoka-wordle?accept_from=${encodeURIComponent(senderEmail)}`;
+        const rejectUrl = `${baseUrl}/platform/games/ashoka-wordle?reject_from=${encodeURIComponent(senderEmail)}`;
 
         await sendMail({
             to: recipientEmail,
-            subject: `${senderName} wants to compare Wordle scores with you! 🟩`,
+            subject: `Wordle Friend Invite from ${senderName}`,
             alias: 'Ashoka Wordle',
             html: `
                 <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 24px;">
-                    <h2 style="color: #2d7a4f;">🟩 Wordle Friend Invite!</h2>
+                    <h2 style="color: #87281b;">🟩 Wordle Friend Invite!</h2>
                     <p><strong>${senderName}</strong> has invited you to compare daily Wordle scores on the Ashoka Platform!</p>
                     <p>Once you accept, you'll be able to see each other's daily scores, streaks, and compete head-to-head.</p>
                     <div style="text-align: center; margin: 32px 0;">
                         <a href="${acceptUrl}" 
-                           style="background-color: #2d7a4f; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                           style="background-color: #87281b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; margin-right: 12px;">
                             Accept Invite
                         </a>
+                        <a href="${rejectUrl}" 
+                           style="background-color: transparent; color: #87281b; border: 2px solid #87281b; padding: 10px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                            Reject
+                        </a>
                     </div>
-                    <p style="color: #666; font-size: 14px;">Or open Ashoka Wordle and accept from your pending invites.</p>
+                    <p style="color: #666; font-size: 14px; margin-top: 32px; border-top: 1px solid #eee; padding-top: 16px;">
+                        If you don't know this person, you can safely ignore this email.
+                    </p>
                 </div>
             `
         });
