@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { TimeTableDraft, TimeTableWithOwnership, When2MeetPageProps } from "./types";
 import { auth } from "@/auth";
 import { getUserIdByEmail } from "@/lib/userid";
+import { DismissNewToolAlert } from "@/components/dismiss-new-tool-alert";
 
 async function fetchTimeTableData(uid?: string): Promise<{
     data: TimeTableWithOwnership | null;
@@ -111,6 +112,7 @@ export default async function When2MeetPage({ params }: When2MeetPageProps) {
 
     return (
         <div className="mt-2 xs:mt-3 sm:mt-4 md:mt-5 mx-2 xs:mx-3 sm:mx-4 md:mx-6 mb-2 xs:mb-3 sm:mb-4">
+            <DismissNewToolAlert storageKey="ASHOKA_WHEN2MEET_ALERT_SEEN_V1" />
             {error ? (
                 <Card className="p-6">
                     <div className="flex items-center gap-3 text-destructive">
