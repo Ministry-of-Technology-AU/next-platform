@@ -1,6 +1,6 @@
 {
-    "version": "1.0.4",
-    "lastUpdated": "2026-03-12",
+    "version": "1.0.5",
+    "lastUpdated": "2026-03-16",
     "updates": [
         {
             "id": "when2meet-launch",
@@ -8,6 +8,13 @@
             "description": "Create a shared calendar to find the best meeting time with your group. Select your available time slots and share the link with participants.",
             "type": "new",
             "link": "/platform/when2meet"
+        },
+        {
+            "id": "wordle-friends",
+            "title": "Wordle Friends!",
+            "description": "Invite your friends to Ashoka Wordle! Compare daily scores, streaks, and compete head-to-head. Send invites via email directly from the game.",
+            "type": "new",
+            "link": "/platform/games/ashoka-wordle"
         }
     ]
 }
