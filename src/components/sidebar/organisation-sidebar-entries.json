@@ -13,11 +13,6 @@
                     "title": "Advertisements",
                     "icon": "Megaphone",
                     "href": "/ads"
-                },
-                {
-                    "title": "Meeting Scheduler",
-                    "icon": "CalendarSearch",
-                    "href": "/meeting-scheduler"
                 }
             ]
         },

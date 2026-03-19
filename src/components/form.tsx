@@ -16,7 +16,11 @@ import {
   X,
   Image as ImageIcon,
   ChevronDown,
+  Calendar as CalendarIcon,
 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,6 +30,9 @@ import {
   DisclosureTrigger,
 } from "@/components/ui/disclosure";
 import MultipleSelector, { Option } from "@/components/ui/multi-select";
+import { RichTextEditor as UIRichTextEditor } from "@/components/ui/rich-text-editor";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 
 // Phone Input Component
 interface PhoneInputProps {
@@ -193,6 +200,49 @@ export function TextInput({
           }`,
         })}
         disabled={isDisabled}
+      />
+      {errorMessage && (
+        <p className="text-sm text-destructive">{errorMessage}</p>
+      )}
+    </div>
+  );
+}
+
+// Rich Text Editor Component
+interface RichTextInputProps {
+  title: string;
+  description?: string;
+  className?: string;
+  isRequired?: boolean;
+  errorMessage?: string;
+  value?: string;
+  placeholder?: string;
+  onChange?: (value: string) => void;
+}
+
+export function RichTextInput({
+  title,
+  description,
+  className = "",
+  isRequired = false,
+  errorMessage,
+  value = "",
+  placeholder = "Start typing...",
+  onChange,
+}: RichTextInputProps) {
+  return (
+    <div className={`space-y-2 ${className}`}>
+      <Label className="text-base font-medium">
+        {title} {isRequired && <span className="text-destructive">*</span>}
+      </Label>
+      {description && (
+        <p className="text-sm text-muted-foreground">{description}</p>
+      )}
+      <UIRichTextEditor
+        value={value}
+        onChange={onChange || (() => {})}
+        placeholder={placeholder}
+        className={errorMessage ? "border-destructive" : ""}
       />
       {errorMessage && (
         <p className="text-sm text-destructive">{errorMessage}</p>
@@ -723,6 +773,176 @@ export function CheckboxComponent({
           )}
         </div>
       </div>
+      {errorMessage && (
+        <p className="text-sm text-destructive">{errorMessage}</p>
+      )}
+    </div>
+  );
+}
+
+// Date Picker Component
+interface DatePickerProps {
+  title: string;
+  description?: string;
+  placeholder?: string;
+  className?: string;
+  isRequired?: boolean;
+  errorMessage?: string;
+  value?: Date;
+  onChange?: (date: Date | undefined) => void;
+  disabled?: boolean;
+  fromDate?: Date;
+}
+
+export function DatePicker({
+  title,
+  description,
+  placeholder = "Select date",
+  className = "",
+  isRequired = false,
+  errorMessage,
+  value,
+  onChange,
+  disabled = false,
+  fromDate,
+}: DatePickerProps) {
+  return (
+    <div className={`space-y-2 ${className}`}>
+      <Label className="text-base font-medium">
+        {title} {isRequired && <span className="text-destructive">*</span>}
+      </Label>
+      {description && (
+        <p className="text-sm text-muted-foreground">{description}</p>
+      )}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            className={`w-full justify-between text-left font-normal ${
+              !value && "text-muted-foreground"
+            } ${errorMessage ? "border-destructive" : ""}`}
+            disabled={disabled}
+          >
+            <div className="flex items-center">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {value ? (
+                format(value, "PPP")
+              ) : (
+                <span>{placeholder}</span>
+              )}
+            </div>
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={value}
+            onSelect={onChange}
+            disabled={disabled}
+            fromDate={fromDate}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+      {errorMessage && (
+        <p className="text-sm text-destructive">{errorMessage}</p>
+      )}
+    </div>
+  );
+}
+
+// Date Time Picker Component
+interface DateTimePickerProps {
+  title: string;
+  description?: string;
+  placeholder?: string;
+  className?: string;
+  isRequired?: boolean;
+  errorMessage?: string;
+  value?: string; // ISO string
+  onChange?: (value: string) => void;
+  disabled?: boolean;
+}
+
+export function DateTimePicker({
+  title,
+  description,
+  placeholder = "Select date",
+  className = "",
+  isRequired = false,
+  errorMessage,
+  value,
+  onChange,
+  disabled = false,
+}: DateTimePickerProps) {
+  const [open, setOpen] = useState(false);
+  const dateValue = value ? new Date(value) : undefined;
+  
+  const timeValue = dateValue ? format(dateValue, "HH:mm") : "12:00";
+
+  const handleDateChange = (newDate: Date | undefined) => {
+    if (!newDate) return;
+    const baseDate = new Date(newDate); // Clone the date
+    const [hours, minutes] = timeValue.split(":").map(Number);
+    baseDate.setHours(hours, minutes, 0, 0);
+    onChange?.(baseDate.toISOString());
+    setOpen(false);
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    const [hours, minutes] = newTime.split(":").map(Number);
+    const baseDate = dateValue ? new Date(dateValue) : new Date();
+    baseDate.setHours(hours, minutes, 0, 0);
+    onChange?.(baseDate.toISOString());
+  };
+
+  return (
+    <div className={`space-y-2 ${className}`}>
+      <Label className="text-base font-medium">
+        {title} {isRequired && <span className="text-destructive">*</span>}
+      </Label>
+      {description && (
+        <p className="text-sm text-muted-foreground">{description}</p>
+      )}
+      
+      <FieldGroup className="flex-row gap-2">
+        <Field className="flex-1">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={`w-full justify-between text-left font-normal ${
+                  !dateValue && "text-muted-foreground"
+                } ${errorMessage ? "border-destructive" : ""}`}
+                disabled={disabled}
+              >
+                {dateValue ? format(dateValue, "PPP") : <span>{placeholder}</span>}
+                <ChevronDown className="h-4 w-4 opacity-50 ml-2" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dateValue}
+                onSelect={handleDateChange}
+                disabled={disabled}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </Field>
+        <Field className="w-32">
+          <Input
+            type="time"
+            value={timeValue}
+            onChange={(e) => handleTimeChange(e.target.value)}
+            disabled={disabled}
+            className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          />
+        </Field>
+      </FieldGroup>
+
       {errorMessage && (
         <p className="text-sm text-destructive">{errorMessage}</p>
       )}

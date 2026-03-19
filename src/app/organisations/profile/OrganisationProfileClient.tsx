@@ -11,24 +11,13 @@ import {
   TextInput,
   SubmitButton,
   CheckboxComponent,
+  RichTextInput,
+  DateTimePicker,
 } from "@/components/form";
-
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { strapiPut } from "@/lib/apis/strapi";
 
 export default function OrganisationProfileClient({
   organisation,
@@ -43,10 +32,11 @@ export default function OrganisationProfileClient({
   const [organisationId] = useState<number | null>(organisation?.id || null);
 
   const [bannerSrc, setBannerSrc] = useState<string | null>(
-    organisation?.banner?.url
-      ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${organisation.banner.url}`
+    organisation?.banner_url
+      ? organisation.banner_url
       : null
   );
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
 
   const [clubImage, setClubImage] = useState<string | null>(null);
 
@@ -93,47 +83,57 @@ export default function OrganisationProfileClient({
     organisation?.induction || false
   );
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // ================= UPDATE =================
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!organisationId) return;
 
-    const formData = {
-      organisationId,
-      name: orgName,
-      type,
-      short_description: tagline,
-      description,
-      induction_end: deadline,
-      induction_description: info,
-      instagram,
-      linkedin,
-      website_blog: website,
-      twitter,
-      circle1_humans: circle1.map((id) => Number(id)),
-      circle2_humans: circle2.map((id) => Number(id)),
-      members: membersDrop.map((id) => Number(id)),      
-      induction: isOpen,
-    };
-    
-    const response = await fetch('/api/organisations/profile', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+    formData.append("organisationId", String(organisationId));
+    formData.append("name", orgName);
+    formData.append("type", type);
+    formData.append("short_description", tagline);
+    formData.append("description", description);
+    formData.append("induction_end", deadline);
+    formData.append("induction_description", info);
+    formData.append("instagram", instagram);
+    formData.append("linkedin", linkedin);
+    formData.append("website_blog", website);
+    formData.append("twitter", twitter);
+    formData.append("circle1_humans", JSON.stringify(circle1.map((id) => Number(id))));
+    formData.append("circle2_humans", JSON.stringify(circle2.map((id) => Number(id))));
+    formData.append("members", JSON.stringify(membersDrop.map((id) => Number(id))));
+    formData.append("induction", String(isOpen));
 
-    if (response.ok) {
-      alert("Organisation updated successfully!");
-    } else {
-      alert("Failed to update organisation.");
+    if (bannerFile) {
+      formData.append("image", bannerFile);
+    }
+
+      const response = await fetch('/api/organisations/profile', {
+        method: 'PUT',
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast.success("Organisation updated successfully!");
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || "Failed to update organisation.");
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="bg-[#f6f4f1] dark:bg-neutral-900 min-h-screen flex flex-col items-center py-10">
+    <div className="bg-[#f6f4f1] dark:bg-neutral-900 w-full flex flex-col items-center py-10">
 
       {/* HEADER */}
       <div className="w-full max-w-6xl px-4">
@@ -146,48 +146,25 @@ export default function OrganisationProfileClient({
                 src={bannerSrc}
                 alt="Banner"
                 fill
-                className="object-cover"
+                className="object-cover rounded-3xl"
               />
             )}
 
-            {/* ✏️ Banner Edit Popover */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="absolute top-4 right-4 text-white bg-black/40 hover:bg-black/60 px-3 py-1.5 rounded-full text-sm">
-                  ✎
-                </button>
-              </PopoverTrigger>
-
-              <PopoverContent className="bg-white dark:bg-neutral-800 p-4 rounded-xl shadow-xl space-y-4 w-80">
-                <h2 className="font-semibold text-gray-800 dark:text-gray-200 text-lg">
-                  Edit Cover Image
-                </h2>
-
-                <div className="flex items-center gap-3">
-                  <label className="cursor-pointer px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-700 
-                        bg-white dark:bg-neutral-800 
-                        text-gray-800 dark:text-gray-200
-                        hover:bg-gray-100 dark:hover:bg-neutral-700
-                        text-sm transition-colors">
-                    Choose File
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files?.[0]) {
-                          setBannerSrc(URL.createObjectURL(e.target.files[0]));
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {bannerSrc ? "Selected" : "No file chosen"}
-                  </span>
-                </div>
-              </PopoverContent>
-            </Popover>
+            {/* ✏️ Banner Edit Button */}
+            <label className="absolute top-4 right-4 text-white bg-black/40 hover:bg-black/60 px-3 py-1.5 rounded-full text-sm cursor-pointer z-10 transition">
+              ✎
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    setBannerSrc(URL.createObjectURL(e.target.files[0]));
+                    setBannerFile(e.target.files[0]);
+                  }
+                }}
+                className="hidden"
+              />
+            </label>
 
             {/* PROFILE IMAGE OVERLAP */}
             <div className="absolute left-1/2 -bottom-14 -translate-x-1/2 z-20">
@@ -203,20 +180,7 @@ export default function OrganisationProfileClient({
                   <div className="text-sm text-gray-500">No Image</div>
                 )}
 
-                {/* Optional profile image upload overlay */}
-                <label className="absolute inset-0 cursor-pointer opacity-0 hover:opacity-100 bg-black/40 flex items-center justify-center text-white text-xs transition">
-                  Change
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setClubImage(URL.createObjectURL(e.target.files[0]));
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
+
 
               </div>
             </div>
@@ -273,10 +237,9 @@ export default function OrganisationProfileClient({
               value={tagline}
               onChange={setTagline}
             />
-            <TextInput
+            <RichTextInput
               title="Organisation Description"
               placeholder="Type description here"
-              isParagraph
               value={description}
               onChange={setDescription}
             />
@@ -315,18 +278,16 @@ export default function OrganisationProfileClient({
               onChange={(checked: boolean | string) => setIsOpen(Boolean(checked))}
             />
 
-            <TextInput
+            <DateTimePicker
               title="Deadline"
-              type="datetime-local"
               placeholder="Select deadline"
               value={deadline}
               onChange={setDeadline}
             />
 
-            <TextInput
+            <RichTextInput
               title="Induction Information"
-              placeholder="Type information here"
-              isParagraph
+              placeholder=""
               value={info}
               onChange={setInfo}
             />
@@ -360,12 +321,11 @@ export default function OrganisationProfileClient({
             />
 
 
-            <SubmitButton text="Save Changes" />
+            <SubmitButton text="Save Changes" isLoading={isSubmitting} />
 
           </FormContainer>
         </CardContent>
       </Card>
-
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import { strapiGet } from "@/lib/apis/strapi";
 import { cookies } from "next/headers";
 import OrganisationProfileClient from "./OrganisationProfileClient";
+import DeveloperCredits from "@/components/developer-credits";
 
 async function getData() {
   const cookieStore = await cookies();
@@ -9,8 +9,6 @@ async function getData() {
     cache: 'no-store',
     headers: { 'Cookie': cookieStore.toString() },
   });
-
-  console.log(response);
   const data = await response?.json();
 
   return data;
@@ -23,9 +21,12 @@ export default async function OrganisationProfilePage() {
   const users = data?.users;
 
   return (
-    <OrganisationProfileClient
-      organisation={organisation}
-      users={users}
-    />
+    <>
+      <OrganisationProfileClient
+        organisation={organisation}
+        users={users}
+      />
+      <DeveloperCredits developers={[{ name: "Aditya Kanodia", role: "Lead Developer" }, { name: "Soham Tulsyan", role: "Assistant Developer" }]} />
+    </>
   );
 }
