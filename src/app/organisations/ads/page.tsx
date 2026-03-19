@@ -1,33 +1,42 @@
-"use client";
-import PageTitle from "@/components/page-title";
-import { Button } from "@/components/ui/button";
-import { Hammer } from "lucide-react";
-import Image from "next/image";
+import AdsManagementClient from './ads-client';
+import { Advertisement } from '@/components/landing-page/data/types';
+import { cookies } from 'next/headers';
 
-export default function LandingPage() {
-    return (
-        <div className="container pt-12 px-8 flex flex-col items-center">
-            <PageTitle text="This page is under construction" icon={Hammer} subheading="We're working hard to get this page ready for you. Stay tuned!" />
-            <Image
-                src="/mascot-construction.png"
-                alt="Mascot Under Construction"
-                width={400}
-                height={900}
-                className="mx-auto"
-            />
-            <div className="flex flex-col items-center">
+/**
+ * Server component that fetches ads via API route
+ * All user → organisation lookups happen in the API route (backend only)
+ */
+export default async function AdsManagementPage() {
+    let existingAds: Advertisement[] = [];
 
-                <p className="text-center">You're probably here looking for the platform.</p>
-                <Button
-                    onClick={() => (window.location.href = "/platform")}
-                    className="mt-4 text-sm sm:text-base px-4 sm:px-6"
-                >
-                    Here&apos;s a button to get you there!
-                </Button>
-            </div>
-            <p className="text-center pt-10 text-muted-foreground">We're revamping the SG Website too! Stay tuned!</p>
+    try {
+        // Get cookies to pass to API route for authentication
+        const cookieStore = await cookies();
+        const cookieHeader = cookieStore.toString();
 
-        </div>
+        // Call the API route server-side with cookies
+        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const response = await fetch(`${baseUrl}/api/organisations/ads`, {
+            cache: 'no-store', // Always get fresh data
+            headers: {
+                'Cookie': cookieHeader,
+            }
+        });
 
-    );
+        if (!response.ok) {
+            console.error('API returned error:', response.status, response.statusText);
+            return <AdsManagementClient initialAds={[]} />;
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            existingAds = result.data;
+        }
+    } catch (error) {
+        console.error('Failed to fetch ads:', error);
+        // Continue with empty array - client will show mock template
+    }
+
+    return <AdsManagementClient initialAds={existingAds} />;
 }

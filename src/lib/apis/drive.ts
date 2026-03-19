@@ -183,4 +183,42 @@ export async function getEmailAttachments(attachmentPath: string): Promise<Drive
     return attachments.filter((attachment): attachment is DriveFile => attachment !== null);
 }
 
+/**
+ * Get public embed link from Drive file ID
+ * Returns a URL that can be used directly in HTML img src
+ */
+export function getPublicEmbedLink(fileId: string): string {
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+}
+
+/**
+ * Upload image file to Drive and return public embed link
+ */
+export async function uploadImageAndGetEmbedLink(
+    file: File | Buffer,
+    filename: string
+): Promise<string> {
+    try {
+        // Convert File to Buffer if needed
+        let buffer: Buffer;
+        if (file instanceof File) {
+            const arrayBuffer = await file.arrayBuffer();
+            buffer = Buffer.from(arrayBuffer);
+        } else {
+            buffer = file;
+        }
+
+        const driveFile: DriveFile = {
+            filename,
+            content: buffer,
+            contentType: file instanceof File ? file.type : 'image/jpeg',
+        };
+
+        const uploadedFile = await uploadToDrive(driveFile);
+        return getPublicEmbedLink(uploadedFile.id);
+    } catch (error) {
+        throw new Error(`Failed to upload image and get embed link: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
+
 export { drive };

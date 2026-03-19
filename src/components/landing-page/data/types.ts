@@ -13,20 +13,12 @@ export type BannerButton = React.ComponentProps<typeof Button> & {
 export interface Advertisement {
   id: number;
   attributes: {
-    isActive: boolean;
     title: string;
     subtitle: string;
     description: string;
     gradient: string;
     order: number;
-    banner_image?: {
-      data: Array<{
-        attributes: {
-          url: string;
-          alternativeText?: string;
-        }
-      }>
-    };
+    banner_url?: string; // The Google Drive embed link
     buttons?: any; // JSON type in Strapi
   }
 }

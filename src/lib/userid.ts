@@ -20,3 +20,37 @@ export async function getUserIdByEmail(email: string): Promise<number | null> {
         return null
     }
 }
+
+/**
+ * Get the organisation ID for a user
+ * Looks for organisations where the user is in profile, circle1_humans, or circle2_humans
+ */
+export async function getOrganisationIdByUserId(userId: number): Promise<number | null> {
+    if (!userId) {
+        return null;
+    }
+    try {
+        console.log('[getOrganisationIdByUserId] Looking for org with userId:', userId);
+
+        // First try to find organisation where user is the profile
+        const response = await strapiGet('/organisations', {
+            filters: {
+                $or: {
+                    '0': { profile: { id: userId } },
+                    '1': { circle1_humans: { id: userId } },
+                    '2': { circle2_humans: { id: userId } }
+                }
+            },
+        });
+
+        console.log('[getOrganisationIdByUserId] Response:', JSON.stringify(response, null, 2));
+
+        const organisations = response?.data || [];
+        console.log('[getOrganisationIdByUserId] Found organisations count:', organisations.length);
+
+        return organisations.length > 0 ? organisations[0].id : null;
+    } catch (error) {
+        console.error("Error fetching organisation by user ID:", error);
+        return null;
+    }
+}
