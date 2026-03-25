@@ -20,8 +20,8 @@ export default function ABAAdminPage() {
   // Form State
   const [teamA, setTeamA] = useState('');
   const [teamB, setTeamB] = useState('');
-  const [matchType, setMatchType] = useState('Group Stage');
-  const [matchDate, setMatchDate] = useState('');
+  const [matchType, setMatchType] = useState('Group stage');
+  const [startTime, setStartTime] = useState('');
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -46,7 +46,7 @@ export default function ABAAdminPage() {
   }, []);
 
   const handleCreateMatch = async () => {
-    if (!teamA || !teamB || !matchDate) return alert("Please fill all fields");
+    if (!teamA || !teamB || !startTime) return alert("Please fill all fields");
 
     try {
       const newMatchPayload = {
@@ -54,9 +54,10 @@ export default function ABAAdminPage() {
         team_b: Number(teamB),
         type: matchType,
         status: "Upcoming",
+        start_time: startTime ? new Date(startTime).toISOString() : undefined,
         details: {
-          date: new Date(matchDate).toLocaleDateString(),
-          time: new Date(matchDate).toLocaleTimeString(),
+          date: startTime ? new Date(startTime).toLocaleDateString() : undefined,
+          time: startTime ? new Date(startTime).toLocaleTimeString() : undefined,
           period: "Q1 • 10:00",
           arena: "ASHOKA MAIN COURT",
           scoreA: 0,
@@ -71,6 +72,13 @@ export default function ABAAdminPage() {
       });
 
       if (!res.ok) throw new Error("Creation failed");
+
+      // Reset Form
+      setTeamA('');
+      setTeamB('');
+      setMatchType('Group stage');
+      setStartTime('');
+
       await fetchDashboardData(); // Reload table
       alert("Match Created!");
     } catch (e) {
@@ -82,15 +90,15 @@ export default function ABAAdminPage() {
   const updateMatchStatus = async (matchId: number, status: string) => {
     try {
       const res = await fetch(`/api/platform/sports/aba/matches/${matchId}`, {
-         method: 'PATCH',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ status: status })
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: status })
       });
       if (!res.ok) throw new Error("Status update failed");
       await fetchDashboardData();
     } catch (e) {
-       console.error(e);
-       alert("Failed to update status");
+      console.error(e);
+      alert("Failed to update status");
     }
   };
 
@@ -148,14 +156,14 @@ export default function ABAAdminPage() {
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Group Stage">Group Stage</SelectItem>
+                  <SelectItem value="Group stage">Group Stage</SelectItem>
                   <SelectItem value="Knockout">Knockout Stage</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="datetime">Date & Time</Label>
-              <Input id="datetime" type="datetime-local" value={matchDate} onChange={(e) => setMatchDate(e.target.value)} />
+              <Label htmlFor="start_time">Start Date & Time</Label>
+              <Input id="start_time" type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             </div>
             <Button className="w-full mt-2" onClick={handleCreateMatch}>Create Match</Button>
           </CardContent>

@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 export default function MatchPage() {
   const params = useParams();
   const id = params?.id as string;
-  
+
   const [rawData, setRawData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,8 +33,31 @@ export default function MatchPage() {
   useEffect(() => {
     if (!id) return;
     fetchMatchData();
-    const interval = setInterval(fetchMatchData, 2000);
-    return () => clearInterval(interval);
+
+    // SSE: listen for real-time push events from Strapi webhook
+    const eventSource = new EventSource('/api/platform/sports/aba/sse');
+
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        // Re-fetch when any ABA entity changes (match scores, participant stats)
+        fetchMatchData();
+      } catch (e) {
+        console.error('[SSE] Parse error:', e);
+      }
+    };
+
+    eventSource.onerror = () => {
+      console.warn('[SSE] Connection lost, will auto-reconnect...');
+    };
+
+    // Commented out polling (kept for fallback reference):
+    // const interval = setInterval(fetchMatchData, 2000);
+
+    return () => {
+      eventSource.close();
+      // clearInterval(interval);
+    };
   }, [id]);
 
   const matchData = useMemo(() => {
@@ -57,11 +80,15 @@ export default function MatchPage() {
 
     const parsePlayers = (teamKey: 'team_a' | 'team_b'): any[] => {
       const members = attrs[teamKey]?.data?.attributes?.members?.data || [];
-      return members.map((p: any) => ({
-        id: p.id.toString(),
-        name: p.attributes?.name || 'Unknown',
-        points: p.attributes?.points_scored || 0,
-      })).sort((a: any, b: any) => b.points - a.points);
+      const stats = details.individual_stats || [];
+      return members.map((p: any) => {
+        const playerMatchStats = stats.find((s: any) => s.id === p.id);
+        return {
+          id: p.id.toString(),
+          name: p.attributes?.name || 'Unknown',
+          points: playerMatchStats ? playerMatchStats.matchPoints : 0,
+        };
+      }).sort((a: any, b: any) => b.points - a.points);
     };
 
     return {
@@ -73,6 +100,7 @@ export default function MatchPage() {
       status: attrs.status || 'Upcoming',
       type: attrs.type || 'Group stage',
       period: details.period || 'Q1 • 10:00',
+      start_time: attrs.start_time,
       details: {
         sets: details.sets || [],
         events: details.events || []
@@ -102,21 +130,39 @@ export default function MatchPage() {
           </Badge>
         </div>
         <CardHeader className="text-center pt-8">
-          <CardDescription className="uppercase tracking-widest font-semibold">{matchData.type}</CardDescription>
+          <CardDescription className="uppercase tracking-widest font-semibold text-muted-foreground">
+            {matchData.type}
+            {matchData.start_time && ` • ${new Date(matchData.start_time).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}`}
+          </CardDescription>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 mt-6">
             <div className="flex flex-col items-center flex-1">
               <h2 className="text-3xl md:text-5xl font-bold">{matchData.teamA}</h2>
             </div>
+
             <div className="flex flex-col items-center">
               <div className="text-5xl md:text-7xl font-black tabular-nums tracking-tighter flex items-center gap-4">
                 <span>{matchData.scoreA}</span>
                 <span className="text-muted-foreground/30 text-3xl">-</span>
                 <span>{matchData.scoreB}</span>
               </div>
-              {matchData.status === 'Live' && (
-                <div className="text-sm font-medium text-red-500 mt-2">{matchData.period}</div>
+
+              {/* Compact Period Breakdown */}
+              {matchData.details.sets.length > 0 && (
+                <div className="flex gap-4 mt-4">
+                  {matchData.details.sets.map((set: any, idx: number) => (
+                    <div key={idx} className="flex flex-col items-center">
+                      <div className="bg-muted px-2 py-1 rounded border border-border flex gap-2 text-[10px] font-mono font-bold">
+                        <span className={set.scoreA > set.scoreB ? 'text-foreground font-black' : 'text-muted-foreground'}>{set.scoreA}</span>
+                        <span className="text-muted-foreground/30">:</span>
+                        <span className={set.scoreB > set.scoreA ? 'text-foreground font-black' : 'text-muted-foreground'}>{set.scoreB}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
+
             </div>
+
             <div className="flex flex-col items-center flex-1">
               <h2 className="text-3xl md:text-5xl font-bold">{matchData.teamB}</h2>
             </div>
@@ -125,31 +171,40 @@ export default function MatchPage() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Period Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {matchData.details.sets.length === 0 && <p className="text-sm text-muted-foreground">No period data yet.</p>}
-              {matchData.details.sets.map((set: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between text-lg">
-                  <span className="font-semibold text-muted-foreground w-8">{set.name}</span>
-                  <span className={`tabular-nums ${set.live ? 'text-primary font-bold' : ''}`}>{set.scoreA}</span>
-                  <span className="text-muted-foreground/50">-</span>
-                  <span className={`tabular-nums ${set.live ? 'text-primary font-bold' : ''}`}>{set.scoreB}</span>
-                </div>
-              ))}
-              <Separator />
-              <div className="flex items-center justify-between text-xl font-bold">
-                <span className="w-8">T</span>
-                <span>{matchData.scoreA}</span>
-                <span>-</span>
-                <span>{matchData.scoreB}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold tracking-tight text-muted-foreground uppercase">{matchData.teamA} Roster</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-1">
+                {matchData.teamAPlayers.length === 0 ? <p className="text-sm text-muted-foreground">No players.</p> : null}
+                {matchData.teamAPlayers.map((p: any) => (
+                  <li key={p.id} className="flex justify-between items-center text-xs p-1.5 hover:bg-muted/50 transition-colors">
+                    <span className="font-medium">{p.name}</span>
+                    <span className="font-bold text-muted-foreground">{p.points} PTS</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold tracking-tight text-muted-foreground uppercase">{matchData.teamB} Roster</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-1">
+                {matchData.teamBPlayers.length === 0 ? <p className="text-sm text-muted-foreground">No players.</p> : null}
+                {matchData.teamBPlayers.map((p: any) => (
+                  <li key={p.id} className="flex justify-between items-center text-xs p-1.5 hover:bg-muted/50 transition-colors">
+                    <span className="font-medium">{p.name}</span>
+                    <span className="font-bold text-muted-foreground">{p.points} PTS</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
 
         <Card>
           <CardHeader>
@@ -158,56 +213,17 @@ export default function MatchPage() {
           <CardContent>
             <div className="space-y-4">
               {matchData.details.events.length === 0 ? (
-                 <p className="text-muted-foreground text-sm">No timeline events recorded.</p>
+                <p className="text-muted-foreground text-sm">No timeline events recorded.</p>
               ) : matchData.details.events.map((ev: any, idx: number) => (
                 <div key={idx} className="flex gap-4 items-start text-sm">
-                   <span className="text-muted-foreground whitespace-nowrap">{ev.time}</span>
-                   <div className="flex-1">
-                     <p className="font-medium">{ev.action} <span className="text-muted-foreground font-normal">by {ev.player} ({ev.team})</span></p>
-                   </div>
-                   <span className="font-semibold tabular-nums tracking-tight bg-muted px-2 py-0.5 rounded">{ev.newScore}</span>
+                  <span className="text-muted-foreground whitespace-nowrap">{ev.time}</span>
+                  <div className="flex-1">
+                    <p className="font-medium">{ev.action} <span className="text-muted-foreground font-normal">by {ev.player} ({ev.team})</span></p>
+                  </div>
+                  <span className="font-semibold tabular-nums tracking-tight bg-primary/10 text-primary px-2 py-0.5 rounded">{ev.newScore}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t text-center text-sm text-muted-foreground italic">
-              Dashboard polls every 2 seconds for live changes.
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{matchData.teamA} Roster</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {matchData.teamAPlayers.length === 0 ? <p className="text-sm text-muted-foreground">No players.</p> : null}
-              {matchData.teamAPlayers.map((p: any) => (
-                <li key={p.id} className="flex justify-between items-center text-sm p-2 bg-muted/30 rounded">
-                  <span className="font-semibold">{p.name}</span>
-                  <span className="font-mono text-muted-foreground">{p.points} pts</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{matchData.teamB} Roster</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {matchData.teamBPlayers.length === 0 ? <p className="text-sm text-muted-foreground">No players.</p> : null}
-              {matchData.teamBPlayers.map((p: any) => (
-                <li key={p.id} className="flex justify-between items-center text-sm p-2 bg-muted/30 rounded">
-                  <span className="font-semibold">{p.name}</span>
-                  <span className="font-mono text-muted-foreground">{p.points} pts</span>
-                </li>
-              ))}
-            </ul>
           </CardContent>
         </Card>
       </div>
