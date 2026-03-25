@@ -20,6 +20,12 @@ export default auth(async function middleware(req) {
     return NextResponse.next()
   }
 
+  // Allow ABA webhook (called by Strapi) and SSE stream (public real-time endpoint)
+  if (pathname.startsWith('/api/platform/sports/aba/webhook') ||
+      pathname.startsWith('/api/platform/sports/aba/sse')) {
+    return NextResponse.next()
+  }
+
   if (pathname.endsWith('jpg') || pathname.endsWith('png') || pathname.endsWith('svg') || pathname.endsWith('ico')) {
     return NextResponse.next()
   }

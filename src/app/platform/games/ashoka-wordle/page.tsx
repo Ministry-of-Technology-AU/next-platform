@@ -18,6 +18,7 @@ interface DailyPuzzle {
     word: string;
     date: string;
     hint?: string;
+    aboutWord?: string;
 }
 
 interface UserProgress {
@@ -56,7 +57,8 @@ async function getWordleData(): Promise<{
         const puzzle: DailyPuzzle = {
             word: (puzzleData.word || puzzleData?.word || '')?.toUpperCase(),
             date: puzzleData.date,
-            hint: puzzleData.hint
+            hint: puzzleData.hint,
+            aboutWord: puzzleData.about_word
         };
 
         // If user is not logged in, return just the puzzle
@@ -114,6 +116,7 @@ export default async function AshokaWordlePage() {
                     initialProgress={userProgress}
                     currentStreak={currentStreak}
                     maxStreak={maxStreak}
+                    aboutWord={puzzle.aboutWord}
                 />
             )}
         </div>
