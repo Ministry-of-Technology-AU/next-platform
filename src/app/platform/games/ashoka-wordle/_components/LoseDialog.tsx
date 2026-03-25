@@ -13,9 +13,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { XCircle, Eye, Archive, Flame } from 'lucide-react';
 import Link from 'next/link';
+import RichText from './RichText';
 
 export default function LoseDialog() {
-    const { gameData, resetGame, currentStreak } = useWordle();
+    const { gameData, resetGame, currentStreak, aboutWord } = useWordle();
     const [open, setOpen] = useState(false);
     // Store the streak that was broken (the streak before today's loss)
     const [brokenStreak, setBrokenStreak] = useState(0);
@@ -62,6 +63,12 @@ export default function LoseDialog() {
                     <p className="text-sm text-muted-foreground mb-2">The word was</p>
                     <p className="text-4xl font-bold tracking-widest text-primary">{targetWord}</p>
                 </div>
+
+                {aboutWord && (
+                    <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-foreground">
+                        <RichText content={aboutWord} />
+                    </div>
+                )}
 
                 <DialogFooter className="flex flex-col sm:flex-row gap-2">
                     <Link href="/platform/games/ashoka-wordle/leaderboards" className="flex-1">

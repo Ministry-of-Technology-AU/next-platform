@@ -21,9 +21,10 @@ interface WordleGameClientProps {
     isArchive?: boolean;
     currentStreak?: number;
     maxStreak?: number;
+    aboutWord?: string;
 }
 
-export default function WordleGameClient({ targetWord, initialProgress, isArchive = false, currentStreak = 0, maxStreak = 0 }: WordleGameClientProps) {
+export default function WordleGameClient({ targetWord, initialProgress, isArchive = false, currentStreak = 0, maxStreak = 0, aboutWord }: WordleGameClientProps) {
     // Validate word length (3-8 letters)
     if (targetWord.length < 3 || targetWord.length > 8) {
         return (
@@ -42,6 +43,7 @@ export default function WordleGameClient({ targetWord, initialProgress, isArchiv
             isArchive={isArchive}
             currentStreak={currentStreak}
             maxStreak={maxStreak}
+            aboutWord={aboutWord}
         >
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-center py-8 px-4 w-full max-w-[1600px] mx-auto">
                 {/* Main Game Column (70%) */}
