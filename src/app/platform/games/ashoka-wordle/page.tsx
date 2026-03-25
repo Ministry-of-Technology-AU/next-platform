@@ -18,6 +18,7 @@ interface DailyPuzzle {
     word: string;
     date: string;
     hint?: string;
+    about_word?: any;
 }
 
 interface UserProgress {
@@ -43,7 +44,8 @@ async function getWordleData(): Promise<{
             filters: {
                 date: { $eq: today }
             },
-            publicationState: 'live'
+            publicationState: 'live',
+            populate: '*' 
         });
 
         const puzzles = puzzleResponse?.data || [];
@@ -56,7 +58,8 @@ async function getWordleData(): Promise<{
         const puzzle: DailyPuzzle = {
             word: (puzzleData.word || puzzleData?.word || '')?.toUpperCase(),
             date: puzzleData.date,
-            hint: puzzleData.hint
+            hint: puzzleData.hint,
+            about_word: puzzleData.about_word
         };
 
         // If user is not logged in, return just the puzzle
@@ -111,6 +114,7 @@ export default async function AshokaWordlePage() {
             ) : (
                 <WordleGameClient
                     targetWord={puzzle.word}
+                    aboutWord = {puzzle.about_word}
                     initialProgress={userProgress}
                     currentStreak={currentStreak}
                     maxStreak={maxStreak}

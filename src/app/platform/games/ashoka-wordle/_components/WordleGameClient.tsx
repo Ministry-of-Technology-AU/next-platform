@@ -12,6 +12,7 @@ import AcceptInviteHandler from './AcceptInviteHandler';
 
 interface WordleGameClientProps {
     targetWord: string;
+    aboutWord?: any;
     initialProgress?: {
         guesses: string[];
         time: number;
@@ -23,7 +24,7 @@ interface WordleGameClientProps {
     maxStreak?: number;
 }
 
-export default function WordleGameClient({ targetWord, initialProgress, isArchive = false, currentStreak = 0, maxStreak = 0 }: WordleGameClientProps) {
+export default function WordleGameClient({ targetWord, aboutWord, initialProgress, isArchive = false, currentStreak = 0, maxStreak = 0 }: WordleGameClientProps) {
     // Validate word length (3-8 letters)
     if (targetWord.length < 3 || targetWord.length > 8) {
         return (
@@ -38,6 +39,7 @@ export default function WordleGameClient({ targetWord, initialProgress, isArchiv
     return (
         <WordleProvider
             targetWord={targetWord}
+            aboutWord = {aboutWord}
             initialProgress={initialProgress}
             isArchive={isArchive}
             currentStreak={currentStreak}

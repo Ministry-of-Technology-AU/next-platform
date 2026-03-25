@@ -15,6 +15,7 @@ import { Trophy, Clock, Target, Archive, Flame } from 'lucide-react';
 import Link from 'next/link';
 import ConfettiEffect from './ConfettiEffect';
 import ShareResultsPopover from './ShareResultsPopover';
+import { marked } from "marked";
 
 function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -23,7 +24,7 @@ function formatTime(seconds: number): string {
 }
 
 export default function WinDialog() {
-    const { gameData, wordLength, maxGuesses, resetGame, todayStats } = useWordle();
+    const { gameData, wordLength, maxGuesses, resetGame, todayStats, aboutWord } = useWordle();
     const [open, setOpen] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
 
@@ -78,10 +79,15 @@ export default function WinDialog() {
                     </div>
 
                     <div className="text-center py-2">
-                        <p className="text-sm text-muted-foreground mb-1">The word was</p>
+                        <p className="text-sm text-muted-foreground">The word was</p>
                         <p className="text-3xl font-bold tracking-widest text-primary">{targetWord}</p>
                     </div>
-
+                    <div className="text-center py-2 text-sm">
+                        <div
+                            className="text-center py-2 text-sm"
+                            dangerouslySetInnerHTML={{ __html: marked.parse(aboutWord || "") }}
+                        />
+                    </div>
                     <DialogFooter className="flex flex-col sm:flex-row gap-2">
                         <ShareResultsPopover
                             guesses={guesses}
