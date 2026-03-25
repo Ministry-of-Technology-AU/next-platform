@@ -23,6 +23,8 @@ interface DailyPuzzle {
     word: string;
     date: string;
     hint?: string;
+    about_word?:any;
+
 }
 
 // Get today's date in YYYY-MM-DD format (India Standard Time)
@@ -66,7 +68,8 @@ export async function GET(request: NextRequest) {
             id: puzzles[0].id,
             word: puzzles[0].word?.toUpperCase() || '',
             date: puzzles[0].date,
-            hint: puzzles[0].hint
+            hint: puzzles[0].hint,
+            about_word: puzzles[0].about_word
         };
 
         // Fetch user's wordle data
@@ -93,6 +96,7 @@ export async function GET(request: NextRequest) {
                 word: todaysPuzzle.word,
                 date: todaysPuzzle.date,
                 hint: todaysPuzzle.hint,
+                about_word: todaysPuzzle.about_word,
                 wordLength: todaysPuzzle.word.length,
                 maxGuesses: todaysPuzzle.word.length + 1
             },

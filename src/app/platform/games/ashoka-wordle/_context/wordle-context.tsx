@@ -11,7 +11,7 @@ interface WordleContextType {
     keyboardState: KeyboardState;
     wordLength: number;
     maxGuesses: number;
-
+    aboutWord?: any;
     // Actions
     addLetter: (letter: string) => void;
     deleteLetter: () => void;
@@ -34,9 +34,11 @@ const WordleContext = createContext<WordleContextType | undefined>(undefined);
 interface WordleProviderProps {
     children: React.ReactNode;
     targetWord: string; // The word to guess
+    aboutWord?: any;
     isArchive?: boolean; // If true, don't save to today's completion
     currentStreak?: number; // Current streak passed from server
     maxStreak?: number; // Max streak passed from server
+
     initialProgress?: {
         guesses: string[];
         time: number;
@@ -109,7 +111,7 @@ function updateKeyboardState(
     return updated;
 }
 
-export function WordleProvider({ children, targetWord, isArchive = false, currentStreak: currentStreakProp = 0, maxStreak: maxStreakProp = 0, initialProgress }: WordleProviderProps) {
+export function WordleProvider({ children, targetWord, aboutWord, isArchive = false, currentStreak: currentStreakProp = 0, maxStreak: maxStreakProp = 0, initialProgress }: WordleProviderProps) {
     const wordLength = targetWord.length;
     const MAX_GUESSES = wordLength + 1; // n+1 guesses for an n-letter word
     const normalizedTarget = targetWord.toUpperCase();
@@ -404,6 +406,7 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
         todayStats,
         currentStreak,
         maxStreak,
+        aboutWord,
     };
 
     return (
