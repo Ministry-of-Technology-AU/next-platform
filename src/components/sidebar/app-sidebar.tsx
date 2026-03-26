@@ -39,7 +39,8 @@ import {
   ShoppingBag,
   Puzzle,
   Route,
-  CalendarSearch
+  CalendarSearch,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -66,7 +67,8 @@ const iconMap = {
   ShoppingBag,
   Puzzle,
   Route,
-  CalendarSearch
+  CalendarSearch,
+  Trophy
 };
 
 interface SidebarItem {
@@ -199,17 +201,17 @@ export function AppSidebar() {
                         >
                           <div className={cn(
                             "relative transition-all duration-500",
-                            item.href === '/when2meet' && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
+                            item.href === '/sports' && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
                           )}>
                             <IconComponent className={cn(
                               "size-4 group-data-[state=collapsed]:mx-auto shrink-0",
-                              item.href === '/when2meet' && !isActive && "dark:text-secondary text-primary-light"
+                              item.href === '/sports' && !isActive && "dark:text-secondary text-primary-light"
                             )} />
                           </div>
                           <span className={cn(
                             "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",
                             hideLabels && "w-0 opacity-0 ml-0",
-                            item.href === '/when2meet' && !isActive && "text-secondary font-semibold"
+                            item.href === '/sports' && !isActive && "text-secondary font-semibold"
                           )}>
                             {item.title}
                           </span>

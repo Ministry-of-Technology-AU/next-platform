@@ -53,7 +53,8 @@ import {
   ShoppingBag,
   Puzzle,
   Route,
-  CalendarSearch
+  CalendarSearch,
+  Trophy
 } from "lucide-react";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
 
@@ -79,7 +80,8 @@ const iconMap: Record<string, LucideIcon> = {
   ShoppingBag,
   Puzzle,
   Route,
-  CalendarSearch
+  CalendarSearch,
+  Trophy
 };
 
 interface RecentlyVisitedProps {
