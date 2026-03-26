@@ -2,12 +2,21 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar } from 'lucide-react';
+
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
+function getStrapiMediaUrl(media: any): string | null {
+  if (!media?.data?.attributes?.url) return null;
+  const url = media.data.attributes.url;
+  return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
+}
 
 // Mock Data for Fallbacks
 const LIVE_MATCH_FALLBACK: any = {
@@ -127,6 +136,8 @@ export default function ABAEventPage() {
           id: m.id,
           teamA: attrs.team_a?.data?.attributes?.name || 'TBD',
           teamB: attrs.team_b?.data?.attributes?.name || 'TBD',
+          teamALogo: getStrapiMediaUrl(attrs.team_a?.data?.attributes?.logo),
+          teamBLogo: getStrapiMediaUrl(attrs.team_b?.data?.attributes?.logo),
           scoreA: details.scoreA || 0,
           scoreB: details.scoreB || 0,
           status: (attrs.status || 'Upcoming').toUpperCase(),
@@ -242,10 +253,14 @@ export default function ABAEventPage() {
 
               <div className="flex items-center justify-center w-full max-w-3xl gap-4 md:gap-12">
                 <div className="flex-1 flex flex-col items-center gap-4">
-                  <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800">
-                    <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                  <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
+                    {liveMatch.teamALogo ? (
+                      <Image src={liveMatch.teamALogo} alt={liveMatch.teamA} width={128} height={128} className="w-full h-full object-cover" unoptimized />
+                    ) : (
+                      <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                    )}
                   </div>
-                  <h3 className="text-xl md:text-2xl font-black tracking-wider text-center">{liveMatch.teamA}</h3>
+                  <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{liveMatch.teamA}</h3>
                 </div>
 
                 <div className="flex flex-col items-center gap-2">
@@ -273,10 +288,14 @@ export default function ABAEventPage() {
                 </div>
 
                 <div className="flex-1 flex flex-col items-center gap-4">
-                  <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800">
-                    <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                  <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
+                    {liveMatch.teamBLogo ? (
+                      <Image src={liveMatch.teamBLogo} alt={liveMatch.teamB} width={128} height={128} className="w-full h-full object-cover" unoptimized />
+                    ) : (
+                      <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                    )}
                   </div>
-                  <h3 className="text-xl md:text-2xl font-black tracking-wider text-center">{liveMatch.teamB}</h3>
+                  <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{liveMatch.teamB}</h3>
                 </div>
               </div>
 

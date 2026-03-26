@@ -3,11 +3,20 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
+function getStrapiMediaUrl(media: any): string | null {
+  if (!media?.data?.attributes?.url) return null;
+  const url = media.data.attributes.url;
+  return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
+}
 
 export default function MatchPage() {
   const params = useParams();
@@ -95,6 +104,8 @@ export default function MatchPage() {
       id,
       teamA: attrs.team_a?.data?.attributes?.name || 'Team A',
       teamB: attrs.team_b?.data?.attributes?.name || 'Team B',
+      teamALogo: getStrapiMediaUrl(attrs.team_a?.data?.attributes?.logo),
+      teamBLogo: getStrapiMediaUrl(attrs.team_b?.data?.attributes?.logo),
       scoreA: details.scoreA || 0,
       scoreB: details.scoreB || 0,
       status: attrs.status || 'Upcoming',
@@ -136,6 +147,11 @@ export default function MatchPage() {
           </CardDescription>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 mt-6">
             <div className="flex flex-col items-center flex-1">
+              {matchData.teamALogo && (
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-xl overflow-hidden border border-border mb-2">
+                  <Image src={matchData.teamALogo} alt={matchData.teamA} width={96} height={96} className="w-full h-full object-cover" unoptimized />
+                </div>
+              )}
               <h2 className="text-3xl md:text-5xl font-bold">{matchData.teamA}</h2>
             </div>
 
@@ -164,6 +180,11 @@ export default function MatchPage() {
             </div>
 
             <div className="flex flex-col items-center flex-1">
+              {matchData.teamBLogo && (
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-xl overflow-hidden border border-border mb-2">
+                  <Image src={matchData.teamBLogo} alt={matchData.teamB} width={96} height={96} className="w-full h-full object-cover" unoptimized />
+                </div>
+              )}
               <h2 className="text-3xl md:text-5xl font-bold">{matchData.teamB}</h2>
             </div>
           </div>

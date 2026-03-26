@@ -6,12 +6,10 @@ export async function GET(request: Request) {
   const status = searchParams.get('status'); // Optional filter for Live, Upcoming, Past
   
   try {
-    const query: any = { populate: '*' };
-    if (status) {
-       query.filters = { status: { $eq: status } };
-    }
+    const populateQuery = 'populate[team_a][populate][0]=logo&populate[team_b][populate][0]=logo';
+    const filterQuery = status ? `&filters[status][$eq]=${status}` : '';
 
-    const data = await strapiGet('/aba-matches', query);
+    const data = await strapiGet(`/aba-matches`, populateQuery + filterQuery);
     return NextResponse.json(data);
   } catch (error) {
     console.error("API proxy error:", error);
