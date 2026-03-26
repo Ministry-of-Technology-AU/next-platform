@@ -36,8 +36,8 @@ const LIVE_MATCH_FALLBACK: any = {
 };
 
 const MOCK_UPCOMING_MATCHES = [
-  { id: 2, teamA: 'WOLVES', teamB: 'BEARS', start_time: new Date(Date.now() + 86400000).toISOString() },
-  { id: 3, teamA: 'LIONS', teamB: 'DRAGONS', start_time: new Date(Date.now() + 172800000).toISOString() },
+  { id: 2, teamA: 'WOLVES', teamB: 'BEARS', start_time: new Date(Date.now() + 86400000).toISOString(), date: 'TOMORROW', time: '18:00', teamALogo: null, teamBLogo: null },
+  { id: 3, teamA: 'LIONS', teamB: 'DRAGONS', start_time: new Date(Date.now() + 172800000).toISOString(), date: 'IN 2 DAYS', time: '17:30', teamALogo: null, teamBLogo: null },
 ];
 
 const MOCK_TOP_SCORERS = [
@@ -124,9 +124,10 @@ export default function ABAEventPage() {
   // Transform Logic (Memoized for performance)
   const dashboardData = useMemo(() => {
     // 1. Matches
-    let liveMatch = LIVE_MATCH_FALLBACK;
-    let upcomingMatches = MOCK_UPCOMING_MATCHES;
-    let pastMatches = MOCK_PAST_MATCHES;
+    let liveMatch = null;
+    let upcomingMatches = [];
+    let pastMatches = [];
+    let nextMatch = null;
 
     if (rawMatches && rawMatches.length > 0) {
       const parsed = rawMatches.map((m: any) => {
@@ -150,10 +151,23 @@ export default function ABAEventPage() {
         };
       });
 
-      const live = parsed.find((m: any) => m.status === 'LIVE');
-      if (live) liveMatch = live;
+      liveMatch = parsed.find((m: any) => m.status === 'LIVE') || null;
       upcomingMatches = parsed.filter((m: any) => m.status === 'UPCOMING');
       pastMatches = parsed.filter((m: any) => m.status === 'PAST');
+
+      if (!liveMatch && upcomingMatches.length > 0) {
+        // Find earliest upcoming match
+        nextMatch = [...upcomingMatches].sort((a, b) => {
+          const timeA = a.start_time ? new Date(a.start_time).getTime() : Infinity;
+          const timeB = b.start_time ? new Date(b.start_time).getTime() : Infinity;
+          return timeA - timeB;
+        })[0];
+      }
+    } else {
+        // Fallbacks for mockup if no matches at all
+        upcomingMatches = MOCK_UPCOMING_MATCHES;
+        pastMatches = MOCK_PAST_MATCHES;
+        nextMatch = MOCK_UPCOMING_MATCHES[0];
     }
 
     // 2. Leaderboards
@@ -222,6 +236,7 @@ export default function ABAEventPage() {
 
     return {
       liveMatch,
+      nextMatch,
       upcomingMatches,
       pastMatches,
       displayGroups: displayGroups.length > 0 ? displayGroups : MOCK_GROUPS,
@@ -232,13 +247,14 @@ export default function ABAEventPage() {
 
   if (loading && rawMatches.length === 0) return <div className="p-8 text-center text-muted-foreground bg-background">Loading Basketball Portal...</div>;
 
-  const { liveMatch, upcomingMatches, pastMatches, displayGroups, displayScorers, liveMatchSets } = dashboardData;
+  const { liveMatch, nextMatch, upcomingMatches, pastMatches, displayGroups, displayScorers, liveMatchSets } = dashboardData;
 
   return (
     <div className="p-4 md:p-8 space-y-12 max-w-7xl mx-auto">
 
-      {/* Hero Live Match Banner */}
+      {/* Hero Live Match Banner or Stay Tuned */}
       <section>
+        {liveMatch ? (
         <Link href={`/platform/sports/aba/${liveMatch.id}`}>
           <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer shadow-2xl">
             <CardContent className="p-8 md:p-12 flex flex-col items-center relative">
@@ -305,6 +321,34 @@ export default function ABAEventPage() {
             </CardContent>
           </Card>
         </Link>
+        ) : (
+          <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden shadow-2xl">
+            <CardContent className="p-8 md:p-16 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                    <Calendar className="w-8 h-8 text-primary animate-pulse" />
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Stay tuned!</h2>
+                <p className="text-zinc-400 text-lg md:text-xl font-medium max-w-md">
+                    {nextMatch ? (
+                        <>
+                            Next match starts at <span className="text-white font-bold">{nextMatch.start_time ? new Date(nextMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : ((nextMatch as any).date + ' • ' + (nextMatch as any).time)}</span>
+                        </>
+                    ) : (
+                        "No matches currently live. Check back soon for upcoming games!"
+                    )}
+                </p>
+                {nextMatch && (
+                   <div className="mt-8 flex items-center gap-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                        <span>{nextMatch.teamA}</span>
+                        <span className="w-1 h-1 rounded-full bg-zinc-700" />
+                        <span className="text-primary">VS</span>
+                        <span className="w-1 h-1 rounded-full bg-zinc-700" />
+                        <span>{nextMatch.teamB}</span>
+                   </div>
+                )}
+            </CardContent>
+          </Card>
+        )}
       </section>
 
       {/* Middle Section: Matches Tabs & Top Scorers */}
