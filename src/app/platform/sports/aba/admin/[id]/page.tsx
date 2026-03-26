@@ -155,9 +155,10 @@ export default function AdminMatchScoringPage() {
     const setTargetTeam = team === 'A' ? setTeamAPlayers : setTeamBPlayers;
     const player = targetTeam.find(p => p.id === playerId);
     
-    // Check if both total points and match points wouldn't go negative if that's a constraint,
-    // though usually match points shouldn't go negative either in a single session.
-    if (!player || (player.points + change < 0) || (player.matchPoints + change < 0)) return; 
+    // Only prevent match points from going negative and team score from going negative
+    if (!player || (player.matchPoints + change < 0)) return;
+    const teamScore = team === 'A' ? scoreA : scoreB;
+    if (teamScore + change < 0) return;
 
     // Optimistic UI
     const newPoints = player.points + change;

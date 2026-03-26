@@ -40,12 +40,12 @@ export default function RootLayout({
           autoStart={false}
         >
           <SidebarProvider defaultOpen={false}>
-            <NewToolAlert
+            {/* <NewToolAlert
               href="/platform/when2meet"
               title="When2Meet"
               checkSeenKey="WHEN2MEET_LAYOUT_ALERT_SEEN_V1"
               blockIfNewVersion={true}
-            />
+            /> */}
             <WhatsNewModal />
             <RecentPageTracker />
             <div className="flex min-h-screen w-full overflow-x-hidden">

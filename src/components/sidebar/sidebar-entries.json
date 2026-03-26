@@ -95,6 +95,17 @@
       ]
     },
     {
+      "id": "sports",
+      "title": "Sports",
+      "items": [
+        {
+          "title": "Sports",
+          "icon": "Trophy",
+          "href": "/sports"
+        }
+      ]
+    },
+    {
       "id": "my-resources",
       "title": "My Resources",
       "items": [
