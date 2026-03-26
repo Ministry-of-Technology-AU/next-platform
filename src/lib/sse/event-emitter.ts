@@ -19,7 +19,7 @@ const globalForSSE = globalThis as typeof globalThis & {
 
 if (!globalForSSE.__abaSSE) {
   globalForSSE.__abaSSE = new EventEmitter();
-  globalForSSE.__abaSSE.setMaxListeners(100); // support many concurrent viewers
+  globalForSSE.__abaSSE.setMaxListeners(1000); // support many concurrent viewers
 }
 
 export const abaEmitter = globalForSSE.__abaSSE;
