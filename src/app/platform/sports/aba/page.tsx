@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar } from 'lucide-react';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+const FANTASY_OPEN = process.env.NEXT_PUBLIC_ABA_FANTASY_OPEN === 'true';
 
 function getStrapiMediaUrl(media: any): string | null {
   if (!media?.data?.attributes?.url) return null;
@@ -164,10 +165,10 @@ export default function ABAEventPage() {
         })[0];
       }
     } else {
-        // Fallbacks for mockup if no matches at all
-        upcomingMatches = MOCK_UPCOMING_MATCHES;
-        pastMatches = MOCK_PAST_MATCHES;
-        nextMatch = MOCK_UPCOMING_MATCHES[0];
+      // Fallbacks for mockup if no matches at all
+      upcomingMatches = MOCK_UPCOMING_MATCHES;
+      pastMatches = MOCK_PAST_MATCHES;
+      nextMatch = MOCK_UPCOMING_MATCHES[0];
     }
 
     // 2. Leaderboards
@@ -255,104 +256,118 @@ export default function ABAEventPage() {
       {/* Hero Live Match Banner or Stay Tuned */}
       <section>
         {liveMatch ? (
-        <Link href={`/platform/sports/aba/${liveMatch.id}`}>
-          <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer shadow-2xl">
-            <CardContent className="p-8 md:p-12 flex flex-col items-center relative">
-              <div className="flex items-center gap-3 mb-8">
-                <Badge variant="destructive" className="bg-red-500 hover:bg-red-600 animate-pulse text-xs px-2 py-0.5 rounded-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white mr-1.5 animate-bounce" /> {liveMatch.status}
-                </Badge>
-                <span className="text-zinc-400 text-[10px] md:text-sm font-black uppercase tracking-widest bg-zinc-800/50 px-2 py-0.5 rounded border border-zinc-700/50">
-                  {liveMatch.start_time ? new Date(liveMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (liveMatch.date + ' • ' + liveMatch.time)}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-center w-full max-w-3xl gap-4 md:gap-12">
-                <div className="flex-1 flex flex-col items-center gap-4">
-                  <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
-                    {liveMatch.teamALogo ? (
-                      <Image src={liveMatch.teamALogo} alt={liveMatch.teamA} width={128} height={128} className="w-full h-full object-cover" unoptimized />
-                    ) : (
-                      <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
-                    )}
-                  </div>
-                  <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{liveMatch.teamA}</h3>
+          <Link href={`/platform/sports/aba/${liveMatch.id}`}>
+            <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer shadow-2xl">
+              <CardContent className="p-8 md:p-12 flex flex-col items-center relative">
+                <div className="flex items-center gap-3 mb-8">
+                  <Badge variant="destructive" className="bg-red-500 hover:bg-red-600 animate-pulse text-xs px-2 py-0.5 rounded-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white mr-1.5 animate-bounce" /> {liveMatch.status}
+                  </Badge>
+                  <span className="text-zinc-400 text-[10px] md:text-sm font-black uppercase tracking-widest bg-zinc-800/50 px-2 py-0.5 rounded border border-zinc-700/50">
+                    {liveMatch.start_time ? new Date(liveMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (liveMatch.date + ' • ' + liveMatch.time)}
+                  </span>
                 </div>
 
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-4 md:gap-8">
-                    <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{liveMatch.scoreA}</span>
-                    <span className="text-3xl md:text-5xl font-black text-zinc-700">-</span>
-                    <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{liveMatch.scoreB}</span>
-                  </div>
-
-                  {/* Set Scores Display */}
-                  {liveMatchSets.length > 0 && (
-                    <div className="flex gap-4 mt-2">
-                      {liveMatchSets.map((set: any, idx: number) => (
-                        <div key={idx} className="flex flex-col items-center">
-                          <span className="text-[10px] items-center text-zinc-500 font-bold uppercase tracking-tighter mb-1">{set.name}</span>
-                          <div className="bg-zinc-800/50 px-2 py-1 rounded border border-zinc-700/50 flex gap-2 text-xs font-mono font-bold">
-                            <span className={set.scoreA > set.scoreB ? 'text-white' : 'text-zinc-500'}>{set.scoreA}</span>
-                            <span className="text-zinc-600">:</span>
-                            <span className={set.scoreB > set.scoreA ? 'text-white' : 'text-zinc-500'}>{set.scoreB}</span>
-                          </div>
-                        </div>
-                      ))}
+                <div className="flex items-center justify-center w-full max-w-3xl gap-4 md:gap-12">
+                  <div className="flex-1 flex flex-col items-center gap-4">
+                    <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
+                      {liveMatch.teamALogo ? (
+                        <Image src={liveMatch.teamALogo} alt={liveMatch.teamA} width={128} height={128} className="w-full h-full object-cover" unoptimized />
+                      ) : (
+                        <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                      )}
                     </div>
-                  )}
-                </div>
+                    <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{liveMatch.teamA}</h3>
+                  </div>
 
-                <div className="flex-1 flex flex-col items-center gap-4">
-                  <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
-                    {liveMatch.teamBLogo ? (
-                      <Image src={liveMatch.teamBLogo} alt={liveMatch.teamB} width={128} height={128} className="w-full h-full object-cover" unoptimized />
-                    ) : (
-                      <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex items-center gap-4 md:gap-8">
+                      <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{liveMatch.scoreA}</span>
+                      <span className="text-3xl md:text-5xl font-black text-zinc-700">-</span>
+                      <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{liveMatch.scoreB}</span>
+                    </div>
+
+                    {/* Set Scores Display */}
+                    {liveMatchSets.length > 0 && (
+                      <div className="flex gap-4 mt-2">
+                        {liveMatchSets.map((set: any, idx: number) => (
+                          <div key={idx} className="flex flex-col items-center">
+                            <span className="text-[10px] items-center text-zinc-500 font-bold uppercase tracking-tighter mb-1">{set.name}</span>
+                            <div className="bg-zinc-800/50 px-2 py-1 rounded border border-zinc-700/50 flex gap-2 text-xs font-mono font-bold">
+                              <span className={set.scoreA > set.scoreB ? 'text-white' : 'text-zinc-500'}>{set.scoreA}</span>
+                              <span className="text-zinc-600">:</span>
+                              <span className={set.scoreB > set.scoreA ? 'text-white' : 'text-zinc-500'}>{set.scoreB}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{liveMatch.teamB}</h3>
-                </div>
-              </div>
 
-              <div className="mt-8 text-sm tracking-widest text-zinc-400 font-semibold uppercase">
-                {liveMatch.arena}
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+                  <div className="flex-1 flex flex-col items-center gap-4">
+                    <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
+                      {liveMatch.teamBLogo ? (
+                        <Image src={liveMatch.teamBLogo} alt={liveMatch.teamB} width={128} height={128} className="w-full h-full object-cover" unoptimized />
+                      ) : (
+                        <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                      )}
+                    </div>
+                    <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{liveMatch.teamB}</h3>
+                  </div>
+                </div>
+
+                <div className="mt-8 text-sm tracking-widest text-zinc-400 font-semibold uppercase">
+                  {liveMatch.arena}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ) : (
           <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden shadow-2xl">
             <CardContent className="p-8 md:p-16 flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                    <Calendar className="w-8 h-8 text-primary animate-pulse" />
-                </div>
-                <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Stay tuned!</h2>
-                <p className="text-zinc-400 text-lg md:text-xl font-medium max-w-md">
-                    {nextMatch ? (
-                        <>
-                            Next match starts at <span className="text-white font-bold">{nextMatch.start_time ? new Date(nextMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : ((nextMatch as any).date + ' • ' + (nextMatch as any).time)}</span>
-                        </>
-                    ) : (
-                        "No matches currently live. Check back soon for upcoming games!"
-                    )}
-                </p>
-                {nextMatch && (
-                   <div className="mt-8 flex items-center gap-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
-                        <span>{nextMatch.teamA}</span>
-                        <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                        <span className="text-primary">VS</span>
-                        <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                        <span>{nextMatch.teamB}</span>
-                   </div>
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                <Calendar className="w-8 h-8 text-primary animate-pulse" />
+              </div>
+              <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Stay tuned!</h2>
+              <p className="text-zinc-400 text-lg md:text-xl font-medium max-w-md">
+                {nextMatch ? (
+                  <>
+                    Next match starts at <span className="text-white font-bold">{nextMatch.start_time ? new Date(nextMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : ((nextMatch as any).date + ' • ' + (nextMatch as any).time)}</span>
+                  </>
+                ) : (
+                  "No matches currently live. Check back soon for upcoming games!"
                 )}
+              </p>
+              {nextMatch && (
+                <div className="mt-8 flex items-center gap-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                  <span>{nextMatch.teamA}</span>
+                  <span className="w-1 h-1 rounded-full bg-zinc-700" />
+                  <span className="text-primary">VS</span>
+                  <span className="w-1 h-1 rounded-full bg-zinc-700" />
+                  <span>{nextMatch.teamB}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
       </section>
 
+      {/* Fantasy CTA */}
+      {FANTASY_OPEN && <Link href="/platform/sports/aba/fantasy">
+        <div className="flex items-center justify-between bg-primary/10 hover:bg-primary/15 border border-primary/20 rounded-xl px-5 py-3.5 transition-colors cursor-pointer">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🏀</span>
+            <div>
+              <p className="font-bold text-sm text-foreground">Create your fantasy team now!</p>
+              <p className="text-xs text-muted-foreground">Pick 6 players and compete</p>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-primary tracking-wide">Pick now →</span>
+        </div>
+      </Link>}
+
       {/* Middle Section: Matches Tabs & Top Scorers */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 mt-8">
         <section className="lg:col-span-3">
           <Tabs defaultValue="upcoming" className="w-full">
             <div className="flex items-center justify-between mb-4">
