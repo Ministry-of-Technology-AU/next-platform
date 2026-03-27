@@ -207,11 +207,13 @@ export default function ABAEventPage() {
             teamStats[teamAId].played += 1;
             if (scoreA > scoreB) { teamStats[teamAId].won += 1; teamStats[teamAId].points += 3; }
             else if (scoreA < scoreB) { teamStats[teamAId].lost += 1; }
+            else { teamStats[teamAId].points += 1; }
           }
           if (teamBId && teamStats[teamBId]) {
             teamStats[teamBId].played += 1;
             if (scoreB > scoreA) { teamStats[teamBId].won += 1; teamStats[teamBId].points += 3; }
             else if (scoreB < scoreA) { teamStats[teamBId].lost += 1; }
+            else { teamStats[teamBId].points += 1; }
           }
         }
       });
@@ -411,7 +413,7 @@ export default function ABAEventPage() {
                       <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                         <div className="text-center">
                           <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamA}</h4>
-                          <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-foreground' : 'text-muted-foreground'}`}>{match.scoreA}</p>
+                          <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreA}</p>
                         </div>
                         <div className="text-xs font-bold text-muted/50 dark:text-zinc-700">VS</div>
                         <div className="text-center">
