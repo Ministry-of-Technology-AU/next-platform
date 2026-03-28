@@ -242,6 +242,7 @@ export default function ABAEventPage() {
             scoreA: details.scoreA || 0,
             scoreB: details.scoreB || 0,
             status: (attrs.status || 'Upcoming').toUpperCase(),
+            round: details.round || '',
             start_time: attrs.start_time,
             date: details.date || 'TBD',
             time: details.time || 'TBD',
@@ -560,11 +561,20 @@ export default function ABAEventPage() {
                           {match.start_time ? new Date(match.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (match.date + ' • ' + match.time)}
                         </span>
                         {match.status === 'LIVE' ? (
-                          <Badge variant="destructive" className="bg-red-500 text-[10px] px-1.5 py-0 animate-pulse rounded-sm">LIVE</Badge>
+                          <div className="flex items-center gap-1.5">
+                            {match.round && <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
+                            <Badge variant="destructive" className="bg-red-500 text-[10px] px-1.5 py-0 animate-pulse rounded-sm">LIVE</Badge>
+                          </div>
                         ) : match.status === 'PAST' ? (
-                          <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Knockout</Badge>
+                          <div className="flex items-center gap-1.5">
+                            {match.round && <Badge className="bg-primary/10 text-primary dark:text-yellow-600 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
+                            {/* <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Final</Badge> */}
+                          </div>
                         ) : (
-                          <Badge className="text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Upcoming</Badge>
+                          <div className="flex items-center gap-1.5">
+                            {match.round && <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
+                            <Badge className="text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Upcoming</Badge>
+                          </div>
                         )}
                       </div>
                       <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
