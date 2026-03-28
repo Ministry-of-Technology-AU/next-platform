@@ -51,7 +51,7 @@ export default function SportsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Coming soon. The portal for the Ashoka Premier League cricket tournament.
+                Coming soon. The portal to view tournament data for Ashoka's football league.
               </p>
             </CardContent>
           </Card>
