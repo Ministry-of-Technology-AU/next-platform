@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar } from 'lucide-react';
+import { Calendar, Trophy } from 'lucide-react';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 const FANTASY_OPEN = process.env.NEXT_PUBLIC_ABA_FANTASY_OPEN === 'true';
@@ -58,6 +58,17 @@ const MOCK_GROUPS = [
   }
 ];
 
+const WINNERS = [
+  { rank: 1, teamId: 18, name: 'Club Penguin' },
+  { rank: 2, teamId: 3, name: 'Topbar' },
+  { rank: 3, teamId: 20, name: 'Chhoti Advance Bade Sapne' },
+];
+
+const MVPS = [
+  { id: 31, name: 'Arnav Patil', title: 'Cis Men MVP' },
+  { id: 44, name: 'Kaitlyn Machado', title: 'Non Cis Men MVP' },
+];
+
 export default function ABAEventPage() {
   const [rawMatches, setRawMatches] = useState<any[]>([]);
   const [rawTeams, setRawTeams] = useState<any[]>([]);
@@ -69,7 +80,7 @@ export default function ABAEventPage() {
       const [matchesRes, teamsRes, participantsRes] = await Promise.all([
         fetch('/api/platform/sports/aba/matches'),
         fetch('/api/platform/sports/aba/teams'),
-        fetch('/api/platform/sports/aba/participants?limit=10')
+        fetch('/api/platform/sports/aba/participants?limit=500')
       ]);
 
       if (matchesRes.ok) {
@@ -249,21 +260,34 @@ export default function ABAEventPage() {
           };
         })
         .sort((a: any, b: any) => {
-          const order = ['LIVE', 'UPCOMING', 'PAST'];
-          return order.indexOf(a.status) - order.indexOf(b.status);
+          const order = ['PAST', 'LIVE', 'UPCOMING'];
+          const statusDiff = order.indexOf(a.status) - order.indexOf(b.status);
+          if (statusDiff !== 0) return statusDiff;
+          // Within same status, latest start_time first
+          const timeA = a.start_time ? new Date(a.start_time).getTime() : 0;
+          const timeB = b.start_time ? new Date(b.start_time).getTime() : 0;
+          return timeB - timeA;
         })
       : [];
 
     // 4. Scorers
 
     const displayScorers = rawParticipants.length > 0
-      ? rawParticipants.map((p: any) => ({
-        id: p.id,
-        name: p.attributes?.name || 'Unknown',
-        team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
-        points: p.attributes?.points_scored || 0
-      }))
+      ? rawParticipants
+          .map((p: any) => ({
+            id: p.id,
+            name: p.attributes?.name || 'Unknown',
+            team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
+            points: p.attributes?.points_scored || 0
+          }))
+          .filter((p: any) => p.points > 0)
       : MOCK_TOP_SCORERS;
+
+    // 5. Winner team logos
+    const winnerLogos = WINNERS.map(w => {
+      const team = rawTeams.find((t: any) => t.id === w.teamId);
+      return getStrapiMediaUrl(team?.attributes?.logo) ?? null;
+    });
 
     return {
       liveMatch,
@@ -271,6 +295,7 @@ export default function ABAEventPage() {
       upcomingMatches,
       pastMatches,
       knockoutMatches,
+      winnerLogos,
       displayGroups: displayGroups.length > 0 ? displayGroups : MOCK_GROUPS,
       displayScorers,
       liveMatchSets: liveMatch?.details?.sets || []
@@ -279,7 +304,7 @@ export default function ABAEventPage() {
 
   if (loading && rawMatches.length === 0) return <div className="p-8 text-center text-muted-foreground bg-background">Loading Basketball Portal...</div>;
 
-  const { liveMatch, nextMatch, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers, liveMatchSets } = dashboardData;
+  const { liveMatch, upcomingMatches, pastMatches, knockoutMatches, winnerLogos, displayGroups, displayScorers, liveMatchSets } = dashboardData;
 
   return (
     <div className="p-4 md:p-8 space-y-12 max-w-7xl mx-auto">
@@ -355,29 +380,55 @@ export default function ABAEventPage() {
           </Link>
         ) : (
           <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden shadow-2xl">
-            <CardContent className="p-8 md:p-16 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                <Calendar className="w-8 h-8 text-primary animate-pulse" />
+            <CardContent className="p-8 md:p-12 flex flex-col items-center gap-8">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs px-3 py-1">ABA 2025–26 Champions</Badge>
               </div>
-              <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Stay tuned!</h2>
-              <p className="text-zinc-400 text-lg md:text-xl font-medium max-w-md">
-                {nextMatch ? (
-                  <>
-                    Next match starts at <span className="text-white font-bold">{nextMatch.start_time ? new Date(nextMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : ((nextMatch as any).date + ' • ' + (nextMatch as any).time)}</span>
-                  </>
-                ) : (
-                  "No matches currently live. Check back soon for upcoming games!"
-                )}
-              </p>
-              {nextMatch && (
-                <div className="mt-8 flex items-center gap-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
-                  <span>{nextMatch.teamA}</span>
-                  <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                  <span className="text-primary">VS</span>
-                  <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                  <span>{nextMatch.teamB}</span>
+
+              {/* Podium */}
+              <div className="flex items-end justify-center gap-3 md:gap-6 w-full max-w-xl">
+                {/* 2nd */}
+                <div className="flex flex-col items-center gap-2 flex-1">
+                  <div className="w-14 h-14 md:w-20 md:h-20 bg-zinc-800 rounded-xl border border-zinc-700 overflow-hidden flex items-center justify-center">
+                    {winnerLogos[1] ? <Image src={winnerLogos[1]} alt={WINNERS[1].name} width={80} height={80} className="w-full h-full object-cover" unoptimized /> : <span className="text-xl font-black text-zinc-500">2</span>}
+                  </div>
+                  <p className="text-[10px] md:text-xs font-bold text-zinc-400 text-center leading-tight">{WINNERS[1].name}</p>
+                  <div className="bg-zinc-600 rounded-t-lg w-full h-14 md:h-20 flex items-center justify-center">
+                    <span className="text-xl font-black text-zinc-300">2</span>
+                  </div>
                 </div>
-              )}
+                {/* 1st */}
+                <div className="flex flex-col items-center gap-2 flex-1">
+                  <Trophy className="w-5 h-5 text-yellow-400" />
+                  <div className="w-20 h-20 md:w-28 md:h-28 bg-zinc-800 rounded-xl border-2 border-yellow-500/60 overflow-hidden flex items-center justify-center ring-2 ring-yellow-500/20">
+                    {winnerLogos[0] ? <Image src={winnerLogos[0]} alt={WINNERS[0].name} width={112} height={112} className="w-full h-full object-cover" unoptimized /> : <span className="text-2xl font-black text-yellow-500">1</span>}
+                  </div>
+                  <p className="text-xs md:text-sm font-bold text-white text-center leading-tight">{WINNERS[0].name}</p>
+                  <div className="bg-yellow-500 rounded-t-lg w-full h-20 md:h-28 flex items-center justify-center">
+                    <span className="text-2xl font-black text-yellow-900">1</span>
+                  </div>
+                </div>
+                {/* 3rd */}
+                <div className="flex flex-col items-center gap-2 flex-1">
+                  <div className="w-14 h-14 md:w-20 md:h-20 bg-zinc-800 rounded-xl border border-zinc-700 overflow-hidden flex items-center justify-center">
+                    {winnerLogos[2] ? <Image src={winnerLogos[2]} alt={WINNERS[2].name} width={80} height={80} className="w-full h-full object-cover" unoptimized /> : <span className="text-xl font-black text-zinc-500">3</span>}
+                  </div>
+                  <p className="text-[10px] md:text-xs font-bold text-zinc-400 text-center leading-tight">{WINNERS[2].name}</p>
+                  <div className="bg-zinc-700 rounded-t-lg w-full h-10 md:h-14 flex items-center justify-center">
+                    <span className="text-lg font-black text-zinc-300">3</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* MVPs */}
+              <div className="grid grid-cols-2 gap-3 w-full max-w-md">
+                {MVPS.map(mvp => (
+                  <div key={mvp.id} className="bg-zinc-800/60 border border-zinc-700 rounded-xl p-4 text-center">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">{mvp.title}</p>
+                    <p className="font-bold text-white text-sm">{mvp.name}</p>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
@@ -397,153 +448,57 @@ export default function ABAEventPage() {
         </div>
       </Link>}
 
-      {/* Middle Section: Matches Tabs & Top Scorers */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 mt-8">
+      {/* Middle Section: Standings & Top Scorers */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
         <section className="lg:col-span-3">
-          <Tabs defaultValue="upcoming" className="w-full">
+          <Tabs defaultValue="knockout" className="w-full">
             <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold tracking-tight">Standings</h3>
               <TabsList className="bg-muted border border-border">
-                <TabsTrigger value="upcoming" className="data-[state=active]:bg-card shadow-sm">Upcoming</TabsTrigger>
-                <TabsTrigger value="finished" className="data-[state=active]:bg-card shadow-sm">Finished</TabsTrigger>
+                <TabsTrigger value="group" className="data-[state=active]:bg-card shadow-sm">Group Stage</TabsTrigger>
+                <TabsTrigger value="knockout" className="data-[state=active]:bg-card shadow-sm">Knockout</TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="upcoming" className="mt-0">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-3">
-                  {upcomingMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No upcoming matches scheduled.</p>}
-                  {upcomingMatches.map((match: any) => (
-                    <div key={match.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors cursor-pointer shadow-sm">
-                      <div>
-                        <h4 className="font-bold text-foreground">{match.teamA} VS {match.teamB}</h4>
-                        <p className="text-xs text-muted-foreground font-semibold tracking-wide mt-1">
-                          {match.start_time ? new Date(match.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (match.date + ' • ' + match.time)}
-                        </p>
-                      </div>
-                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="finished" className="mt-0">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-4">
-                  {pastMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No past matches recorded.</p>}
-                  {pastMatches.map((match: any) => (
-                    <div key={match.id} className="bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors cursor-pointer relative overflow-hidden shadow-sm">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-xs font-bold text-muted-foreground tracking-wide">{match.date}</span>
-                        <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 hover:bg-yellow-500/20 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Finished</Badge>
-                      </div>
-                      <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
-                        <div className="text-center">
-                          <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamA}</h4>
-                          <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreA}</p>
-                        </div>
-                        <div className="text-xs font-bold text-muted/50 dark:text-zinc-700">VS</div>
-                        <div className="text-center">
-                          <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamB}</h4>
-                          <p className={`text-3xl font-black mt-2 ${match.scoreB > match.scoreA ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreB}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
-        </section>
-
-        <section className="lg:col-span-2 flex flex-col">
-          <div className="flex items-center justify-between mb-4 h-10">
-            <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
-            <span className="text-xs font-bold text-muted-foreground tracking-widest hover:text-primary cursor-pointer transition-colors">FULL STATS</span>
-          </div>
-          <Card className="bg-card border border-border text-foreground pt-4 flex-1 shadow-sm">
-            <CardContent className="p-0">
-              <ScrollArea className="h-[400px]">
-                <Table>
-                  <TableHeader className="bg-muted/50 sticky top-0 z-10 backdrop-blur-md">
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
-                      <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
-                      <TableHead className="text-right text-foreground font-bold px-6 w-24">PTS</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayScorers.map((scorer: any, index: number) => (
-                      <TableRow key={scorer.id || index} className="border-border hover:bg-muted/30">
-                        <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
-                        <TableCell className="px-4">
-                          <p className="font-bold tracking-wide whitespace-nowrap">{scorer.name}</p>
-                          <p className="text-xs text-muted-foreground font-semibold mt-0.5">{scorer.team}</p>
-                        </TableCell>
-                        <TableCell className="text-right font-black text-yellow-600 dark:text-yellow-500 text-lg px-6">
-                          {scorer.points}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </section>
-      </div>
-
-      {/* Leaderboard */}
-      <section id="leaderboard" className="pt-4">
-        <Tabs defaultValue="knockout" className="w-full">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pt-4 border-t border-zinc-800">
-            <h2 className="text-2xl font-bold tracking-tight">Standings</h2>
-            <TabsList className="bg-zinc-900 border border-zinc-800">
-              <TabsTrigger value="group" className="data-[state=active]:bg-zinc-800">Group Stage</TabsTrigger>
-              <TabsTrigger value="knockout" className="data-[state=active]:bg-zinc-800">Knockout Stage</TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="group" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              {displayGroups.map((group: any) => (
-                <Card key={group.name} className="bg-card border-border text-foreground flex flex-col shadow-sm overflow-hidden">
-                  <CardHeader className="py-4 border-b border-border bg-muted/30">
-                    <CardTitle className="text-lg font-bold tracking-tight">{group.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 flex-1">
-                    <Table>
-                      <TableHeader className="bg-muted/50">
-                        <TableRow className="border-border hover:bg-transparent">
-                          <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
-                          <TableHead className="text-muted-foreground font-bold px-4">TEAM</TableHead>
-                          <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">P</TableHead>
-                          <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">W</TableHead>
-                          <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">L</TableHead>
-                          <TableHead className="text-center text-foreground font-bold w-16 px-4">PTS</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {group.teams.map((team: any, idx: number) => (
-                          <TableRow key={team.id || idx} className="border-border hover:bg-muted/30">
-                            <TableCell className="text-center font-bold text-muted-foreground px-2">{team.rank}</TableCell>
-                            <TableCell className="font-bold tracking-wide px-4 whitespace-nowrap">{team.team}</TableCell>
-                            <TableCell className="text-center text-muted-foreground px-2">{team.played}</TableCell>
-                            <TableCell className="text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
-                            <TableCell className="text-center text-red-600 dark:text-red-500/80 px-2">{team.lost}</TableCell>
-                            <TableCell className="text-center font-black text-yellow-600 dark:text-yellow-500 text-base px-4">{team.points}</TableCell>
+            <TabsContent value="group" className="mt-0">
+              <div className="space-y-4">
+                {displayGroups.map((group: any) => (
+                  <Card key={group.name} className="bg-card border-border text-foreground flex flex-col shadow-sm overflow-hidden">
+                    <CardHeader className="py-3 border-b border-border bg-muted/30">
+                      <CardTitle className="text-sm font-bold tracking-tight">{group.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0 flex-1">
+                      <Table>
+                        <TableHeader className="bg-muted/50">
+                          <TableRow className="border-border hover:bg-transparent">
+                            <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
+                            <TableHead className="text-muted-foreground font-bold px-4">TEAM</TableHead>
+                            <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">P</TableHead>
+                            <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">W</TableHead>
+                            <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">L</TableHead>
+                            <TableHead className="text-center text-foreground font-bold w-16 px-4">PTS</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="knockout" className="mt-0">
+                        </TableHeader>
+                        <TableBody>
+                          {group.teams.map((team: any, idx: number) => (
+                            <TableRow key={team.id || idx} className="border-border hover:bg-muted/30">
+                              <TableCell className="text-center font-bold text-muted-foreground px-2">{team.rank}</TableCell>
+                              <TableCell className="font-bold tracking-wide px-4 whitespace-nowrap">{team.team}</TableCell>
+                              <TableCell className="text-center text-muted-foreground px-2">{team.played}</TableCell>
+                              <TableCell className="text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
+                              <TableCell className="text-center text-red-600 dark:text-red-500/80 px-2">{team.lost}</TableCell>
+                              <TableCell className="text-center font-black text-yellow-600 dark:text-yellow-500 text-base px-4">{team.points}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              </TabsContent>
+
+            <TabsContent value="knockout" className="mt-0">
             {knockoutMatches.length === 0 ? (
               <Card className="bg-zinc-900 border-zinc-800 text-zinc-500">
                 <CardContent className="h-64 flex flex-col items-center justify-center p-6 text-center">
@@ -552,6 +507,7 @@ export default function ABAEventPage() {
                 </CardContent>
               </Card>
             ) : (
+              <ScrollArea className="h-[400px] pr-2">
               <div className="space-y-4">
                 {knockoutMatches.map((match: any) => (
                   <Link key={match.id} href={`/platform/sports/aba/${match.id}`}>
@@ -596,7 +552,106 @@ export default function ABAEventPage() {
                   </Link>
                 ))}
               </div>
+              </ScrollArea>
             )}
+            </TabsContent>
+          </Tabs>
+        </section>
+
+        {/* Top Scorers */}
+        <section className="lg:col-span-2 flex flex-col">
+          <div className="flex items-center justify-between mb-4 h-10">
+            <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
+          </div>
+          <Card className="bg-card border border-border text-foreground pt-4 flex-1 shadow-sm">
+            <CardContent className="p-0">
+              <ScrollArea className="h-[400px]">
+                <Table>
+                  <TableHeader className="bg-muted/50 sticky top-0 z-10 backdrop-blur-md">
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
+                      <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
+                      <TableHead className="text-right text-foreground font-bold px-6 w-24">PTS</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayScorers.map((scorer: any, index: number) => (
+                      <TableRow key={scorer.id || index} className="border-border hover:bg-muted/30">
+                        <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
+                        <TableCell className="px-4">
+                          <p className="font-bold tracking-wide whitespace-nowrap">{scorer.name}</p>
+                          <p className="text-xs text-muted-foreground font-semibold mt-0.5">{scorer.team}</p>
+                        </TableCell>
+                        <TableCell className="text-right font-black text-yellow-600 dark:text-yellow-500 text-lg px-6">
+                          {scorer.points}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+
+      {/* Matches */}
+      <section className="pt-4 border-t border-border">
+        <Tabs defaultValue="finished" className="w-full">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold tracking-tight">Matches</h2>
+            <TabsList className="bg-muted border border-border">
+              <TabsTrigger value="upcoming" className="data-[state=active]:bg-card shadow-sm">Upcoming</TabsTrigger>
+              <TabsTrigger value="finished" className="data-[state=active]:bg-card shadow-sm">Finished</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="upcoming" className="mt-0">
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-3">
+                {upcomingMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No upcoming matches scheduled.</p>}
+                {upcomingMatches.map((match: any) => (
+                  <div key={match.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors shadow-sm">
+                    <div>
+                      <h4 className="font-bold text-foreground">{match.teamA} VS {match.teamB}</h4>
+                      <p className="text-xs text-muted-foreground font-semibold tracking-wide mt-1">
+                        {match.start_time ? new Date(match.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (match.date + ' • ' + match.time)}
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="finished" className="mt-0">
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-4">
+                {pastMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No past matches recorded.</p>}
+                {pastMatches.map((match: any) => (
+                  <div key={match.id} className="bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-xs font-bold text-muted-foreground tracking-wide">{match.date}</span>
+                      <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 hover:bg-yellow-500/20 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Finished</Badge>
+                    </div>
+                    <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                      <div className="text-center">
+                        <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamA}</h4>
+                        <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreA}</p>
+                      </div>
+                      <div className="text-xs font-bold text-muted/50 dark:text-zinc-700">VS</div>
+                      <div className="text-center">
+                        <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamB}</h4>
+                        <p className={`text-3xl font-black mt-2 ${match.scoreB > match.scoreA ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreB}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
       </section>
