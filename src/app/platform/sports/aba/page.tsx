@@ -143,6 +143,7 @@ export default function ABAEventPage() {
           scoreA: details.scoreA || 0,
           scoreB: details.scoreB || 0,
           status: (attrs.status || 'Upcoming').toUpperCase(),
+          type: (attrs.type || 'group').toLowerCase(),
           time: details.time || 'TBD',
           date: details.date || 'TBD',
           period: details.period || 'Q1 • 10:00',
@@ -153,8 +154,8 @@ export default function ABAEventPage() {
       });
 
       liveMatch = parsed.find((m: any) => m.status === 'LIVE') || null;
-      upcomingMatches = parsed.filter((m: any) => m.status === 'UPCOMING');
-      pastMatches = parsed.filter((m: any) => m.status === 'PAST');
+      upcomingMatches = parsed.filter((m: any) => m.status === 'UPCOMING' && m.type !== 'knockout');
+      pastMatches = parsed.filter((m: any) => m.status === 'PAST' && m.type !== 'knockout');
 
       if (!liveMatch && upcomingMatches.length > 0) {
         // Find earliest upcoming match
@@ -196,8 +197,9 @@ export default function ABAEventPage() {
       rawMatches.forEach((m: any) => {
         const attrs = m.attributes || {};
         const status = (attrs.status || '').toUpperCase();
+        const type = (attrs.type || 'group').toLowerCase();
         const details = attrs.details || {};
-        if (status === 'PAST') {
+        if (status === 'PAST' && type !== 'knockout') {
           const teamAId = attrs.team_a?.data?.id;
           const teamBId = attrs.team_b?.data?.id;
           const scoreA = details.scoreA || 0;
@@ -226,7 +228,32 @@ export default function ABAEventPage() {
       return { name: groupName, teams: sortedTeams };
     });
 
-    // 3. Scorers
+    // 3. Knockout matches
+    const knockoutMatches = rawMatches.length > 0
+      ? rawMatches
+        .filter((m: any) => (m.attributes?.type || 'group').toLowerCase() === 'knockout')
+        .map((m: any) => {
+          const attrs = m.attributes || {};
+          const details = attrs.details || {};
+          return {
+            id: m.id,
+            teamA: attrs.team_a?.data?.attributes?.name || 'TBD',
+            teamB: attrs.team_b?.data?.attributes?.name || 'TBD',
+            scoreA: details.scoreA || 0,
+            scoreB: details.scoreB || 0,
+            status: (attrs.status || 'Upcoming').toUpperCase(),
+            start_time: attrs.start_time,
+            date: details.date || 'TBD',
+            time: details.time || 'TBD',
+          };
+        })
+        .sort((a: any, b: any) => {
+          const order = ['LIVE', 'UPCOMING', 'PAST'];
+          return order.indexOf(a.status) - order.indexOf(b.status);
+        })
+      : [];
+
+    // 4. Scorers
 
     const displayScorers = rawParticipants.length > 0
       ? rawParticipants.map((p: any) => ({
@@ -242,6 +269,7 @@ export default function ABAEventPage() {
       nextMatch,
       upcomingMatches,
       pastMatches,
+      knockoutMatches,
       displayGroups: displayGroups.length > 0 ? displayGroups : MOCK_GROUPS,
       displayScorers,
       liveMatchSets: liveMatch?.details?.sets || []
@@ -250,7 +278,7 @@ export default function ABAEventPage() {
 
   if (loading && rawMatches.length === 0) return <div className="p-8 text-center text-muted-foreground bg-background">Loading Basketball Portal...</div>;
 
-  const { liveMatch, nextMatch, upcomingMatches, pastMatches, displayGroups, displayScorers, liveMatchSets } = dashboardData;
+  const { liveMatch, nextMatch, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers, liveMatchSets } = dashboardData;
 
   return (
     <div className="p-4 md:p-8 space-y-12 max-w-7xl mx-auto">
@@ -468,7 +496,7 @@ export default function ABAEventPage() {
 
       {/* Leaderboard */}
       <section id="leaderboard" className="pt-4">
-        <Tabs defaultValue="group" className="w-full">
+        <Tabs defaultValue="knockout" className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pt-4 border-t border-zinc-800">
             <h2 className="text-2xl font-bold tracking-tight">Standings</h2>
             <TabsList className="bg-zinc-900 border border-zinc-800">
@@ -515,12 +543,50 @@ export default function ABAEventPage() {
             </div>
           </TabsContent>
           <TabsContent value="knockout" className="mt-0">
-            <Card className="bg-zinc-900 border-zinc-800 text-zinc-500">
-              <CardContent className="h-64 flex flex-col items-center justify-center p-6 text-center">
-                <p className="text-lg font-bold tracking-widest uppercase mb-2">Knockout Stage</p>
-                <p className="text-sm">The bracket will be generated once the group stages conclude.</p>
-              </CardContent>
-            </Card>
+            {knockoutMatches.length === 0 ? (
+              <Card className="bg-zinc-900 border-zinc-800 text-zinc-500">
+                <CardContent className="h-64 flex flex-col items-center justify-center p-6 text-center">
+                  <p className="text-lg font-bold tracking-widest uppercase mb-2">Knockout Stage</p>
+                  <p className="text-sm">The bracket will be generated once the group stages conclude.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {knockoutMatches.map((match: any) => (
+                  <Link key={match.id} href={`/platform/sports/aba/${match.id}`}>
+                    <div className="bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-xs font-bold text-muted-foreground tracking-wide">
+                          {match.start_time ? new Date(match.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (match.date + ' • ' + match.time)}
+                        </span>
+                        {match.status === 'LIVE' ? (
+                          <Badge variant="destructive" className="bg-red-500 text-[10px] px-1.5 py-0 animate-pulse rounded-sm">LIVE</Badge>
+                        ) : match.status === 'PAST' ? (
+                          <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Knockout</Badge>
+                        ) : (
+                          <Badge className="text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Upcoming</Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                        <div className="text-center">
+                          <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamA}</h4>
+                          {match.status === 'PAST' && (
+                            <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreA}</p>
+                          )}
+                        </div>
+                        <div className="text-xs font-bold text-muted-foreground">VS</div>
+                        <div className="text-center">
+                          <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamB}</h4>
+                          {match.status === 'PAST' && (
+                            <p className={`text-3xl font-black mt-2 ${match.scoreB > match.scoreA ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreB}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </section>

@@ -38,7 +38,7 @@ export default function SportsPage() {
         <Link href="/platform/sports/apl" className="group">
           <Card className="h-full transition-all hover:shadow-md hover:border-primary/50 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-               <Activity className="w-24 h-24" />
+              <Activity className="w-24 h-24" />
             </div>
             <CardHeader>
               <CardTitle className="text-2xl flex items-center gap-2">
@@ -51,7 +51,7 @@ export default function SportsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Coming soon. The portal for the Ashoka Premier League cricket tournament.
+                Coming soon. The portal for the Ashoka Premier League football league.
               </p>
             </CardContent>
           </Card>
