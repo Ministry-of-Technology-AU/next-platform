@@ -10,10 +10,6 @@ export async function GET() {
         // The 'populate' ensures banner_image data is included.
         const response = await strapiGet('/advertisements', {
             sort: 'order:asc',
-            filters: {
-                isActive: true
-            },
-            populate: 'banner_image'
         });
 
         // Check if we have any active advertisements in the response.
