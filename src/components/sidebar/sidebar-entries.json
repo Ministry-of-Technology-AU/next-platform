@@ -99,6 +99,11 @@
       "title": "Sports",
       "items": [
         {
+          "title": "Gym Tracker",
+          "icon": "Dumbbell",
+          "href": "/gym-tracker"
+        },
+        {
           "title": "Sports",
           "icon": "Trophy",
           "href": "/sports"
