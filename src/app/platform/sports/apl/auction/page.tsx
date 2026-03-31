@@ -110,6 +110,13 @@ export default function APLAuctionPage() {
     };
   }, [filteredRows]);
 
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedTeam('');
+    setSelectedTier('');
+    setSelectedPriceBand('');
+  };
+
   const teams = useMemo(() => {
     return Array.from(new Set(rows.map((row) => row.team))).sort();
   }, [rows]);
@@ -121,12 +128,14 @@ export default function APLAuctionPage() {
   const hasActiveFilters =
     searchQuery || selectedTeam || selectedTier || selectedPriceBand;
 
-  const resetFilters = () => {
-    setSearchQuery('');
-    setSelectedTeam('');
-    setSelectedTier('');
-    setSelectedPriceBand('');
+  const tierColors: Record<string, string> = {
+    '1': 'bg-amber-400 text-black',
+    '2': 'bg-slate-400 text-white',
+    '3': 'bg-orange-400 text-white',
+    '4': 'bg-rose-400 text-white',
   };
+
+  const tierClass = tierColors;
 
   return (
     <section className="px-3 py-6 sm:px-6 sm:py-8">
@@ -157,6 +166,41 @@ export default function APLAuctionPage() {
           </CardContent>
         </Card>
       </div>
+
+      {filteredRows.length > 0 && (
+        <Card className="mb-6 border-2 border-amber-400 bg-gradient-to-r from-black/50 to-black/30">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-amber-400 font-semibold mb-1">Most Recent Bid</p>
+                <CardTitle className="text-3xl">{filteredRows[0].name}</CardTitle>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground mb-1">Serial #{filteredRows[0].serialNo}</p>
+                <Badge className={`${tierClass[filteredRows[0].category] || tierClass['4']} text-lg px-3 py-1`}>
+                  Tier {filteredRows[0].category}
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Team</p>
+                <p className="text-xl font-semibold">{filteredRows[0].team}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Price</p>
+                <p className="text-2xl font-bold text-amber-400">{formatAsCreore(filteredRows[0].price)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Status</p>
+                <Badge variant="secondary" className="text-base">SOLD</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
