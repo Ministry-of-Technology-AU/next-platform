@@ -1,7 +1,14 @@
 {
-    "version": "1.0.6",
-    "lastUpdated": "2026-03-26",
+    "version": "1.0.7",
+    "lastUpdated": "2026-04-01",
     "updates": [
+        {
+            "id": "apl-auction-tracker-launch",
+            "title": "APL Auction Tracker now live!",
+            "description": "Track APL auction activity and roster updates in one place.",
+            "type": "new",
+            "link": "/platform/sports/apl/auction"
+        },
         {
             "id": "aba-sports-launch",
             "title": "ABA Sports is live!",
