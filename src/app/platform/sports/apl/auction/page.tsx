@@ -69,9 +69,35 @@ export default function APLAuctionPage() {
   }
 
   useEffect(() => {
+    // Initial fetch on mount
     fetchAuction();
-    const interval = setInterval(fetchAuction, 3500);
-    return () => clearInterval(interval);
+
+    // Connect to SSE stream for real-time updates
+    const eventSource = new EventSource('/api/platform/sports/apl/sse');
+
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        console.log('[APL SSE] Received update:', payload);
+        // Re-fetch auction data when any APL entity changes
+        fetchAuction();
+      } catch (e) {
+        console.error('[APL SSE] Parse error:', e);
+      }
+    };
+
+    eventSource.onerror = () => {
+      console.warn('[APL SSE] Connection lost, will auto-reconnect...');
+      // EventSource auto-reconnects by default
+    };
+
+    // Commented out polling (kept for fallback reference):
+    // const interval = setInterval(fetchAuction, 3500);
+
+    return () => {
+      eventSource.close();
+      // clearInterval(interval);
+    };
   }, []);
 
   const getPriceBandRange = (band: string): { min: number; max: number } => {

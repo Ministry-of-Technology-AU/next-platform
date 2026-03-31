@@ -119,7 +119,30 @@ export default function APLRosterPage() {
       }
     }
 
+    // Initial fetch on mount
     fetchRoster();
+
+    // Connect to SSE stream for real-time updates
+    const eventSource = new EventSource('/api/platform/sports/apl/sse');
+
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        console.log('[APL SSE] Received update (roster):', payload);
+        // Re-fetch roster data when any APL entity changes
+        fetchRoster();
+      } catch (e) {
+        console.error('[APL SSE] Parse error:', e);
+      }
+    };
+
+    eventSource.onerror = () => {
+      console.warn('[APL SSE] Connection lost, will auto-reconnect...');
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   const filteredGroups = useMemo(() => {
