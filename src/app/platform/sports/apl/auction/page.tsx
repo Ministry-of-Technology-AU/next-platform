@@ -168,10 +168,14 @@ export default function APLAuctionPage() {
     searchQuery || selectedTeam || selectedTier || selectedSection || selectedPriceBand;
 
   const tierColors: Record<string, string> = {
-    '1': 'bg-amber-400 text-black',
-    '2': 'bg-slate-400 text-white',
-    '3': 'bg-orange-400 text-white',
-    '4': 'bg-rose-400 text-white',
+    '1':
+      'border-amber-300 bg-amber-200 text-amber-950 dark:border-amber-400/40 dark:bg-amber-500/20 dark:text-amber-200',
+    '2':
+      'border-slate-300 bg-slate-200 text-slate-900 dark:border-slate-400/40 dark:bg-slate-500/20 dark:text-slate-200',
+    '3':
+      'border-orange-300 bg-orange-200 text-orange-950 dark:border-orange-400/40 dark:bg-orange-500/20 dark:text-orange-200',
+    '4':
+      'border-rose-300 bg-rose-200 text-rose-950 dark:border-rose-400/40 dark:bg-rose-500/20 dark:text-rose-200',
   };
 
   const sectionBadgeClass: Record<'CM' | 'NCM', string> = {
@@ -189,19 +193,19 @@ export default function APLAuctionPage() {
       </div>
 
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Card>
+        <Card className="border-border/70 bg-card/90 shadow-sm">
           <CardContent className="py-4 sm:py-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Players Sold</p>
             <p className="mt-1 text-xl font-bold sm:text-2xl">{stats.sold}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-border/70 bg-card/90 shadow-sm">
           <CardContent className="py-4 sm:py-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Value</p>
             <p className="mt-1 text-xl font-bold sm:text-2xl">{formatAsCreore(stats.totalValue)}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-border/70 bg-card/90 shadow-sm">
           <CardContent className="py-4 sm:py-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Avg. Buy</p>
             <p className="mt-1 text-xl font-bold sm:text-2xl">{formatAsCreore(stats.average)}</p>
@@ -210,34 +214,38 @@ export default function APLAuctionPage() {
       </div>
 
       {filteredRows.length > 0 && (
-        <Card className="mb-6 border-2 border-amber-400 bg-gradient-to-r from-black/50 to-black/30">
+        <Card className="mb-6 border-border/70 bg-card/90 shadow-sm">
           <CardHeader className="pb-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-widest text-amber-400 font-semibold mb-1">Most Recent Bid</p>
-                <CardTitle className="text-2xl sm:text-3xl">{filteredRows[0].name}</CardTitle>
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+              <div className="min-w-0 text-left">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-amber-500">Most Recent Bid</p>
+                <CardTitle className="truncate !text-left text-2xl sm:text-3xl">{filteredRows[0].name}</CardTitle>
               </div>
-              <div className="sm:text-right">
-                <p className="text-sm text-muted-foreground mb-1">Tier</p>
-                  <Badge className={`${tierColors[filteredRows[0].category] || tierColors['4']} text-lg px-3 py-1`}>
+              <div className="flex items-start gap-3 sm:items-end sm:text-right">
+                <div>
+                  <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Tier</p>
+                  <Badge className={`${tierColors[filteredRows[0].category] || tierColors['4']} border text-base px-3 py-1`}>
                   Tier {filteredRows[0].category}
                 </Badge>
+                </div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
+              <div className="min-w-0">
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Team</p>
-                <p className="text-xl font-semibold">{filteredRows[0].team}</p>
+                <p className="truncate text-xl font-semibold">{filteredRows[0].team}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Price</p>
-                <p className="text-2xl font-bold text-amber-400">{formatAsCreore(filteredRows[0].price)}</p>
+                <p className="text-2xl font-bold text-amber-500">{formatAsCreore(filteredRows[0].price)}</p>
               </div>
               <div className="sm:text-right">
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Status</p>
-                <Badge variant="secondary" className="text-base">SOLD</Badge>
+                <Badge className="border border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:text-emerald-200 text-base px-3 py-1">
+                  SOLD
+                </Badge>
               </div>
             </div>
           </CardContent>
