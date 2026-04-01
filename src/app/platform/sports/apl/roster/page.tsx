@@ -4,9 +4,17 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Search } from 'lucide-react';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -84,6 +92,7 @@ export default function APLRosterPage() {
   const [groups, setGroups] = useState<TeamGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTier, setSelectedTier] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     async function fetchRoster() {
@@ -183,14 +192,35 @@ export default function APLRosterPage() {
   }, []);
 
   const filteredGroups = useMemo(() => {
-    if (selectedTier === 'all') return groups;
-    return groups
-      .map((group) => ({
-        ...group,
-        players: group.players.filter((player) => player.tier === selectedTier),
-      }))
-      .filter((group) => group.players.length > 0);
-  }, [groups, selectedTier]);
+    let result = groups;
+
+    // Filter by tier
+    if (selectedTier !== 'all') {
+      result = result
+        .map((group) => ({
+          ...group,
+          players: group.players.filter((player) => player.tier === selectedTier),
+        }))
+        .filter((group) => group.players.length > 0);
+    }
+
+    // Filter by search query (team name or player name)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result
+        .map((group) => ({
+          ...group,
+          players: group.players.filter(
+            (player) =>
+              group.name.toLowerCase().includes(query) ||
+              player.name.toLowerCase().includes(query)
+          ),
+        }))
+        .filter((group) => group.name.toLowerCase().includes(query) || group.players.length > 0);
+    }
+
+    return result;
+  }, [groups, selectedTier, searchQuery]);
 
   const metricsByTeamId = useMemo(() => {
     return groups.reduce<Record<number, TeamMetrics>>((acc, group) => {
@@ -220,15 +250,29 @@ export default function APLRosterPage() {
         </p>
       </div>
 
-      <Tabs value={selectedTier} onValueChange={setSelectedTier} className="mb-6">
-        <TabsList className="flex h-auto w-full flex-wrap gap-2 bg-transparent p-0">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="1">Tier 1</TabsTrigger>
-          <TabsTrigger value="2">Tier 2</TabsTrigger>
-          <TabsTrigger value="3">Tier 3</TabsTrigger>
-          <TabsTrigger value="4">Tier 4</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end">
+        <div className="relative flex-grow">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search teams or players..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={selectedTier} onValueChange={setSelectedTier}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Filter by tier" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Tiers</SelectItem>
+            <SelectItem value="1">Tier 1</SelectItem>
+            <SelectItem value="2">Tier 2</SelectItem>
+            <SelectItem value="3">Tier 3</SelectItem>
+            <SelectItem value="4">Tier 4</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {loading ? (
         <Card>
