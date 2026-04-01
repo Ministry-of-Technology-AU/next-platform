@@ -502,7 +502,7 @@ export default function APLAuctionPage() {
       <Dialog open={selectedPlayer !== null} onOpenChange={(open) => !open && setSelectedPlayer(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Player Details</DialogTitle>
+            <DialogTitle>Player Auction Details</DialogTitle>
           </DialogHeader>
           {selectedPlayer && (
             <div className="space-y-4">
@@ -526,7 +526,11 @@ export default function APLAuctionPage() {
                   </div>
                 </div>
               )}
-              <div className="space-y-3">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial</p>
+                  <p className="font-medium">{selectedPlayer.serialNo}</p>
+                </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Name</p>
                   <p className="text-lg font-semibold">{selectedPlayer.name}</p>
@@ -552,10 +556,6 @@ export default function APLAuctionPage() {
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
                     <p className="text-lg font-bold text-amber-500">{formatAsMillions(selectedPlayer.price)}</p>
                   </div>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #</p>
-                  <p className="font-medium">{selectedPlayer.serialNo}</p>
                 </div>
               </div>
             </div>
