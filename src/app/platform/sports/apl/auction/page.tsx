@@ -197,10 +197,22 @@ export default function APLAuctionPage() {
   return (
     <section className="mx-auto w-full max-w-6xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-5 space-y-2 sm:mb-6">
-        <h1 className="text-2xl font-bold text-foreground sm:text-4xl">APL Auction Feed</h1>
-        <p className="text-sm text-muted-foreground sm:text-base">
-          Live results showing serial no, player name, category, team, and final price.
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-foreground sm:text-4xl">APL Auction Feed</h1>
+            <p className="text-sm text-muted-foreground sm:text-base">
+              Live results showing serial no, player name, category, team, and final price.
+            </p>
+          </div>
+          <Link href="/platform/sports/apl/roster" className="w-full sm:w-auto">
+            <Button
+              size="sm"
+              className="w-full bg-secondary text-black hover:bg-secondary-dark sm:w-auto"
+            >
+              Go to Roster
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">

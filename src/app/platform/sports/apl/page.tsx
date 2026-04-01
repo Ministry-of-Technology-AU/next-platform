@@ -21,12 +21,23 @@ export default function APLLandingPage() {
           APL is almost here. Auction operations, roster tracking, and live updates will go live shortly.
         </p>
 
-        <Link href="/platform/sports/apl/auction" className="w-full max-w-xs sm:w-auto sm:max-w-none">
-          <Button size="lg" className="w-full gap-2 bg-secondary text-black hover:bg-secondary-dark sm:w-auto">
-            Click to access Auction
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Link>
+        <div className="flex w-full max-w-xs flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:items-center">
+          <Link href="/platform/sports/apl/auction" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full gap-2 bg-secondary text-black hover:bg-secondary-dark sm:w-auto">
+              Click to access Auction
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href="/platform/sports/apl/roster" className="w-full sm:w-auto">
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full border-secondary/60 bg-secondary/10 text-secondary hover:bg-secondary/20 hover:text-secondary sm:w-auto"
+            >
+              View Roster
+            </Button>
+          </Link>
+        </div>
       </div>
     </section>
   );
