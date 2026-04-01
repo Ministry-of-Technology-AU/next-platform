@@ -24,6 +24,7 @@ interface AuctionRow {
   section: 'CM' | 'NCM';
   team: string;
   price: number;
+  playerImage?: string | null;
 }
 
 const tierClass: Record<string, string> = {
@@ -371,9 +372,24 @@ export default function APLAuctionPage() {
                   <Card key={`${row.serialNo}-${row.name}`} className="border border-border/80 shadow-sm">
                     <CardContent className="space-y-3 p-4">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #{row.serialNo}</p>
-                          <p className="truncate text-base font-semibold">{row.name}</p>
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          {row.playerImage ? (
+                            <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
+                              <img
+                                src={row.playerImage}
+                                alt={row.name}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                              {row.name.slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #{row.serialNo}</p>
+                            <p className="truncate text-base font-semibold">{row.name}</p>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={sectionBadgeClass[row.section]}>{row.section}</Badge>
@@ -417,7 +433,24 @@ export default function APLAuctionPage() {
                     {filteredRows.map((row) => (
                       <TableRow key={`${row.serialNo}-${row.name}`}>
                         <TableCell className="font-medium">{row.serialNo}</TableCell>
-                        <TableCell className="font-semibold">{row.name}</TableCell>
+                        <TableCell className="font-semibold">
+                          <div className="flex items-center gap-2">
+                            {row.playerImage ? (
+                              <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
+                                <img
+                                  src={row.playerImage}
+                                  alt={row.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                                {row.name.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="truncate">{row.name}</span>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Badge className={sectionBadgeClass[row.section]}>{row.section}</Badge>
                         </TableCell>

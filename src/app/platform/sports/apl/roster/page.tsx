@@ -39,6 +39,7 @@ interface Player {
   soldAt: number | null;
   section: 'CM' | 'NCM';
   team: TeamInfo | null;
+  playerImage?: string | null;
 }
 
 interface TeamGroup {
@@ -136,6 +137,7 @@ export default function APLRosterPage() {
                   logo: teamData.attributes?.logo,
                 }
               : null,
+            playerImage: entry.attributes?.user?.data?.attributes?.profile_url ?? null,
           };
 
           if (teamId && teamMap[teamId]) {
@@ -330,9 +332,26 @@ export default function APLRosterPage() {
                     <Card key={player.id} className="border border-border/80 shadow-sm">
                       <CardContent className="space-y-3 p-4">
                         <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #{index + 1}</p>
-                            <p className="truncate text-base font-semibold">{player.name}</p>
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            {player.playerImage ? (
+                              <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
+                                <Image
+                                  src={player.playerImage}
+                                  alt={player.name}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              </div>
+                            ) : (
+                              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                                {player.name.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #{index + 1}</p>
+                              <p className="truncate text-base font-semibold">{player.name}</p>
+                            </div>
                           </div>
                           <Badge variant="outline" className={tierClass[player.tier] || tierClass['4']}>
                             Tier {player.tier}
@@ -363,7 +382,26 @@ export default function APLRosterPage() {
                       {group.players.map((player, index) => (
                         <TableRow key={player.id}>
                           <TableCell className="font-medium">{index + 1}</TableCell>
-                          <TableCell className="font-semibold">{player.name}</TableCell>
+                          <TableCell className="font-semibold">
+                            <div className="flex items-center gap-2">
+                              {player.playerImage ? (
+                                <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
+                                  <Image
+                                    src={player.playerImage}
+                                    alt={player.name}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                                  {player.name.slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
+                              <span className="truncate">{player.name}</span>
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline" className={tierClass[player.tier] || tierClass['4']}>
                               Tier {player.tier}

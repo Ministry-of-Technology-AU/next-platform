@@ -8,6 +8,7 @@ interface AuctionRecord {
   section: 'CM' | 'NCM';
   team: string;
   price: number;
+  playerImage?: string | null;
 }
 
 function normalizeTier(value: unknown): string {
@@ -34,6 +35,7 @@ export async function GET() {
   try {
     const query = [
       'populate[team][populate][0]=logo',
+      'populate[user]=profile_url',
       'filters[sold_at][$notNull]=true',
       'pagination[limit]=-1',
       'sort[0]=updatedAt:desc',
@@ -50,6 +52,7 @@ export async function GET() {
       section: entry.attributes?.isCM ? 'CM' : 'NCM',
       team: entry.attributes?.team?.data?.attributes?.name || 'Unassigned',
       price: normalizePriceToMillions(entry.attributes?.sold_at),
+      playerImage: entry.attributes?.user?.data?.attributes?.profile_url ?? null,
     }));
 
     return NextResponse.json({ data: normalized });

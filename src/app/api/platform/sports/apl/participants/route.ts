@@ -23,6 +23,7 @@ export async function GET(request: Request) {
   try {
     const query = [
       'populate[team][populate][0]=logo',
+      'populate[user]=profile_url',
       `pagination[limit]=${limit}`,
       'sort[0]=tier:asc',
       'sort[1]=name:asc',
