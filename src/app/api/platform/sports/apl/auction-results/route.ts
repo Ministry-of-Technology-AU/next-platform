@@ -9,6 +9,14 @@ interface AuctionRecord {
   price: number;
 }
 
+function normalizeTier(value: unknown): string {
+  if (value === null || value === undefined) return '4';
+  const raw = String(value).trim().toLowerCase();
+  const digits = raw.replace(/[^0-9]/g, '');
+  if (digits) return digits;
+  return raw || '4';
+}
+
 export async function GET() {
   try {
     const query = [
@@ -25,7 +33,7 @@ export async function GET() {
     const normalized: AuctionRecord[] = rows.map((entry, index) => ({
       serialNo: index + 1,
       name: entry.attributes?.name || `Player ${entry.id}`,
-      category: entry.attributes?.tier || '4',
+      category: normalizeTier(entry.attributes?.tier),
       team: entry.attributes?.team?.data?.attributes?.name || 'Unassigned',
       price: Number(entry.attributes?.sold_at || 0),
     }));

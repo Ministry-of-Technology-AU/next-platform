@@ -200,7 +200,7 @@ export default function APLAuctionPage() {
                 <CardTitle className="text-2xl sm:text-3xl">{filteredRows[0].name}</CardTitle>
               </div>
               <div className="sm:text-right">
-                <p className="text-sm text-muted-foreground mb-1">Serial #{filteredRows[0].serialNo}</p>
+                <p className="text-sm text-muted-foreground mb-1">Tier</p>
                   <Badge className={`${tierColors[filteredRows[0].category] || tierColors['4']} text-lg px-3 py-1`}>
                   Tier {filteredRows[0].category}
                 </Badge>

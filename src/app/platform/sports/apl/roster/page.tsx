@@ -44,6 +44,14 @@ const tierClass: Record<string, string> = {
   '4': 'bg-rose-100 text-rose-900 border-rose-300',
 };
 
+function normalizeTier(value: unknown): string {
+  if (value === null || value === undefined) return '4';
+  const raw = String(value).trim().toLowerCase();
+  const digits = raw.replace(/[^0-9]/g, '');
+  if (digits) return digits;
+  return raw || '4';
+}
+
 export default function APLRosterPage() {
   const [groups, setGroups] = useState<TeamGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +87,7 @@ export default function APLRosterPage() {
           const player: Player = {
             id: entry.id,
             name: entry.attributes?.name || `Player ${entry.id}`,
-            tier: entry.attributes?.tier || '4',
+            tier: normalizeTier(entry.attributes?.tier),
             soldAt: entry.attributes?.sold_at ?? null,
             team: teamData
               ? {
