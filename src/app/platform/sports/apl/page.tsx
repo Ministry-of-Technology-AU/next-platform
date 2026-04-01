@@ -18,7 +18,8 @@ export default function APLLandingPage() {
           Coming Soon
         </h1>
         <p className="mb-7 max-w-xl text-sm leading-relaxed text-white/85 sm:mb-8 sm:text-base">
-          APL is almost here. Auction operations, roster tracking, and live updates will go live shortly.
+          APL centralizes auction operations, roster tracking, and league updates in one place for teams and organizers.
+          Use the Auction and Roster views to follow bids, team builds, and squad status as the season goes live.
         </p>
 
         <div className="flex w-full max-w-xs flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:items-center">

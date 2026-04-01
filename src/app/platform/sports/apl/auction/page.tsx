@@ -205,7 +205,8 @@ export default function APLAuctionPage() {
           <div className="space-y-2">
             <h1 className="!text-left text-2xl font-bold text-foreground sm:text-4xl">APL Auction Feed</h1>
             <p className="text-left text-sm text-muted-foreground sm:text-base">
-              Live results showing serial no, player name, category, team, and final price.
+              Track live APL auction outcomes with instant updates for player, category, team, and final price.
+              Use team, tier, section, and price-band filters to spot bidding patterns and jump to roster context.
             </p>
           </div>
           <Link href="/platform/sports/apl/roster" className="w-full sm:w-auto">

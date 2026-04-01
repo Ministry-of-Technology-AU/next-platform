@@ -253,7 +253,8 @@ export default function APLRosterPage() {
         <div className="space-y-2 w-full">
           <h1 className="!text-left text-2xl font-bold text-foreground sm:text-4xl">APL Roster</h1>
           <p className="text-sm text-muted-foreground sm:text-base">
-            Team-wise player catalogue inspired by ABA, with tier-level segmentation.
+            Browse every APL team roster in a searchable catalogue with tier, section, and purchase information.
+            Filter by tier or player query to quickly assess squad composition, buys completed, and remaining purse.
           </p>
         </div>
         <Button asChild className="w-full sm:w-auto">
