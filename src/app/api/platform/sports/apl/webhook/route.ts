@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { abaEmitter } from '@/lib/sse/event-emitter';
+import { aplEmitter } from '@/lib/sse/apl-emitter';
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const expectedToken = process.env.WEBHOOK_SECRET_TOKEN;
 
     if (expectedToken && (!authHeader || !authHeader.startsWith('Bearer '))) {
-      console.warn('[ABA Webhook] Missing or invalid Authorization header');
+      console.warn('[APL Webhook] Missing or invalid Authorization header');
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     if (expectedToken) {
       const token = authHeader!.slice(7); // Remove "Bearer " prefix
       if (token !== expectedToken) {
-        console.warn('[ABA Webhook] Invalid Bearer token');
+        console.warn('[APL Webhook] Invalid Bearer token');
         return NextResponse.json(
           { success: false, error: 'Unauthorized' },
           { status: 401 }
@@ -27,21 +27,18 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.json();
-    const { model, entry, event } = payload;
 
-    console.log(`[SSE Webhook] ${event} on ${model} (ID: ${entry?.id})`);
-
-    // Broadcast to all connected SSE clients
-    abaEmitter.emit('aba-update', {
-      model,          // e.g. "aba-match", "aba-participant", "aba-team"
-      event,          // e.g. "entry.update", "entry.create"
-      entryId: entry?.id,
-      timestamp: Date.now(),
+    // Verify the webhook comes from Strapi (optional: add bearer token validation)
+    // For now, we'll just emit the update to all connected clients
+    aplEmitter.emit('apl-update', {
+      event: payload.event || 'update',
+      model: payload.model || 'apl-participants',
+      timestamp: new Date().toISOString(),
     });
 
-    return NextResponse.json({ message: 'SSE broadcast sent' });
+    return Response.json({ success: true, message: 'Update broadcast to all clients' });
   } catch (error) {
-    console.error('[SSE Webhook] Error:', error);
-    return NextResponse.json({ error: 'Failed to process webhook' }, { status: 400 });
+    console.error('[APL Webhook] Error:', error);
+    return Response.json({ success: false, error: 'Failed to process webhook' }, { status: 400 });
   }
 }
