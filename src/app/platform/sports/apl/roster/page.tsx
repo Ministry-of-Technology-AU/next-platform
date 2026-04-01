@@ -156,9 +156,9 @@ export default function APLRosterPage() {
   }, [groups, selectedTier]);
 
   return (
-    <section className="px-3 py-6 sm:px-6 sm:py-8">
+    <section className="mx-auto w-full max-w-6xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-6 space-y-2">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">APL Roster</h1>
+        <h1 className="text-2xl font-bold text-foreground sm:text-4xl">APL Roster</h1>
         <p className="text-sm text-muted-foreground sm:text-base">
           Team-wise player catalogue inspired by ABA, with tier-level segmentation.
         </p>
@@ -187,7 +187,7 @@ export default function APLRosterPage() {
           {filteredGroups.map((group) => (
             <Card key={group.id} className="border-border/80">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
                     {group.logo && getStrapiMediaUrl(group.logo) ? (
                       <div className="relative h-10 w-10 overflow-hidden rounded-full border border-border bg-background">
@@ -203,13 +203,37 @@ export default function APLRosterPage() {
                         {group.name.slice(0, 2).toUpperCase()}
                       </div>
                     )}
-                    <CardTitle className="text-xl text-left">{group.name}</CardTitle>
+                    <CardTitle className="text-lg text-left sm:text-xl">{group.name}</CardTitle>
                   </div>
-                  <Badge variant="secondary">{group.players.length} players</Badge>
+                  <Badge variant="secondary" className="w-fit">{group.players.length} players</Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="w-full">
+                <div className="space-y-3 md:hidden">
+                  {group.players.map((player, index) => (
+                    <Card key={player.id} className="border border-border/80 shadow-sm">
+                      <CardContent className="space-y-3 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #{index + 1}</p>
+                            <p className="truncate text-base font-semibold">{player.name}</p>
+                          </div>
+                          <Badge variant="outline" className={tierClass[player.tier] || tierClass['4']}>
+                            Tier {player.tier}
+                          </Badge>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
+                          <p className="font-semibold">
+                            {player.soldAt ? `Rs. ${player.soldAt.toLocaleString('en-IN')}` : '-'}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <ScrollArea className="hidden w-full md:block">
                   <Table>
                     <TableHeader>
                       <TableRow>

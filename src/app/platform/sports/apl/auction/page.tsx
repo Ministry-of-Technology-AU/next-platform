@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 interface AuctionRow {
   serialNo: number;
@@ -161,34 +161,32 @@ export default function APLAuctionPage() {
     '4': 'bg-rose-400 text-white',
   };
 
-  const tierClass = tierColors;
-
   return (
-    <section className="px-3 py-6 sm:px-6 sm:py-8">
-      <div className="mb-6 space-y-2">
-        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">APL Auction Feed</h1>
+    <section className="mx-auto w-full max-w-6xl px-3 py-5 sm:px-6 sm:py-8">
+      <div className="mb-5 space-y-2 sm:mb-6">
+        <h1 className="text-2xl font-bold text-foreground sm:text-4xl">APL Auction Feed</h1>
         <p className="text-sm text-muted-foreground sm:text-base">
           Live results showing serial no, player name, category, team, and final price.
         </p>
       </div>
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-3">
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
-          <CardContent className="py-5">
+          <CardContent className="py-4 sm:py-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Players Sold</p>
-            <p className="mt-1 text-2xl font-bold">{stats.sold}</p>
+            <p className="mt-1 text-xl font-bold sm:text-2xl">{stats.sold}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="py-5">
+          <CardContent className="py-4 sm:py-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Value</p>
-            <p className="mt-1 text-2xl font-bold">{formatAsCreore(stats.totalValue)}</p>
+            <p className="mt-1 text-xl font-bold sm:text-2xl">{formatAsCreore(stats.totalValue)}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="py-5">
+          <CardContent className="py-4 sm:py-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Avg. Buy</p>
-            <p className="mt-1 text-2xl font-bold">{formatAsCreore(stats.average)}</p>
+            <p className="mt-1 text-xl font-bold sm:text-2xl">{formatAsCreore(stats.average)}</p>
           </CardContent>
         </Card>
       </div>
@@ -196,21 +194,21 @@ export default function APLAuctionPage() {
       {filteredRows.length > 0 && (
         <Card className="mb-6 border-2 border-amber-400 bg-gradient-to-r from-black/50 to-black/30">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-widest text-amber-400 font-semibold mb-1">Most Recent Bid</p>
-                <CardTitle className="text-3xl">{filteredRows[0].name}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{filteredRows[0].name}</CardTitle>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-sm text-muted-foreground mb-1">Serial #{filteredRows[0].serialNo}</p>
-                <Badge className={`${tierClass[filteredRows[0].category] || tierClass['4']} text-lg px-3 py-1`}>
+                  <Badge className={`${tierColors[filteredRows[0].category] || tierColors['4']} text-lg px-3 py-1`}>
                   Tier {filteredRows[0].category}
                 </Badge>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Team</p>
                 <p className="text-xl font-semibold">{filteredRows[0].team}</p>
@@ -219,7 +217,7 @@ export default function APLAuctionPage() {
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Price</p>
                 <p className="text-2xl font-bold text-amber-400">{formatAsCreore(filteredRows[0].price)}</p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Status</p>
                 <Badge variant="secondary" className="text-base">SOLD</Badge>
               </div>
@@ -233,13 +231,16 @@ export default function APLAuctionPage() {
           <CardTitle className="text-left">Auction Timeline</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 grid gap-3 sm:grid-cols-5">
-            <Input
-              placeholder="Search by name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="sm:col-span-2"
-            />
+          <div className="mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="relative sm:col-span-2 lg:col-span-2">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
 
             <Select value={selectedTeam} onValueChange={setSelectedTeam}>
               <SelectTrigger>
@@ -285,7 +286,7 @@ export default function APLAuctionPage() {
                 variant="outline"
                 size="sm"
                 onClick={resetFilters}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 sm:w-fit"
               >
                 <X className="h-4 w-4" />
                 Clear
@@ -302,34 +303,64 @@ export default function APLAuctionPage() {
                 : 'No results match your filters.'}
             </div>
           ) : (
-            <ScrollArea className="w-full">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-20">Serial</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredRows.map((row) => (
-                    <TableRow key={`${row.serialNo}-${row.name}`}>
-                      <TableCell className="font-medium">{row.serialNo}</TableCell>
-                      <TableCell className="font-semibold">{row.name}</TableCell>
-                      <TableCell>
+            <>
+              <div className="space-y-3 md:hidden">
+                {filteredRows.map((row) => (
+                  <Card key={`${row.serialNo}-${row.name}`} className="border border-border/80 shadow-sm">
+                    <CardContent className="space-y-3 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #{row.serialNo}</p>
+                          <p className="truncate text-base font-semibold">{row.name}</p>
+                        </div>
                         <Badge variant="outline" className={tierClass[row.category] || tierClass['4']}>
                           Tier {row.category}
                         </Badge>
-                      </TableCell>
-                      <TableCell>{row.team}</TableCell>
-                      <TableCell className="text-right font-medium">{formatAsCreore(row.price)}</TableCell>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Team</p>
+                          <p className="truncate font-medium">{row.team}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
+                          <p className="font-semibold">{formatAsCreore(row.price)}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <ScrollArea className="hidden w-full md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-20">Serial</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Team</TableHead>
+                      <TableHead className="text-right">Price</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredRows.map((row) => (
+                      <TableRow key={`${row.serialNo}-${row.name}`}>
+                        <TableCell className="font-medium">{row.serialNo}</TableCell>
+                        <TableCell className="font-semibold">{row.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={tierClass[row.category] || tierClass['4']}>
+                            Tier {row.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{row.team}</TableCell>
+                        <TableCell className="text-right font-medium">{formatAsCreore(row.price)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </>
           )}
         </CardContent>
       </Card>
