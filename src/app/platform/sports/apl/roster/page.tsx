@@ -250,8 +250,8 @@ export default function APLRosterPage() {
   return (
     <section className="mx-auto w-full max-w-6xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground sm:text-4xl">APL Roster</h1>
+        <div className="space-y-2 w-full">
+          <h1 className="!text-left text-2xl font-bold text-foreground sm:text-4xl">APL Roster</h1>
           <p className="text-sm text-muted-foreground sm:text-base">
             Team-wise player catalogue inspired by ABA, with tier-level segmentation.
           </p>
