@@ -5,6 +5,7 @@ interface AuctionRecord {
   serialNo: number;
   name: string;
   category: string;
+  section: 'CM' | 'NCM';
   team: string;
   price: number;
 }
@@ -34,6 +35,7 @@ export async function GET() {
       serialNo: index + 1,
       name: entry.attributes?.name || `Player ${entry.id}`,
       category: normalizeTier(entry.attributes?.tier),
+      section: entry.attributes?.isCM ? 'CM' : 'NCM',
       team: entry.attributes?.team?.data?.attributes?.name || 'Unassigned',
       price: Number(entry.attributes?.sold_at || 0),
     }));

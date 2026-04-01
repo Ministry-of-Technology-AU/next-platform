@@ -20,6 +20,7 @@ interface AuctionRow {
   serialNo: number;
   name: string;
   category: string;
+  section: 'CM' | 'NCM';
   team: string;
   price: number;
 }
@@ -53,6 +54,7 @@ export default function APLAuctionPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<string>('');
+  const [selectedSection, setSelectedSection] = useState<string>('');
   const [selectedPriceBand, setSelectedPriceBand] = useState<string>('');
 
   async function fetchAuction() {
@@ -115,6 +117,7 @@ export default function APLAuctionPage() {
       const matchesSearch = row.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesTeam = !selectedTeam || row.team === selectedTeam;
       const matchesTier = !selectedTier || row.category === selectedTier;
+      const matchesSection = !selectedSection || row.section === selectedSection;
 
       let matchesPriceBand = true;
       if (selectedPriceBand) {
@@ -122,9 +125,9 @@ export default function APLAuctionPage() {
         matchesPriceBand = row.price >= min && row.price <= max;
       }
 
-      return matchesSearch && matchesTeam && matchesTier && matchesPriceBand;
+      return matchesSearch && matchesTeam && matchesTier && matchesSection && matchesPriceBand;
     });
-  }, [rows, searchQuery, selectedTeam, selectedTier, selectedPriceBand]);
+  }, [rows, searchQuery, selectedTeam, selectedTier, selectedSection, selectedPriceBand]);
 
   const stats = useMemo(() => {
     if (filteredRows.length === 0) return { sold: 0, totalValue: 0, average: 0 };
@@ -140,6 +143,7 @@ export default function APLAuctionPage() {
     setSearchQuery('');
     setSelectedTeam('');
     setSelectedTier('');
+    setSelectedSection('');
     setSelectedPriceBand('');
   };
 
@@ -151,14 +155,28 @@ export default function APLAuctionPage() {
     return Array.from(new Set(rows.map((row) => row.category))).sort();
   }, [rows]);
 
+  const sections = useMemo(() => {
+    return Array.from(new Set(rows.map((row) => row.section))).sort((a, b) => {
+      if (a === b) return 0;
+      if (a === 'CM') return -1;
+      if (b === 'CM') return 1;
+      return a.localeCompare(b);
+    });
+  }, [rows]);
+
   const hasActiveFilters =
-    searchQuery || selectedTeam || selectedTier || selectedPriceBand;
+    searchQuery || selectedTeam || selectedTier || selectedSection || selectedPriceBand;
 
   const tierColors: Record<string, string> = {
     '1': 'bg-amber-400 text-black',
     '2': 'bg-slate-400 text-white',
     '3': 'bg-orange-400 text-white',
     '4': 'bg-rose-400 text-white',
+  };
+
+  const sectionBadgeClass: Record<'CM' | 'NCM', string> = {
+    CM: 'bg-emerald-500 text-white',
+    NCM: 'bg-sky-500 text-white',
   };
 
   return (
@@ -231,7 +249,7 @@ export default function APLAuctionPage() {
           <CardTitle className="text-left">Auction Timeline</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-2 lg:grid-cols-6">
             <div className="relative sm:col-span-2 lg:col-span-2">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -263,6 +281,19 @@ export default function APLAuctionPage() {
                 {tiers.map((tier) => (
                   <SelectItem key={tier} value={tier}>
                     Tier {tier}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedSection} onValueChange={setSelectedSection}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                {sections.map((section) => (
+                  <SelectItem key={section} value={section}>
+                    {section}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -313,9 +344,12 @@ export default function APLAuctionPage() {
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #{row.serialNo}</p>
                           <p className="truncate text-base font-semibold">{row.name}</p>
                         </div>
-                        <Badge variant="outline" className={tierClass[row.category] || tierClass['4']}>
-                          Tier {row.category}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={sectionBadgeClass[row.section]}>{row.section}</Badge>
+                          <Badge variant="outline" className={tierClass[row.category] || tierClass['4']}>
+                            Tier {row.category}
+                          </Badge>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
@@ -339,6 +373,7 @@ export default function APLAuctionPage() {
                       <TableHead className="w-20">Serial</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Category</TableHead>
+                      <TableHead>Tier</TableHead>
                       <TableHead>Team</TableHead>
                       <TableHead className="text-right">Price</TableHead>
                     </TableRow>
@@ -348,6 +383,9 @@ export default function APLAuctionPage() {
                       <TableRow key={`${row.serialNo}-${row.name}`}>
                         <TableCell className="font-medium">{row.serialNo}</TableCell>
                         <TableCell className="font-semibold">{row.name}</TableCell>
+                        <TableCell>
+                          <Badge className={sectionBadgeClass[row.section]}>{row.section}</Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={tierClass[row.category] || tierClass['4']}>
                             Tier {row.category}
