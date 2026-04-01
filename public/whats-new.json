@@ -1,5 +1,5 @@
 {
-    "version": "1.0.7",
+    "version": "1.0.8",
     "lastUpdated": "2026-04-01",
     "updates": [
         {
@@ -8,13 +8,6 @@
             "description": "Track APL auction activity and roster updates in one place.",
             "type": "new",
             "link": "/platform/sports/apl/auction"
-        },
-        {
-            "id": "aba-sports-launch",
-            "title": "ABA Sports is live!",
-            "description": "Track matches, scores, and standings for the ABA league. View live scoreboards and detailed match stats all in one place.",
-            "type": "new",
-            "link": "/platform/sports/aba"
         },
         {
             "id": "when2meet-launch",
