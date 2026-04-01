@@ -32,20 +32,18 @@ const tierClass: Record<string, string> = {
   '4': 'bg-rose-100 text-rose-900 border-rose-300',
 };
 
-const formatAsCreore = (amount: number): string => {
-  if (amount >= 10000000) {
-    return `₹${(amount / 10000000).toFixed(2)} Cr`;
-  } else if (amount >= 100000) {
-    return `₹${(amount / 100000).toFixed(2)} L`;
-  }
-  return `₹${amount.toLocaleString('en-IN')}`;
+const formatAsMillions = (amount: number): string => {
+  const normalized = Number.isInteger(amount) ? amount.toString() : amount.toFixed(1);
+  return `₹${normalized}M`;
 };
 
 const priceBands = [
-  { value: '0-50', label: '₹0 - ₹50L' },
-  { value: '50-100', label: '₹50L - ₹1Cr' },
-  { value: '100-200', label: '₹1Cr - ₹2Cr' },
-  { value: '200+', label: '₹2Cr+' },
+  { value: '0-25', label: '₹0M - ₹25M' },
+  { value: '25-50', label: '₹25M - ₹50M' },
+  { value: '50-75', label: '₹50M - ₹75M' },
+  { value: '75-100', label: '₹75M - ₹100M' },
+  { value: '100-125', label: '₹100M - ₹125M' },
+  { value: '125-150', label: '₹125M - ₹150M' },
 ];
 
 export default function APLAuctionPage() {
@@ -104,10 +102,12 @@ export default function APLAuctionPage() {
 
   const getPriceBandRange = (band: string): { min: number; max: number } => {
     const ranges: Record<string, { min: number; max: number }> = {
-      '0-50': { min: 0, max: 5000000 },
-      '50-100': { min: 5000000, max: 10000000 },
-      '100-200': { min: 10000000, max: 20000000 },
-      '200+': { min: 20000000, max: Infinity },
+      '0-25': { min: 0, max: 25 },
+      '25-50': { min: 25, max: 50 },
+      '50-75': { min: 50, max: 75 },
+      '75-100': { min: 75, max: 100 },
+      '100-125': { min: 100, max: 125 },
+      '125-150': { min: 125, max: 150 },
     };
     return ranges[band] || { min: 0, max: Infinity };
   };
@@ -202,13 +202,13 @@ export default function APLAuctionPage() {
         <Card className="border-border/70 bg-card/90 shadow-sm">
           <CardContent className="py-4 sm:py-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Value</p>
-            <p className="mt-1 text-xl font-bold sm:text-2xl">{formatAsCreore(stats.totalValue)}</p>
+            <p className="mt-1 text-xl font-bold sm:text-2xl">{formatAsMillions(stats.totalValue)}</p>
           </CardContent>
         </Card>
         <Card className="border-border/70 bg-card/90 shadow-sm">
           <CardContent className="py-4 sm:py-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Avg. Buy</p>
-            <p className="mt-1 text-xl font-bold sm:text-2xl">{formatAsCreore(stats.average)}</p>
+            <p className="mt-1 text-xl font-bold sm:text-2xl">{formatAsMillions(stats.average)}</p>
           </CardContent>
         </Card>
       </div>
@@ -239,7 +239,7 @@ export default function APLAuctionPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Price</p>
-                <p className="text-2xl font-bold text-amber-500">{formatAsCreore(filteredRows[0].price)}</p>
+                <p className="text-2xl font-bold text-amber-500">{formatAsMillions(filteredRows[0].price)}</p>
               </div>
               <div className="sm:text-right">
                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Status</p>
@@ -366,7 +366,7 @@ export default function APLAuctionPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
-                          <p className="font-semibold">{formatAsCreore(row.price)}</p>
+                          <p className="font-semibold">{formatAsMillions(row.price)}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -400,7 +400,7 @@ export default function APLAuctionPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>{row.team}</TableCell>
-                        <TableCell className="text-right font-medium">{formatAsCreore(row.price)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatAsMillions(row.price)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
