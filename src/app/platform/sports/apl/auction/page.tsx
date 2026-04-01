@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, X } from 'lucide-react';
 
 interface AuctionRow {
@@ -66,6 +68,7 @@ export default function APLAuctionPage() {
   const [selectedTier, setSelectedTier] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('');
   const [selectedPriceBand, setSelectedPriceBand] = useState<string>('');
+  const [selectedPlayer, setSelectedPlayer] = useState<AuctionRow | null>(null);
 
   async function fetchAuction() {
     try {
@@ -243,7 +246,24 @@ export default function APLAuctionPage() {
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
               <div className="min-w-0 text-left">
                 <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-amber-500">Most Recent Bid</p>
-                <CardTitle className="truncate !text-left text-2xl sm:text-3xl">{filteredRows[0].name}</CardTitle>
+                <div className="flex items-center gap-3">
+                  {filteredRows[0].playerImage ? (
+                    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-border bg-background">
+                      <Image
+                        src={filteredRows[0].playerImage}
+                        alt={filteredRows[0].name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-sm font-semibold text-muted-foreground">
+                      {filteredRows[0].name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <CardTitle className="truncate !text-left text-2xl sm:text-3xl">{filteredRows[0].name}</CardTitle>
+                </div>
               </div>
               <div className="flex items-start gap-3 sm:items-end sm:text-right">
                 <div>
@@ -433,7 +453,10 @@ export default function APLAuctionPage() {
                     {filteredRows.map((row) => (
                       <TableRow key={`${row.serialNo}-${row.name}`}>
                         <TableCell className="font-medium">{row.serialNo}</TableCell>
-                        <TableCell className="font-semibold">
+                        <TableCell 
+                          className="font-semibold cursor-pointer hover:opacity-75 transition-opacity"
+                          onClick={() => setSelectedPlayer(row)}
+                        >
                           <div className="flex items-center gap-2">
                             {row.playerImage ? (
                               <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
@@ -474,6 +497,69 @@ export default function APLAuctionPage() {
           )}
         </CardContent>
       </Card>
-    </section>
+      {/* Player Detail Modal */}
+      <Dialog open={selectedPlayer !== null} onOpenChange={(open) => !open && setSelectedPlayer(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Player Details</DialogTitle>
+          </DialogHeader>
+          {selectedPlayer && (
+            <div className="space-y-4">
+              {selectedPlayer.playerImage ? (
+                <div className="relative h-64 w-full overflow-hidden rounded-lg border border-border bg-background">
+                  <Image
+                    src={selectedPlayer.playerImage}
+                    alt={selectedPlayer.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                <div className="flex h-64 w-full items-center justify-center rounded-lg border border-border bg-muted">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted-foreground/20 text-4xl font-bold text-muted-foreground">
+                      {selectedPlayer.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <p className="text-sm text-muted-foreground">No photo available</p>
+                  </div>
+                </div>
+              )}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Name</p>
+                  <p className="text-lg font-semibold">{selectedPlayer.name}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Category</p>
+                    <Badge className={sectionBadgeClass[selectedPlayer.section]}>{selectedPlayer.section}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Tier</p>
+                    <Badge variant="outline" className={tierClass[selectedPlayer.category] || tierClass['4']}>
+                      Tier {selectedPlayer.category}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Team</p>
+                    <p className="font-medium">{selectedPlayer.team}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
+                    <p className="text-lg font-bold text-amber-500">{formatAsMillions(selectedPlayer.price)}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Serial #</p>
+                  <p className="font-medium">{selectedPlayer.serialNo}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>    </section>
   );
 }

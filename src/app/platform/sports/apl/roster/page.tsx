@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search } from 'lucide-react';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
@@ -96,6 +97,7 @@ export default function APLRosterPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTier, setSelectedTier] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
     async function fetchRoster() {
@@ -329,7 +331,11 @@ export default function APLRosterPage() {
               <CardContent>
                 <div className="space-y-3 md:hidden">
                   {group.players.map((player, index) => (
-                    <Card key={player.id} className="border border-border/80 shadow-sm">
+                    <Card 
+                      key={player.id} 
+                      className="border border-border/80 shadow-sm cursor-pointer hover:opacity-75 transition-opacity"
+                      onClick={() => setSelectedPlayer(player)}
+                    >
                       <CardContent className="space-y-3 p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -380,7 +386,11 @@ export default function APLRosterPage() {
                     </TableHeader>
                     <TableBody>
                       {group.players.map((player, index) => (
-                        <TableRow key={player.id}>
+                        <TableRow 
+                          key={player.id}
+                          className="cursor-pointer hover:opacity-75 transition-opacity"
+                          onClick={() => setSelectedPlayer(player)}
+                        >
                           <TableCell className="font-medium">{index + 1}</TableCell>
                           <TableCell className="font-semibold">
                             <div className="flex items-center gap-2">
@@ -420,6 +430,63 @@ export default function APLRosterPage() {
           ))}
         </div>
       )}
+
+      {/* Player Detail Modal */}
+      <Dialog open={selectedPlayer !== null} onOpenChange={(open) => !open && setSelectedPlayer(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Player Details</DialogTitle>
+          </DialogHeader>
+          {selectedPlayer && (
+            <div className="space-y-4">
+              {selectedPlayer.playerImage ? (
+                <div className="relative h-64 w-full overflow-hidden rounded-lg border border-border bg-background">
+                  <Image
+                    src={selectedPlayer.playerImage}
+                    alt={selectedPlayer.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                <div className="flex h-64 w-full items-center justify-center rounded-lg border border-border bg-muted">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted-foreground/20 text-4xl font-bold text-muted-foreground">
+                      {selectedPlayer.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <p className="text-sm text-muted-foreground">No photo available</p>
+                  </div>
+                </div>
+              )}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Name</p>
+                  <p className="text-lg font-semibold">{selectedPlayer.name}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Tier</p>
+                    <Badge variant="outline" className={tierClass[selectedPlayer.tier] || tierClass['4']}>
+                      Tier {selectedPlayer.tier}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Team</p>
+                    <p className="font-medium">{selectedPlayer.team?.name || 'Unassigned'}</p>
+                  </div>
+                </div>
+                {selectedPlayer.soldAt !== null && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Sold At</p>
+                    <p className="text-lg font-bold text-amber-500">{formatAsMillions(selectedPlayer.soldAt)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
