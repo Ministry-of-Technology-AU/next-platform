@@ -18,6 +18,18 @@ function normalizeTier(value: unknown): string {
   return raw || '4';
 }
 
+function normalizePriceToMillions(value: unknown): number {
+  const numeric = Number(value || 0);
+  if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+
+  // Backward compatibility: if value looks like rupees, convert to millions.
+  if (numeric >= 1000) {
+    return Number((numeric / 1_000_000).toFixed(2));
+  }
+
+  return Number(numeric.toFixed(2));
+}
+
 export async function GET() {
   try {
     const query = [
@@ -37,7 +49,7 @@ export async function GET() {
       category: normalizeTier(entry.attributes?.tier),
       section: entry.attributes?.isCM ? 'CM' : 'NCM',
       team: entry.attributes?.team?.data?.attributes?.name || 'Unassigned',
-      price: Number(entry.attributes?.sold_at || 0),
+      price: normalizePriceToMillions(entry.attributes?.sold_at),
     }));
 
     return NextResponse.json({ data: normalized });

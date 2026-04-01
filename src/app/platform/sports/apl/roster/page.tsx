@@ -290,7 +290,7 @@ export default function APLRosterPage() {
                         <div className="text-right">
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
                           <p className="font-semibold">
-                            {player.soldAt ? `Rs. ${player.soldAt.toLocaleString('en-IN')}` : '-'}
+                            {player.soldAt !== null ? formatAsMillions(player.soldAt) : '-'}
                           </p>
                         </div>
                       </CardContent>
@@ -319,7 +319,7 @@ export default function APLRosterPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            {player.soldAt ? `Rs. ${player.soldAt.toLocaleString('en-IN')}` : '-'}
+                            {player.soldAt !== null ? formatAsMillions(player.soldAt) : '-'}
                           </TableCell>
                         </TableRow>
                       ))}
