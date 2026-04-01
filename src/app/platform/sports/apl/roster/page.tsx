@@ -27,6 +27,7 @@ interface Player {
   name: string;
   tier: string;
   soldAt: number | null;
+  section: 'CM' | 'NCM';
   team: TeamInfo | null;
 }
 
@@ -43,6 +44,33 @@ const tierClass: Record<string, string> = {
   '3': 'bg-orange-100 text-orange-900 border-orange-300',
   '4': 'bg-rose-100 text-rose-900 border-rose-300',
 };
+
+const TEAM_PURSE = 150;
+const CM_LIMIT = 8;
+const NCM_LIMIT = 2;
+
+interface TeamMetrics {
+  cmCount: number;
+  ncmCount: number;
+  boughtCount: number;
+  spent: number;
+  remaining: number;
+}
+
+function formatAsMillions(amount: number): string {
+  const normalized = Number.isInteger(amount) ? amount.toString() : amount.toFixed(1);
+  return `₹${normalized}M`;
+}
+
+function toTeamSlug(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return slug || 'unassigned';
+}
 
 function normalizeTier(value: unknown): string {
   if (value === null || value === undefined) return '4';
@@ -89,6 +117,7 @@ export default function APLRosterPage() {
             name: entry.attributes?.name || `Player ${entry.id}`,
             tier: normalizeTier(entry.attributes?.tier),
             soldAt: entry.attributes?.sold_at ?? null,
+            section: entry.attributes?.isCM ? 'CM' : 'NCM',
             team: teamData
               ? {
                   id: teamData.id,
@@ -163,6 +192,25 @@ export default function APLRosterPage() {
       .filter((group) => group.players.length > 0);
   }, [groups, selectedTier]);
 
+  const metricsByTeamId = useMemo(() => {
+    return groups.reduce<Record<number, TeamMetrics>>((acc, group) => {
+      const boughtPlayers = group.players.filter((player) => player.soldAt !== null);
+      const cmCount = boughtPlayers.filter((player) => player.section === 'CM').length;
+      const ncmCount = boughtPlayers.filter((player) => player.section === 'NCM').length;
+      const spent = boughtPlayers.reduce((sum, player) => sum + (player.soldAt || 0), 0);
+
+      acc[group.id] = {
+        cmCount,
+        ncmCount,
+        boughtCount: boughtPlayers.length,
+        spent,
+        remaining: Math.max(TEAM_PURSE - spent, 0),
+      };
+
+      return acc;
+    }, {});
+  }, [groups]);
+
   return (
     <section className="mx-auto w-full max-w-6xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-6 space-y-2">
@@ -193,7 +241,7 @@ export default function APLRosterPage() {
       ) : (
         <div className="space-y-5">
           {filteredGroups.map((group) => (
-            <Card key={group.id} className="border-border/80">
+            <Card id={`team-${toTeamSlug(group.name)}`} key={group.id} className="scroll-mt-24 border-border/80">
               <CardHeader className="pb-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
@@ -213,7 +261,16 @@ export default function APLRosterPage() {
                     )}
                     <CardTitle className="text-lg text-left sm:text-xl">{group.name}</CardTitle>
                   </div>
-                  <Badge variant="secondary" className="w-fit">{group.players.length} players</Badge>
+                  <Badge variant="secondary" className="w-fit">
+                    {(metricsByTeamId[group.id]?.boughtCount || 0)}/{CM_LIMIT + NCM_LIMIT} bought
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <Badge variant="outline">CM {metricsByTeamId[group.id]?.cmCount || 0}/{CM_LIMIT}</Badge>
+                  <Badge variant="outline">NCM {metricsByTeamId[group.id]?.ncmCount || 0}/{NCM_LIMIT}</Badge>
+                  <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                    Remaining {formatAsMillions(metricsByTeamId[group.id]?.remaining || TEAM_PURSE)}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent>

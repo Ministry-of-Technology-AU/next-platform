@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,16 @@ const priceBands = [
   { value: '100-125', label: '₹100M - ₹125M' },
   { value: '125-150', label: '₹125M - ₹150M' },
 ];
+
+function getTeamAnchor(teamName: string): string {
+  const slug = teamName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return `/platform/sports/apl/roster#team-${slug || 'unassigned'}`;
+}
 
 export default function APLAuctionPage() {
   const [rows, setRows] = useState<AuctionRow[]>([]);
@@ -362,7 +373,11 @@ export default function APLAuctionPage() {
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">Team</p>
-                          <p className="truncate font-medium">{row.team}</p>
+                          <p className="truncate font-medium">
+                            <Link href={getTeamAnchor(row.team)} className="underline-offset-4 hover:underline">
+                              {row.team}
+                            </Link>
+                          </p>
                         </div>
                         <div className="text-right">
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">Price</p>
@@ -399,7 +414,11 @@ export default function APLAuctionPage() {
                             Tier {row.category}
                           </Badge>
                         </TableCell>
-                        <TableCell>{row.team}</TableCell>
+                        <TableCell>
+                          <Link href={getTeamAnchor(row.team)} className="underline-offset-4 hover:underline">
+                            {row.team}
+                          </Link>
+                        </TableCell>
                         <TableCell className="text-right font-medium">{formatAsMillions(row.price)}</TableCell>
                       </TableRow>
                     ))}
