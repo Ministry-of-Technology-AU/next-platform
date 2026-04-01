@@ -199,8 +199,8 @@ export default function APLAuctionPage() {
       <div className="mb-5 space-y-2 sm:mb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground sm:text-4xl">APL Auction Feed</h1>
-            <p className="text-sm text-muted-foreground sm:text-base">
+            <h1 className="!text-left text-2xl font-bold text-foreground sm:text-4xl">APL Auction Feed</h1>
+            <p className="text-left text-sm text-muted-foreground sm:text-base">
               Live results showing serial no, player name, category, team, and final price.
             </p>
           </div>
