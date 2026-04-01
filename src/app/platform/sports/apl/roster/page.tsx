@@ -228,6 +228,10 @@ export default function APLRosterPage() {
     return result;
   }, [groups, selectedTier, searchQuery]);
 
+  const visibleGroups = useMemo(() => {
+    return filteredGroups.filter((group) => group.id !== -1);
+  }, [filteredGroups]);
+
   const metricsByTeamId = useMemo(() => {
     return groups.reduce<Record<number, TeamMetrics>>((acc, group) => {
       const boughtPlayers = group.players.filter((player) => player.soldAt !== null);
@@ -290,13 +294,13 @@ export default function APLRosterPage() {
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">Loading roster...</CardContent>
         </Card>
-      ) : filteredGroups.length === 0 ? (
+      ) : visibleGroups.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">No players found for selected tier.</CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {filteredGroups.map((group) => (
+          {visibleGroups.map((group) => (
             <Card id={`team-${toTeamSlug(group.name)}`} key={group.id} className="scroll-mt-24 border-border/80">
               <CardHeader className="pb-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
