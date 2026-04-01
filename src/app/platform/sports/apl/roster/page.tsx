@@ -295,7 +295,7 @@ export default function APLRosterPage() {
           <CardContent className="py-12 text-center text-muted-foreground">No players found for selected tier.</CardContent>
         </Card>
       ) : (
-        <div className="space-y-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {filteredGroups.map((group) => (
             <Card id={`team-${toTeamSlug(group.name)}`} key={group.id} className="scroll-mt-24 border-border/80">
               <CardHeader className="pb-3">
