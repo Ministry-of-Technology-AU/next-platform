@@ -35,7 +35,7 @@ export default function SportsPage() {
           </Card>
         </Link>
 
-        <Link href="/platform/sports/apl" className="group">
+        <Link href="/platform/sports/apl/auction" className="group">
           <Card className="h-full transition-all hover:shadow-md hover:border-primary/50 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Activity className="w-24 h-24" />
@@ -51,7 +51,7 @@ export default function SportsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Coming soon. The portal for the Ashoka Premier League football league.
+                Open the Ashoka Premier League auction dashboard and related tools.
               </p>
             </CardContent>
           </Card>
