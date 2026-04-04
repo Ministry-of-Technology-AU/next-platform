@@ -74,6 +74,17 @@ function formatAsMillions(amount: number): string {
   return `₹${normalized}M`;
 }
 
+function formatRemainingPurse(amount: number): string {
+  const absolute = Math.abs(amount);
+  const normalized = Number.isInteger(absolute) ? absolute.toString() : absolute.toFixed(1);
+
+  if (amount < 0) {
+    return `- ${normalized} m`;
+  }
+
+  return `${normalized} m`;
+}
+
 function toTeamSlug(name: string): string {
   const slug = name
     .toLowerCase()
@@ -244,7 +255,7 @@ export default function APLRosterPage() {
         ncmCount,
         boughtCount: boughtPlayers.length,
         spent,
-        remaining: Math.max(TEAM_PURSE - spent, 0),
+        remaining: TEAM_PURSE - spent,
       };
 
       return acc;
@@ -328,8 +339,14 @@ export default function APLRosterPage() {
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <Badge variant="outline">CM {metricsByTeamId[group.id]?.cmCount || 0}/{CM_LIMIT}</Badge>
                   <Badge variant="outline">NCM {metricsByTeamId[group.id]?.ncmCount || 0}/{NCM_LIMIT}</Badge>
-                  <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
-                    Remaining {formatAsMillions(metricsByTeamId[group.id]?.remaining || TEAM_PURSE)}
+                  <Badge
+                    className={
+                      (metricsByTeamId[group.id]?.remaining ?? TEAM_PURSE) < 0
+                        ? 'bg-red-600 text-white hover:bg-red-600'
+                        : 'bg-emerald-600 text-white hover:bg-emerald-600'
+                    }
+                  >
+                    Remaining {formatRemainingPurse(metricsByTeamId[group.id]?.remaining ?? TEAM_PURSE)}
                   </Badge>
                 </div>
               </CardHeader>
