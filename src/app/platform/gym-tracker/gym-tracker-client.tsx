@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, QrCode, RefreshCw, Users } from 'lucide-react';
+import { Activity, QrCode, RefreshCw, Users, Dumbbell } from 'lucide-react';
 
 type ChartMode = 'density' | 'trend';
 
@@ -205,6 +206,22 @@ export default function GymTrackerClient() {
 
   return (
     <div className="space-y-5">
+      {/* Exercise Tracker CTA */}
+      <Link href="/platform/gym-tracker/exercise-tracker">
+        <Card className="rounded-3xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Dumbbell className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-lg">Exercise Tracker</p>
+              <p className="text-sm text-muted-foreground">Log sets, reps & weight. Track your progress over time.</p>
+            </div>
+            <Activity className="h-5 w-5 text-primary shrink-0" />
+          </CardContent>
+        </Card>
+      </Link>
+
       {error && (
         <Card className="border border-red-200 dark:border-red-900 rounded-3xl">
           <CardContent className="p-4 text-sm text-red-600 dark:text-red-300 flex items-center justify-between gap-3">
