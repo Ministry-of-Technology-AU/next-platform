@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* === AshokanAround Theme Variables and Styles === */
+@custom-variant dark (&:is(.dark *));
+
+@theme{
+     /* Breakpoints */
+     --breakpoint-xs: 475px;
+
+     /* Primaries */
+    --color-primary: #87281b;
+    --color-primary-light: #9b4e43;
+    --color-primary-extralight: #c89188;
+    --color-primary-dark: #60150a;
+    --color-primary-extradark: #3b0800;
+
+    /* Secondaries */
+    --color-secondary: #ffcd74;
+    --color-secondary-light: #ffe7a9;
+    --color-secondary-extralight: #eef5db;
+    --color-secondary-dark: #f4b448;
+    --color-secondary-extradark: #d68e3a;
+
+    /* Greens */
+    --color-green: #519872;
+    --color-green-light: #70c49c;
+    --color-green-extralight: #8fd8ca;
+    --color-green-dark: #2b6948;
+    --color-green-extradark: #1b3022;
+
+    /* Blues */
+    --color-blue: #0267c1;
+    --color-blue-light: #5197d6;
+    --color-blue-extralight: #a1cdf1;
+    --color-blue-dark: #154a7b;
+    --color-blue-extradark: #1c3144;
+
+    /* Neutrals */
+    --color-white: #f7f4f2;
+    --color-black: #1c1917;
+    --color-gray: #767371;
+    --color-gray-light: #bfbcba;
+    --color-gray-extralight: #f2f1ee;
+    --color-gray-dark: #57504c;
+
+    --color-bg: #f7f4f2;
+    --color-text: #1c1917;
+
+    /* Fonts */
+    --font-body: 'Nunito Sans', sans-serif;
+    --font-heading: 'Nunito';
+}
+
+body{
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  text-align: left;
+}
+h1, h2, h3, h4, h5, h6{
+  font-family: var(--font-heading);
+  text-align: center;
+}
+h1{
+  font-size: 2.25rem;
+  font-weight: bold;
+}
+h2{
+  font-size: 1.875rem;
+  font-weight: bold;
+}
+h3{
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.button-animated {
+  overflow: hidden;
+  transition: color 0.5s ease-out, box-shadow 0.5s ease-out, transform 0.1s;
+  box-shadow: inset 0 0 0 0 var(--color-primary-dark);
+  background: var(--color-primary);
+  color: white;
+}
+.button-animated:hover {
+  color: white !important;
+  box-shadow: inset 0 -100px 0 0 var(--color-primary-dark);
+}
+.button-animated:active {
+  transform: scale(0.95);
+}

@@ -1,0 +1,6499 @@
+[
+  {
+    "name": "El Tarter",
+    "lat": "42.57952",
+    "lng": "1.65362",
+    "country": "AD",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Sant Julià de Lòria",
+    "lat": "42.46372",
+    "lng": "1.49129",
+    "country": "AD",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Pas de la Casa",
+    "lat": "42.54277",
+    "lng": "1.73361",
+    "country": "AD",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Ordino",
+    "lat": "42.55623",
+    "lng": "1.53319",
+    "country": "AD",
+    "admin1": "05",
+    "admin2": ""
+  },
+  {
+    "name": "les Escaldes",
+    "lat": "42.50729",
+    "lng": "1.53414",
+    "country": "AD",
+    "admin1": "08",
+    "admin2": ""
+  },
+  {
+    "name": "la Massana",
+    "lat": "42.54499",
+    "lng": "1.51483",
+    "country": "AD",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Encamp",
+    "lat": "42.53474",
+    "lng": "1.58014",
+    "country": "AD",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Canillo",
+    "lat": "42.5676",
+    "lng": "1.59756",
+    "country": "AD",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Arinsal",
+    "lat": "42.57205",
+    "lng": "1.48453",
+    "country": "AD",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Anyós",
+    "lat": "42.53465",
+    "lng": "1.5251",
+    "country": "AD",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Andorra la Vella",
+    "lat": "42.50779",
+    "lng": "1.52109",
+    "country": "AD",
+    "admin1": "07",
+    "admin2": ""
+  },
+  {
+    "name": "Aixirivall",
+    "lat": "42.46245",
+    "lng": "1.50209",
+    "country": "AD",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Warīsān",
+    "lat": "25.16744",
+    "lng": "55.40708",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Umm Suqaym",
+    "lat": "25.15491",
+    "lng": "55.21015",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Umm Al Quwain City",
+    "lat": "25.56473",
+    "lng": "55.55517",
+    "country": "AE",
+    "admin1": "07",
+    "admin2": ""
+  },
+  {
+    "name": "Ţarīf Kalbā",
+    "lat": "25.0695",
+    "lng": "56.33115",
+    "country": "AE",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Ar Rāshidīyah",
+    "lat": "25.22499",
+    "lng": "55.38947",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Ras Al Khaimah City",
+    "lat": "25.78953",
+    "lng": "55.9432",
+    "country": "AE",
+    "admin1": "05",
+    "admin2": ""
+  },
+  {
+    "name": "Muzayri‘",
+    "lat": "23.14355",
+    "lng": "53.7881",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "103"
+  },
+  {
+    "name": "Murbaḩ",
+    "lat": "25.27623",
+    "lng": "56.36256",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Maşfūţ",
+    "lat": "24.81089",
+    "lng": "56.10657",
+    "country": "AE",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Zayed City",
+    "lat": "23.65416",
+    "lng": "53.70522",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "103"
+  },
+  {
+    "name": "Khawr Fakkān",
+    "lat": "25.33132",
+    "lng": "56.34199",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Kalbā",
+    "lat": "25.0513",
+    "lng": "56.35422",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Jumayrā",
+    "lat": "25.20795",
+    "lng": "55.24969",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Jazīrah al Ḩamrā’",
+    "lat": "25.7091",
+    "lng": "55.80772",
+    "country": "AE",
+    "admin1": "05",
+    "admin2": ""
+  },
+  {
+    "name": "Dubai",
+    "lat": "25.07725",
+    "lng": "55.30927",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Dibba Al-Fujairah",
+    "lat": "25.59246",
+    "lng": "56.26176",
+    "country": "AE",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Dibba Al-Hisn",
+    "lat": "25.61955",
+    "lng": "56.27291",
+    "country": "AE",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Dayrah",
+    "lat": "25.27143",
+    "lng": "55.30207",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Sharjah",
+    "lat": "25.33737",
+    "lng": "55.41206",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Ash Sha‘m",
+    "lat": "26.0279",
+    "lng": "56.08352",
+    "country": "AE",
+    "admin1": "05",
+    "admin2": ""
+  },
+  {
+    "name": "Ar Ruways",
+    "lat": "24.11028",
+    "lng": "52.73056",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "103"
+  },
+  {
+    "name": "Al Manāmah",
+    "lat": "25.3299",
+    "lng": "56.02188",
+    "country": "AE",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Al Ḩamrīyah",
+    "lat": "25.47819",
+    "lng": "55.53377",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Ḩattā",
+    "lat": "24.80073",
+    "lng": "56.12726",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "800"
+  },
+  {
+    "name": "Al Fujairah City",
+    "lat": "25.11641",
+    "lng": "56.34141",
+    "country": "AE",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Al Ain City",
+    "lat": "24.19167",
+    "lng": "55.76056",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "102"
+  },
+  {
+    "name": "Ajman City",
+    "lat": "25.40177",
+    "lng": "55.47878",
+    "country": "AE",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Adh Dhayd",
+    "lat": "25.28812",
+    "lng": "55.88157",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Abu Dhabi",
+    "lat": "24.45118",
+    "lng": "54.39696",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "101"
+  },
+  {
+    "name": "Abū Hayl",
+    "lat": "25.28413",
+    "lng": "55.33153",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "As Saţwah",
+    "lat": "25.22192",
+    "lng": "55.27459",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Nadd al Ḩumr",
+    "lat": "25.20131",
+    "lng": "55.38388",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Lusaylī",
+    "lat": "24.93138",
+    "lng": "55.47531",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Suwayḩān",
+    "lat": "24.46235",
+    "lng": "55.33715",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "102"
+  },
+  {
+    "name": "Al Ḩamīdīyah",
+    "lat": "25.40001",
+    "lng": "55.52925",
+    "country": "AE",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Al Waheda",
+    "lat": "25.29173",
+    "lng": "55.33822",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Twar First",
+    "lat": "25.27148",
+    "lng": "55.36165",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "AL Twar Second",
+    "lat": "25.26309",
+    "lng": "55.38028",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Qusais Second",
+    "lat": "25.27148",
+    "lng": "55.38603",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Karama",
+    "lat": "25.24004",
+    "lng": "55.30106",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Hudaiba",
+    "lat": "25.24151",
+    "lng": "55.27805",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Knowledge Village",
+    "lat": "25.10223",
+    "lng": "55.16433",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "The Palm Jumeirah",
+    "lat": "25.11607",
+    "lng": "55.13506",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Za'abeel",
+    "lat": "25.22536",
+    "lng": "55.305",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Oud Metha",
+    "lat": "25.23685",
+    "lng": "55.31419",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Bur Dubai",
+    "lat": "25.26038",
+    "lng": "55.29891",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Khalifah A City",
+    "lat": "24.42588",
+    "lng": "54.605",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "101"
+  },
+  {
+    "name": "Shakhbout City",
+    "lat": "24.36727",
+    "lng": "54.63721",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "101"
+  },
+  {
+    "name": "Mirdif",
+    "lat": "25.22443",
+    "lng": "55.41412",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Hawr al ‘Anz",
+    "lat": "25.27744",
+    "lng": "55.33675",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Mankhūl",
+    "lat": "25.24612",
+    "lng": "55.29222",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Būr Sa‘īd",
+    "lat": "25.261",
+    "lng": "55.33016",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Nāyf",
+    "lat": "25.27139",
+    "lng": "55.30323",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Murar al Qadīm",
+    "lat": "25.27576",
+    "lng": "55.30738",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Ar Riqqah",
+    "lat": "25.26797",
+    "lng": "55.31272",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Warqaa",
+    "lat": "25.19272",
+    "lng": "55.42013",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "International City",
+    "lat": "25.16383",
+    "lng": "55.40987",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Dubai Marina",
+    "lat": "25.08525",
+    "lng": "55.14646",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Dubai Sports City",
+    "lat": "25.03878",
+    "lng": "55.21725",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Dubai Internet City",
+    "lat": "25.09538",
+    "lng": "55.16171",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Sufouh",
+    "lat": "25.12015",
+    "lng": "55.18285",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Al Safa",
+    "lat": "25.17047",
+    "lng": "55.23336",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Ar Rumaylah",
+    "lat": "25.40338",
+    "lng": "55.4334",
+    "country": "AE",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Mushayrif",
+    "lat": "25.40977",
+    "lng": "55.47106",
+    "country": "AE",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Al Jurf",
+    "lat": "25.41814",
+    "lng": "55.50791",
+    "country": "AE",
+    "admin1": "02",
+    "admin2": ""
+  },
+  {
+    "name": "Al Majaz",
+    "lat": "25.32354",
+    "lng": "55.38774",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "As Saţwah Sharq",
+    "lat": "25.23796",
+    "lng": "55.28678",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Dubai Festival City",
+    "lat": "25.22177",
+    "lng": "55.35733",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Dubai International Financial Centre",
+    "lat": "25.2106",
+    "lng": "55.27787",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Downtown Dubai",
+    "lat": "25.19408",
+    "lng": "55.2781",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Dubai Investments Park",
+    "lat": "25.00827",
+    "lng": "55.15682",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Jebel Ali",
+    "lat": "25.00255",
+    "lng": "55.10811",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Bani Yas City",
+    "lat": "24.30978",
+    "lng": "54.62944",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "101"
+  },
+  {
+    "name": "Musaffah",
+    "lat": "24.35893",
+    "lng": "54.48267",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "101"
+  },
+  {
+    "name": "Al Shamkhah City",
+    "lat": "24.39268",
+    "lng": "54.70779",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "101"
+  },
+  {
+    "name": "Reef Al Fujairah City",
+    "lat": "25.14479",
+    "lng": "56.24764",
+    "country": "AE",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Al Wiqan",
+    "lat": "23.75355",
+    "lng": "55.32739",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "102"
+  },
+  {
+    "name": "Al Faqaa",
+    "lat": "24.71242",
+    "lng": "55.67048",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "102"
+  },
+  {
+    "name": "Sha'biyyat Al Hiyar",
+    "lat": "24.58242",
+    "lng": "55.7467",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "102"
+  },
+  {
+    "name": "Sha'biyyat Milе̄hah",
+    "lat": "25.13518",
+    "lng": "55.8843",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Umm Al Sheif",
+    "lat": "25.13227",
+    "lng": "55.20567",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "300"
+  },
+  {
+    "name": "Al Bada'a",
+    "lat": "25.22462",
+    "lng": "55.26888",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "300"
+  },
+  {
+    "name": "Al Muteena",
+    "lat": "25.27375",
+    "lng": "55.32265",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "100"
+  },
+  {
+    "name": "Al Mizhar First",
+    "lat": "25.24805",
+    "lng": "55.44128",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "200"
+  },
+  {
+    "name": "Al Mizhar Second",
+    "lat": "25.24332",
+    "lng": "55.4619",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "200"
+  },
+  {
+    "name": "Dubai Silicon Oasis",
+    "lat": "25.11985",
+    "lng": "55.38718",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "600"
+  },
+  {
+    "name": "Dubai Motor City",
+    "lat": "25.04593",
+    "lng": "55.24102",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "600"
+  },
+  {
+    "name": "DAMAC Hills",
+    "lat": "25.02924",
+    "lng": "55.25277",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "600"
+  },
+  {
+    "name": "Al Furjan",
+    "lat": "25.02651",
+    "lng": "55.14565",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "500"
+  },
+  {
+    "name": "Business Bay",
+    "lat": "25.18544",
+    "lng": "55.26969",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "300"
+  },
+  {
+    "name": "Al Qusais 1",
+    "lat": "25.27925",
+    "lng": "55.36995",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "200"
+  },
+  {
+    "name": "Al Twar 3",
+    "lat": "25.25159",
+    "lng": "55.39408",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "200"
+  },
+  {
+    "name": "Al Khabaisi",
+    "lat": "25.26628",
+    "lng": "55.33379",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "100"
+  },
+  {
+    "name": "Al Khawaneej 1",
+    "lat": "25.24882",
+    "lng": "55.48545",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "200"
+  },
+  {
+    "name": "Halwan",
+    "lat": "25.34586",
+    "lng": "55.42165",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Al Sajaah",
+    "lat": "25.31532",
+    "lng": "55.63211",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Lahbab",
+    "lat": "25.03763",
+    "lng": "55.59135",
+    "country": "AE",
+    "admin1": "03",
+    "admin2": "700"
+  },
+  {
+    "name": "Al Madam",
+    "lat": "24.97355",
+    "lng": "55.77781",
+    "country": "AE",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Al Raafah",
+    "lat": "25.55073",
+    "lng": "55.68619",
+    "country": "AE",
+    "admin1": "07",
+    "admin2": ""
+  },
+  {
+    "name": "Mohammed Bin Zayed City",
+    "lat": "24.34794",
+    "lng": "54.55368",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "101"
+  },
+  {
+    "name": "Masdar City",
+    "lat": "24.43208",
+    "lng": "54.61582",
+    "country": "AE",
+    "admin1": "01",
+    "admin2": "101"
+  },
+  {
+    "name": "Zōr Kōṯ",
+    "lat": "33.54149",
+    "lng": "69.73446",
+    "country": "AF",
+    "admin1": "37",
+    "admin2": "3205"
+  },
+  {
+    "name": "Wulêswālī Bihsūd",
+    "lat": "34.3436",
+    "lng": "67.90567",
+    "country": "AF",
+    "admin1": "27",
+    "admin2": "404"
+  },
+  {
+    "name": "Kuhsān",
+    "lat": "34.65389",
+    "lng": "61.19778",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2008"
+  },
+  {
+    "name": "Lāsh",
+    "lat": "35.3782",
+    "lng": "64.77457",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1805"
+  },
+  {
+    "name": "Tukzār",
+    "lat": "35.94831",
+    "lng": "66.42132",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3102"
+  },
+  {
+    "name": "Bati",
+    "lat": "34.24348",
+    "lng": "70.72855",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "817"
+  },
+  {
+    "name": "Mīray",
+    "lat": "33.32462",
+    "lng": "68.44068",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "614"
+  },
+  {
+    "name": "Āq Kupruk",
+    "lat": "36.08352",
+    "lng": "66.84029",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1610"
+  },
+  {
+    "name": "Zurmat",
+    "lat": "33.43778",
+    "lng": "69.02774",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "702"
+  },
+  {
+    "name": "Zaybāk",
+    "lat": "36.52947",
+    "lng": "71.3441",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1105"
+  },
+  {
+    "name": "Zīārat-e Shāh Maqşūd",
+    "lat": "31.9848",
+    "lng": "65.4736",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2405"
+  },
+  {
+    "name": "Zindah Jān",
+    "lat": "34.34264",
+    "lng": "61.74675",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2010"
+  },
+  {
+    "name": "Zarghūn Shahr",
+    "lat": "32.84734",
+    "lng": "68.44573",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2902"
+  },
+  {
+    "name": "Zaṟah Sharan",
+    "lat": "33.14641",
+    "lng": "68.79213",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2901"
+  },
+  {
+    "name": "Zaranj",
+    "lat": "30.95962",
+    "lng": "61.86037",
+    "country": "AF",
+    "admin1": "19",
+    "admin2": "2201"
+  },
+  {
+    "name": "Zamtō Kêlay",
+    "lat": "32.3726",
+    "lng": "66.17708",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2414"
+  },
+  {
+    "name": "Yangī Qal‘ah",
+    "lat": "37.46572",
+    "lng": "69.61131",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1210"
+  },
+  {
+    "name": "Bāzār-e Yakāwlang",
+    "lat": "34.73525",
+    "lng": "66.97379",
+    "country": "AF",
+    "admin1": "05",
+    "admin2": "2804"
+  },
+  {
+    "name": "Yaḩyá Khēl",
+    "lat": "32.93742",
+    "lng": "68.64622",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2918"
+  },
+  {
+    "name": "Wāshēr",
+    "lat": "32.25122",
+    "lng": "63.85553",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2307"
+  },
+  {
+    "name": "Tōrmay",
+    "lat": "33.68847",
+    "lng": "68.40205",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "603"
+  },
+  {
+    "name": "Tūlak",
+    "lat": "33.97509",
+    "lng": "63.72868",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2703"
+  },
+  {
+    "name": "Tītān",
+    "lat": "33.69032",
+    "lng": "63.86361",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2704"
+  },
+  {
+    "name": "Tīr Pul",
+    "lat": "34.59431",
+    "lng": "61.26895",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2008"
+  },
+  {
+    "name": "Taywarah",
+    "lat": "33.52118",
+    "lng": "64.42116",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2705"
+  },
+  {
+    "name": "Bāzār-e Tashkān",
+    "lat": "36.88168",
+    "lng": "70.27674",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1124"
+  },
+  {
+    "name": "Tarinkot",
+    "lat": "32.62998",
+    "lng": "65.87806",
+    "country": "AF",
+    "admin1": "39",
+    "admin2": "2601"
+  },
+  {
+    "name": "Taloqan",
+    "lat": "36.73605",
+    "lng": "69.53451",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1201"
+  },
+  {
+    "name": "Tagāw-Bāy",
+    "lat": "35.69941",
+    "lng": "66.06164",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3103"
+  },
+  {
+    "name": "Tagāb",
+    "lat": "34.85501",
+    "lng": "69.64917",
+    "country": "AF",
+    "admin1": "14",
+    "admin2": "205"
+  },
+  {
+    "name": "Markaz-e Ḩukūmat-e Sulţān-e Bakwāh",
+    "lat": "32.24139",
+    "lng": "62.94936",
+    "country": "AF",
+    "admin1": "06",
+    "admin2": "2102"
+  },
+  {
+    "name": "Spīn Bōldak",
+    "lat": "31.00575",
+    "lng": "66.40001",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2411"
+  },
+  {
+    "name": "Spērah",
+    "lat": "33.20204",
+    "lng": "69.5152",
+    "country": "AF",
+    "admin1": "37",
+    "admin2": "3204"
+  },
+  {
+    "name": "Sōzmah Qal‘ah",
+    "lat": "36.09916",
+    "lng": "66.20823",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3105"
+  },
+  {
+    "name": "Siyāhgird",
+    "lat": "35.00553",
+    "lng": "68.85578",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "305"
+  },
+  {
+    "name": "S̲h̲ēwah",
+    "lat": "34.57169",
+    "lng": "70.58859",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "819"
+  },
+  {
+    "name": "Shīnḏanḏ",
+    "lat": "33.30294",
+    "lng": "62.1474",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2014"
+  },
+  {
+    "name": "Shaykh Amīr Kêlay",
+    "lat": "33.28744",
+    "lng": "69.91283",
+    "country": "AF",
+    "admin1": "37",
+    "admin2": "3211"
+  },
+  {
+    "name": "Qāshqāl",
+    "lat": "35.03975",
+    "lng": "69.00685",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "304"
+  },
+  {
+    "name": "Shibirghān",
+    "lat": "36.66757",
+    "lng": "65.7529",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1701"
+  },
+  {
+    "name": "Shwāk",
+    "lat": "33.42386",
+    "lng": "69.37684",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "703"
+  },
+  {
+    "name": "Shahr-e Şafā",
+    "lat": "31.80347",
+    "lng": "66.32376",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2506"
+  },
+  {
+    "name": "Shahrān",
+    "lat": "36.97984",
+    "lng": "70.73928",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1118"
+  },
+  {
+    "name": "Shahrak",
+    "lat": "34.10737",
+    "lng": "64.3052",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2702"
+  },
+  {
+    "name": "‘Alāqahdārī Shāh Jōy",
+    "lat": "32.52154",
+    "lng": "67.41315",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2502"
+  },
+  {
+    "name": "Wulêswālī Sayyid Karam",
+    "lat": "33.69056",
+    "lng": "69.36881",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "710"
+  },
+  {
+    "name": "Markaz-e Sayyidābād",
+    "lat": "34.00037",
+    "lng": "68.71346",
+    "country": "AF",
+    "admin1": "27",
+    "admin2": "407"
+  },
+  {
+    "name": "Şayād",
+    "lat": "36.13529",
+    "lng": "65.8297",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3106"
+  },
+  {
+    "name": "Sidqābād",
+    "lat": "35.02298",
+    "lng": "69.35112",
+    "country": "AF",
+    "admin1": "14",
+    "admin2": "201"
+  },
+  {
+    "name": "Sāyagaz",
+    "lat": "32.56521",
+    "lng": "67.03324",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2503"
+  },
+  {
+    "name": "Sar-e Tayghān",
+    "lat": "33.50998",
+    "lng": "65.67632",
+    "country": "AF",
+    "admin1": "41",
+    "admin2": "3406"
+  },
+  {
+    "name": "Sarōbī",
+    "lat": "34.58962",
+    "lng": "69.76005",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "112"
+  },
+  {
+    "name": "Sar Kāṉī",
+    "lat": "34.79023",
+    "lng": "71.10962",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1015"
+  },
+  {
+    "name": "Sarfirāz Kalā",
+    "lat": "32.98333",
+    "lng": "67.96517",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "611"
+  },
+  {
+    "name": "Sar-e Pul",
+    "lat": "36.21544",
+    "lng": "65.93249",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3101"
+  },
+  {
+    "name": "Sar Chakān",
+    "lat": "35.70177",
+    "lng": "65.23055",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1807"
+  },
+  {
+    "name": "Sangīn",
+    "lat": "32.07275",
+    "lng": "64.8359",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2312"
+  },
+  {
+    "name": "Sang-e Māshah",
+    "lat": "33.1396",
+    "lng": "67.44046",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "607"
+  },
+  {
+    "name": "Sang-e Chārak",
+    "lat": "35.84972",
+    "lng": "66.43694",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3102"
+  },
+  {
+    "name": "Sang Atesh",
+    "lat": "35.248",
+    "lng": "63.0044",
+    "country": "AF",
+    "admin1": "02",
+    "admin2": "1907"
+  },
+  {
+    "name": "Sangar Sarāy",
+    "lat": "34.40744",
+    "lng": "70.63937",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "818"
+  },
+  {
+    "name": "Aībak",
+    "lat": "36.26468",
+    "lng": "68.01551",
+    "country": "AF",
+    "admin1": "32",
+    "admin2": "1501"
+  },
+  {
+    "name": "Rū-ye Sang",
+    "lat": "35.31999",
+    "lng": "67.63387",
+    "country": "AF",
+    "admin1": "05",
+    "admin2": "2803"
+  },
+  {
+    "name": "Rūdbār",
+    "lat": "30.15",
+    "lng": "62.6",
+    "country": "AF",
+    "admin1": "19",
+    "admin2": "2203"
+  },
+  {
+    "name": "Rustāq",
+    "lat": "37.12604",
+    "lng": "69.83045",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1208"
+  },
+  {
+    "name": "Rabāţ-e Sangī-ye Pā’īn",
+    "lat": "34.79951",
+    "lng": "62.13917",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2006"
+  },
+  {
+    "name": "Rāmak",
+    "lat": "33.52234",
+    "lng": "68.6264",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "615"
+  },
+  {
+    "name": "Qurghān",
+    "lat": "36.91939",
+    "lng": "65.0649",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1814"
+  },
+  {
+    "name": "Quchanghī",
+    "lat": "34.06183",
+    "lng": "66.27801",
+    "country": "AF",
+    "admin1": "41",
+    "admin2": "3403"
+  },
+  {
+    "name": "Qaīşār",
+    "lat": "35.68747",
+    "lng": "64.29318",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1804"
+  },
+  {
+    "name": "Qarqīn",
+    "lat": "37.41853",
+    "lng": "66.04358",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1705"
+  },
+  {
+    "name": "Qarghah’ī",
+    "lat": "34.55402",
+    "lng": "70.24292",
+    "country": "AF",
+    "admin1": "35",
+    "admin2": "902"
+  },
+  {
+    "name": "Qarchī Gak",
+    "lat": "37.03999",
+    "lng": "66.78891",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1605"
+  },
+  {
+    "name": "Qarāwul",
+    "lat": "37.21959",
+    "lng": "68.7802",
+    "country": "AF",
+    "admin1": "24",
+    "admin2": "1402"
+  },
+  {
+    "name": "Qarah Bāgh",
+    "lat": "34.94023",
+    "lng": "61.77589",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2007"
+  },
+  {
+    "name": "Qarah Bāgh",
+    "lat": "33.19801",
+    "lng": "68.10798",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "613"
+  },
+  {
+    "name": "Qala i Naw",
+    "lat": "34.98735",
+    "lng": "63.12891",
+    "country": "AF",
+    "admin1": "02",
+    "admin2": "1901"
+  },
+  {
+    "name": "Qal‘ah-ye Kūf",
+    "lat": "38.04119",
+    "lng": "70.47298",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1120"
+  },
+  {
+    "name": "Qal‘ah-ye Kuhnah",
+    "lat": "32.61591",
+    "lng": "63.66681",
+    "country": "AF",
+    "admin1": "06",
+    "admin2": "2103"
+  },
+  {
+    "name": "Qal‘ah-ye Shahr",
+    "lat": "35.54729",
+    "lng": "65.5676",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3103"
+  },
+  {
+    "name": "Qalāt",
+    "lat": "32.10575",
+    "lng": "66.90833",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2501"
+  },
+  {
+    "name": "Qal‘ah-ye Shāhī",
+    "lat": "34.64921",
+    "lng": "70.5914",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "820"
+  },
+  {
+    "name": "Qādis",
+    "lat": "34.8085",
+    "lng": "63.43003",
+    "country": "AF",
+    "admin1": "02",
+    "admin2": "1903"
+  },
+  {
+    "name": "Pārūn",
+    "lat": "35.42064",
+    "lng": "70.92261",
+    "country": "AF",
+    "admin1": "38",
+    "admin2": "3001"
+  },
+  {
+    "name": "Pul-e Khumrī",
+    "lat": "35.94458",
+    "lng": "68.71512",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1301"
+  },
+  {
+    "name": "Pul-e ‘Alam",
+    "lat": "33.99529",
+    "lng": "69.02274",
+    "country": "AF",
+    "admin1": "17",
+    "admin2": "501"
+  },
+  {
+    "name": "Pasnay",
+    "lat": "35.76664",
+    "lng": "65.76486",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3103"
+  },
+  {
+    "name": "Pāshmūl",
+    "lat": "31.5572",
+    "lng": "65.4343",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2416"
+  },
+  {
+    "name": "Pasāband",
+    "lat": "33.68956",
+    "lng": "64.8531",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2706"
+  },
+  {
+    "name": "Panjāb",
+    "lat": "34.38795",
+    "lng": "67.02327",
+    "country": "AF",
+    "admin1": "05",
+    "admin2": "2805"
+  },
+  {
+    "name": "Paghmān",
+    "lat": "34.58787",
+    "lng": "68.95091",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "108"
+  },
+  {
+    "name": "Ōmnah",
+    "lat": "32.90029",
+    "lng": "68.79627",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2907"
+  },
+  {
+    "name": "Ōbêh",
+    "lat": "34.36972",
+    "lng": "63.17639",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2012"
+  },
+  {
+    "name": "Uruzgān",
+    "lat": "32.92775",
+    "lng": "66.63253",
+    "country": "AF",
+    "admin1": "39",
+    "admin2": "2603"
+  },
+  {
+    "name": "Urgun",
+    "lat": "32.9515",
+    "lng": "69.1828",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2911"
+  },
+  {
+    "name": "Nūsay",
+    "lat": "38.4435",
+    "lng": "70.80413",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1110"
+  },
+  {
+    "name": "Nūrgal",
+    "lat": "34.61341",
+    "lng": "70.76498",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1013"
+  },
+  {
+    "name": "Now Zād",
+    "lat": "32.40315",
+    "lng": "64.46959",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2306"
+  },
+  {
+    "name": "Nīlī",
+    "lat": "33.72178",
+    "lng": "66.13023",
+    "country": "AF",
+    "admin1": "41",
+    "admin2": "3401"
+  },
+  {
+    "name": "Nayak",
+    "lat": "34.73414",
+    "lng": "66.95292",
+    "country": "AF",
+    "admin1": "05",
+    "admin2": "2804"
+  },
+  {
+    "name": "Nāyak",
+    "lat": "32.5723",
+    "lng": "66.77403",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2504"
+  },
+  {
+    "name": "Now Dahānak",
+    "lat": "35.62398",
+    "lng": "70.00511",
+    "country": "AF",
+    "admin1": "42",
+    "admin2": "3304"
+  },
+  {
+    "name": "Ōkak",
+    "lat": "33.89793",
+    "lng": "67.95652",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "604"
+  },
+  {
+    "name": "Nāṟay",
+    "lat": "35.21995",
+    "lng": "71.52284",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1005"
+  },
+  {
+    "name": "Narang",
+    "lat": "34.76009",
+    "lng": "71.04738",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1011"
+  },
+  {
+    "name": "Nīkêh",
+    "lat": "33.18934",
+    "lng": "69.27179",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2913"
+  },
+  {
+    "name": "Nahrīn",
+    "lat": "36.0649",
+    "lng": "69.13343",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1309"
+  },
+  {
+    "name": "Ḩukūmat-e Nād ‘Alī",
+    "lat": "31.64286",
+    "lng": "64.23982",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2308"
+  },
+  {
+    "name": "Mūsá Qal‘ah",
+    "lat": "32.44565",
+    "lng": "64.74486",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2304"
+  },
+  {
+    "name": "Bala Murghab",
+    "lat": "35.58408",
+    "lng": "63.32886",
+    "country": "AF",
+    "admin1": "02",
+    "admin2": "1906"
+  },
+  {
+    "name": "Muqêr",
+    "lat": "32.82009",
+    "lng": "67.76934",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "608"
+  },
+  {
+    "name": "Muḩammad Āghah Wuluswālī",
+    "lat": "34.21422",
+    "lng": "69.10026",
+    "country": "AF",
+    "admin1": "17",
+    "admin2": "505"
+  },
+  {
+    "name": "Mīzān ‘Alāqahdārī",
+    "lat": "32.17635",
+    "lng": "66.51271",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2505"
+  },
+  {
+    "name": "Mīr Bachah Kōṯ",
+    "lat": "34.74999",
+    "lng": "69.11899",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "103"
+  },
+  {
+    "name": "Mīrān",
+    "lat": "34.22037",
+    "lng": "68.31259",
+    "country": "AF",
+    "admin1": "27",
+    "admin2": "405"
+  },
+  {
+    "name": "Mīrābād",
+    "lat": "30.43624",
+    "lng": "61.8383",
+    "country": "AF",
+    "admin1": "19",
+    "admin2": "2203"
+  },
+  {
+    "name": "Maymana",
+    "lat": "35.92139",
+    "lng": "64.78361",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1801"
+  },
+  {
+    "name": "Maīdān Khūlah",
+    "lat": "33.64916",
+    "lng": "69.7812",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "706"
+  },
+  {
+    "name": "Mingajik",
+    "lat": "37.0279",
+    "lng": "66.12817",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1704"
+  },
+  {
+    "name": "Mehtar Lām",
+    "lat": "34.67139",
+    "lng": "70.20944",
+    "country": "AF",
+    "admin1": "35",
+    "admin2": "901"
+  },
+  {
+    "name": "Mazār-e Sharīf",
+    "lat": "36.70904",
+    "lng": "67.11087",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1601"
+  },
+  {
+    "name": "Māymay",
+    "lat": "38.40856",
+    "lng": "71.03839",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1117"
+  },
+  {
+    "name": "Mutā Khān",
+    "lat": "33.24001",
+    "lng": "68.8663",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2915"
+  },
+  {
+    "name": "Mashhad",
+    "lat": "36.81665",
+    "lng": "70.10211",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1102"
+  },
+  {
+    "name": "Mardīān",
+    "lat": "36.99252",
+    "lng": "66.29654",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1707"
+  },
+  {
+    "name": "Mandōl",
+    "lat": "35.28403",
+    "lng": "70.17017",
+    "country": "AF",
+    "admin1": "38",
+    "admin2": "3004"
+  },
+  {
+    "name": "Māmā Khēl",
+    "lat": "34.24494",
+    "lng": "69.9968",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "804"
+  },
+  {
+    "name": "Lashkar Gāh",
+    "lat": "31.59382",
+    "lng": "64.37161",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2301"
+  },
+  {
+    "name": "Lāsh-e Juwayn",
+    "lat": "31.71382",
+    "lng": "61.62272",
+    "country": "AF",
+    "admin1": "06",
+    "admin2": "2109"
+  },
+  {
+    "name": "Larkird",
+    "lat": "35.48936",
+    "lng": "66.66409",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3104"
+  },
+  {
+    "name": "La‘l",
+    "lat": "34.50141",
+    "lng": "66.27997",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2707"
+  },
+  {
+    "name": "Kushk",
+    "lat": "33.29565",
+    "lng": "61.95221",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2014"
+  },
+  {
+    "name": "Rāẕay Balochi",
+    "lat": "31.46404",
+    "lng": "62.69955",
+    "country": "AF",
+    "admin1": "19",
+    "admin2": "2205"
+  },
+  {
+    "name": "Kōṯowāl",
+    "lat": "34.10319",
+    "lng": "70.46073",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "808"
+  },
+  {
+    "name": "Kushk-e Kuhnah",
+    "lat": "34.8711",
+    "lng": "62.54762",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2016"
+  },
+  {
+    "name": "Kuran wa Munjan",
+    "lat": "36.02866",
+    "lng": "70.77258",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1104"
+  },
+  {
+    "name": "Kunduz",
+    "lat": "36.72895",
+    "lng": "68.857",
+    "country": "AF",
+    "admin1": "24",
+    "admin2": "1401"
+  },
+  {
+    "name": "Khōshī",
+    "lat": "33.99916",
+    "lng": "69.21582",
+    "country": "AF",
+    "admin1": "17",
+    "admin2": "504"
+  },
+  {
+    "name": "Khōshāmand",
+    "lat": "32.68567",
+    "lng": "68.23801",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2903"
+  },
+  {
+    "name": "Khwājah Ghār",
+    "lat": "37.06588",
+    "lng": "69.42126",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1212"
+  },
+  {
+    "name": "Khwājah Dū Kōh",
+    "lat": "36.82881",
+    "lng": "65.62432",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1702"
+  },
+  {
+    "name": "Deh Khwāhān",
+    "lat": "37.88965",
+    "lng": "70.21875",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1111"
+  },
+  {
+    "name": "Khulbisāt",
+    "lat": "33.4948",
+    "lng": "70.00605",
+    "country": "AF",
+    "admin1": "37",
+    "admin2": "3209"
+  },
+  {
+    "name": "Khūgyāṉī",
+    "lat": "31.56267",
+    "lng": "66.5814",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2412"
+  },
+  {
+    "name": "Khōst",
+    "lat": "33.33951",
+    "lng": "69.92041",
+    "country": "AF",
+    "admin1": "37",
+    "admin2": "3201"
+  },
+  {
+    "name": "Khulm",
+    "lat": "36.69736",
+    "lng": "67.69826",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1614"
+  },
+  {
+    "name": "Khudāydād Khēl",
+    "lat": "35.17835",
+    "lng": "67.68758",
+    "country": "AF",
+    "admin1": "05",
+    "admin2": "2807"
+  },
+  {
+    "name": "Khinjān",
+    "lat": "35.58908",
+    "lng": "68.90093",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1306"
+  },
+  {
+    "name": "Khinj",
+    "lat": "35.42898",
+    "lng": "69.73482",
+    "country": "AF",
+    "admin1": "42",
+    "admin2": "3303"
+  },
+  {
+    "name": "Khāsh",
+    "lat": "31.52919",
+    "lng": "62.79055",
+    "country": "AF",
+    "admin1": "19",
+    "admin2": "2205"
+  },
+  {
+    "name": "Khān Neshīn",
+    "lat": "30.5488",
+    "lng": "63.7888",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2313"
+  },
+  {
+    "name": "Khānaqāh",
+    "lat": "36.62587",
+    "lng": "69.53695",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1204"
+  },
+  {
+    "name": "Chahār Bāgh",
+    "lat": "37.00108",
+    "lng": "65.22392",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1811"
+  },
+  {
+    "name": "Khandūd",
+    "lat": "36.95127",
+    "lng": "72.318",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1106"
+  },
+  {
+    "name": "Khānaqāh",
+    "lat": "36.86279",
+    "lng": "66.16656",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1710"
+  },
+  {
+    "name": "Khanabad",
+    "lat": "36.68304",
+    "lng": "69.11279",
+    "country": "AF",
+    "admin1": "24",
+    "admin2": "1406"
+  },
+  {
+    "name": "Khamyāb",
+    "lat": "37.5275",
+    "lng": "65.75833",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1709"
+  },
+  {
+    "name": "Khākirān",
+    "lat": "32.8385",
+    "lng": "67.07377",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2510"
+  },
+  {
+    "name": "Kaz̲h̲ah",
+    "lat": "34.24088",
+    "lng": "70.18274",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "805"
+  },
+  {
+    "name": "Kishk-e Nakhūd",
+    "lat": "31.62519",
+    "lng": "65.05511",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2407"
+  },
+  {
+    "name": "Karukh",
+    "lat": "34.48108",
+    "lng": "62.5863",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2005"
+  },
+  {
+    "name": "Kanḏay",
+    "lat": "34.9536",
+    "lng": "70.77897",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1009"
+  },
+  {
+    "name": "Kandahār",
+    "lat": "31.61332",
+    "lng": "65.71013",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2401"
+  },
+  {
+    "name": "Kalān Deh",
+    "lat": "33.83676",
+    "lng": "68.40233",
+    "country": "AF",
+    "admin1": "27",
+    "admin2": "409"
+  },
+  {
+    "name": "Kalakān",
+    "lat": "34.78371",
+    "lng": "69.15001",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "104"
+  },
+  {
+    "name": "Kalafgān",
+    "lat": "36.77226",
+    "lng": "69.94489",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1207"
+  },
+  {
+    "name": "Kajrān",
+    "lat": "33.20357",
+    "lng": "65.47311",
+    "country": "AF",
+    "admin1": "41",
+    "admin2": "3404"
+  },
+  {
+    "name": "Kā’ī",
+    "lat": "34.12819",
+    "lng": "70.71828",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "810"
+  },
+  {
+    "name": "Kabul",
+    "lat": "34.52813",
+    "lng": "69.17233",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "101"
+  },
+  {
+    "name": "Jurm",
+    "lat": "36.86477",
+    "lng": "70.83421",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1103"
+  },
+  {
+    "name": "Jawand",
+    "lat": "35.06361",
+    "lng": "64.14917",
+    "country": "AF",
+    "admin1": "02",
+    "admin2": "1904"
+  },
+  {
+    "name": "Jānī Khēl",
+    "lat": "32.76315",
+    "lng": "68.39722",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2916"
+  },
+  {
+    "name": "Jalrēz",
+    "lat": "34.4708",
+    "lng": "68.65438",
+    "country": "AF",
+    "admin1": "27",
+    "admin2": "402"
+  },
+  {
+    "name": "Jalālābād",
+    "lat": "34.42647",
+    "lng": "70.45153",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "801"
+  },
+  {
+    "name": "Jabal os Saraj",
+    "lat": "35.11833",
+    "lng": "69.23778",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "302"
+  },
+  {
+    "name": "Ḩukūmat-e Shīnkaī",
+    "lat": "31.98303",
+    "lng": "67.33558",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2507"
+  },
+  {
+    "name": "Herāt",
+    "lat": "34.34817",
+    "lng": "62.19967",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2001"
+  },
+  {
+    "name": "Ḩājī Khēl",
+    "lat": "35.10922",
+    "lng": "69.43341",
+    "country": "AF",
+    "admin1": "14",
+    "admin2": "203"
+  },
+  {
+    "name": "Ḩāfiz̧ Moghul",
+    "lat": "37.05643",
+    "lng": "70.40061",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1115"
+  },
+  {
+    "name": "Ḩāfiz̧ān",
+    "lat": "34.28665",
+    "lng": "70.37247",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "806"
+  },
+  {
+    "name": "Guz̄arah",
+    "lat": "34.21223",
+    "lng": "62.21235",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2003"
+  },
+  {
+    "name": "Gōshtah",
+    "lat": "34.35822",
+    "lng": "70.76264",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "816"
+  },
+  {
+    "name": "Gōmal Kêlay",
+    "lat": "32.50989",
+    "lng": "68.85598",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2906"
+  },
+  {
+    "name": "‘Alāqahdārī Gēlān",
+    "lat": "32.72692",
+    "lng": "67.63696",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "609"
+  },
+  {
+    "name": "Ghōriyān",
+    "lat": "34.3448",
+    "lng": "61.49321",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2009"
+  },
+  {
+    "name": "Ghormach",
+    "lat": "35.73062",
+    "lng": "63.78264",
+    "country": "AF",
+    "admin1": "02",
+    "admin2": "1905"
+  },
+  {
+    "name": "Ghurayd Gharamē",
+    "lat": "36.5222",
+    "lng": "70.79063",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1127"
+  },
+  {
+    "name": "Ghazni",
+    "lat": "33.55391",
+    "lng": "68.42096",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "601"
+  },
+  {
+    "name": "Gereshk",
+    "lat": "31.82089",
+    "lng": "64.57005",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2302"
+  },
+  {
+    "name": "Gardez",
+    "lat": "33.59744",
+    "lng": "69.22592",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "701"
+  },
+  {
+    "name": "Fayzabad",
+    "lat": "37.11664",
+    "lng": "70.58002",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1101"
+  },
+  {
+    "name": "Faīẕābād",
+    "lat": "36.82091",
+    "lng": "66.45921",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1708"
+  },
+  {
+    "name": "Fayẕābād",
+    "lat": "36.29111",
+    "lng": "64.86222",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1808"
+  },
+  {
+    "name": "Qal‘ah-ye Fārsī",
+    "lat": "33.78529",
+    "lng": "63.24735",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2013"
+  },
+  {
+    "name": "Farkhār",
+    "lat": "36.57288",
+    "lng": "69.85783",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1206"
+  },
+  {
+    "name": "Farah",
+    "lat": "32.37451",
+    "lng": "62.11638",
+    "country": "AF",
+    "admin1": "06",
+    "admin2": "2101"
+  },
+  {
+    "name": "Istālif",
+    "lat": "34.83268",
+    "lng": "69.07756",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "106"
+  },
+  {
+    "name": "Eslam Qaleh",
+    "lat": "34.66667",
+    "lng": "61.06667",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2008"
+  },
+  {
+    "name": "Injīl",
+    "lat": "34.30157",
+    "lng": "62.2465",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2002"
+  },
+  {
+    "name": "Imām Şāḩib",
+    "lat": "37.18897",
+    "lng": "68.93644",
+    "country": "AF",
+    "admin1": "24",
+    "admin2": "1402"
+  },
+  {
+    "name": "Dōshī",
+    "lat": "35.60918",
+    "lng": "68.68473",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1304"
+  },
+  {
+    "name": "Dowlatyār",
+    "lat": "34.55132",
+    "lng": "65.79302",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2709"
+  },
+  {
+    "name": "Dowlat Shāh",
+    "lat": "34.9504",
+    "lng": "70.07102",
+    "country": "AF",
+    "admin1": "35",
+    "admin2": "904"
+  },
+  {
+    "name": "Dowlatābād",
+    "lat": "36.98821",
+    "lng": "66.82069",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1605"
+  },
+  {
+    "name": "Dowlatābād",
+    "lat": "36.43259",
+    "lng": "64.92071",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1809"
+  },
+  {
+    "name": "Dū Qal‘ah",
+    "lat": "32.14237",
+    "lng": "61.4469",
+    "country": "AF",
+    "admin1": "06",
+    "admin2": "2110"
+  },
+  {
+    "name": "Dūāb",
+    "lat": "35.56277",
+    "lng": "67.82191",
+    "country": "AF",
+    "admin1": "32",
+    "admin2": "1505"
+  },
+  {
+    "name": "Dê Nārkhēl Kêlay",
+    "lat": "32.43205",
+    "lng": "65.63484",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2415"
+  },
+  {
+    "name": "Dehī",
+    "lat": "35.95806",
+    "lng": "67.27998",
+    "country": "AF",
+    "admin1": "32",
+    "admin2": "1504"
+  },
+  {
+    "name": "Deh-e Şalāḩ",
+    "lat": "35.69031",
+    "lng": "69.31511",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1312"
+  },
+  {
+    "name": "Deh-e Now",
+    "lat": "34.74767",
+    "lng": "69.04784",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "113"
+  },
+  {
+    "name": "Dehdādī",
+    "lat": "36.66319",
+    "lng": "66.99339",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1612"
+  },
+  {
+    "name": "Dwah Manḏay",
+    "lat": "33.28159",
+    "lng": "69.58531",
+    "country": "AF",
+    "admin1": "37",
+    "admin2": "3213"
+  },
+  {
+    "name": "Dasht-e Qal‘ah",
+    "lat": "37.1539",
+    "lng": "69.4435",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1214"
+  },
+  {
+    "name": "Dasht-e Qal‘ah",
+    "lat": "33.02978",
+    "lng": "63.8395",
+    "country": "AF",
+    "admin1": "06",
+    "admin2": "2104"
+  },
+  {
+    "name": "Dasht-e Archī",
+    "lat": "37.13333",
+    "lng": "69.16667",
+    "country": "AF",
+    "admin1": "24",
+    "admin2": "1402"
+  },
+  {
+    "name": "Darzāb",
+    "lat": "35.97744",
+    "lng": "65.37828",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1703"
+  },
+  {
+    "name": "Markaz-e Ḩukūmat-e Darwēshān",
+    "lat": "31.13231",
+    "lng": "64.1934",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2311"
+  },
+  {
+    "name": "Darqad",
+    "lat": "37.38414",
+    "lng": "69.45294",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1211"
+  },
+  {
+    "name": "Darāyim",
+    "lat": "36.86667",
+    "lng": "70.38333",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1116"
+  },
+  {
+    "name": "Dāngām",
+    "lat": "34.99249",
+    "lng": "71.41935",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1004"
+  },
+  {
+    "name": "Ḏanḏar",
+    "lat": "34.79095",
+    "lng": "69.47504",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "309"
+  },
+  {
+    "name": "Ḩukūmatī Dahanah-ye Ghōrī",
+    "lat": "35.90617",
+    "lng": "68.48869",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1303"
+  },
+  {
+    "name": "Tsowkêy",
+    "lat": "34.69246",
+    "lng": "70.92688",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1012"
+  },
+  {
+    "name": "Chīras",
+    "lat": "35.41674",
+    "lng": "65.98234",
+    "country": "AF",
+    "admin1": "33",
+    "admin2": "3103"
+  },
+  {
+    "name": "Chisht-e Sharīf",
+    "lat": "34.34731",
+    "lng": "63.73966",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2015"
+  },
+  {
+    "name": "Chinār",
+    "lat": "32.01583",
+    "lng": "65.10721",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2406"
+  },
+  {
+    "name": "Chimtāl",
+    "lat": "36.67818",
+    "lng": "66.80325",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1608"
+  },
+  {
+    "name": "Charkh",
+    "lat": "33.79712",
+    "lng": "68.93749",
+    "country": "AF",
+    "admin1": "17",
+    "admin2": "502"
+  },
+  {
+    "name": "Charikar",
+    "lat": "35.01361",
+    "lng": "69.17139",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "301"
+  },
+  {
+    "name": "Dowr-e Rabāţ",
+    "lat": "36.69132",
+    "lng": "68.79093",
+    "country": "AF",
+    "admin1": "24",
+    "admin2": "1404"
+  },
+  {
+    "name": "Tsapêraī",
+    "lat": "33.83003",
+    "lng": "69.9192",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "707"
+  },
+  {
+    "name": "Tsamkanī",
+    "lat": "33.80298",
+    "lng": "69.81671",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "708"
+  },
+  {
+    "name": "Chakaray",
+    "lat": "34.34099",
+    "lng": "69.4377",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "111"
+  },
+  {
+    "name": "Chākarān",
+    "lat": "36.91112",
+    "lng": "71.0688",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1125"
+  },
+  {
+    "name": "Chahār Qal‘ah",
+    "lat": "33.55267",
+    "lng": "68.29828",
+    "country": "AF",
+    "admin1": "08",
+    "admin2": "619"
+  },
+  {
+    "name": "Chahār Burj",
+    "lat": "34.24475",
+    "lng": "62.19165",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2003"
+  },
+  {
+    "name": "Chāh Āb",
+    "lat": "37.39773",
+    "lng": "69.81464",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1209"
+  },
+  {
+    "name": "Fayrōz Kōh",
+    "lat": "34.51952",
+    "lng": "65.25093",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2701"
+  },
+  {
+    "name": "Bulōlah",
+    "lat": "34.87706",
+    "lng": "68.0879",
+    "country": "AF",
+    "admin1": "05",
+    "admin2": "2802"
+  },
+  {
+    "name": "Bal Chirāgh",
+    "lat": "35.84026",
+    "lng": "65.2309",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1806"
+  },
+  {
+    "name": "Bāzār-e Tālah",
+    "lat": "35.39205",
+    "lng": "68.22317",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1305"
+  },
+  {
+    "name": "Muhmand Dara",
+    "lat": "34.24749",
+    "lng": "70.87218",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "814"
+  },
+  {
+    "name": "Būrkah",
+    "lat": "36.22242",
+    "lng": "69.15037",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1310"
+  },
+  {
+    "name": "Barg-e Matāl",
+    "lat": "35.67283",
+    "lng": "71.34339",
+    "country": "AF",
+    "admin1": "38",
+    "admin2": "3005"
+  },
+  {
+    "name": "Baraki Barak",
+    "lat": "33.96744",
+    "lng": "68.9492",
+    "country": "AF",
+    "admin1": "17",
+    "admin2": "503"
+  },
+  {
+    "name": "Banū",
+    "lat": "35.63348",
+    "lng": "69.26019",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1307"
+  },
+  {
+    "name": "Bāmyān",
+    "lat": "34.82156",
+    "lng": "67.82734",
+    "country": "AF",
+    "admin1": "05",
+    "admin2": "2801"
+  },
+  {
+    "name": "Balkh",
+    "lat": "36.75635",
+    "lng": "66.8972",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1606"
+  },
+  {
+    "name": "Bahārak",
+    "lat": "37.00254",
+    "lng": "70.90664",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1108"
+  },
+  {
+    "name": "Bagrāmī",
+    "lat": "34.49376",
+    "lng": "69.27427",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "110"
+  },
+  {
+    "name": "Baghlān",
+    "lat": "36.13068",
+    "lng": "68.70829",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1311"
+  },
+  {
+    "name": "Ḩukūmatī Azrah",
+    "lat": "34.17355",
+    "lng": "69.64573",
+    "country": "AF",
+    "admin1": "17",
+    "admin2": "506"
+  },
+  {
+    "name": "Ārt Khwājah",
+    "lat": "37.08571",
+    "lng": "69.47958",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1214"
+  },
+  {
+    "name": "‘Alāqahdārī Aṯghar",
+    "lat": "31.73506",
+    "lng": "67.3574",
+    "country": "AF",
+    "admin1": "28",
+    "admin2": "2508"
+  },
+  {
+    "name": "Āsmār",
+    "lat": "35.03333",
+    "lng": "71.35809",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1003"
+  },
+  {
+    "name": "Ashkāsham",
+    "lat": "36.68333",
+    "lng": "71.53333",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1107"
+  },
+  {
+    "name": "Asadābād",
+    "lat": "34.87311",
+    "lng": "71.14697",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1001"
+  },
+  {
+    "name": "Āqchah",
+    "lat": "36.905",
+    "lng": "66.18341",
+    "country": "AF",
+    "admin1": "31",
+    "admin2": "1706"
+  },
+  {
+    "name": "Andkhōy",
+    "lat": "36.95293",
+    "lng": "65.12376",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1812"
+  },
+  {
+    "name": "’Unābah",
+    "lat": "35.23251",
+    "lng": "69.37719",
+    "country": "AF",
+    "admin1": "42",
+    "admin2": "3306"
+  },
+  {
+    "name": "Anār Darah",
+    "lat": "32.7587",
+    "lng": "61.65397",
+    "country": "AF",
+    "admin1": "06",
+    "admin2": "2107"
+  },
+  {
+    "name": "Amānzī",
+    "lat": "30.21144",
+    "lng": "66.04765",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2410"
+  },
+  {
+    "name": "‘Alāqahdārī-ye Almār",
+    "lat": "35.84616",
+    "lng": "64.53074",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1803"
+  },
+  {
+    "name": "‘Alī Shēr ‘Alāqahdārī",
+    "lat": "33.4362",
+    "lng": "70.06711",
+    "country": "AF",
+    "admin1": "37",
+    "admin2": "3207"
+  },
+  {
+    "name": "Wuluswālī ‘Alīngār",
+    "lat": "34.83529",
+    "lng": "70.3593",
+    "country": "AF",
+    "admin1": "35",
+    "admin2": "903"
+  },
+  {
+    "name": "‘Alī Khēl",
+    "lat": "33.94253",
+    "lng": "69.71908",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "711"
+  },
+  {
+    "name": "‘Alāqahdārī Yōsuf Khēl",
+    "lat": "33.05195",
+    "lng": "68.65",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2919"
+  },
+  {
+    "name": "‘Alāqahdārī Dīshū",
+    "lat": "30.43206",
+    "lng": "63.29802",
+    "country": "AF",
+    "admin1": "10",
+    "admin2": "2310"
+  },
+  {
+    "name": "Alah Sāy",
+    "lat": "34.8965",
+    "lng": "69.72049",
+    "country": "AF",
+    "admin1": "14",
+    "admin2": "206"
+  },
+  {
+    "name": "Pachīr wa Āgām",
+    "lat": "34.20011",
+    "lng": "70.27806",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "807"
+  },
+  {
+    "name": "Āfāqī",
+    "lat": "36.66172",
+    "lng": "69.35095",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1202"
+  },
+  {
+    "name": "Adraskan",
+    "lat": "33.64573",
+    "lng": "62.26959",
+    "country": "AF",
+    "admin1": "11",
+    "admin2": "2011"
+  },
+  {
+    "name": "Āb-e Kamarī",
+    "lat": "35.08796",
+    "lng": "63.0678",
+    "country": "AF",
+    "admin1": "02",
+    "admin2": "1902"
+  },
+  {
+    "name": "Khadīr",
+    "lat": "33.92232",
+    "lng": "65.93398",
+    "country": "AF",
+    "admin1": "41",
+    "admin2": "3405"
+  },
+  {
+    "name": "Ghulām ‘Alī",
+    "lat": "34.95076",
+    "lng": "69.2287",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "308"
+  },
+  {
+    "name": "Qarah Bāgh Bāzār",
+    "lat": "34.8529",
+    "lng": "69.17062",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "105"
+  },
+  {
+    "name": "Zargarān",
+    "lat": "34.78764",
+    "lng": "69.05878",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "115"
+  },
+  {
+    "name": "Surkh Bilandī",
+    "lat": "34.68474",
+    "lng": "69.02863",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "107"
+  },
+  {
+    "name": "Pul-e Sangī",
+    "lat": "34.59972",
+    "lng": "69.25993",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "102"
+  },
+  {
+    "name": "Langar",
+    "lat": "35.99474",
+    "lng": "68.05081",
+    "country": "AF",
+    "admin1": "32",
+    "admin2": "1506"
+  },
+  {
+    "name": "Bāgh-e Maīdān",
+    "lat": "35.22156",
+    "lng": "69.21397",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "303"
+  },
+  {
+    "name": "Ibrāhīm Khān",
+    "lat": "35.05352",
+    "lng": "69.25654",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "310"
+  },
+  {
+    "name": "Qaranghū Tōghaī",
+    "lat": "37.21528",
+    "lng": "67.63972",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1613"
+  },
+  {
+    "name": "Bāzārak",
+    "lat": "35.31292",
+    "lng": "69.51519",
+    "country": "AF",
+    "admin1": "42",
+    "admin2": "3301"
+  },
+  {
+    "name": "Shērwānī-ye Bālā",
+    "lat": "35.01468",
+    "lng": "69.59934",
+    "country": "AF",
+    "admin1": "14",
+    "admin2": "204"
+  },
+  {
+    "name": "Kirāmān",
+    "lat": "35.2973",
+    "lng": "69.68125",
+    "country": "AF",
+    "admin1": "42",
+    "admin2": "3302"
+  },
+  {
+    "name": "‘Alāqahdārī Saṟōbī",
+    "lat": "32.79331",
+    "lng": "69.0866",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2908"
+  },
+  {
+    "name": "Zīṟūk ‘Alāqahdārī",
+    "lat": "33.15806",
+    "lng": "69.31278",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2912"
+  },
+  {
+    "name": "Kushkak",
+    "lat": "32.28991",
+    "lng": "61.52194",
+    "country": "AF",
+    "admin1": "06",
+    "admin2": "2108"
+  },
+  {
+    "name": "Khayr Kōṯ",
+    "lat": "32.85355",
+    "lng": "68.44971",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2902"
+  },
+  {
+    "name": "Chowṉêy",
+    "lat": "33.38278",
+    "lng": "66.27233",
+    "country": "AF",
+    "admin1": "41",
+    "admin2": "3402"
+  },
+  {
+    "name": "Wuṯahpūr",
+    "lat": "34.91914",
+    "lng": "71.09863",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1008"
+  },
+  {
+    "name": "Karbōṟī",
+    "lat": "34.96597",
+    "lng": "71.2746",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1007"
+  },
+  {
+    "name": "Sulţānpūr-e ‘Ulyā",
+    "lat": "34.41204",
+    "lng": "70.29634",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "802"
+  },
+  {
+    "name": "Bābā Şāḩib",
+    "lat": "31.66144",
+    "lng": "65.66098",
+    "country": "AF",
+    "admin1": "23",
+    "admin2": "2404"
+  },
+  {
+    "name": "Chandal Bā’ī",
+    "lat": "34.58469",
+    "lng": "68.95524",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "108"
+  },
+  {
+    "name": "Dahan-e Jarf",
+    "lat": "34.92891",
+    "lng": "68.46273",
+    "country": "AF",
+    "admin1": "40",
+    "admin2": "306"
+  },
+  {
+    "name": "Maydanshakhr",
+    "lat": "34.39561",
+    "lng": "68.86618",
+    "country": "AF",
+    "admin1": "27",
+    "admin2": "401"
+  },
+  {
+    "name": "Dū Laīnah",
+    "lat": "34.15599",
+    "lng": "64.78566",
+    "country": "AF",
+    "admin1": "09",
+    "admin2": "2710"
+  },
+  {
+    "name": "Qaram Qōl",
+    "lat": "36.83006",
+    "lng": "65.04299",
+    "country": "AF",
+    "admin1": "07",
+    "admin2": "1810"
+  },
+  {
+    "name": "Pul-e Ḩişār",
+    "lat": "35.61794",
+    "lng": "69.47134",
+    "country": "AF",
+    "admin1": "03",
+    "admin2": "1302"
+  },
+  {
+    "name": "Lab-Sar",
+    "lat": "36.02634",
+    "lng": "66.83799",
+    "country": "AF",
+    "admin1": "30",
+    "admin2": "1610"
+  },
+  {
+    "name": "Ţāqchah Khānah",
+    "lat": "36.61922",
+    "lng": "69.62805",
+    "country": "AF",
+    "admin1": "26",
+    "admin2": "1217"
+  },
+  {
+    "name": "March",
+    "lat": "37.52845",
+    "lng": "70.4482",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1128"
+  },
+  {
+    "name": "Zīrakī",
+    "lat": "37.59233",
+    "lng": "70.55814",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1112"
+  },
+  {
+    "name": "‘Alīābād",
+    "lat": "36.52115",
+    "lng": "68.89985",
+    "country": "AF",
+    "admin1": "24",
+    "admin2": "1405"
+  },
+  {
+    "name": "Pas Pul",
+    "lat": "37.47355",
+    "lng": "70.61617",
+    "country": "AF",
+    "admin1": "01",
+    "admin2": "1119"
+  },
+  {
+    "name": "Qal‘ah-ye Na‘īm",
+    "lat": "34.39951",
+    "lng": "69.16705",
+    "country": "AF",
+    "admin1": "13",
+    "admin2": "109"
+  },
+  {
+    "name": "Markaz-e Woluswalī-ye Āchīn",
+    "lat": "34.12583",
+    "lng": "70.70778",
+    "country": "AF",
+    "admin1": "18",
+    "admin2": "810"
+  },
+  {
+    "name": "Māṉōgay",
+    "lat": "34.99015",
+    "lng": "70.91302",
+    "country": "AF",
+    "admin1": "34",
+    "admin2": "1010"
+  },
+  {
+    "name": "Stêr Giyān",
+    "lat": "32.97704",
+    "lng": "69.37308",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2910"
+  },
+  {
+    "name": "Sharan",
+    "lat": "33.17568",
+    "lng": "68.73045",
+    "country": "AF",
+    "admin1": "29",
+    "admin2": "2901"
+  },
+  {
+    "name": "Salām Khēl",
+    "lat": "33.67067",
+    "lng": "69.32983",
+    "country": "AF",
+    "admin1": "36",
+    "admin2": "705"
+  },
+  {
+    "name": "Mazad",
+    "lat": "31.54576",
+    "lng": "62.73484",
+    "country": "AF",
+    "admin1": "19",
+    "admin2": "2205"
+  },
+  {
+    "name": "Saint John’s",
+    "lat": "17.12096",
+    "lng": "-61.84329",
+    "country": "AG",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Potters Village",
+    "lat": "17.11337",
+    "lng": "-61.81962",
+    "country": "AG",
+    "admin1": "04",
+    "admin2": ""
+  },
+  {
+    "name": "Piggotts",
+    "lat": "17.11667",
+    "lng": "-61.8",
+    "country": "AG",
+    "admin1": "03",
+    "admin2": ""
+  },
+  {
+    "name": "Parham",
+    "lat": "17.09682",
+    "lng": "-61.77046",
+    "country": "AG",
+    "admin1": "07",
+    "admin2": ""
+  },
+  {
+    "name": "Liberta",
+    "lat": "17.04141",
+    "lng": "-61.79052",
+    "country": "AG",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Falmouth",
+    "lat": "17.02741",
+    "lng": "-61.78136",
+    "country": "AG",
+    "admin1": "06",
+    "admin2": ""
+  },
+  {
+    "name": "Codrington",
+    "lat": "17.6394",
+    "lng": "-61.82437",
+    "country": "AG",
+    "admin1": "01",
+    "admin2": ""
+  },
+  {
+    "name": "Bolands",
+    "lat": "17.06565",
+    "lng": "-61.87466",
+    "country": "AG",
+    "admin1": "05",
+    "admin2": ""
+  },
+  {
+    "name": "All Saints",
+    "lat": "17.06671",
+    "lng": "-61.79303",
+    "country": "AG",
+    "admin1": "07",
+    "admin2": ""
+  },
+  {
+    "name": "West End Village",
+    "lat": "18.17191",
+    "lng": "-63.14941",
+    "country": "AI",
+    "admin1": "11205437",
+    "admin2": ""
+  },
+  {
+    "name": "The Valley",
+    "lat": "18.21704",
+    "lng": "-63.05783",
+    "country": "AI",
+    "admin1": "11205396",
+    "admin2": ""
+  },
+  {
+    "name": "The Quarter",
+    "lat": "18.20799",
+    "lng": "-63.04178",
+    "country": "AI",
+    "admin1": "11205439",
+    "admin2": ""
+  },
+  {
+    "name": "Farrington",
+    "lat": "18.215",
+    "lng": "-63.02238",
+    "country": "AI",
+    "admin1": "11205444",
+    "admin2": ""
+  },
+  {
+    "name": "Stoney Ground",
+    "lat": "18.22026",
+    "lng": "-63.04607",
+    "country": "AI",
+    "admin1": "11205443",
+    "admin2": ""
+  },
+  {
+    "name": "South Hill Village",
+    "lat": "18.19201",
+    "lng": "-63.08779",
+    "country": "AI",
+    "admin1": "11205438",
+    "admin2": ""
+  },
+  {
+    "name": "Sandy Ground Village",
+    "lat": "18.20118",
+    "lng": "-63.08998",
+    "country": "AI",
+    "admin1": "11205392",
+    "admin2": ""
+  },
+  {
+    "name": "North Side",
+    "lat": "18.22919",
+    "lng": "-63.04401",
+    "country": "AI",
+    "admin1": "11205440",
+    "admin2": ""
+  },
+  {
+    "name": "North Hill Village",
+    "lat": "18.20542",
+    "lng": "-63.07847",
+    "country": "AI",
+    "admin1": "11205436",
+    "admin2": ""
+  },
+  {
+    "name": "Island Harbour",
+    "lat": "18.25601",
+    "lng": "-63.0102",
+    "country": "AI",
+    "admin1": "11205441",
+    "admin2": ""
+  },
+  {
+    "name": "George Hill",
+    "lat": "18.19939",
+    "lng": "-63.0665",
+    "country": "AI",
+    "admin1": "11205442",
+    "admin2": ""
+  },
+  {
+    "name": "East End Village",
+    "lat": "18.23333",
+    "lng": "-63",
+    "country": "AI",
+    "admin1": "11205433",
+    "admin2": ""
+  },
+  {
+    "name": "Blowing Point Village",
+    "lat": "18.17648",
+    "lng": "-63.09375",
+    "country": "AI",
+    "admin1": "11205389",
+    "admin2": ""
+  },
+  {
+    "name": "Sandy Hill",
+    "lat": "18.22104",
+    "lng": "-63.01329",
+    "country": "AI",
+    "admin1": "11205393",
+    "admin2": ""
+  },
+  {
+    "name": "Xarrë",
+    "lat": "39.72833",
+    "lng": "20.05444",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944425"
+  },
+  {
+    "name": "Sarandë",
+    "lat": "39.87534",
+    "lng": "20.00477",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944426"
+  },
+  {
+    "name": "Mesopotam",
+    "lat": "39.91028",
+    "lng": "20.09222",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944423"
+  },
+  {
+    "name": "Markat",
+    "lat": "39.73278",
+    "lng": "20.19528",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944425"
+  },
+  {
+    "name": "Livadhja",
+    "lat": "39.78917",
+    "lng": "20.12194",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944423"
+  },
+  {
+    "name": "Konispol",
+    "lat": "39.65889",
+    "lng": "20.18139",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944425"
+  },
+  {
+    "name": "Kakavijë",
+    "lat": "39.90778",
+    "lng": "20.35833",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "06"
+  },
+  {
+    "name": "Finiq",
+    "lat": "39.90639",
+    "lng": "20.05833",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944423"
+  },
+  {
+    "name": "Dhivër",
+    "lat": "39.83611",
+    "lng": "20.16861",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944423"
+  },
+  {
+    "name": "Delvinë",
+    "lat": "39.95111",
+    "lng": "20.09778",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944422"
+  },
+  {
+    "name": "Aliko",
+    "lat": "39.85861",
+    "lng": "20.07917",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944423"
+  },
+  {
+    "name": "Buçimas",
+    "lat": "40.89139",
+    "lng": "20.68139",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944404"
+  },
+  {
+    "name": "Zerqan",
+    "lat": "41.50222",
+    "lng": "20.36056",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Zavalinë",
+    "lat": "40.98083",
+    "lng": "20.28083",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Zapod",
+    "lat": "42.05056",
+    "lng": "20.5525",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Zall-Reç",
+    "lat": "41.87611",
+    "lng": "20.32",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Zall-Dardhë",
+    "lat": "41.80667",
+    "lng": "20.33611",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Xibër-Murrizë",
+    "lat": "41.45472",
+    "lng": "20.02556",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944375"
+  },
+  {
+    "name": "Vreshtas",
+    "lat": "40.79694",
+    "lng": "20.77694",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944403"
+  },
+  {
+    "name": "Voskopojë",
+    "lat": "40.63306",
+    "lng": "20.58889",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Voskop",
+    "lat": "40.61194",
+    "lng": "20.69028",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Vithkuq",
+    "lat": "40.525",
+    "lng": "20.5825",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Vithkuq",
+    "lat": "40.20472",
+    "lng": "20.25944",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944396"
+  },
+  {
+    "name": "Vërtop",
+    "lat": "40.62889",
+    "lng": "20.05389",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944370"
+  },
+  {
+    "name": "Vergo",
+    "lat": "40.00667",
+    "lng": "20.00889",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944422"
+  },
+  {
+    "name": "Vendresha e Vogël",
+    "lat": "40.50722",
+    "lng": "20.13472",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944371"
+  },
+  {
+    "name": "Velçan",
+    "lat": "40.95472",
+    "lng": "20.46222",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944404"
+  },
+  {
+    "name": "Ujmisht",
+    "lat": "41.90833",
+    "lng": "20.34694",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Udënisht",
+    "lat": "40.96333",
+    "lng": "20.63917",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944404"
+  },
+  {
+    "name": "Tunjë",
+    "lat": "40.83417",
+    "lng": "20.11194",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Tregan",
+    "lat": "41.02472",
+    "lng": "20.07833",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Trebisht-Muçinë",
+    "lat": "41.41111",
+    "lng": "20.53556",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Trebinjë",
+    "lat": "40.91333",
+    "lng": "20.55306",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944404"
+  },
+  {
+    "name": "Topojan",
+    "lat": "40.37722",
+    "lng": "20.21333",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944395"
+  },
+  {
+    "name": "Tomin",
+    "lat": "41.69083",
+    "lng": "20.42167",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Tepelenë",
+    "lat": "40.29583",
+    "lng": "20.01917",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944399"
+  },
+  {
+    "name": "Surroj",
+    "lat": "41.99222",
+    "lng": "20.34417",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Sult",
+    "lat": "40.88472",
+    "lng": "20.09944",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Sukë",
+    "lat": "40.37528",
+    "lng": "20.15472",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944395"
+  },
+  {
+    "name": "Suç",
+    "lat": "41.57694",
+    "lng": "20.05139",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944375"
+  },
+  {
+    "name": "Stravaj",
+    "lat": "41.00528",
+    "lng": "20.42306",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944386"
+  },
+  {
+    "name": "Steblevë",
+    "lat": "41.33722",
+    "lng": "20.47",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "13"
+  },
+  {
+    "name": "Sllovë",
+    "lat": "41.80111",
+    "lng": "20.40833",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Skore",
+    "lat": "40.10722",
+    "lng": "20.36639",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944393"
+  },
+  {
+    "name": "Skënderbegas",
+    "lat": "40.77611",
+    "lng": "20.24056",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Shushicë",
+    "lat": "41.0975",
+    "lng": "20.14833",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Shupenzë",
+    "lat": "41.53",
+    "lng": "20.42361",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Shtiqën",
+    "lat": "42.04056",
+    "lng": "20.43417",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Shishtavec",
+    "lat": "41.98",
+    "lng": "20.60583",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Shirgjan",
+    "lat": "41.05194",
+    "lng": "20.05333",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Shëngjin",
+    "lat": "41.92611",
+    "lng": "20.18833",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944411"
+  },
+  {
+    "name": "Shënmëri",
+    "lat": "42.10417",
+    "lng": "20.23833",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Selishtë",
+    "lat": "41.6275",
+    "lng": "20.27917",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Saraqinishtë",
+    "lat": "40.10528",
+    "lng": "20.22944",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944394"
+  },
+  {
+    "name": "Rukaj",
+    "lat": "41.68361",
+    "lng": "20.01917",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944376"
+  },
+  {
+    "name": "Rajcë",
+    "lat": "41.09028",
+    "lng": "20.57639",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944386"
+  },
+  {
+    "name": "Roshnik Qender",
+    "lat": "40.73278",
+    "lng": "20.03944",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Qukës-Skënderbe",
+    "lat": "41.08389",
+    "lng": "20.43806",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944386"
+  },
+  {
+    "name": "Qestorat",
+    "lat": "40.1175",
+    "lng": "20.19972",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944394"
+  },
+  {
+    "name": "Qereshnik",
+    "lat": "40.76333",
+    "lng": "20.00972",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Qafëmal",
+    "lat": "42.09333",
+    "lng": "20.09056",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944412"
+  },
+  {
+    "name": "Përrenjas-Fshat",
+    "lat": "41.06667",
+    "lng": "20.53528",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944386"
+  },
+  {
+    "name": "Përrenjas",
+    "lat": "41.07306",
+    "lng": "20.54889",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944386"
+  },
+  {
+    "name": "Proptisht",
+    "lat": "40.98611",
+    "lng": "20.5025",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944404"
+  },
+  {
+    "name": "Progër",
+    "lat": "40.69417",
+    "lng": "20.94028",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944400"
+  },
+  {
+    "name": "Potom",
+    "lat": "40.48833",
+    "lng": "20.37333",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944371"
+  },
+  {
+    "name": "Poroçan",
+    "lat": "40.94194",
+    "lng": "20.29861",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Polis-Gostimë",
+    "lat": "41.13333",
+    "lng": "20.25833",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944384"
+  },
+  {
+    "name": "Poliçan",
+    "lat": "40.61222",
+    "lng": "20.09806",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944370"
+  },
+  {
+    "name": "Pojan",
+    "lat": "40.72583",
+    "lng": "20.8375",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944403"
+  },
+  {
+    "name": "Pogradec",
+    "lat": "40.9025",
+    "lng": "20.6525",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "18"
+  },
+  {
+    "name": "Pishaj",
+    "lat": "40.88111",
+    "lng": "20.18278",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Pirg",
+    "lat": "40.785",
+    "lng": "20.70611",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944403"
+  },
+  {
+    "name": "Gjinkar",
+    "lat": "40.19944",
+    "lng": "20.40611",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944398"
+  },
+  {
+    "name": "Petran",
+    "lat": "40.20944",
+    "lng": "20.41833",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944398"
+  },
+  {
+    "name": "Peshkopi",
+    "lat": "41.685",
+    "lng": "20.42889",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Përmet",
+    "lat": "40.23361",
+    "lng": "20.35167",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944398"
+  },
+  {
+    "name": "Ostreni i Math",
+    "lat": "41.43083",
+    "lng": "20.45556",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Orosh",
+    "lat": "41.83333",
+    "lng": "20.08333",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944411"
+  },
+  {
+    "name": "Orenjë",
+    "lat": "41.28472",
+    "lng": "20.21194",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944384"
+  },
+  {
+    "name": "Odrie",
+    "lat": "40.13333",
+    "lng": "20.16667",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944394"
+  },
+  {
+    "name": "Novoselë",
+    "lat": "40.76139",
+    "lng": "20.69833",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944403"
+  },
+  {
+    "name": "Picar",
+    "lat": "40.16667",
+    "lng": "20.04833",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944394"
+  },
+  {
+    "name": "Mollas",
+    "lat": "40.92694",
+    "lng": "20.00361",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944382"
+  },
+  {
+    "name": "Mollas",
+    "lat": "40.42556",
+    "lng": "20.67444",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944401"
+  },
+  {
+    "name": "Mollaj",
+    "lat": "40.56028",
+    "lng": "20.74028",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Miras",
+    "lat": "40.50917",
+    "lng": "20.92833",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944400"
+  },
+  {
+    "name": "Melan",
+    "lat": "41.65417",
+    "lng": "20.46528",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Mborje",
+    "lat": "40.60333",
+    "lng": "20.80306",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Martanesh",
+    "lat": "41.4",
+    "lng": "20.2",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Maqellarë",
+    "lat": "41.58889",
+    "lng": "20.48306",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Maliq",
+    "lat": "40.70583",
+    "lng": "20.69972",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944403"
+  },
+  {
+    "name": "Macukull",
+    "lat": "41.68861",
+    "lng": "20.11028",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944376"
+  },
+  {
+    "name": "Lunik",
+    "lat": "41.28917",
+    "lng": "20.32361",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944384"
+  },
+  {
+    "name": "Llugaj",
+    "lat": "42.34139",
+    "lng": "20.10861",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944408"
+  },
+  {
+    "name": "Lis",
+    "lat": "41.6275",
+    "lng": "20.08528",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944376"
+  },
+  {
+    "name": "Liqenas",
+    "lat": "40.78667",
+    "lng": "20.90222",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944405"
+  },
+  {
+    "name": "Librazhd",
+    "lat": "41.17944",
+    "lng": "20.315",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944384"
+  },
+  {
+    "name": "Libonik",
+    "lat": "40.70444",
+    "lng": "20.70861",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944403"
+  },
+  {
+    "name": "Libohovë",
+    "lat": "40.03111",
+    "lng": "20.26306",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944396"
+  },
+  {
+    "name": "Leskovik",
+    "lat": "40.15139",
+    "lng": "20.59722",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944401"
+  },
+  {
+    "name": "Leshnjë",
+    "lat": "40.53694",
+    "lng": "20.31333",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944371"
+  },
+  {
+    "name": "Lenias",
+    "lat": "40.76667",
+    "lng": "20.39139",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Lekas",
+    "lat": "40.60222",
+    "lng": "20.5125",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Lazarat",
+    "lat": "40.04667",
+    "lng": "20.1475",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944394"
+  },
+  {
+    "name": "Labinot-Mal",
+    "lat": "41.20083",
+    "lng": "20.15222",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Labinot-Fushë",
+    "lat": "41.14056",
+    "lng": "20.14611",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Kushovë",
+    "lat": "40.78889",
+    "lng": "20.18889",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Kurbnesh",
+    "lat": "41.77972",
+    "lng": "20.08361",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944411"
+  },
+  {
+    "name": "Kukur",
+    "lat": "40.86778",
+    "lng": "20.36361",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Kukës",
+    "lat": "42.07694",
+    "lng": "20.42194",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Kthella e Epërme",
+    "lat": "41.81194",
+    "lng": "20.05889",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944411"
+  },
+  {
+    "name": "Krumë",
+    "lat": "42.19694",
+    "lng": "20.41333",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944406"
+  },
+  {
+    "name": "Krastë",
+    "lat": "41.42278",
+    "lng": "20.205",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Korçë",
+    "lat": "40.61861",
+    "lng": "20.78083",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Kolsh",
+    "lat": "42.07806",
+    "lng": "20.34194",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Kodovjat",
+    "lat": "40.80556",
+    "lng": "20.25111",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Klos",
+    "lat": "41.50694",
+    "lng": "20.08667",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944375"
+  },
+  {
+    "name": "Klos",
+    "lat": "40.94611",
+    "lng": "20.00972",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944382"
+  },
+  {
+    "name": "Këlcyrë",
+    "lat": "40.31306",
+    "lng": "20.18944",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944395"
+  },
+  {
+    "name": "Kastriot",
+    "lat": "41.72944",
+    "lng": "20.37722",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Kardhiq",
+    "lat": "40.12167",
+    "lng": "20.0275",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944394"
+  },
+  {
+    "name": "Kalis",
+    "lat": "41.83889",
+    "lng": "20.36667",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Iballë",
+    "lat": "42.1875",
+    "lng": "20.0025",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944412"
+  },
+  {
+    "name": "Hotolisht",
+    "lat": "41.15667",
+    "lng": "20.39722",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944384"
+  },
+  {
+    "name": "Hoçisht",
+    "lat": "40.60833",
+    "lng": "20.91417",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944400"
+  },
+  {
+    "name": "Gramsh",
+    "lat": "40.86972",
+    "lng": "20.18444",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944383"
+  },
+  {
+    "name": "Gostimë",
+    "lat": "41.14556",
+    "lng": "20.24",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944384"
+  },
+  {
+    "name": "Golaj",
+    "lat": "42.2475",
+    "lng": "20.38028",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944406"
+  },
+  {
+    "name": "Gjorica e Sipërme",
+    "lat": "41.53444",
+    "lng": "20.45",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Gjirokastër",
+    "lat": "40.07583",
+    "lng": "20.13889",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944394"
+  },
+  {
+    "name": "Gjinar",
+    "lat": "41.0225",
+    "lng": "20.18889",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Gjinaj",
+    "lat": "42.11806",
+    "lng": "20.43583",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944406"
+  },
+  {
+    "name": "Gjergjan",
+    "lat": "41.04306",
+    "lng": "20.02972",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Gjegjan",
+    "lat": "41.93778",
+    "lng": "20.01111",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944414"
+  },
+  {
+    "name": "Fushë-Muhurr",
+    "lat": "41.67972",
+    "lng": "20.33139",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Fushë-Lurë",
+    "lat": "41.80611",
+    "lng": "20.23194",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Fushë-Çidhnë",
+    "lat": "41.76056",
+    "lng": "20.34111",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Fushë-Bulqizë",
+    "lat": "41.52194",
+    "lng": "20.28222",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Fushë-Arrëz",
+    "lat": "42.06222",
+    "lng": "20.01667",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944412"
+  },
+  {
+    "name": "Frashër",
+    "lat": "40.36889",
+    "lng": "20.42444",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944398"
+  },
+  {
+    "name": "Fierzë",
+    "lat": "42.26056",
+    "lng": "20.01694",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944412"
+  },
+  {
+    "name": "Fajzë",
+    "lat": "42.16694",
+    "lng": "20.35083",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944406"
+  },
+  {
+    "name": "Ersekë",
+    "lat": "40.33778",
+    "lng": "20.67889",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944401"
+  },
+  {
+    "name": "Elbasan",
+    "lat": "41.1125",
+    "lng": "20.08222",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Drenovë",
+    "lat": "40.58333",
+    "lng": "20.79222",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Dishnicë",
+    "lat": "40.65139",
+    "lng": "20.81361",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944402"
+  },
+  {
+    "name": "Derjan",
+    "lat": "41.67361",
+    "lng": "20.05833",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944376"
+  },
+  {
+    "name": "Gjerbës",
+    "lat": "40.62917",
+    "lng": "20.25111",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944371"
+  },
+  {
+    "name": "Çorovodë",
+    "lat": "40.50417",
+    "lng": "20.22722",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944371"
+  },
+  {
+    "name": "Çlirim",
+    "lat": "40.4175",
+    "lng": "20.55028",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944401"
+  },
+  {
+    "name": "Cerava",
+    "lat": "40.85139",
+    "lng": "20.725",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944404"
+  },
+  {
+    "name": "Çepan",
+    "lat": "40.42056",
+    "lng": "20.26056",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944371"
+  },
+  {
+    "name": "Çarshovë",
+    "lat": "40.11806",
+    "lng": "20.54083",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944398"
+  },
+  {
+    "name": "Kokaj",
+    "lat": "41.87833",
+    "lng": "20.50472",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Buz",
+    "lat": "40.445",
+    "lng": "20.00472",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944397"
+  },
+  {
+    "name": "Bushtricë",
+    "lat": "41.87861",
+    "lng": "20.42194",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Burrel",
+    "lat": "41.61028",
+    "lng": "20.00889",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944376"
+  },
+  {
+    "name": "Bulqizë",
+    "lat": "41.49167",
+    "lng": "20.22194",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944373"
+  },
+  {
+    "name": "Bujan",
+    "lat": "42.32639",
+    "lng": "20.07639",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944408"
+  },
+  {
+    "name": "Bradashesh",
+    "lat": "41.105",
+    "lng": "20.0225",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Blinisht",
+    "lat": "41.86139",
+    "lng": "20",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944411"
+  },
+  {
+    "name": "Blerim",
+    "lat": "42.16056",
+    "lng": "20.19194",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944412"
+  },
+  {
+    "name": "Bilisht",
+    "lat": "40.6275",
+    "lng": "20.99",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944400"
+  },
+  {
+    "name": "Bicaj",
+    "lat": "41.99472",
+    "lng": "20.4125",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Dardhas",
+    "lat": "40.84583",
+    "lng": "20.65722",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944404"
+  },
+  {
+    "name": "Barmash",
+    "lat": "40.27778",
+    "lng": "20.61833",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944401"
+  },
+  {
+    "name": "Ballaban",
+    "lat": "40.41667",
+    "lng": "20.13444",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944395"
+  },
+  {
+    "name": "Arrën",
+    "lat": "41.91306",
+    "lng": "20.28833",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944407"
+  },
+  {
+    "name": "Arras",
+    "lat": "41.73583",
+    "lng": "20.32417",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944374"
+  },
+  {
+    "name": "Bytyç",
+    "lat": "42.31",
+    "lng": "20.20278",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944408"
+  },
+  {
+    "name": "Librazhd-Qendër",
+    "lat": "41.19694",
+    "lng": "20.33556",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944384"
+  },
+  {
+    "name": "Funarë",
+    "lat": "41.19639",
+    "lng": "20.05972",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Moglicë",
+    "lat": "40.71806",
+    "lng": "20.43806",
+    "country": "AL",
+    "admin1": "46",
+    "admin2": "10944403"
+  },
+  {
+    "name": "Bogovë",
+    "lat": "40.57111",
+    "lng": "20.15",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944371"
+  },
+  {
+    "name": "Piskovë",
+    "lat": "40.27917",
+    "lng": "20.2725",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944398"
+  },
+  {
+    "name": "Lukovë",
+    "lat": "39.99222",
+    "lng": "19.91389",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944424"
+  },
+  {
+    "name": "Ksamil",
+    "lat": "39.76889",
+    "lng": "19.99972",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944426"
+  },
+  {
+    "name": "Zharrëz",
+    "lat": "40.70917",
+    "lng": "19.64972",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Zejmen",
+    "lat": "41.70778",
+    "lng": "19.68917",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Zall-Herr",
+    "lat": "41.38944",
+    "lng": "19.8275",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Zall-Bastar",
+    "lat": "41.42972",
+    "lng": "19.93028",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Xhafzotaj",
+    "lat": "41.34444",
+    "lng": "19.5475",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944379"
+  },
+  {
+    "name": "Vukatanë",
+    "lat": "42.02806",
+    "lng": "19.54778",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Vranisht",
+    "lat": "40.20972",
+    "lng": "19.69083",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944424"
+  },
+  {
+    "name": "Vorë",
+    "lat": "41.39083",
+    "lng": "19.655",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944421"
+  },
+  {
+    "name": "Vlorë",
+    "lat": "40.4686",
+    "lng": "19.48318",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944428"
+  },
+  {
+    "name": "Velipojë",
+    "lat": "41.87833",
+    "lng": "19.40556",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Velabisht",
+    "lat": "40.70167",
+    "lng": "19.93222",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Vaqarr",
+    "lat": "41.29917",
+    "lng": "19.74417",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Uznovë",
+    "lat": "40.69722",
+    "lng": "19.98028",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Ura Vajgurore",
+    "lat": "40.76889",
+    "lng": "19.87778",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Ungrej",
+    "lat": "41.87528",
+    "lng": "19.79472",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Ulëz",
+    "lat": "41.68278",
+    "lng": "19.89333",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944376"
+  },
+  {
+    "name": "Topojë",
+    "lat": "40.76306",
+    "lng": "19.43278",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Tirana",
+    "lat": "41.3275",
+    "lng": "19.81889",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Thumanë",
+    "lat": "41.5475",
+    "lng": "19.67778",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944378"
+  },
+  {
+    "name": "Tërbuf",
+    "lat": "41.04",
+    "lng": "19.61417",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944387"
+  },
+  {
+    "name": "Tapi",
+    "lat": "40.79361",
+    "lng": "19.88028",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944369"
+  },
+  {
+    "name": "Synej",
+    "lat": "41.18",
+    "lng": "19.5425",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944418"
+  },
+  {
+    "name": "Sukth",
+    "lat": "41.38056",
+    "lng": "19.53778",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944377"
+  },
+  {
+    "name": "Strum",
+    "lat": "40.75111",
+    "lng": "19.7375",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944392"
+  },
+  {
+    "name": "Starovë",
+    "lat": "40.71722",
+    "lng": "19.91778",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Sinjë",
+    "lat": "40.64679",
+    "lng": "19.86924",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Sinaballaj",
+    "lat": "41.06889",
+    "lng": "19.69944",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944419"
+  },
+  {
+    "name": "Shkodër",
+    "lat": "42.06828",
+    "lng": "19.51258",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Shijak",
+    "lat": "41.34556",
+    "lng": "19.56722",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944379"
+  },
+  {
+    "name": "Shezë",
+    "lat": "41.02417",
+    "lng": "19.81611",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944385"
+  },
+  {
+    "name": "Shënkoll",
+    "lat": "41.69083",
+    "lng": "19.65333",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Shëngjin",
+    "lat": "41.81361",
+    "lng": "19.59389",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Shëngjergj",
+    "lat": "41.18333",
+    "lng": "19.53333",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944418"
+  },
+  {
+    "name": "Shalës",
+    "lat": "40.99861",
+    "lng": "19.94778",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944382"
+  },
+  {
+    "name": "Nicaj-Shalë",
+    "lat": "42.29944",
+    "lng": "19.805",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Sevaster",
+    "lat": "40.39639",
+    "lng": "19.72972",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944427"
+  },
+  {
+    "name": "Selitë",
+    "lat": "41.63528",
+    "lng": "19.755",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944409"
+  },
+  {
+    "name": "Valbonë",
+    "lat": "42.45139",
+    "lng": "19.89167",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944408"
+  },
+  {
+    "name": "Selenicë",
+    "lat": "40.53056",
+    "lng": "19.63583",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944427"
+  },
+  {
+    "name": "Samaticë",
+    "lat": "40.80591",
+    "lng": "19.7516",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944372"
+  },
+  {
+    "name": "Ruzhdie",
+    "lat": "40.67083",
+    "lng": "19.69833",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944391"
+  },
+  {
+    "name": "Rubik",
+    "lat": "41.77444",
+    "lng": "19.78611",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944411"
+  },
+  {
+    "name": "Rrogozhinë",
+    "lat": "41.07639",
+    "lng": "19.66528",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944419"
+  },
+  {
+    "name": "Rrëshen",
+    "lat": "41.7675",
+    "lng": "19.87556",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944411"
+  },
+  {
+    "name": "Rrashbull",
+    "lat": "41.32278",
+    "lng": "19.51028",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944377"
+  },
+  {
+    "name": "Rrasa e Sipërme",
+    "lat": "40.96778",
+    "lng": "19.82111",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944381"
+  },
+  {
+    "name": "Rrapë",
+    "lat": "42.04444",
+    "lng": "19.97056",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944414"
+  },
+  {
+    "name": "Roskovec",
+    "lat": "40.7375",
+    "lng": "19.70222",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944392"
+  },
+  {
+    "name": "Remas",
+    "lat": "40.88639",
+    "lng": "19.51139",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944387"
+  },
+  {
+    "name": "Qerret",
+    "lat": "42.05306",
+    "lng": "19.83722",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944414"
+  },
+  {
+    "name": "Qelëz",
+    "lat": "42.08972",
+    "lng": "19.895",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944414"
+  },
+  {
+    "name": "Pukë",
+    "lat": "42.04444",
+    "lng": "19.89972",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944414"
+  },
+  {
+    "name": "Progonat",
+    "lat": "40.21333",
+    "lng": "19.94472",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944399"
+  },
+  {
+    "name": "Prezë",
+    "lat": "41.42722",
+    "lng": "19.67278",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944421"
+  },
+  {
+    "name": "Poshnjë",
+    "lat": "40.78028",
+    "lng": "19.84417",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944372"
+  },
+  {
+    "name": "Portëz",
+    "lat": "40.69917",
+    "lng": "19.57444",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Pobrat",
+    "lat": "40.76713",
+    "lng": "19.78608",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944372"
+  },
+  {
+    "name": "Peza e Madhe",
+    "lat": "41.2175",
+    "lng": "19.69611",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Petrelë",
+    "lat": "41.25306",
+    "lng": "19.85306",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Përparim",
+    "lat": "41.05",
+    "lng": "19.79917",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944385"
+  },
+  {
+    "name": "Perondi",
+    "lat": "40.77889",
+    "lng": "19.92306",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944369"
+  },
+  {
+    "name": "Peqin",
+    "lat": "41.04611",
+    "lng": "19.75111",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944385"
+  },
+  {
+    "name": "Patos Fshat",
+    "lat": "40.64278",
+    "lng": "19.65083",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944391"
+  },
+  {
+    "name": "Patos",
+    "lat": "40.68333",
+    "lng": "19.61944",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944391"
+  },
+  {
+    "name": "Paskuqan",
+    "lat": "41.35389",
+    "lng": "19.80667",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944417"
+  },
+  {
+    "name": "Papër",
+    "lat": "41.05167",
+    "lng": "19.96083",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Pajovë",
+    "lat": "41.05472",
+    "lng": "19.8375",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944385"
+  },
+  {
+    "name": "Otllak",
+    "lat": "40.74389",
+    "lng": "19.93528",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Orikum",
+    "lat": "40.32528",
+    "lng": "19.47139",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944428"
+  },
+  {
+    "name": "Novoselë",
+    "lat": "40.625",
+    "lng": "19.46694",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944428"
+  },
+  {
+    "name": "Nikël",
+    "lat": "41.44417",
+    "lng": "19.74833",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944378"
+  },
+  {
+    "name": "Nicaj-Shosh",
+    "lat": "42.24444",
+    "lng": "19.75806",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Ngraçan",
+    "lat": "40.64444",
+    "lng": "19.7925",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944390"
+  },
+  {
+    "name": "Ndroq",
+    "lat": "41.26389",
+    "lng": "19.65583",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Moravë",
+    "lat": "40.75972",
+    "lng": "19.90417",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Milot",
+    "lat": "41.68389",
+    "lng": "19.71556",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944409"
+  },
+  {
+    "name": "Memaliaj",
+    "lat": "40.35167",
+    "lng": "19.98028",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944397"
+  },
+  {
+    "name": "Mbrostar-Urë",
+    "lat": "40.75361",
+    "lng": "19.57944",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Manzë",
+    "lat": "41.42861",
+    "lng": "19.59306",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944377"
+  },
+  {
+    "name": "Mamurras",
+    "lat": "41.5775",
+    "lng": "19.69222",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944409"
+  },
+  {
+    "name": "Maminas",
+    "lat": "41.37917",
+    "lng": "19.6075",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944379"
+  },
+  {
+    "name": "Magjatë",
+    "lat": "40.79167",
+    "lng": "19.92889",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944369"
+  },
+  {
+    "name": "Luzi i Vogël",
+    "lat": "41.1275",
+    "lng": "19.57389",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944418"
+  },
+  {
+    "name": "Lushnjë",
+    "lat": "40.94194",
+    "lng": "19.705",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Luftinjë",
+    "lat": "40.44278",
+    "lng": "19.95444",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944397"
+  },
+  {
+    "name": "Libofshë",
+    "lat": "40.83444",
+    "lng": "19.55222",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Lezhë",
+    "lat": "41.78361",
+    "lng": "19.64361",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Levan",
+    "lat": "40.67611",
+    "lng": "19.48972",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Lekbibaj",
+    "lat": "42.29472",
+    "lng": "19.93167",
+    "country": "AL",
+    "admin1": "47",
+    "admin2": "10944408"
+  },
+  {
+    "name": "Lekaj",
+    "lat": "41.11444",
+    "lng": "19.60972",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944419"
+  },
+  {
+    "name": "Lapardha Një",
+    "lat": "40.75472",
+    "lng": "19.94806",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Laç",
+    "lat": "41.63556",
+    "lng": "19.71306",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944409"
+  },
+  {
+    "name": "Kutë",
+    "lat": "40.47333",
+    "lng": "19.76639",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944390"
+  },
+  {
+    "name": "Kutalli",
+    "lat": "40.78389",
+    "lng": "19.78667",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944372"
+  },
+  {
+    "name": "Kurjan",
+    "lat": "40.7175",
+    "lng": "19.74556",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944392"
+  },
+  {
+    "name": "Kuman",
+    "lat": "40.72667",
+    "lng": "19.68667",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944392"
+  },
+  {
+    "name": "Kuçovë",
+    "lat": "40.80028",
+    "lng": "19.91667",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944369"
+  },
+  {
+    "name": "Kuç",
+    "lat": "42.03972",
+    "lng": "19.52528",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Kryevidh",
+    "lat": "41.10056",
+    "lng": "19.5275",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944419"
+  },
+  {
+    "name": "Krutja e Poshtme",
+    "lat": "40.87194",
+    "lng": "19.68083",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Krujë",
+    "lat": "41.50917",
+    "lng": "19.79278",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944378"
+  },
+  {
+    "name": "Krrabë",
+    "lat": "41.21556",
+    "lng": "19.97139",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Krahës",
+    "lat": "40.43861",
+    "lng": "19.84444",
+    "country": "AL",
+    "admin1": "45",
+    "admin2": "10944397"
+  },
+  {
+    "name": "Kozarë",
+    "lat": "40.83083",
+    "lng": "19.90056",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944369"
+  },
+  {
+    "name": "Kotë",
+    "lat": "40.38944",
+    "lng": "19.60222",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944427"
+  },
+  {
+    "name": "Koplik",
+    "lat": "42.21361",
+    "lng": "19.43639",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944413"
+  },
+  {
+    "name": "Kombësi",
+    "lat": "41.58167",
+    "lng": "19.98556",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944376"
+  },
+  {
+    "name": "Kolonjë",
+    "lat": "40.82417",
+    "lng": "19.60389",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Kolç",
+    "lat": "41.78667",
+    "lng": "19.67611",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Kavajë",
+    "lat": "41.18556",
+    "lng": "19.55694",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944418"
+  },
+  {
+    "name": "Katundi i Ri",
+    "lat": "41.40306",
+    "lng": "19.51806",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944377"
+  },
+  {
+    "name": "Kastrat",
+    "lat": "42.3525",
+    "lng": "19.48917",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944413"
+  },
+  {
+    "name": "Kashar",
+    "lat": "41.34972",
+    "lng": "19.71028",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Karinë",
+    "lat": "41.06306",
+    "lng": "19.71611",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944385"
+  },
+  {
+    "name": "Karbunara e Vogël",
+    "lat": "40.92194",
+    "lng": "19.71778",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Kamëz",
+    "lat": "41.38167",
+    "lng": "19.76028",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944417"
+  },
+  {
+    "name": "Kallmeti i Madh",
+    "lat": "41.84889",
+    "lng": "19.68694",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Kallmet",
+    "lat": "41.41806",
+    "lng": "19.82139",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Kalenjë",
+    "lat": "40.59",
+    "lng": "19.77833",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944390"
+  },
+  {
+    "name": "Kajan",
+    "lat": "40.91417",
+    "lng": "19.88944",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944381"
+  },
+  {
+    "name": "Kaçinar",
+    "lat": "41.89333",
+    "lng": "19.89861",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944411"
+  },
+  {
+    "name": "Ishëm",
+    "lat": "41.54528",
+    "lng": "19.6",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944377"
+  },
+  {
+    "name": "Hysgjokaj",
+    "lat": "40.97167",
+    "lng": "19.78972",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Hot",
+    "lat": "42.36194",
+    "lng": "19.44417",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944413"
+  },
+  {
+    "name": "Himarë",
+    "lat": "40.10167",
+    "lng": "19.74472",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944424"
+  },
+  {
+    "name": "Helmas",
+    "lat": "41.18028",
+    "lng": "19.60694",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944418"
+  },
+  {
+    "name": "Hekal",
+    "lat": "40.56194",
+    "lng": "19.73583",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944390"
+  },
+  {
+    "name": "Havaleas",
+    "lat": "40.82028",
+    "lng": "19.89694",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944369"
+  },
+  {
+    "name": "Hasan",
+    "lat": "41.48278",
+    "lng": "19.69972",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944378"
+  },
+  {
+    "name": "Hajmel",
+    "lat": "41.95306",
+    "lng": "19.63778",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944416"
+  },
+  {
+    "name": "Gurra e Vogël",
+    "lat": "41.53611",
+    "lng": "19.99083",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944375"
+  },
+  {
+    "name": "Guri i Zi",
+    "lat": "42.045",
+    "lng": "19.57472",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Gruemirë",
+    "lat": "42.15917",
+    "lng": "19.51889",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944413"
+  },
+  {
+    "name": "Greshicë",
+    "lat": "40.55194",
+    "lng": "19.77833",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944390"
+  },
+  {
+    "name": "Grekan",
+    "lat": "40.92944",
+    "lng": "19.9475",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944381"
+  },
+  {
+    "name": "Gradishtë",
+    "lat": "40.88806",
+    "lng": "19.58583",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944387"
+  },
+  {
+    "name": "Gracen",
+    "lat": "41.15194",
+    "lng": "19.96361",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944380"
+  },
+  {
+    "name": "Grabjan",
+    "lat": "40.95306",
+    "lng": "19.58083",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944387"
+  },
+  {
+    "name": "Gosë e Madhe",
+    "lat": "41.09056",
+    "lng": "19.62472",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944419"
+  },
+  {
+    "name": "Çlirim",
+    "lat": "40.80951",
+    "lng": "19.78419",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944372"
+  },
+  {
+    "name": "Goraj",
+    "lat": "40.81194",
+    "lng": "19.9475",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944369"
+  },
+  {
+    "name": "Golem",
+    "lat": "40.96778",
+    "lng": "19.68528",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Gjoçaj",
+    "lat": "41.02556",
+    "lng": "19.72389",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944385"
+  },
+  {
+    "name": "Gjepalaj",
+    "lat": "41.33306",
+    "lng": "19.57806",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944379"
+  },
+  {
+    "name": "Gjadër, Dajc",
+    "lat": "41.88",
+    "lng": "19.59139",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Gegë",
+    "lat": "40.83694",
+    "lng": "19.92611",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944369"
+  },
+  {
+    "name": "Fushëkuqe",
+    "lat": "41.65028",
+    "lng": "19.62",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944409"
+  },
+  {
+    "name": "Fushë-Krujë",
+    "lat": "41.47833",
+    "lng": "19.71778",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944378"
+  },
+  {
+    "name": "Fratar",
+    "lat": "40.5",
+    "lng": "19.81667",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944390"
+  },
+  {
+    "name": "Frakulla e Madhe",
+    "lat": "40.65583",
+    "lng": "19.5025",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Fier-Shegan",
+    "lat": "40.86722",
+    "lng": "19.78528",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Fier-Çifçi",
+    "lat": "40.71667",
+    "lng": "19.56667",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Fier",
+    "lat": "40.72389",
+    "lng": "19.55611",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Farka e Madhe",
+    "lat": "41.30556",
+    "lng": "19.86694",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Dushnik",
+    "lat": "40.73194",
+    "lng": "19.95278",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Durrës",
+    "lat": "41.32355",
+    "lng": "19.45469",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944377"
+  },
+  {
+    "name": "Duhanas",
+    "lat": "40.72111",
+    "lng": "19.99333",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Drenovicë",
+    "lat": "40.79183",
+    "lng": "19.7685",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944372"
+  },
+  {
+    "name": "Drenovë",
+    "lat": "40.60056",
+    "lng": "19.70083",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944390"
+  },
+  {
+    "name": "Divjakë",
+    "lat": "40.99667",
+    "lng": "19.52944",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944387"
+  },
+  {
+    "name": "Dhërmi",
+    "lat": "40.15139",
+    "lng": "19.63889",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944424"
+  },
+  {
+    "name": "Dërmënas",
+    "lat": "40.74556",
+    "lng": "19.49389",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Vau i Dejës",
+    "lat": "42.01",
+    "lng": "19.62472",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944416"
+  },
+  {
+    "name": "Dajt",
+    "lat": "41.39361",
+    "lng": "19.91583",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Dajç",
+    "lat": "41.99167",
+    "lng": "19.41056",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Dajç",
+    "lat": "41.91556",
+    "lng": "19.60444",
+    "country": "AL",
+    "admin1": "48",
+    "admin2": "10944410"
+  },
+  {
+    "name": "Cukalat",
+    "lat": "40.73028",
+    "lng": "19.79056",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944372"
+  },
+  {
+    "name": "Cudhi Zall",
+    "lat": "41.50944",
+    "lng": "19.84583",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944378"
+  },
+  {
+    "name": "Cërrik",
+    "lat": "41.03167",
+    "lng": "19.97583",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944382"
+  },
+  {
+    "name": "Cakran",
+    "lat": "40.60333",
+    "lng": "19.62611",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944388"
+  },
+  {
+    "name": "Bushat",
+    "lat": "42.11944",
+    "lng": "19.89972",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944414"
+  },
+  {
+    "name": "Bubullimë",
+    "lat": "40.81806",
+    "lng": "19.64083",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Bubq",
+    "lat": "41.47417",
+    "lng": "19.65167",
+    "country": "AL",
+    "admin1": "42",
+    "admin2": "10944378"
+  },
+  {
+    "name": "Brataj",
+    "lat": "40.26778",
+    "lng": "19.66917",
+    "country": "AL",
+    "admin1": "51",
+    "admin2": "10944427"
+  },
+  {
+    "name": "Bërzhitë",
+    "lat": "41.24528",
+    "lng": "19.90111",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+    "name": "Bërxull",
+    "lat": "41.38",
+    "lng": "19.6875",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944421"
+  },
+  {
+    "name": "Bërdica e Madhe",
+    "lat": "42.01528",
+    "lng": "19.48167",
+    "country": "AL",
+    "admin1": "49",
+    "admin2": "10944415"
+  },
+  {
+    "name": "Berat",
+    "lat": "40.70583",
+    "lng": "19.95222",
+    "country": "AL",
+    "admin1": "40",
+    "admin2": "10944368"
+  },
+  {
+    "name": "Belsh",
+    "lat": "40.975",
+    "lng": "19.88194",
+    "country": "AL",
+    "admin1": "43",
+    "admin2": "10944381"
+  },
+  {
+    "name": "Baz",
+    "lat": "41.63194",
+    "lng": "19.92917",
+    "country": "AL",
+    "admin1": "41",
+    "admin2": "10944376"
+  },
+  {
+    "name": "Ballsh",
+    "lat": "40.59889",
+    "lng": "19.73472",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944390"
+  },
+  {
+    "name": "Ballagat",
+    "lat": "40.99528",
+    "lng": "19.76528",
+    "country": "AL",
+    "admin1": "44",
+    "admin2": "10944389"
+  },
+  {
+    "name": "Baldushk",
+    "lat": "41.21389",
+    "lng": "19.79694",
+    "country": "AL",
+    "admin1": "50",
+    "admin2": "10944420"
+  },
+  {
+  

@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "accommodations",
+  "info": {
+    "singularName": "accommodation",
+    "pluralName": "accommodations",
+    "displayName": "Accommodation",
+    "description": "Accommodation requests from users"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "city": {
+      "type": "string",
+      "required": true
+    },
+    "workplace": {
+      "type": "string",
+      "required": true
+    },
+    "housing": {
+      "type": "string",
+      "required": true
+    },
+    "budget": {
+      "type": "string",
+      "required": true
+    },
+    "gender": {
+      "type": "string",
+      "required": true
+    },
+    "phone": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "consent": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    }
+  }
+}
