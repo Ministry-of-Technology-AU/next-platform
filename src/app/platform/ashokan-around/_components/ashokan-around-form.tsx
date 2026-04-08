@@ -26,6 +26,8 @@ export default function AshokanAroundForm() {
     const newErrors: Record<string, string> = {};
     if (!formData.cityDestination) newErrors.cityDestination = "City destination is required";
     if (!formData.housingTypeWanted) newErrors.housingTypeWanted = "Type of housing wanted is required";
+    if (!formData.budget) newErrors.budget = "Budget is required";
+    if (!formData.genderPreference) newErrors.genderPreference = "Gender preference is required";
     if (!formData.whatsappNumber || formData.whatsappNumber.length < 10) newErrors.whatsappNumber = "A valid WhatsApp number is required";
     if (!formData.consent) newErrors.consent = "You must consent to proceed";
 
@@ -72,6 +74,8 @@ export default function AshokanAroundForm() {
   const isFormValid = !!(
     formData.cityDestination &&
     formData.housingTypeWanted &&
+    formData.budget &&
+    formData.genderPreference &&
     formData.whatsappNumber &&
     formData.whatsappNumber.length >= 10 &&
     formData.consent
@@ -126,11 +130,13 @@ export default function AshokanAroundForm() {
           />
 
           <TextInput
-            title="Budget (per month in ₹ or $)"
+            title="Budget (per month in ₹)"
             placeholder="Enter budget"
             description="How much can you spend per month?"
             value={formData.budget || ""}
             onChange={(val) => updateField("budget", val)}
+            errorMessage={errors.budget}
+            isRequired
           />
         </div>
 
@@ -147,6 +153,8 @@ export default function AshokanAroundForm() {
             ]}
             value={formData.genderPreference}
             onChange={(val) => updateField("genderPreference", val as GenderPreferenceFilter)}
+            errorMessage={errors.genderPreference}
+            isRequired
           />
 
           <PhoneInput
