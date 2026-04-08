@@ -25,20 +25,19 @@ export default function ActiveAccommodationRequest({ userAccommodation }: Active
 
     try {
       setUpdating(true)
-      // MOCKED: 
-      /*
       const response = await fetch('/api/platform/ashokan-around', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: userAccommodation.id, status: 'canceled' })
       })
-      */
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel request')
+      }
       
-      setTimeout(() => {
-        toast.success('Accommodation request canceled successfully!')
-        router.refresh()
-        setUpdating(false)
-      }, 1000)
+      toast.success('Accommodation request canceled successfully!')
+      router.refresh()
+      setUpdating(false)
 
     } catch (error) {
       console.error('Error cancelling request:', error)
@@ -52,20 +51,19 @@ export default function ActiveAccommodationRequest({ userAccommodation }: Active
 
     try {
       setUpdating(true)
-      // MOCKED:
-      /*
-        const response = await fetch('/api/platform/ashokan-around', {
+      const response = await fetch('/api/platform/ashokan-around', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: userAccommodation.id, status: 'completed' })
       })
-      */
 
-      setTimeout(() => {
-        toast.success('Marked as accommodation found!')
-        router.refresh()
-        setUpdating(false)
-      }, 1000)
+      if (!response.ok) {
+        throw new Error('Failed to update status')
+      }
+
+      toast.success('Marked as accommodation found!')
+      router.refresh()
+      setUpdating(false)
     } catch (error) {
       console.error('Error updating status:', error)
       toast.error('Failed to update status')

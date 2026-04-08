@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, Home, MapPin, MessageCircle, Filter, Search, Users, RefreshCw, Mail, DollarSign } from "lucide-react"
+import { ArrowLeft, Home, MapPin, MessageCircle, Filter, Search, Users, RefreshCw, Mail, IndianRupee } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -59,69 +59,19 @@ export default function AshokanAroundResults() {
     try {
       setLoading(true)
 
-      // MOCKED FETCH
-      const mockResult = {
-        success: true,
-        userAccommodation: null, // Change to object to test user active state
-        accommodations: [
-          {
-            id: "1",
-            attributes: {
-              cityDestination: "Sonepat",
-              workplaceLocation: "TDI City",
-              housingTypeWanted: "Single Room",
-              budget: "₹15000",
-              genderPreference: "Male",
-              whatsappNumber: "9876543210",
-              emailAddress: "test1@ashoka.edu.in",
-              status: "available",
-              createdAt: "2023-11-01T12:00:00Z",
-              updatedAt: "2023-11-01T12:00:00Z",
-              student: { data: { id: 1, attributes: { username: "Rahul Sharma", email: "rahul@ashoka.edu.in", phone: "9876543210" } } }
-            }
-          },
-          {
-            id: "2",
-            attributes: {
-              cityDestination: "Delhi",
-              workplaceLocation: "Connaught Place",
-              housingTypeWanted: "Flat/Apartment",
-              budget: "₹25000",
-              genderPreference: "No preference",
-              whatsappNumber: "9123456780",
-              emailAddress: "test2@ashoka.edu.in",
-              status: "available",
-              createdAt: "2023-11-02T12:00:00Z",
-              updatedAt: "2023-11-02T12:00:00Z",
-              student: { data: { id: 2, attributes: { username: "Sneha Gupta", email: "sneha@ashoka.edu.in", phone: "9123456780" } } }
-            }
-          },
-          {
-            id: "3",
-            attributes: {
-              cityDestination: "Sonepat",
-              workplaceLocation: "Omaxe",
-              housingTypeWanted: "Double Room",
-              budget: "₹10000",
-              genderPreference: "Female",
-              whatsappNumber: "9988776655",
-              emailAddress: "test3@ashoka.edu.in",
-              status: "available",
-              createdAt: "2023-11-03T12:00:00Z",
-              updatedAt: "2023-11-03T12:00:00Z",
-              student: { data: { id: 3, attributes: { username: "Priya Singh", email: "priya@ashoka.edu.in", phone: "9988776655" } } }
-            }
-          }
-        ] as AccommodationData[]
-      };
+      const response = await fetch('/api/platform/ashokan-around?limit=1000')
+      const data = await response.json()
 
-      setTimeout(() => {
-        setAccommodations(mockResult.accommodations || [])
-        if (mockResult.userAccommodation) {
-          setUserAccommodation(mockResult.userAccommodation)
+      if (data.success) {
+        setAccommodations(data.accommodations || [])
+        if (data.userAccommodation) {
+          setUserAccommodation(data.userAccommodation)
         }
-        setLoading(false)
-      }, 500);
+      } else {
+        toast.error('Failed to fetch connections')
+      }
+
+      setLoading(false)
 
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -377,7 +327,7 @@ export default function AshokanAroundResults() {
                           {acc.attributes.housingTypeWanted}
                         </span>
                         <span className="flex items-center gap-1 whitespace-nowrap">
-                          <DollarSign className="h-3 w-3 flex-shrink-0 text-green-600" />
+                          <IndianRupee className="h-3 w-3 flex-shrink-0 text-green-600" />
                           {acc.attributes.budget}
                         </span>
                         <span className="flex items-center gap-1 whitespace-nowrap bg-muted px-2 py-0.5 rounded-full text-[10px]">

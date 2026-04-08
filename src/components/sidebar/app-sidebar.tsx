@@ -40,7 +40,8 @@ import {
   Puzzle,
   Route,
   CalendarSearch,
-  Trophy
+  Trophy,
+  MapPinned
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -68,7 +69,8 @@ const iconMap = {
   Puzzle,
   Route,
   CalendarSearch,
-  Trophy
+  Trophy,
+  MapPinned
 };
 
 interface SidebarItem {

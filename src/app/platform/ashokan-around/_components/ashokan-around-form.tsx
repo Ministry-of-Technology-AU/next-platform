@@ -10,7 +10,6 @@ import {
   SingleSelect,
   PhoneInput,
   CheckboxComponent,
-  SubmitButton,
 } from "@/components/form";
 import { AccommodationConnectionListing, HousingPreference, GenderPreferenceFilter } from "../types";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,15 +39,27 @@ export default function AshokanAroundForm() {
     e.preventDefault();
     if (!validate()) return;
 
-    setLoading(true);
-    // TODO: Connect with API Route
-    console.log("Submitting:", formData);
+    try {
+      setLoading(true);
+      const res = await fetch('/api/platform/ashokan-around', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit request');
+      }
 
-    setTimeout(() => {
-      setLoading(false);
       toast.success("Accommodation connect request submitted successfully!");
       router.push("/platform/ashokan-around/results");
-    }, 1000);
+      router.refresh();
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateField = (field: keyof AccommodationConnectionListing, value: any) => {

@@ -1,44 +1,30 @@
-import { MapPin, Loader } from "lucide-react";
+import { Loader } from "lucide-react";
 import AshokanAroundForm from "./_components/ashokan-around-form";
 import ActiveAccommodationRequest from "./ActiveAccommodationRequest";
-import PageTitle from "@/components/page-title";
 import { Suspense } from "react";
-import DeveloperCredits from "@/components/developer-credits";
 
 import { AccommodationData } from "./types";
 
-// Mock implementation to mimic existPoolRequest
-async function existAccommodationRequest(): Promise<{ success: boolean; userAccommodation: AccommodationData } | null> {
-  // Return null to show the form for now.
-  // When backend is implemented, this should query Strapi or similar API
-  // for an existing active accommodation request from this user.
+import { headers } from "next/headers";
 
-  /*
-  return {
-    success: true,
-    userAccommodation: {
-      id: "mock-1",
-      attributes: {
-        cityDestination: "Sonepat",
-        workplaceLocation: "TDI",
-        housingTypeWanted: "Flat/Apartment",
-        budget: "15000",
-        genderPreference: "No preference",
-        whatsappNumber: "9876543210",
-        emailAddress: "",
-        status: "available",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        student: {
-          data: {
-            id: 1,
-            attributes: { username: "Ashokan", email: "ashokan@ashoka.edu.in", phone: null }
-          }
-        }
+async function existAccommodationRequest(): Promise<{ success: boolean; userAccommodation: AccommodationData } | null> {
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const res = await fetch(`${appUrl}/api/platform/ashokan-around?limit=1`, {
+      method: "GET",
+      headers: await headers(),
+      cache: "no-store"
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.userAccommodation) {
+        return { success: true, userAccommodation: data.userAccommodation };
       }
     }
-  };
-  */
+  } catch (error) {
+    console.error("Error fetching user accommodation:", error);
+  }
 
   return null;
 }
