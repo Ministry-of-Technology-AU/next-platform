@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,22 +19,6 @@ function getStrapiMediaUrl(media: any): string | null {
 }
 
 // Mock Data for Fallbacks
-const LIVE_MATCH_FALLBACK: any = {
-  id: 1,
-  teamA: 'BLUE HAWKS',
-  teamB: 'STEEL TITANS',
-  scoreA: 2,
-  scoreB: 1,
-  status: 'LIVE',
-  period: '2H • 75:00',
-  arena: 'ASHOKA MAIN FIELD',
-  start_time: new Date().toISOString(),
-  details: {
-    sets: [],
-    events: []
-  }
-};
-
 const MOCK_UPCOMING_MATCHES = [
   { id: 2, teamA: 'WOLVES', teamB: 'BEARS', start_time: new Date(Date.now() + 86400000).toISOString(), date: 'TOMORROW', time: '18:00', teamALogo: null, teamBLogo: null },
   { id: 3, teamA: 'LIONS', teamB: 'DRAGONS', start_time: new Date(Date.now() + 172800000).toISOString(), date: 'IN 2 DAYS', time: '17:30', teamALogo: null, teamBLogo: null },
@@ -183,7 +167,7 @@ export default function APLFootballPage() {
     }
 
     // 2. Leaderboards
-    let groupsMap: Record<string, any[]> = {};
+    const groupsMap: Record<string, any[]> = {};
     const teamStats: Record<number, any> = {};
 
     if (rawTeams && rawTeams.length > 0) {
@@ -291,6 +275,7 @@ export default function APLFootballPage() {
     return {
       liveMatch,
       nextMatch,
+      currentMatch: liveMatch || nextMatch,
       upcomingMatches,
       pastMatches,
       knockoutMatches,
@@ -303,7 +288,7 @@ export default function APLFootballPage() {
 
   if (loading && rawMatches.length === 0) return <div className="p-8 text-center text-muted-foreground bg-background">Loading Football Portal...</div>;
 
-  const { liveMatch, upcomingMatches, pastMatches, knockoutMatches, winnerLogos, displayGroups, displayScorers, liveMatchSets } = dashboardData;
+  const { liveMatch, currentMatch, upcomingMatches, pastMatches, knockoutMatches, winnerLogos, displayGroups, displayScorers, liveMatchSets } = dashboardData;
 
   return (
     <div className="p-4 md:p-8 space-y-12 max-w-7xl mx-auto">
@@ -431,6 +416,28 @@ export default function APLFootballPage() {
             </CardContent>
           </Card>
         )}
+      </section>
+
+      {/* Navigation Links */}
+      <section>
+        <Card className="bg-card border-border shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link href="/platform/sports/apl/matches" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+                <Calendar className="w-4 h-4" />
+                All Matches
+              </Link>
+              <Link href="/platform/sports/apl/players" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+                <Trophy className="w-4 h-4" />
+                Player Statistics
+              </Link>
+              <Link href="/platform/sports/apl/knockout" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+                <Calendar className="w-4 h-4" />
+                Knockout Bracket
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       {/* Middle Section: Standings & Top Scorers */}

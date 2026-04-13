@@ -396,9 +396,11 @@ export default function APLAuctionPage() {
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           {row.playerImage ? (
                             <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
-                              <img
+                              <Image
                                 src={row.playerImage}
                                 alt={row.name}
+                                width={32}
+                                height={32}
                                 className="h-full w-full object-cover"
                               />
                             </div>
@@ -461,9 +463,11 @@ export default function APLAuctionPage() {
                           <div className="flex items-center gap-2">
                             {row.playerImage ? (
                               <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
-                                <img
+                                <Image
                                   src={row.playerImage}
                                   alt={row.name}
+                                  width={32}
+                                  height={32}
                                   className="h-full w-full object-cover"
                                 />
                               </div>

@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -48,7 +47,7 @@ export default function MatchPage() {
 
     eventSource.onmessage = (event) => {
       try {
-        const payload = JSON.parse(event.data);
+        JSON.parse(event.data);
         // Re-fetch when any APL entity changes (match scores, participant stats)
         fetchMatchData();
       } catch (e) {
@@ -67,7 +66,7 @@ export default function MatchPage() {
       eventSource.close();
       // clearInterval(interval);
     };
-  }, [id]);
+  }, [id, fetchMatchData]);
 
   const matchData = useMemo(() => {
     if (!rawData) return {
