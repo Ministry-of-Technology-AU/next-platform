@@ -75,45 +75,105 @@ export default function MatchPage() {
       teamB: 'Loading...',
       scoreA: 0,
       scoreB: 0,
-      status: 'Upcoming',
+      status: 'upcoming',
       type: 'Group stage',
-      period: '1H • 00:00',
-      details: { sets: [], events: [] },
+      period: 'Not started',
+      details: { events: [] },
       teamAPlayers: [],
       teamBPlayers: []
     };
 
     const attrs = rawData.attributes || {};
-    const details = attrs.details || {};
+    const teamAName = attrs.team_a?.data?.attributes?.name || 'Team A';
+    const teamBName = attrs.team_b?.data?.attributes?.name || 'Team B';
 
     const parsePlayers = (teamKey: 'team_a' | 'team_b'): any[] => {
       const members = attrs[teamKey]?.data?.attributes?.members?.data || [];
-      const stats = details.individual_stats || [];
-      return members.map((p: any) => {
-        const playerMatchStats = stats.find((s: any) => s.id === p.id);
-        return {
-          id: p.id.toString(),
-          name: p.attributes?.name || 'Unknown',
-          goals: playerMatchStats ? playerMatchStats.matchGoals : 0,
-        };
-      }).sort((a: any, b: any) => b.goals - a.goals);
+      return members.map((p: any) => ({
+        id: p.id.toString(),
+        name: p.attributes?.name || 'Unknown',
+        goals: p.attributes?.goals || 0,
+      })).sort((a: any, b: any) => b.goals - a.goals);
     };
+
+    const goalEvents = (attrs.goal_events?.data || []).map((event: any) => {
+      const eventAttrs = event.attributes || {};
+      const scorer = eventAttrs.scorer?.data?.attributes?.name || 'Unknown';
+      const assister = eventAttrs.assister?.data?.attributes?.name;
+      const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
+      const action = eventAttrs.is_own_goal ? 'Own Goal' : eventAttrs.is_penalty ? 'Penalty Goal' : 'Goal';
+      const minute = eventAttrs.minute || 0;
+      return {
+        minute,
+        time: `${minute}'`,
+        action,
+        player: scorer,
+        team: teamLabel,
+        description: assister ? `Assist: ${assister}` : '',
+      };
+    });
+
+    const cardEvents = (attrs.card_events?.data || []).map((event: any) => {
+      const eventAttrs = event.attributes || {};
+      const player = eventAttrs.player?.data?.attributes?.name || 'Unknown';
+      const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
+      const cardLabel = eventAttrs.card_type === 'red' ? 'Red Card' : eventAttrs.card_type === 'yellow_red' ? 'Yellow + Red Card' : 'Yellow Card';
+      const minute = eventAttrs.minute || 0;
+      return {
+        minute,
+        time: `${minute}'`,
+        action: cardLabel,
+        player,
+        team: teamLabel,
+        description: '',
+      };
+    });
+
+    const saveEvents = (attrs.save_events?.data || []).map((event: any) => {
+      const eventAttrs = event.attributes || {};
+      const keeper = eventAttrs.goalkeeper?.data?.attributes?.name || 'Unknown';
+      const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
+      const minute = eventAttrs.minute || 0;
+      return {
+        minute,
+        time: `${minute}'`,
+        action: 'Goalkeeper Saves',
+        player: keeper,
+        team: teamLabel,
+        description: `${eventAttrs.saves || 0} saves`,
+      };
+    });
+
+    const substituteEvents = (attrs.substitution_events?.data || []).map((event: any) => {
+      const eventAttrs = event.attributes || {};
+      const offPlayer = eventAttrs.player_off?.data?.attributes?.name || 'Unknown';
+      const onPlayer = eventAttrs.player_on?.data?.attributes?.name || 'Unknown';
+      const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
+      const minute = eventAttrs.minute || 0;
+      return {
+        minute,
+        time: `${minute}'`,
+        action: 'Substitution',
+        player: `${offPlayer} off, ${onPlayer} on`,
+        team: teamLabel,
+        description: '',
+      };
+    });
 
     return {
       id,
-      teamA: attrs.team_a?.data?.attributes?.name || 'Team A',
-      teamB: attrs.team_b?.data?.attributes?.name || 'Team B',
+      teamA: teamAName,
+      teamB: teamBName,
       teamALogo: getStrapiMediaUrl(attrs.team_a?.data?.attributes?.logo),
       teamBLogo: getStrapiMediaUrl(attrs.team_b?.data?.attributes?.logo),
-      scoreA: details.scoreA || 0,
-      scoreB: details.scoreB || 0,
-      status: attrs.status || 'Upcoming',
-      type: attrs.type || 'Group stage',
-      period: details.period || '1H • 00:00',
+      scoreA: attrs.team_a_score || 0,
+      scoreB: attrs.team_b_score || 0,
+      status: attrs.status || 'upcoming',
+      type: attrs.round?.replace('_', ' ') || 'Group stage',
+      period: attrs.period?.replace('_', ' ') || 'Not started',
       start_time: attrs.start_time,
       details: {
-        sets: details.sets || [],
-        events: details.events || []
+        events: [...goalEvents, ...cardEvents, ...saveEvents, ...substituteEvents].sort((a: any, b: any) => (a.minute || 0) - (b.minute || 0))
       },
       teamAPlayers: parsePlayers('team_a'),
       teamBPlayers: parsePlayers('team_b')
@@ -161,20 +221,6 @@ export default function MatchPage() {
                 <span>{matchData.scoreB}</span>
               </div>
 
-              {/* Compact Period Breakdown */}
-              {matchData.details.sets.length > 0 && (
-                <div className="flex gap-4 mt-4">
-                  {matchData.details.sets.map((set: any, idx: number) => (
-                    <div key={idx} className="flex flex-col items-center">
-                      <div className="bg-muted px-2 py-1 rounded border border-border flex gap-2 text-[10px] font-mono font-bold">
-                        <span className={set.scoreA > set.scoreB ? 'text-foreground font-black' : 'text-muted-foreground'}>{set.scoreA}</span>
-                        <span className="text-muted-foreground/30">:</span>
-                        <span className={set.scoreB > set.scoreA ? 'text-foreground font-black' : 'text-muted-foreground'}>{set.scoreB}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
 
             </div>
 
@@ -237,10 +283,13 @@ export default function MatchPage() {
               ) : matchData.details.events.map((ev: any, idx: number) => (
                 <div key={idx} className="flex gap-4 items-start text-sm">
                   <span className="text-muted-foreground whitespace-nowrap">{ev.time}</span>
-                  <div className="flex-1">
-                    <p className="font-medium">{ev.action} <span className="text-muted-foreground font-normal">by {ev.player} ({ev.team})</span></p>
+                  <div className="flex-1 space-y-1">
+                    <p className="font-medium">
+                      {ev.action}
+                      <span className="text-muted-foreground font-normal"> by {ev.player} ({ev.team})</span>
+                    </p>
+                    {ev.description ? <p className="text-xs text-muted-foreground">{ev.description}</p> : null}
                   </div>
-                  <span className="font-semibold tabular-nums tracking-tight bg-primary/10 text-primary px-2 py-0.5 rounded">{ev.newScore}</span>
                 </div>
               ))}
             </div>

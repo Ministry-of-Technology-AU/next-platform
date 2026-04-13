@@ -47,11 +47,6 @@ const WINNERS = [
   { rank: 3, teamId: 20, name: 'Chhoti Advance Bade Sapne' },
 ];
 
-const MVPS = [
-  { id: 31, name: 'Arnav Patil', title: 'Cis Men MVP' },
-  { id: 44, name: 'Kaitlyn Machado', title: 'Non Cis Men MVP' },
-];
-
 export default function APLFootballPage() {
   const [rawMatches, setRawMatches] = useState<any[]>([]);
   const [rawTeams, setRawTeams] = useState<any[]>([]);
@@ -272,10 +267,26 @@ export default function APLFootballPage() {
       return getStrapiMediaUrl(team?.attributes?.logo) ?? null;
     });
 
+    const currentMatchData = liveMatch || nextMatch;
     return {
       liveMatch,
       nextMatch,
-      currentMatch: liveMatch || nextMatch,
+      currentMatch: currentMatchData ? {
+        id: currentMatchData.id,
+        teamA: currentMatchData.teamA,
+        teamB: currentMatchData.teamB,
+        teamALogo: currentMatchData.teamALogo || null,
+        teamBLogo: currentMatchData.teamBLogo || null,
+        scoreA: (currentMatchData as any).scoreA || 0,
+        scoreB: (currentMatchData as any).scoreB || 0,
+        status: (currentMatchData as any).status || 'UPCOMING',
+        time: currentMatchData.time || 'TBD',
+        date: currentMatchData.date || 'TBD',
+        period: (currentMatchData as any).period || '1H • 00:00',
+        arena: (currentMatchData as any).arena || 'ASHOKA MAIN FIELD',
+        start_time: currentMatchData.start_time,
+        details: (currentMatchData as any).details || {}
+      } : null,
       upcomingMatches,
       pastMatches,
       knockoutMatches,
@@ -288,133 +299,72 @@ export default function APLFootballPage() {
 
   if (loading && rawMatches.length === 0) return <div className="p-8 text-center text-muted-foreground bg-background">Loading Football Portal...</div>;
 
-  const { liveMatch, currentMatch, upcomingMatches, pastMatches, knockoutMatches, winnerLogos, displayGroups, displayScorers, liveMatchSets } = dashboardData;
+  const { currentMatch, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers } = dashboardData;
 
   return (
     <div className="p-4 md:p-8 space-y-12 max-w-7xl mx-auto">
 
       {/* Hero Live Match Banner or Stay Tuned */}
       <section>
-        {liveMatch ? (
-          <Link href={`/platform/sports/apl/${liveMatch.id}`}>
+        {currentMatch && (
+          <Link href={`/platform/sports/apl/${currentMatch.id}`}>
             <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer shadow-2xl">
               <CardContent className="p-8 md:p-12 flex flex-col items-center relative">
                 <div className="flex items-center gap-3 mb-8">
-                  <Badge variant="destructive" className="bg-red-500 hover:bg-red-600 animate-pulse text-xs px-2 py-0 rounded-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white mr-1.5 animate-bounce" /> {liveMatch.status}
+                  <Badge variant={currentMatch.status === 'LIVE' ? "destructive" : "secondary"} className={currentMatch.status === 'LIVE' ? "bg-red-500 hover:bg-red-600 animate-pulse text-xs px-2 py-0 rounded-sm" : "text-xs px-2 py-0 rounded-sm"}>
+                    {currentMatch.status === 'LIVE' && <span className="w-1.5 h-1.5 rounded-full bg-white mr-1.5 animate-bounce" />}
+                    {currentMatch.status}
                   </Badge>
                   <span className="text-zinc-400 text-[10px] md:text-sm font-black uppercase tracking-widest bg-zinc-800/50 px-2 py-0.5 rounded border border-zinc-700/50">
-                    {liveMatch.start_time ? new Date(liveMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (liveMatch.date + ' • ' + liveMatch.time)}
+                    {currentMatch.start_time ? new Date(currentMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (currentMatch.date + ' • ' + currentMatch.time)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-center w-full max-w-3xl gap-4 md:gap-12">
                   <div className="flex-1 flex flex-col items-center gap-4">
                     <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
-                      {liveMatch.teamALogo ? (
-                        <Image src={liveMatch.teamALogo} alt={liveMatch.teamA} width={128} height={128} className="w-full h-full object-cover" unoptimized />
+                      {currentMatch.teamALogo ? (
+                        <Image src={currentMatch.teamALogo} alt={currentMatch.teamA} width={128} height={128} className="w-full h-full object-cover" unoptimized />
                       ) : (
                         <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
                       )}
                     </div>
-                    <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{liveMatch.teamA}</h3>
+                    <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{currentMatch.teamA}</h3>
                   </div>
 
                   <div className="flex flex-col items-center gap-2">
                     <div className="flex items-center gap-4 md:gap-8">
-                      <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{liveMatch.scoreA}</span>
+                      <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{currentMatch.scoreA}</span>
                       <span className="text-3xl md:text-5xl font-black text-zinc-700">-</span>
-                      <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{liveMatch.scoreB}</span>
+                      <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{currentMatch.scoreB}</span>
                     </div>
 
-                    {/* Set Scores Display */}
-                    {liveMatchSets.length > 0 && (
-                      <div className="flex gap-4 mt-2">
-                        {liveMatchSets.map((set: any, idx: number) => (
-                          <div key={idx} className="flex flex-col items-center">
-                            <span className="text-[10px] items-center text-zinc-500 font-bold uppercase tracking-tighter mb-1">{set.name}</span>
-                            <div className="bg-zinc-800/50 px-2 py-1 rounded border border-zinc-700/50 flex gap-2 text-xs font-mono font-bold">
-                              <span className={set.scoreA > set.scoreB ? 'text-white' : 'text-zinc-500'}>{set.scoreA}</span>
-                              <span className="text-zinc-600">:</span>
-                              <span className={set.scoreB > set.scoreA ? 'text-white' : 'text-zinc-500'}>{set.scoreB}</span>
-                            </div>
-                          </div>
-                        ))}
+                    {/* Period Display */}
+                    {currentMatch.status === 'LIVE' && (
+                      <div className="mt-2">
+                        <span className="text-sm font-bold text-zinc-400 uppercase tracking-wider">{currentMatch.period}</span>
                       </div>
                     )}
                   </div>
 
                   <div className="flex-1 flex flex-col items-center gap-4">
                     <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
-                      {liveMatch.teamBLogo ? (
-                        <Image src={liveMatch.teamBLogo} alt={liveMatch.teamBLogo} width={128} height={128} className="w-full h-full object-cover" unoptimized />
+                      {currentMatch.teamBLogo ? (
+                        <Image src={currentMatch.teamBLogo} alt={currentMatch.teamB} width={128} height={128} className="w-full h-full object-cover" unoptimized />
                       ) : (
                         <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
                       )}
                     </div>
-                    <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{liveMatch.teamB}</h3>
+                    <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{currentMatch.teamB}</h3>
                   </div>
                 </div>
 
                 <div className="mt-8 text-sm tracking-widest text-zinc-400 font-semibold uppercase">
-                  {liveMatch.arena}
+                  {currentMatch.arena}
                 </div>
               </CardContent>
             </Card>
           </Link>
-        ) : (
-          <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden shadow-2xl">
-            <CardContent className="p-8 md:p-12 flex flex-col items-center gap-8">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs px-3 py-1">APL 2025–26 Champions</Badge>
-              </div>
-
-              {/* Podium */}
-              <div className="flex items-end justify-center gap-3 md:gap-6 w-full max-w-xl">
-                {/* 2nd */}
-                <div className="flex flex-col items-center gap-2 flex-1">
-                  <div className="w-14 h-14 md:w-20 md:h-20 bg-zinc-800 rounded-xl border border-zinc-700 overflow-hidden flex items-center justify-center">
-                    {winnerLogos[1] ? <Image src={winnerLogos[1]} alt={WINNERS[1].name} width={80} height={80} className="w-full h-full object-cover" unoptimized /> : <span className="text-xl font-black text-zinc-500">2</span>}
-                  </div>
-                  <p className="text-[10px] md:text-xs font-bold text-zinc-400 text-center leading-tight">{WINNERS[1].name}</p>
-                  <div className="bg-zinc-600 rounded-t-lg w-full h-14 md:h-20 flex items-center justify-center">
-                    <span className="text-xl font-black text-zinc-300">2</span>
-                  </div>
-                </div>
-                {/* 1st */}
-                <div className="flex flex-col items-center gap-2 flex-1">
-                  <Trophy className="w-5 h-5 text-yellow-400" />
-                  <div className="w-20 h-20 md:w-28 md:h-28 bg-zinc-800 rounded-xl border-2 border-yellow-500/60 overflow-hidden flex items-center justify-center ring-2 ring-yellow-500/20">
-                    {winnerLogos[0] ? <Image src={winnerLogos[0]} alt={WINNERS[0].name} width={112} height={112} className="w-full h-full object-cover" unoptimized /> : <span className="text-2xl font-black text-yellow-500">1</span>}
-                  </div>
-                  <p className="text-xs md:text-sm font-bold text-white text-center leading-tight">{WINNERS[0].name}</p>
-                  <div className="bg-yellow-500 rounded-t-lg w-full h-20 md:h-28 flex items-center justify-center">
-                    <span className="text-2xl font-black text-yellow-900">1</span>
-                  </div>
-                </div>
-                {/* 3rd */}
-                <div className="flex flex-col items-center gap-2 flex-1">
-                  <div className="w-14 h-14 md:w-20 md:h-20 bg-zinc-800 rounded-xl border border-zinc-700 overflow-hidden flex items-center justify-center">
-                    {winnerLogos[2] ? <Image src={winnerLogos[2]} alt={WINNERS[2].name} width={80} height={80} className="w-full h-full object-cover" unoptimized /> : <span className="text-xl font-black text-zinc-500">3</span>}
-                  </div>
-                  <p className="text-[10px] md:text-xs font-bold text-zinc-400 text-center leading-tight">{WINNERS[2].name}</p>
-                  <div className="bg-zinc-700 rounded-t-lg w-full h-10 md:h-14 flex items-center justify-center">
-                    <span className="text-lg font-black text-zinc-300">3</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* MVPs */}
-              <div className="grid grid-cols-2 gap-3 w-full max-w-md">
-                {MVPS.map(mvp => (
-                  <div key={mvp.id} className="bg-zinc-800/60 border border-zinc-700 rounded-xl p-4 text-center">
-                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">{mvp.title}</p>
-                    <p className="font-bold text-white text-sm">{mvp.name}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         )}
       </section>
 
