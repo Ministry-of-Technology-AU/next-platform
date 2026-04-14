@@ -441,61 +441,142 @@ export default function APLFootballPage() {
               </TabsContent>
 
             <TabsContent value="knockout" className="mt-0">
-            {knockoutMatches.length === 0 ? (
-              <Card className="bg-zinc-900 border-zinc-800 text-zinc-500">
-                <CardContent className="h-64 flex flex-col items-center justify-center p-6 text-center">
-                  <p className="text-lg font-bold tracking-widest uppercase mb-2">Knockout Stage</p>
-                  <p className="text-sm">The bracket will be generated once the group stages conclude.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <ScrollArea className="h-[400px] pr-2">
-              <div className="space-y-4">
-                {knockoutMatches.map((match: any) => (
-                  <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
-                    <div className="bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-xs font-bold text-muted-foreground tracking-wide">
-                          {match.start_time ? new Date(match.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (match.date + ' • ' + match.time)}
-                        </span>
-                        {match.status === 'LIVE' ? (
-                          <div className="flex items-center gap-1.5">
-                            {match.round && <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
-                            <Badge variant="destructive" className="bg-red-500 text-[10px] px-1.5 py-0 animate-pulse rounded-sm">LIVE</Badge>
-                          </div>
-                        ) : match.status === 'PAST' ? (
-                          <div className="flex items-center gap-1.5">
-                            {match.round && <Badge className="bg-primary/10 text-primary dark:text-yellow-600 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
-                            {/* <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Final</Badge> */}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            {match.round && <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
-                            <Badge className="text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Upcoming</Badge>
-                          </div>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
-                        <div className="text-center">
-                          <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamA}</h4>
-                          {match.status === 'PAST' && (
-                            <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreA}</p>
-                          )}
-                        </div>
-                        <div className="text-xs font-bold text-muted-foreground">VS</div>
-                        <div className="text-center">
-                          <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamB}</h4>
-                          {match.status === 'PAST' && (
-                            <p className={`text-3xl font-black mt-2 ${match.scoreB > match.scoreA ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreB}</p>
-                          )}
-                        </div>
-                      </div>
+              {knockoutMatches.length === 0 ? (
+                <Card className="bg-zinc-900 border-zinc-800 text-zinc-500">
+                  <CardContent className="h-64 flex flex-col items-center justify-center p-6 text-center">
+                    <p className="text-lg font-bold tracking-widest uppercase mb-2">Knockout Stage</p>
+                    <p className="text-sm">The bracket will be generated once the group stages conclude.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <h4 className="text-lg font-bold">Round of 16 Bracket</h4>
+                    <p className="text-sm text-muted-foreground">Click on matches to view details</p>
+                  </div>
+                  <div className="relative overflow-x-auto">
+                    {/* Round of 16 - Left */}
+                    <div className="absolute left-0 top-0 space-y-4">
+                      {knockoutMatches.filter(m => m.round === 'round_of_16').slice(0, 4).map((match: any) => (
+                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
+                          <Card className="w-40 hover:shadow-lg transition-shadow">
+                            <CardContent className="p-2">
+                              <div className="text-xs space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="truncate">{match.teamA}</span>
+                                  <span className="font-bold">{match.scoreA}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="truncate">{match.teamB}</span>
+                                  <span className="font-bold">{match.scoreB}</span>
+                                </div>
+                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))}
                     </div>
-                  </Link>
-                ))}
-              </div>
-              </ScrollArea>
-            )}
+
+                    {/* Round of 16 - Right */}
+                    <div className="absolute right-0 top-0 space-y-4">
+                      {knockoutMatches.filter(m => m.round === 'round_of_16').slice(4, 8).map((match: any) => (
+                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
+                          <Card className="w-40 hover:shadow-lg transition-shadow">
+                            <CardContent className="p-2">
+                              <div className="text-xs space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="font-bold">{match.scoreA}</span>
+                                  <span className="truncate">{match.teamA}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="font-bold">{match.scoreB}</span>
+                                  <span className="truncate">{match.teamB}</span>
+                                </div>
+                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Quarter Finals */}
+                    <div className="absolute left-1/2 top-8 transform -translate-x-1/2 space-y-8">
+                      {knockoutMatches.filter(m => m.round === 'quarter_final').map((match: any) => (
+                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
+                          <Card className="w-40 hover:shadow-lg transition-shadow">
+                            <CardContent className="p-2">
+                              <div className="text-xs space-y-1 text-center">
+                                <div className="flex justify-between">
+                                  <span className="truncate">{match.teamA}</span>
+                                  <span className="font-bold">{match.scoreA}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="truncate">{match.teamB}</span>
+                                  <span className="font-bold">{match.scoreB}</span>
+                                </div>
+                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Semi Finals */}
+                    <div className="absolute left-1/2 top-20 transform -translate-x-1/2 space-y-16">
+                      {knockoutMatches.filter(m => m.round === 'semi_final').map((match: any) => (
+                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
+                          <Card className="w-40 hover:shadow-lg transition-shadow">
+                            <CardContent className="p-2">
+                              <div className="text-xs space-y-1 text-center">
+                                <div className="flex justify-between">
+                                  <span className="truncate">{match.teamA}</span>
+                                  <span className="font-bold">{match.scoreA}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="truncate">{match.teamB}</span>
+                                  <span className="font-bold">{match.scoreB}</span>
+                                </div>
+                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Final */}
+                    <div className="absolute left-1/2 top-36 transform -translate-x-1/2">
+                      {knockoutMatches.filter(m => m.round === 'final').map((match: any) => (
+                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
+                          <Card className="w-40 hover:shadow-lg transition-shadow bg-yellow-50 dark:bg-yellow-950/20">
+                            <CardContent className="p-2">
+                              <div className="text-xs space-y-1 text-center">
+                                <div className="flex justify-between">
+                                  <span className="truncate">{match.teamA}</span>
+                                  <span className="font-bold">{match.scoreA}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="truncate">{match.teamB}</span>
+                                  <span className="font-bold">{match.scoreB}</span>
+                                </div>
+                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <Link href="/platform/sports/apl/knockout" className="text-sm text-primary hover:underline">
+                      View Full Bracket →
+                    </Link>
+                  </div>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </section>

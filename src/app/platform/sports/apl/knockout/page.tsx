@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Clock, CheckCircle } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -82,71 +82,72 @@ export default function APLKnockoutPage() {
 
   const { roundOf16, quarterFinal, semiFinal, final } = bracketData;
 
-  const MatchCard = ({ match, showLink = true }: { match: any, showLink?: boolean }) => {
-    const content = (
-      <Card className={`transition-all hover:shadow-lg ${match.status === 'live' ? 'ring-2 ring-red-500' : ''}`}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <Badge variant="outline" className="text-xs">
-              Match {match.match_number}
-            </Badge>
-            {match.status === 'live' && (
-              <Badge variant="destructive" className="text-xs animate-pulse">
-                <Clock className="w-3 h-3 mr-1" />
-                LIVE
-              </Badge>
-            )}
-            {match.status === 'completed' && (
-              <Badge variant="default" className="text-xs bg-green-600">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                FINISHED
-              </Badge>
-            )}
-          </div>
+  const BracketMatch = ({ match, position }: { match: any, position: 'left' | 'right' | 'top' | 'bottom' }) => {
+    const isWinner = match.status === 'completed' && match.scoreA !== match.scoreB;
+    const winner = isWinner ? (match.scoreA > match.scoreB ? 'A' : 'B') : null;
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 flex-1">
-                {match.teamALogo && (
-                  <Image src={match.teamALogo} alt={match.teamA} width={24} height={24} className="w-6 h-6 rounded" />
-                )}
-                <span className="text-sm font-medium truncate">{match.teamA}</span>
-              </div>
-              <span className={`text-lg font-bold w-8 text-center ${
-                match.status === 'completed' && match.scoreA > match.scoreB ? 'text-yellow-600' : 'text-muted-foreground'
-              }`}>
+    const content = (
+      <Card className={`w-48 transition-all hover:shadow-lg ${match.status === 'live' ? 'ring-2 ring-red-500' : ''} ${isWinner ? 'bg-yellow-50 dark:bg-yellow-950/20' : ''}`}>
+        <CardContent className="p-3">
+          <div className="space-y-1">
+            <div className={`flex items-center gap-2 ${position === 'left' ? 'justify-end' : position === 'right' ? 'justify-start' : 'justify-center'}`}>
+              {match.teamALogo && position !== 'right' && (
+                <Image src={match.teamALogo} alt={match.teamA} width={20} height={20} className="w-5 h-5 rounded" />
+              )}
+              <span className={`text-xs font-medium truncate ${winner === 'A' ? 'font-bold text-yellow-600' : ''}`}>{match.teamA}</span>
+              {match.teamALogo && position === 'right' && (
+                <Image src={match.teamALogo} alt={match.teamA} width={20} height={20} className="w-5 h-5 rounded" />
+              )}
+              <span className={`text-xs font-bold w-6 text-center ${winner === 'A' ? 'text-yellow-600' : 'text-muted-foreground'}`}>
                 {match.scoreA}
               </span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 flex-1">
-                {match.teamBLogo && (
-                  <Image src={match.teamBLogo} alt={match.teamB} width={24} height={24} className="w-6 h-6 rounded" />
-                )}
-                <span className="text-sm font-medium truncate">{match.teamB}</span>
-              </div>
-              <span className={`text-lg font-bold w-8 text-center ${
-                match.status === 'completed' && match.scoreB > match.scoreA ? 'text-yellow-600' : 'text-muted-foreground'
-              }`}>
+            <div className={`flex items-center gap-2 ${position === 'left' ? 'justify-end' : position === 'right' ? 'justify-start' : 'justify-center'}`}>
+              {match.teamBLogo && position !== 'right' && (
+                <Image src={match.teamBLogo} alt={match.teamB} width={20} height={20} className="w-5 h-5 rounded" />
+              )}
+              <span className={`text-xs font-medium truncate ${winner === 'B' ? 'font-bold text-yellow-600' : ''}`}>{match.teamB}</span>
+              {match.teamBLogo && position === 'right' && (
+                <Image src={match.teamBLogo} alt={match.teamB} width={20} height={20} className="w-5 h-5 rounded" />
+              )}
+              <span className={`text-xs font-bold w-6 text-center ${winner === 'B' ? 'text-yellow-600' : 'text-muted-foreground'}`}>
                 {match.scoreB}
               </span>
             </div>
           </div>
 
           {match.start_time && (
-            <div className="mt-3 text-xs text-muted-foreground text-center">
+            <div className="mt-2 text-xs text-muted-foreground text-center">
               {new Date(match.start_time).toLocaleString([], {
                 dateStyle: 'short',
                 timeStyle: 'short'
               })}
             </div>
           )}
+
+          <div className="mt-1 flex justify-center">
+            {match.status === 'live' && (
+              <Badge variant="destructive" className="text-xs animate-pulse">
+                LIVE
+              </Badge>
+            )}
+            {match.status === 'completed' && (
+              <Badge variant="default" className="text-xs bg-green-600">
+                FINISHED
+              </Badge>
+            )}
+            {match.status === 'upcoming' && (
+              <Badge variant="outline" className="text-xs">
+                UPCOMING
+              </Badge>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
 
-    if (showLink && match.id) {
+    if (match.id) {
       return (
         <Link href={`/platform/sports/apl/${match.id}`}>
           {content}
@@ -157,27 +158,6 @@ export default function APLKnockoutPage() {
     return content;
   };
 
-  const RoundSection = ({ title, matches, cols = 1 }: { title: string, matches: any[], cols?: number }) => (
-    <div className="space-y-4">
-      <div className="text-center">
-        <h3 className="text-lg font-bold">{title}</h3>
-        <div className={`grid grid-cols-1 ${cols > 1 ? `md:grid-cols-${cols}` : ''} gap-4 mt-4`}>
-          {matches.length > 0 ? (
-            matches.map(match => (
-              <MatchCard key={match.id} match={match} />
-            ))
-          ) : (
-            <Card className="opacity-50">
-              <CardContent className="p-8 text-center text-muted-foreground">
-                <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Matches to be announced</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="p-4 md:p-8 space-y-12 max-w-7xl mx-auto">
@@ -187,41 +167,56 @@ export default function APLKnockoutPage() {
       </div>
 
       {/* Bracket Layout */}
-      <div className="space-y-12">
-        {/* Round of 16 */}
-        {roundOf16.length > 0 && (
-          <RoundSection title="Round of 16" matches={roundOf16} cols={2} />
-        )}
+      <div className="relative min-h-[600px] overflow-x-auto">
+        {/* Round of 16 - Left side */}
+        <div className="absolute left-0 top-0 space-y-8">
+          {roundOf16.slice(0, 4).map((match) => (
+            <BracketMatch key={match.id} match={match} position="left" />
+          ))}
+        </div>
+
+        {/* Round of 16 - Right side */}
+        <div className="absolute right-0 top-0 space-y-8">
+          {roundOf16.slice(4, 8).map((match) => (
+            <BracketMatch key={match.id} match={match} position="right" />
+          ))}
+        </div>
 
         {/* Quarter Finals */}
-        {quarterFinal.length > 0 && (
-          <RoundSection title="Quarter Finals" matches={quarterFinal} cols={2} />
-        )}
+        <div className="absolute left-1/2 top-16 transform -translate-x-1/2 space-y-16">
+          {quarterFinal.map((match) => (
+            <BracketMatch key={match.id} match={match} position="top" />
+          ))}
+        </div>
 
         {/* Semi Finals */}
-        {semiFinal.length > 0 && (
-          <RoundSection title="Semi Finals" matches={semiFinal} cols={1} />
-        )}
+        <div className="absolute left-1/2 top-32 transform -translate-x-1/2 space-y-32">
+          {semiFinal.map((match) => (
+            <BracketMatch key={match.id} match={match} position="top" />
+          ))}
+        </div>
 
         {/* Final */}
-        {final.length > 0 && (
-          <RoundSection title="Final" matches={final} cols={1} />
-        )}
-
-        {/* No matches message */}
-        {roundOf16.length === 0 && quarterFinal.length === 0 &&
-         semiFinal.length === 0 && final.length === 0 && (
-          <Card className="max-w-md mx-auto">
-            <CardContent className="p-8 text-center">
-              <Trophy className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-bold mb-2">Bracket Coming Soon</h3>
-              <p className="text-muted-foreground">
-                The knockout bracket will be available once the group stage concludes.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        <div className="absolute left-1/2 top-48 transform -translate-x-1/2">
+          {final.map((match) => (
+            <BracketMatch key={match.id} match={match} position="top" />
+          ))}
+        </div>
       </div>
+
+      {/* Fallback to old layout if no bracket data */}
+      {roundOf16.length === 0 && quarterFinal.length === 0 &&
+       semiFinal.length === 0 && final.length === 0 && (
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-8 text-center">
+            <Trophy className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-bold mb-2">Bracket Coming Soon</h3>
+            <p className="text-muted-foreground">
+              The knockout bracket will be available once the group stage concludes.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
