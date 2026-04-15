@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import styles from './apl.module.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -302,13 +303,13 @@ export default function APLFootballPage() {
   const { currentMatch, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers } = dashboardData;
 
   return (
-    <div className="p-4 md:p-8 space-y-12 max-w-7xl mx-auto">
+    <div className={`p-4 md:p-8 space-y-12 max-w-7xl mx-auto ${styles.aplRoot}`}>
 
       {/* Hero Live Match Banner or Stay Tuned */}
       <section>
         {currentMatch && (
           <Link href={`/platform/sports/apl/${currentMatch.id}`}>
-            <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer shadow-2xl">
+            <Card className={`bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer shadow-2xl ${styles.heroCard}`}>
               <CardContent className="p-8 md:p-12 flex flex-col items-center relative">
                 <div className="flex items-center gap-3 mb-8">
                   <Badge variant={currentMatch.status === 'LIVE' ? "destructive" : "secondary"} className={currentMatch.status === 'LIVE' ? "bg-red-500 hover:bg-red-600 animate-pulse text-xs px-2 py-0 rounded-sm" : "text-xs px-2 py-0 rounded-sm"}>
@@ -370,7 +371,7 @@ export default function APLFootballPage() {
 
       {/* Navigation Links */}
       <section>
-        <Card className="bg-card border-border shadow-sm">
+        <Card className={`bg-card border-border shadow-sm ${styles.glassCard}`}>
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/platform/sports/apl/matches" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
@@ -586,7 +587,7 @@ export default function APLFootballPage() {
           <div className="flex items-center justify-between mb-4 h-10">
             <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
           </div>
-          <Card className="bg-card border border-border text-foreground pt-4 flex-1 shadow-sm">
+          <Card className={`bg-card border border-border text-foreground pt-4 flex-1 shadow-sm ${styles.sectionCard}`}>
             <CardContent className="p-0">
               <ScrollArea className="h-[400px]">
                 <Table>
@@ -634,7 +635,7 @@ export default function APLFootballPage() {
               <div className="space-y-3">
                 {upcomingMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No upcoming matches scheduled.</p>}
                 {upcomingMatches.map((match: any) => (
-                  <div key={match.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors shadow-sm">
+                  <div key={match.id} className={`bg-card border border-border rounded-xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors shadow-sm ${styles.matchCard}`}>
                     <div>
                       <h4 className="font-bold text-foreground">{match.teamA} VS {match.teamB}</h4>
                       <p className="text-xs text-muted-foreground font-semibold tracking-wide mt-1">
@@ -655,7 +656,7 @@ export default function APLFootballPage() {
               <div className="space-y-4">
                 {pastMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No past matches recorded.</p>}
                 {pastMatches.map((match: any) => (
-                  <div key={match.id} className="bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm">
+                  <div key={match.id} className={`bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm ${styles.matchCard}`}>
                     <div className="flex justify-between items-center mb-4">
                       <span className="text-xs font-bold text-muted-foreground tracking-wide">{match.date}</span>
                       <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 hover:bg-yellow-500/20 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Finished</Badge>
