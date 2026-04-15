@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -93,9 +95,18 @@ export default function APLPlayerStatsPage() {
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">APL Player Statistics</h1>
-        <p className="text-muted-foreground">Track goals, assists, and team performance</p>
+      <div className="text-center space-y-4">
+        <div className="flex flex-col items-center gap-3 md:flex-row md:justify-between md:items-center">
+          <div className="space-y-2 text-center md:text-left">
+            <h1 className="text-3xl font-bold tracking-tight">APL Player Statistics</h1>
+            <p className="text-muted-foreground">Track goals, assists, and team performance</p>
+          </div>
+          <Link href="/platform/sports/apl">
+            <Button variant="outline">
+              APL Home
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Overview Cards */}

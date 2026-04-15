@@ -9,9 +9,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, Trophy } from 'lucide-react';
+import { Calendar, Trophy, BarChart3 } from 'lucide-react';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
+const GROUP_NAMES = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F'];
+
+const normalizeGroupName = (group?: string) => {
+  if (!group || typeof group !== 'string') return 'Unassigned';
+  const trimmed = group.trim();
+  if (/^group\s*/i.test(trimmed)) {
+    return `Group ${trimmed.replace(/^group\s*/i, '').toUpperCase()}`;
+  }
+  return `Group ${trimmed.toUpperCase()}`;
+};
 
 function getStrapiMediaUrl(media: any): string | null {
   if (!media?.data?.attributes?.url) return null;
@@ -165,11 +176,14 @@ export default function APLFootballPage() {
     // 2. Leaderboards
     const groupsMap: Record<string, any[]> = {};
     const teamStats: Record<number, any> = {};
+    GROUP_NAMES.forEach((groupName) => {
+      groupsMap[groupName] = [];
+    });
 
     if (rawTeams && rawTeams.length > 0) {
       rawTeams.forEach((t: any) => {
         const attrs = t.attributes || {};
-        const groupName = attrs.group || 'Unassigned';
+        const groupName = normalizeGroupName(attrs.group);
         if (!groupsMap[groupName]) groupsMap[groupName] = [];
 
         const stats = {
@@ -177,6 +191,7 @@ export default function APLFootballPage() {
           team: attrs.name || `Team ${t.id}`,
           played: 0,
           won: 0,
+          draws: 0,
           lost: 0,
           points: 0
         };
@@ -199,19 +214,24 @@ export default function APLFootballPage() {
             teamStats[teamAId].played += 1;
             if (scoreA > scoreB) { teamStats[teamAId].won += 1; teamStats[teamAId].points += 3; }
             else if (scoreA < scoreB) { teamStats[teamAId].lost += 1; }
-            else { teamStats[teamAId].points += 1; }
+            else { teamStats[teamAId].draws += 1; teamStats[teamAId].points += 1; }
           }
           if (teamBId && teamStats[teamBId]) {
             teamStats[teamBId].played += 1;
             if (scoreB > scoreA) { teamStats[teamBId].won += 1; teamStats[teamBId].points += 3; }
             else if (scoreB < scoreA) { teamStats[teamBId].lost += 1; }
-            else { teamStats[teamBId].points += 1; }
+            else { teamStats[teamBId].draws += 1; teamStats[teamBId].points += 1; }
           }
         }
       });
     }
 
-    const displayGroups = Object.keys(groupsMap).sort().map(groupName => {
+    const orderedGroupNames = [
+      ...GROUP_NAMES,
+      ...Object.keys(groupsMap).filter((name) => !GROUP_NAMES.includes(name)).sort(),
+    ];
+
+    const displayGroups = orderedGroupNames.map((groupName) => {
       const sortedTeams = groupsMap[groupName]
         .sort((a, b) => b.points - a.points || b.won - a.won)
         .map((t, idx) => ({ ...t, rank: idx + 1 }));
@@ -371,12 +391,16 @@ export default function APLFootballPage() {
 
       {/* Navigation Links */}
       <section>
-        <Card className={`bg-card border-border shadow-sm ${styles.glassCard}`}>
+        <Card className="bg-card border-border shadow-sm">
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/platform/sports/apl/matches" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                 <Calendar className="w-4 h-4" />
                 All Matches
+              </Link>
+              <Link href="/platform/sports/apl/standings" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+                <BarChart3 className="w-4 h-4" />
+                Standings
               </Link>
               <Link href="/platform/sports/apl/players" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                 <Trophy className="w-4 h-4" />
@@ -418,21 +442,31 @@ export default function APLFootballPage() {
                             <TableHead className="text-muted-foreground font-bold px-4">TEAM</TableHead>
                             <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">P</TableHead>
                             <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">W</TableHead>
+                            <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">D</TableHead>
                             <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">L</TableHead>
                             <TableHead className="text-center text-foreground font-bold w-16 px-4">PTS</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {group.teams.map((team: any, idx: number) => (
-                            <TableRow key={team.id || idx} className="border-border hover:bg-muted/30">
-                              <TableCell className="text-center font-bold text-muted-foreground px-2">{team.rank}</TableCell>
-                              <TableCell className="font-bold tracking-wide px-4 whitespace-nowrap">{team.team}</TableCell>
-                              <TableCell className="text-center text-muted-foreground px-2">{team.played}</TableCell>
-                              <TableCell className="text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
-                              <TableCell className="text-center text-red-600 dark:text-red-500/80 px-2">{team.lost}</TableCell>
-                              <TableCell className="text-center font-black text-yellow-600 dark:text-yellow-500 text-base px-4">{team.points}</TableCell>
+                          {group.teams.length === 0 ? (
+                            <TableRow className="border-border hover:bg-muted/30">
+                              <TableCell colSpan={7} className="text-center text-muted-foreground px-4 py-6">
+                                No teams in this group yet.
+                              </TableCell>
                             </TableRow>
-                          ))}
+                          ) : (
+                            group.teams.map((team: any, idx: number) => (
+                              <TableRow key={team.id || idx} className="border-border hover:bg-muted/30">
+                                <TableCell className="text-center font-bold text-muted-foreground px-2">{team.rank}</TableCell>
+                                <TableCell className="font-bold tracking-wide px-4 whitespace-nowrap">{team.team}</TableCell>
+                                <TableCell className="text-center text-muted-foreground px-2">{team.played}</TableCell>
+                                <TableCell className="text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
+                                <TableCell className="text-center text-sky-500 dark:text-sky-400/90 px-2">{team.draws}</TableCell>
+                                <TableCell className="text-center text-red-600 dark:text-red-500/80 px-2">{team.lost}</TableCell>
+                                <TableCell className="text-center font-black text-yellow-600 dark:text-yellow-500 text-base px-4">{team.points}</TableCell>
+                              </TableRow>
+                            ))
+                          )}
                         </TableBody>
                       </Table>
                     </CardContent>
@@ -554,16 +588,16 @@ export default function APLFootballPage() {
         </section>
 
         {/* Top Scorers */}
-        <section className="lg:col-span-2 flex flex-col">
-          <div className="flex items-center justify-between mb-4 h-10">
+        <section className="lg:col-span-2  flex flex-col">
+          <div className="flex items-center  justify-between mb-4 h-10">
             <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
           </div>
-          <Card className={`bg-card border border-border text-foreground pt-4 flex-1 shadow-sm ${styles.sectionCard}`}>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[400px]">
+          <Card className={`bg-slate-50/90 border border-slate-600 text-foreground pt-4 flex-1 shadow-sm ${styles.sectionCard}`}>
+            <CardContent className="p-0 bg-transparent rounded-xl">
+              <ScrollArea className="h-[400px] bg-transparent">
                 <Table>
-                  <TableHeader className="bg-muted/50 sticky top-0 z-10 backdrop-blur-md">
-                    <TableRow className="border-border hover:bg-transparent">
+                  <TableHeader className="bg-slate-900/70 sticky top-0 z-10 backdrop-blur-md rounded-xl">
+                    <TableRow className=" rounded-xl hover:bg-transparent">
                       <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
                       <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
                       <TableHead className="text-right text-foreground font-bold px-6 w-24">GOALS</TableHead>
@@ -574,7 +608,7 @@ export default function APLFootballPage() {
                       <TableRow key={scorer.id || index} className="border-border hover:bg-muted/30">
                         <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
                         <TableCell className="px-4">
-                          <p className="font-bold tracking-wide whitespace-nowrap">{scorer.name}</p>
+                          <p className="font-bold text-red-500 tracking-wide whitespace-nowrap">{scorer.name}</p>
                           <p className="text-xs text-muted-foreground font-semibold mt-0.5">{scorer.team}</p>
                         </TableCell>
                         <TableCell className="text-right font-black text-yellow-600 dark:text-yellow-500 text-lg px-6">

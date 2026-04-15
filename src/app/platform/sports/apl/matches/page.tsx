@@ -183,13 +183,7 @@ export default function APLMatchesPage() {
           <Link href="/platform/sports/apl">
             <Button variant="outline">
               <Trophy className="w-4 h-4 mr-2" />
-              Dashboard
-            </Button>
-          </Link>
-          <Link href="/platform/sports/apl/admin">
-            <Button variant="outline">
-              <Users className="w-4 h-4 mr-2" />
-              Admin
+              APL Home
             </Button>
           </Link>
         </div>

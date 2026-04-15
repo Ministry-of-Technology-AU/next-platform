@@ -1,6 +1,6 @@
 .aplRoot {
   min-height: 100%;
-  background:
+  /* background:
     radial-gradient(
       circle at top left,
       rgba(245, 158, 11, 0.14),
@@ -17,7 +17,7 @@
       transparent 18%
     ),
     var(--background);
-  color: var(--foreground);
+  color: var(--foreground); */
 }
 
 .aplRoot > main {
@@ -36,20 +36,20 @@
   overflow: hidden;
 }
 
-.glassCard {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(24px);
+.sectionCard {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.92),
+    rgba(248, 250, 252, 0.86)
+  );
   border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
   border-radius: 1.75rem;
 }
 
-.dark .glassCard {
-  background: rgba(15, 23, 42, 0.82);
-  border-color: rgba(255, 255, 255, 0.14);
-}
+.dark .sectionCard {
+  background: rgba(15, 23, 42, 0.88);
 
-.sectionCard {
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.92),
@@ -94,10 +94,9 @@
 
 .knockoutBracket {
   display: grid;
-  grid-template-columns: minmax(13rem, 13rem) minmax(12rem, 12rem) minmax(
-      14rem,
-      14rem
-    ) minmax(12rem, 12rem) minmax(13rem, 13rem);
+  grid-template-columns:
+    minmax(13rem, 13rem) minmax(12rem, 12rem) minmax(14rem, 14rem)
+    minmax(12rem, 12rem) minmax(13rem, 13rem);
   gap: 1rem;
   align-items: flex-start;
   min-width: 100%;
