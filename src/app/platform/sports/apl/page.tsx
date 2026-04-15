@@ -442,142 +442,113 @@ export default function APLFootballPage() {
               </TabsContent>
 
             <TabsContent value="knockout" className="mt-0">
-              {knockoutMatches.length === 0 ? (
-                <Card className="bg-zinc-900 border-zinc-800 text-zinc-500">
-                  <CardContent className="h-64 flex flex-col items-center justify-center p-6 text-center">
-                    <p className="text-lg font-bold tracking-widest uppercase mb-2">Knockout Stage</p>
-                    <p className="text-sm">The bracket will be generated once the group stages conclude.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <h4 className="text-lg font-bold">Round of 16 Bracket</h4>
-                    <p className="text-sm text-muted-foreground">Click on matches to view details</p>
-                  </div>
-                  <div className="relative overflow-x-auto">
-                    {/* Round of 16 - Left */}
-                    <div className="absolute left-0 top-0 space-y-4">
+                  <div className="space-y-6">
+                <div className="text-center">
+                  <h4 className="text-lg font-bold">Knockout Bracket Preview</h4>
+                  <p className="text-sm text-muted-foreground">Matchups are shown with placeholders until teams are confirmed.</p>
+                </div>
+                <div className="w-full overflow-x-auto">
+                  <div className={styles.bracketPreviewMini}>
+                    <div className="space-y-4">
+                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Round of 16</div>
                       {knockoutMatches.filter(m => m.round === 'round_of_16').slice(0, 4).map((match: any) => (
-                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
-                          <Card className="w-40 hover:shadow-lg transition-shadow">
-                            <CardContent className="p-2">
-                              <div className="text-xs space-y-1">
-                                <div className="flex justify-between">
-                                  <span className="truncate">{match.teamA}</span>
-                                  <span className="font-bold">{match.scoreA}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="truncate">{match.teamB}</span>
-                                  <span className="font-bold">{match.scoreB}</span>
-                                </div>
-                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </Link>
+                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
+                          </div>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
+                          </div>
+                        </div>
                       ))}
                     </div>
 
-                    {/* Round of 16 - Right */}
-                    <div className="absolute right-0 top-0 space-y-4">
-                      {knockoutMatches.filter(m => m.round === 'round_of_16').slice(4, 8).map((match: any) => (
-                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
-                          <Card className="w-40 hover:shadow-lg transition-shadow">
-                            <CardContent className="p-2">
-                              <div className="text-xs space-y-1">
-                                <div className="flex justify-between">
-                                  <span className="font-bold">{match.scoreA}</span>
-                                  <span className="truncate">{match.teamA}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="font-bold">{match.scoreB}</span>
-                                  <span className="truncate">{match.teamB}</span>
-                                </div>
-                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </Link>
+                    <div className="space-y-4">
+                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Quarterfinals</div>
+                      {knockoutMatches.filter(m => m.round === 'quarter_final').slice(0, 2).map((match: any) => (
+                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
+                          </div>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
+                          </div>
+                        </div>
                       ))}
                     </div>
 
-                    {/* Quarter Finals */}
-                    <div className="absolute left-1/2 top-8 transform -translate-x-1/2 space-y-8">
-                      {knockoutMatches.filter(m => m.round === 'quarter_final').map((match: any) => (
-                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
-                          <Card className="w-40 hover:shadow-lg transition-shadow">
-                            <CardContent className="p-2">
-                              <div className="text-xs space-y-1 text-center">
-                                <div className="flex justify-between">
-                                  <span className="truncate">{match.teamA}</span>
-                                  <span className="font-bold">{match.scoreA}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="truncate">{match.teamB}</span>
-                                  <span className="font-bold">{match.scoreB}</span>
-                                </div>
-                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      ))}
-                    </div>
-
-                    {/* Semi Finals */}
-                    <div className="absolute left-1/2 top-20 transform -translate-x-1/2 space-y-16">
+                    <div className="space-y-4">
+                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Semifinals</div>
                       {knockoutMatches.filter(m => m.round === 'semi_final').map((match: any) => (
-                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
-                          <Card className="w-40 hover:shadow-lg transition-shadow">
-                            <CardContent className="p-2">
-                              <div className="text-xs space-y-1 text-center">
-                                <div className="flex justify-between">
-                                  <span className="truncate">{match.teamA}</span>
-                                  <span className="font-bold">{match.scoreA}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="truncate">{match.teamB}</span>
-                                  <span className="font-bold">{match.scoreB}</span>
-                                </div>
-                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </Link>
+                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
+                          </div>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center mt-4">Final</div>
+                      {knockoutMatches.filter(m => m.round === 'final').map((match: any) => (
+                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
+                          </div>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
+                          </div>
+                        </div>
                       ))}
                     </div>
 
-                    {/* Final */}
-                    <div className="absolute left-1/2 top-36 transform -translate-x-1/2">
-                      {knockoutMatches.filter(m => m.round === 'final').map((match: any) => (
-                        <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
-                          <Card className="w-40 hover:shadow-lg transition-shadow bg-yellow-50 dark:bg-yellow-950/20">
-                            <CardContent className="p-2">
-                              <div className="text-xs space-y-1 text-center">
-                                <div className="flex justify-between">
-                                  <span className="truncate">{match.teamA}</span>
-                                  <span className="font-bold">{match.scoreA}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="truncate">{match.teamB}</span>
-                                  <span className="font-bold">{match.scoreB}</span>
-                                </div>
-                                {match.status === 'live' && <Badge variant="destructive" className="text-xs w-full">LIVE</Badge>}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </Link>
+                    <div className="space-y-4">
+                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Quarterfinals</div>
+                      {knockoutMatches.filter(m => m.round === 'quarter_final').slice(2, 4).map((match: any) => (
+                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
+                          </div>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                  <div className="text-center">
-                    <Link href="/platform/sports/apl/knockout" className="text-sm text-primary hover:underline">
-                      View Full Bracket →
-                    </Link>
+
+                    <div className="space-y-4">
+                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Round of 16</div>
+                      {knockoutMatches.filter(m => m.round === 'round_of_16').slice(4, 8).map((match: any) => (
+                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
+                          </div>
+                          <div className={styles.bracketCardTitle}>
+                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
+                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              )}
+                <div className="text-center">
+                  <Link href="/platform/sports/apl/knockout" className="text-sm text-primary hover:underline">
+                    View Full Bracket →
+                  </Link>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </section>
