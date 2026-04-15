@@ -110,6 +110,11 @@
       "title": "My Resources",
       "items": [
         {
+          "title": "Ashokan Around",
+          "icon": "MapPinned",
+          "href": "/ashokan-around"
+        },
+        {
           "title": "My Profile",
           "icon": "UserCog",
           "href": "/profile"
