@@ -418,12 +418,11 @@ export default function APLFootballPage() {
       {/* Middle Section: Standings & Top Scorers */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
         <section className="lg:col-span-3">
-          <Tabs defaultValue="knockout" className="w-full">
+          <Tabs defaultValue="group" className="w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold tracking-tight">Standings</h3>
               <TabsList className="bg-muted border border-border">
                 <TabsTrigger value="group" className="data-[state=active]:bg-card shadow-sm">Group Stage</TabsTrigger>
-                <TabsTrigger value="knockout" className="data-[state=active]:bg-card shadow-sm">Knockout</TabsTrigger>
               </TabsList>
             </div>
 
@@ -588,24 +587,24 @@ export default function APLFootballPage() {
         </section>
 
         {/* Top Scorers */}
-        <section className="lg:col-span-2  flex flex-col">
-          <div className="flex items-center  justify-between mb-4 h-10">
+        <section className="lg:col-span-2 flex flex-col w-full">
+          <div className="flex items-center justify-between mb-4 h-10 w-full">
             <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
           </div>
-          <Card className={`bg-slate-50/90 border border-slate-600 text-foreground pt-4 flex-1 shadow-sm ${styles.sectionCard}`}>
-            <CardContent className="p-0 bg-transparent rounded-xl">
-              <ScrollArea className="h-[400px] bg-transparent">
-                <Table>
-                  <TableHeader className="bg-slate-900/70 sticky top-0 z-10 backdrop-blur-md rounded-xl">
-                    <TableRow className=" rounded-xl hover:bg-transparent">
-                      <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
+          <Card className={`w-full bg-slate-50/90 text-foreground pt-4 flex-1 shadow-sm ${styles.sectionCard}`}>
+            <CardContent className="w-full p-0 bg-transparent overflow-hidden rounded-lg">
+              <ScrollArea className="w-full h-[400px] bg-transparent">
+                <Table className="w-full p-0 border-none">
+                  <TableHeader className="bg-slate-900/70 sticky top-0 z-10 backdrop-blur-md border-none">
+                    <TableRow className="hover:bg-transparent border-none">
+                      <TableHead className="w-12 text-center rounded-tl-lg text-muted-foreground font-bold px-2">#</TableHead>
                       <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
-                      <TableHead className="text-right text-foreground font-bold px-6 w-24">GOALS</TableHead>
+                      <TableHead className="text-right text-foreground rounded-tr-lg font-bold px-6 w-24">GOALS</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {displayScorers.map((scorer: any, index: number) => (
-                      <TableRow key={scorer.id || index} className="border-border hover:bg-muted/30">
+                      <TableRow key={scorer.id || index} className="hover:bg-muted/30 border-none">
                         <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
                         <TableCell className="px-4">
                           <p className="font-bold text-red-500 tracking-wide whitespace-nowrap">{scorer.name}</p>
