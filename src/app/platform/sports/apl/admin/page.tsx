@@ -67,7 +67,8 @@ export default function APLAdminPage() {
     sold_at: 0,
     tier: 'tier1',
     goals: 0,
-    assists: 0
+    assists: 0,
+    clean_sheets: 0
   });
 
   const fetchData = async () => {
@@ -445,7 +446,8 @@ export default function APLAdminPage() {
       sold_at: 0,
       tier: 'tier1',
       goals: 0,
-      assists: 0
+      assists: 0,
+      clean_sheets: 0
     });
   };
 
@@ -525,7 +527,8 @@ export default function APLAdminPage() {
       sold_at: attrs.sold_at || 0,
       tier: attrs.tier || 'tier1',
       goals: attrs.goals || 0,
-      assists: attrs.assists || 0
+      assists: attrs.assists || 0,
+      clean_sheets: attrs.clean_sheets || 0
     });
     setEditingItem(participant);
     setParticipantDialogOpen(true);
@@ -1402,7 +1405,7 @@ export default function APLAdminPage() {
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="goals">Goals</Label>
                           <Input
@@ -1419,6 +1422,15 @@ export default function APLAdminPage() {
                             type="number"
                             value={participantForm.assists}
                             onChange={(e) => setParticipantForm({...participantForm, assists: parseInt(e.target.value) || 0})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="clean_sheets">Clean Sheets</Label>
+                          <Input
+                            id="clean_sheets"
+                            type="number"
+                            value={participantForm.clean_sheets}
+                            onChange={(e) => setParticipantForm({...participantForm, clean_sheets: parseInt(e.target.value) || 0})}
                           />
                         </div>
                       </div>
@@ -1457,6 +1469,7 @@ export default function APLAdminPage() {
                       <TableHead>Price</TableHead>
                       <TableHead>Goals</TableHead>
                       <TableHead>Assists</TableHead>
+                      <TableHead>Clean Sheets</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1480,6 +1493,7 @@ export default function APLAdminPage() {
                           <TableCell>₹{attrs.sold_at || 0}M</TableCell>
                           <TableCell>{attrs.goals || 0}</TableCell>
                           <TableCell>{attrs.assists || 0}</TableCell>
+                          <TableCell>{attrs.clean_sheets || 0}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => editParticipant(participant)}>
