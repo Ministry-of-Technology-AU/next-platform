@@ -12,9 +12,20 @@ import { Button } from '@/components/ui/button';
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
 function getStrapiMediaUrl(media: any): string | null {
-  if (!media?.data?.attributes?.url) return null;
-  const url = media.data.attributes.url;
+  const url = media?.data?.attributes?.url || media?.data?.url || media?.attributes?.url || media?.url;
+  if (!url) return null;
   return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
+}
+
+function toArray(value: any): any[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value.data)) return value.data;
+  return [];
+}
+
+function relationName(relation: any): string {
+  return relation?.data?.attributes?.name || relation?.data?.name || relation?.attributes?.name || relation?.name || 'Unknown';
 }
 
 export default function MatchPage() {
@@ -32,7 +43,7 @@ export default function MatchPage() {
         setRawData(d.data || null);
       }
     } catch (e) {
-      console.error("Polling error on match detail:", e);
+      console.error('Polling error on match detail:', e);
     } finally {
       setLoading(false);
     }
@@ -42,13 +53,11 @@ export default function MatchPage() {
     if (!id) return;
     fetchMatchData();
 
-    // SSE: listen for real-time push events from Strapi webhook
     const eventSource = new EventSource('/api/platform/sports/apl/sse');
 
     eventSource.onmessage = (event) => {
       try {
         JSON.parse(event.data);
-        // Re-fetch when any APL entity changes (match scores, participant stats)
         fetchMatchData();
       } catch (e) {
         console.error('[SSE] Parse error:', e);
@@ -59,66 +68,83 @@ export default function MatchPage() {
       console.warn('[SSE] Connection lost, will auto-reconnect...');
     };
 
-    // Commented out polling (kept for fallback reference):
-    // const interval = setInterval(fetchMatchData, 2000);
-
     return () => {
       eventSource.close();
-      // clearInterval(interval);
     };
-  }, [id, fetchMatchData]);
+  }, [id]);
 
   const matchData = useMemo(() => {
-    if (!rawData) return {
-      id,
-      teamA: 'Loading...',
-      teamB: 'Loading...',
-      scoreA: 0,
-      scoreB: 0,
-      status: 'upcoming',
-      type: 'Group stage',
-      period: 'Not started',
-      details: { events: [] },
-      teamAPlayers: [],
-      teamBPlayers: []
-    };
+    if (!rawData) {
+      return {
+        id,
+        teamA: 'Loading...',
+        teamB: 'Loading...',
+        scoreA: 0,
+        scoreB: 0,
+        status: 'upcoming',
+        type: 'Group stage',
+        period: 'Not started',
+        details: { events: [] as any[] },
+        teamAPlayers: [] as any[],
+        teamBPlayers: [] as any[],
+        teamALogo: null as string | null,
+        teamBLogo: null as string | null,
+        start_time: null as string | null,
+      };
+    }
 
-    const attrs = rawData.attributes || {};
-    const teamAName = attrs.team_a?.data?.attributes?.name || 'Team A';
-    const teamBName = attrs.team_b?.data?.attributes?.name || 'Team B';
+    const attrs = rawData.attributes || rawData;
+    const teamAData = attrs.team_a?.data?.attributes || attrs.team_a?.data || attrs.team_a || {};
+    const teamBData = attrs.team_b?.data?.attributes || attrs.team_b?.data || attrs.team_b || {};
+    const teamAName = teamAData.name || 'Team A';
+    const teamBName = teamBData.name || 'Team B';
 
     const parsePlayers = (teamKey: 'team_a' | 'team_b'): any[] => {
-      const members = attrs[teamKey]?.data?.attributes?.members?.data || [];
-      return members.map((p: any) => ({
-        id: p.id.toString(),
-        name: p.attributes?.name || 'Unknown',
-        goals: p.attributes?.goals || 0,
-      })).sort((a: any, b: any) => b.goals - a.goals);
+      const team = attrs[teamKey]?.data?.attributes || attrs[teamKey]?.data || attrs[teamKey] || {};
+      const players = toArray(team.participants || team.members);
+
+      return players
+        .map((p: any) => {
+          const participant = p?.attributes || p;
+          return {
+            id: String(p?.id || participant?.id || participant?.documentId || participant?.name || 'unknown'),
+            name: participant?.name || 'Unknown',
+            goals: Number(participant?.goals || 0),
+          };
+        })
+        .sort((a: any, b: any) => b.goals - a.goals);
     };
 
-    const goalEvents = (attrs.goal_events?.data || []).map((event: any) => {
-      const eventAttrs = event.attributes || {};
-      const scorer = eventAttrs.scorer?.data?.attributes?.name || 'Unknown';
-      const assister = eventAttrs.assister?.data?.attributes?.name;
+    const goalEvents = toArray(attrs.goal_events).map((event: any) => {
+      const eventAttrs = event?.attributes || event || {};
+      const scorer = relationName(eventAttrs.scorer);
+      const assister = relationName(eventAttrs.assister);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
       const action = eventAttrs.is_own_goal ? 'Own Goal' : eventAttrs.is_penalty ? 'Penalty Goal' : 'Goal';
-      const minute = eventAttrs.minute || 0;
+      const minute = Number(eventAttrs.minute || 0);
+
       return {
         minute,
         time: `${minute}'`,
         action,
         player: scorer,
         team: teamLabel,
-        description: assister ? `Assist: ${assister}` : '',
+        description: assister !== 'Unknown' ? `Assist: ${assister}` : '',
       };
     });
 
-    const cardEvents = (attrs.card_events?.data || []).map((event: any) => {
-      const eventAttrs = event.attributes || {};
-      const player = eventAttrs.player?.data?.attributes?.name || 'Unknown';
+    const cardEvents = toArray(attrs.card_events).map((event: any) => {
+      const eventAttrs = event?.attributes || event || {};
+      const player = relationName(eventAttrs.player);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
-      const cardLabel = eventAttrs.card_type === 'red' ? 'Red Card' : eventAttrs.card_type === 'yellow_red' ? 'Yellow + Red Card' : 'Yellow Card';
-      const minute = eventAttrs.minute || 0;
+      const cardLabel =
+        eventAttrs.card_type === 'red'
+          ? 'Red Card'
+          : eventAttrs.card_type === 'yellow_red'
+            ? 'Yellow + Red Card'
+            : 'Yellow Card';
+      const minute = Number(eventAttrs.minute || 0);
+
       return {
         minute,
         time: `${minute}'`,
@@ -129,11 +155,12 @@ export default function MatchPage() {
       };
     });
 
-    const saveEvents = (attrs.save_events?.data || []).map((event: any) => {
-      const eventAttrs = event.attributes || {};
-      const keeper = eventAttrs.goalkeeper?.data?.attributes?.name || 'Unknown';
+    const saveEvents = toArray(attrs.save_events).map((event: any) => {
+      const eventAttrs = event?.attributes || event || {};
+      const keeper = relationName(eventAttrs.goalkeeper);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
-      const minute = eventAttrs.minute || 0;
+      const minute = Number(eventAttrs.minute || 0);
+
       return {
         minute,
         time: `${minute}'`,
@@ -144,12 +171,13 @@ export default function MatchPage() {
       };
     });
 
-    const substituteEvents = (attrs.substitution_events?.data || []).map((event: any) => {
-      const eventAttrs = event.attributes || {};
-      const offPlayer = eventAttrs.player_off?.data?.attributes?.name || 'Unknown';
-      const onPlayer = eventAttrs.player_on?.data?.attributes?.name || 'Unknown';
+    const substituteEvents = toArray(attrs.substitution_events).map((event: any) => {
+      const eventAttrs = event?.attributes || event || {};
+      const offPlayer = relationName(eventAttrs.player_off);
+      const onPlayer = relationName(eventAttrs.player_on);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
-      const minute = eventAttrs.minute || 0;
+      const minute = Number(eventAttrs.minute || 0);
+
       return {
         minute,
         time: `${minute}'`,
@@ -164,8 +192,8 @@ export default function MatchPage() {
       id,
       teamA: teamAName,
       teamB: teamBName,
-      teamALogo: getStrapiMediaUrl(attrs.team_a?.data?.attributes?.logo),
-      teamBLogo: getStrapiMediaUrl(attrs.team_b?.data?.attributes?.logo),
+      teamALogo: getStrapiMediaUrl(teamAData.logo),
+      teamBLogo: getStrapiMediaUrl(teamBData.logo),
       scoreA: attrs.team_a_score || 0,
       scoreB: attrs.team_b_score || 0,
       status: attrs.status || 'upcoming',
@@ -173,12 +201,14 @@ export default function MatchPage() {
       period: attrs.period?.replace('_', ' ') || 'Not started',
       start_time: attrs.start_time,
       details: {
-        events: [...goalEvents, ...cardEvents, ...saveEvents, ...substituteEvents].sort((a: any, b: any) => (a.minute || 0) - (b.minute || 0))
+        events: [...goalEvents, ...cardEvents, ...saveEvents, ...substituteEvents].sort((a: any, b: any) => (a.minute || 0) - (b.minute || 0)),
       },
       teamAPlayers: parsePlayers('team_a'),
-      teamBPlayers: parsePlayers('team_b')
+      teamBPlayers: parsePlayers('team_b'),
     };
   }, [rawData, id]);
+
+  const isLive = String(matchData.status).toLowerCase() === 'live';
 
   if (loading && !rawData) return <div className="p-8 text-center text-muted-foreground">Loading Match Details...</div>;
 
@@ -195,7 +225,7 @@ export default function MatchPage() {
 
       <Card className="border-2 border-primary/20 shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 m-4">
-          <Badge variant={matchData.status === 'Live' ? 'destructive' : 'default'} className={matchData.status === 'Live' ? 'animate-pulse' : ''}>
+          <Badge variant={isLive ? 'destructive' : 'default'} className={isLive ? 'animate-pulse' : ''}>
             {matchData.status}
           </Badge>
         </div>
@@ -220,8 +250,6 @@ export default function MatchPage() {
                 <span className="text-muted-foreground/30 text-3xl">-</span>
                 <span>{matchData.scoreB}</span>
               </div>
-
-
             </div>
 
             <div className="flex flex-col items-center flex-1">
@@ -280,18 +308,20 @@ export default function MatchPage() {
             <div className="space-y-4">
               {matchData.details.events.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No timeline events recorded.</p>
-              ) : matchData.details.events.map((ev: any, idx: number) => (
-                <div key={idx} className="flex gap-4 items-start text-sm">
-                  <span className="text-muted-foreground whitespace-nowrap">{ev.time}</span>
-                  <div className="flex-1 space-y-1">
-                    <p className="font-medium">
-                      {ev.action}
-                      <span className="text-muted-foreground font-normal"> by {ev.player} ({ev.team})</span>
-                    </p>
-                    {ev.description ? <p className="text-xs text-muted-foreground">{ev.description}</p> : null}
+              ) : (
+                matchData.details.events.map((ev: any, idx: number) => (
+                  <div key={idx} className="flex gap-4 items-start text-sm">
+                    <span className="text-muted-foreground whitespace-nowrap">{ev.time}</span>
+                    <div className="flex-1 space-y-1">
+                      <p className="font-medium">
+                        {ev.action}
+                        <span className="text-muted-foreground font-normal"> by {ev.player} ({ev.team})</span>
+                      </p>
+                      {ev.description ? <p className="text-xs text-muted-foreground">{ev.description}</p> : null}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

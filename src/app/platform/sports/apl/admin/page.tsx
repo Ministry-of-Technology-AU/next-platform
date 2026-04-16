@@ -60,7 +60,7 @@ export default function APLAdminPage() {
     logo: null as File | null
   });
 
-  const [participantForm, setParticipantForm] = useState({
+  const [participantForm, setParticipantForm] = useState<any>({
     name: '',
     team: '',
     isCM: false,
@@ -141,10 +141,25 @@ export default function APLAdminPage() {
     team: 'team_a'
   });
 
+  const getDerivedMatchScores = (goalEvents: any[] = []) => ({
+    team_a_score: goalEvents.filter((event: any) => event?.team === 'team_a').length,
+    team_b_score: goalEvents.filter((event: any) => event?.team === 'team_b').length,
+  });
+
+  const toInteger = (value: any, fallback = 0) => {
+    const parsed = parseInt(value?.toString() || '', 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  };
+
+  const toFloat = (value: any, fallback = 0) => {
+    const parsed = parseFloat(value?.toString() || '');
+    return Number.isNaN(parsed) ? fallback : parsed;
+  };
+
   const prepareMatchPayload = (form: any) => {
     const goal_events = (form.goal_events || []).map((event: any) => ({
       team: event.team,
-      minute: parseInt(event.minute?.toString() || '0') || 0,
+      minute: toInteger(event.minute, 1),
       is_penalty: event.is_penalty,
       is_own_goal: event.is_own_goal,
       ...(event.scorer ? { scorer: { id: parseInt(event.scorer) } } : {}),
@@ -153,21 +168,21 @@ export default function APLAdminPage() {
 
     const card_events = (form.card_events || []).map((event: any) => ({
       team: event.team,
-      minute: parseInt(event.minute?.toString() || '0') || 0,
+      minute: toInteger(event.minute, 1),
       card_type: event.card_type,
       ...(event.player ? { player: { id: parseInt(event.player) } } : {})
     }));
 
     const save_events = (form.save_events || []).map((event: any) => ({
       team: event.team,
-      minute: parseInt(event.minute?.toString() || '0') || 0,
-      saves: parseInt(event.saves?.toString() || '0') || 0,
+      minute: toInteger(event.minute, 1),
+      saves: toInteger(event.saves, 0),
       ...(event.goalkeeper ? { goalkeeper: { id: parseInt(event.goalkeeper) } } : {})
     }));
 
     const substitution_events = (form.substitution_events || []).map((event: any) => ({
       team: event.team,
-      minute: parseInt(event.minute?.toString() || '0') || 0,
+      minute: toInteger(event.minute, 1),
       ...(event.player_off ? { player_off: { id: parseInt(event.player_off) } } : {}),
       ...(event.player_on ? { player_on: { id: parseInt(event.player_on) } } : {})
     }));
@@ -180,6 +195,14 @@ export default function APLAdminPage() {
     };
   };
 
+  const prepareParticipantPayload = (form: any) => ({
+    ...form,
+    sold_at: toFloat(form.sold_at, 0),
+    goals: toInteger(form.goals, 0),
+    assists: toInteger(form.assists, 0),
+    clean_sheets: toInteger(form.clean_sheets, 0),
+  });
+
   // Match CRUD operations
   const handleCreateMatch = async () => {
     try {
@@ -190,6 +213,7 @@ export default function APLAdminPage() {
           data: {
             ...matchForm,
             ...prepareMatchPayload(matchForm),
+            ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
             team_b: { id: parseInt(matchForm.team_b) },
             match_number: matchForm.match_number ? parseInt(matchForm.match_number) : null
@@ -221,6 +245,7 @@ export default function APLAdminPage() {
           data: {
             ...matchForm,
             ...prepareMatchPayload(matchForm),
+            ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
             team_b: { id: parseInt(matchForm.team_b) },
             match_number: matchForm.match_number ? parseInt(matchForm.match_number) : null
@@ -346,7 +371,7 @@ export default function APLAdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           data: {
-            ...participantForm,
+            ...prepareParticipantPayload(participantForm),
             team: { id: parseInt(participantForm.team) }
           }
         })
@@ -374,7 +399,7 @@ export default function APLAdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           data: {
-            ...participantForm,
+            ...prepareParticipantPayload(participantForm),
             team: { id: parseInt(participantForm.team) }
           }
         })
@@ -547,6 +572,11 @@ export default function APLAdminPage() {
     }
   };
 
+  const derivedScores = useMemo(
+    () => getDerivedMatchScores(matchForm.goal_events || []),
+    [matchForm.goal_events]
+  );
+
   if (loading) {
     return (
       <div className="p-8 text-center">
@@ -694,40 +724,42 @@ export default function APLAdminPage() {
                         />
                       </div>
                       {matchForm.status === 'live' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="period">Period</Label>
+                          <Select value={matchForm.period} onValueChange={(value) => setMatchForm({...matchForm, period: value})}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="first_half">1st Half</SelectItem>
+                              <SelectItem value="half_time">Half Time</SelectItem>
+                              <SelectItem value="second_half">2nd Half</SelectItem>
+                              <SelectItem value="extra_time_first">Extra Time 1st</SelectItem>
+                              <SelectItem value="extra_time_second">Extra Time 2nd</SelectItem>
+                              <SelectItem value="penalty_shootout">Penalties</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      {(matchForm.status === 'live' || matchForm.status === 'completed') && (
                         <>
                           <div className="space-y-2">
-                            <Label htmlFor="period">Period</Label>
-                            <Select value={matchForm.period} onValueChange={(value) => setMatchForm({...matchForm, period: value})}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="first_half">1st Half</SelectItem>
-                                <SelectItem value="half_time">Half Time</SelectItem>
-                                <SelectItem value="second_half">2nd Half</SelectItem>
-                                <SelectItem value="extra_time_first">Extra Time 1st</SelectItem>
-                                <SelectItem value="extra_time_second">Extra Time 2nd</SelectItem>
-                                <SelectItem value="penalty_shootout">Penalties</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
                             <Label htmlFor="team_a_score">Team A Score</Label>
-                            <Input
+                            <div
                               id="team_a_score"
-                              type="number"
-                              value={matchForm.team_a_score}
-                              onChange={(e) => setMatchForm({...matchForm, team_a_score: parseInt(e.target.value) || 0})}
-                            />
+                              className="h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm"
+                            >
+                              {derivedScores.team_a_score}
+                            </div>
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="team_b_score">Team B Score</Label>
-                            <Input
+                            <div
                               id="team_b_score"
-                              type="number"
-                              value={matchForm.team_b_score}
-                              onChange={(e) => setMatchForm({...matchForm, team_b_score: parseInt(e.target.value) || 0})}
-                            />
+                              className="h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm"
+                            >
+                              {derivedScores.team_b_score}
+                            </div>
                           </div>
                         </>
                       )}
@@ -771,7 +803,7 @@ export default function APLAdminPage() {
                                   value={event.minute}
                                   onChange={(e) => {
                                     const nextGoals = [...matchForm.goal_events];
-                                    nextGoals[idx] = { ...nextGoals[idx], minute: parseInt(e.target.value) || 1 };
+                                    nextGoals[idx] = { ...nextGoals[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, goal_events: nextGoals });
                                   }}
                                 />
@@ -893,7 +925,7 @@ export default function APLAdminPage() {
                                   value={event.minute}
                                   onChange={(e) => {
                                     const nextCards = [...matchForm.card_events];
-                                    nextCards[idx] = { ...nextCards[idx], minute: parseInt(e.target.value) || 1 };
+                                    nextCards[idx] = { ...nextCards[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, card_events: nextCards });
                                   }}
                                 />
@@ -984,7 +1016,7 @@ export default function APLAdminPage() {
                                   value={event.minute}
                                   onChange={(e) => {
                                     const nextSaves = [...matchForm.save_events];
-                                    nextSaves[idx] = { ...nextSaves[idx], minute: parseInt(e.target.value) || 1 };
+                                    nextSaves[idx] = { ...nextSaves[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, save_events: nextSaves });
                                   }}
                                 />
@@ -1015,7 +1047,7 @@ export default function APLAdminPage() {
                                   value={event.saves}
                                   onChange={(e) => {
                                     const nextSaves = [...matchForm.save_events];
-                                    nextSaves[idx] = { ...nextSaves[idx], saves: parseInt(e.target.value) || 0 };
+                                    nextSaves[idx] = { ...nextSaves[idx], saves: e.target.value };
                                     setMatchForm({ ...matchForm, save_events: nextSaves });
                                   }}
                                 />
@@ -1070,7 +1102,7 @@ export default function APLAdminPage() {
                                   value={event.minute}
                                   onChange={(e) => {
                                     const nextSubs = [...matchForm.substitution_events];
-                                    nextSubs[idx] = { ...nextSubs[idx], minute: parseInt(e.target.value) || 1 };
+                                    nextSubs[idx] = { ...nextSubs[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, substitution_events: nextSubs });
                                   }}
                                 />
@@ -1401,7 +1433,7 @@ export default function APLAdminPage() {
                             id="sold_at"
                             type="number"
                             value={participantForm.sold_at}
-                            onChange={(e) => setParticipantForm({...participantForm, sold_at: parseFloat(e.target.value) || 0})}
+                            onChange={(e) => setParticipantForm({...participantForm, sold_at: e.target.value})}
                           />
                         </div>
                       </div>
@@ -1412,7 +1444,7 @@ export default function APLAdminPage() {
                             id="goals"
                             type="number"
                             value={participantForm.goals}
-                            onChange={(e) => setParticipantForm({...participantForm, goals: parseInt(e.target.value) || 0})}
+                            onChange={(e) => setParticipantForm({...participantForm, goals: e.target.value})}
                           />
                         </div>
                         <div className="space-y-2">
@@ -1421,7 +1453,7 @@ export default function APLAdminPage() {
                             id="assists"
                             type="number"
                             value={participantForm.assists}
-                            onChange={(e) => setParticipantForm({...participantForm, assists: parseInt(e.target.value) || 0})}
+                            onChange={(e) => setParticipantForm({...participantForm, assists: e.target.value})}
                           />
                         </div>
                         <div className="space-y-2">
@@ -1430,7 +1462,7 @@ export default function APLAdminPage() {
                             id="clean_sheets"
                             type="number"
                             value={participantForm.clean_sheets}
-                            onChange={(e) => setParticipantForm({...participantForm, clean_sheets: parseInt(e.target.value) || 0})}
+                            onChange={(e) => setParticipantForm({...participantForm, clean_sheets: e.target.value})}
                           />
                         </div>
                       </div>

@@ -4,7 +4,7 @@ import { strapiDelete, strapiGet, strapiPut } from '@/lib/apis/strapi';
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const populateQuery = `populate[team_a][populate][0]=members&populate[team_a][populate][1]=logo&populate[team_b][populate][0]=members&populate[team_b][populate][1]=logo&populate[goal_events][populate][0]=scorer&populate[goal_events][populate][1]=assister&populate[card_events][populate][0]=player&populate[save_events][populate][0]=goalkeeper&populate[substitution_events][populate][0]=player_off&populate[substitution_events][populate][1]=player_on`;
+    const populateQuery = `populate[team_a][populate][0]=participants&populate[team_a][populate][1]=logo&populate[team_b][populate][0]=participants&populate[team_b][populate][1]=logo&populate[goal_events][populate][0]=scorer&populate[goal_events][populate][1]=assister&populate[card_events][populate][0]=player&populate[save_events][populate][0]=goalkeeper&populate[substitution_events][populate][0]=player_off&populate[substitution_events][populate][1]=player_on`;
     const data = await strapiGet(`/apl-matches/${id}`, populateQuery);
     return NextResponse.json(data);
   } catch (error) {
