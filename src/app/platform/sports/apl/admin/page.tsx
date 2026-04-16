@@ -61,7 +61,6 @@ export default function APLAdminPage() {
     match_number: '',
     goal_events: [] as any[],
     card_events: [] as any[],
-    save_events: [] as any[],
     substitution_events: [] as any[],
   });
 
@@ -203,13 +202,6 @@ export default function APLAdminPage() {
     team: 'team_a'
   });
 
-  const createEmptySaveEvent = () => ({
-    goalkeeper: '',
-    minute: 1,
-    saves: 1,
-    team: 'team_a'
-  });
-
   const createEmptySubstitutionEvent = () => ({
     player_off: '',
     player_on: '',
@@ -298,7 +290,6 @@ export default function APLAdminPage() {
     const eventCollections = [
       ...(form.goal_events || []),
       ...(form.card_events || []),
-      ...(form.save_events || []),
       ...(form.substitution_events || []),
     ];
 
@@ -406,7 +397,6 @@ export default function APLAdminPage() {
       ...substitutions.map((event: any) => toTimelineSeconds(event.minute, event.second)),
       ...((matchForm.goal_events || []).map((event: any) => toTimelineSeconds(normalizeMinute(event.minute, 1), 0))),
       ...((matchForm.card_events || []).map((event: any) => toTimelineSeconds(normalizeMinute(event.minute, 1), 0))),
-      ...((matchForm.save_events || []).map((event: any) => toTimelineSeconds(normalizeMinute(event.minute, 1), 0))),
       0
     );
 
@@ -446,7 +436,6 @@ export default function APLAdminPage() {
     matchForm.card_events,
     matchForm.goal_events,
     matchForm.period,
-    matchForm.save_events,
     matchForm.status,
     matchForm.substitution_events,
     matchForm.team_a_starters,
@@ -518,13 +507,6 @@ export default function APLAdminPage() {
       ...(event.player ? { player: { id: parseInt(event.player) } } : {})
     }));
 
-    const save_events = (form.save_events || []).map((event: any) => ({
-      team: event.team,
-      minute: normalizeMinute(event.minute, 1),
-      saves: toInteger(event.saves, 0),
-      ...(event.goalkeeper ? { goalkeeper: { id: parseInt(event.goalkeeper) } } : {})
-    }));
-
     const substitution_events = (form.substitution_events || []).map((event: any) => ({
       team: event.team,
       minute: normalizeMinute(event.minute, 1),
@@ -542,7 +524,6 @@ export default function APLAdminPage() {
     return {
       goal_events,
       card_events,
-      save_events,
       substitution_events,
       team_a_starting_player_count,
       team_b_starting_player_count,
@@ -655,7 +636,6 @@ export default function APLAdminPage() {
       match_number: '',
       goal_events: [],
       card_events: [],
-      save_events: [],
       substitution_events: []
     });
     resetClock();
@@ -695,16 +675,6 @@ export default function APLAdminPage() {
         };
       });
 
-      const saveEvents = normalizeComponentCollection(attrs.save_events).map((event: any) => {
-        const eventAttrs = event?.attributes || event || {};
-        return {
-          goalkeeper: extractRelationId(eventAttrs.goalkeeper),
-          minute: eventAttrs.minute || 1,
-          saves: eventAttrs.saves || 1,
-          team: eventAttrs.team || 'team_a'
-        };
-      });
-
       const substitutionEvents = normalizeComponentCollection(attrs.substitution_events).map((event: any) => {
         const eventAttrs = event?.attributes || event || {};
         return {
@@ -735,14 +705,12 @@ export default function APLAdminPage() {
         match_number: attrs.match_number?.toString() || '',
         goal_events: goalEvents,
         card_events: cardEvents,
-        save_events: saveEvents,
         substitution_events: substitutionEvents
       });
 
       const maxExistingMinute = getMaxEventMinute({
         goal_events: goalEvents,
         card_events: cardEvents,
-        save_events: saveEvents,
         substitution_events: substitutionEvents,
       });
       setClockBaseMinute(maxExistingMinute);
@@ -1364,101 +1332,6 @@ export default function APLAdminPage() {
                                 <Button size="sm" variant="ghost" onClick={() => {
                                   const nextCards = matchForm.card_events.filter((_: any, i: number) => i !== idx);
                                   setMatchForm({ ...matchForm, card_events: nextCards });
-                                }}>
-                                  Remove
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-semibold">Goalkeeper Saves</h3>
-                          <Button size="sm" variant="outline" onClick={() => setMatchForm({
-                            ...matchForm,
-                            save_events: [...(matchForm.save_events || []), { ...createEmptySaveEvent(), minute: currentSuggestedMinute }]
-                          })}>
-                            Add Save
-                          </Button>
-                        </div>
-                        {matchForm.save_events.length === 0 && (
-                          <p className="text-sm text-muted-foreground">No goalkeeper saves recorded.</p>
-                        )}
-                        <div className="space-y-3">
-                          {(matchForm.save_events || []).map((event: any, idx: number) => (
-                            <div key={`save-${idx}`} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-3 border rounded-lg">
-                              <div className="space-y-2">
-                                <Label>Team</Label>
-                                <Select value={event.team} onValueChange={(value) => {
-                                  const nextSaves = [...matchForm.save_events];
-                                  nextSaves[idx] = sanitizeEventPlayerFields(nextSaves[idx], value, ['goalkeeper']);
-                                  setMatchForm({ ...matchForm, save_events: nextSaves });
-                                }}>
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="team_a">{teamAName}</SelectItem>
-                                    <SelectItem value="team_b">{teamBName}</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Minute</Label>
-                                <Input
-                                  type="number"
-                                  value={event.minute}
-                                  min={1}
-                                  onChange={(e) => {
-                                    const nextSaves = [...matchForm.save_events];
-                                    nextSaves[idx] = { ...nextSaves[idx], minute: e.target.value };
-                                    setMatchForm({ ...matchForm, save_events: nextSaves });
-                                  }}
-                                />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() => applyCurrentMinuteToEvent('save_events', idx)}
-                                >
-                                  Use current ({currentSuggestedMinute}')
-                                </Button>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Goalkeeper</Label>
-                                <Select value={event.goalkeeper} onValueChange={(value) => {
-                                  const nextSaves = [...matchForm.save_events];
-                                  nextSaves[idx] = { ...nextSaves[idx], goalkeeper: value };
-                                  setMatchForm({ ...matchForm, save_events: nextSaves });
-                                }}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select goalkeeper" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {getPlayersForEventTeam(event.team).map(player => (
-                                      <SelectItem key={player.id} value={player.id.toString()}>
-                                        {player.attributes?.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Saves</Label>
-                                <Input
-                                  type="number"
-                                  value={event.saves}
-                                  onChange={(e) => {
-                                    const nextSaves = [...matchForm.save_events];
-                                    nextSaves[idx] = { ...nextSaves[idx], saves: e.target.value };
-                                    setMatchForm({ ...matchForm, save_events: nextSaves });
-                                  }}
-                                />
-                              </div>
-                              <div className="flex items-end justify-end">
-                                <Button size="sm" variant="ghost" onClick={() => {
-                                  const nextSaves = matchForm.save_events.filter((_: any, i: number) => i !== idx);
-                                  setMatchForm({ ...matchForm, save_events: nextSaves });
                                 }}>
                                   Remove
                                 </Button>

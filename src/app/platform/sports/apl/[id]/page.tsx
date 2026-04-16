@@ -187,25 +187,6 @@ export default function MatchPage() {
       };
     });
 
-    const saveEvents = toArray(attrs.save_events).map((event: any, index: number) => {
-      const eventAttrs = event?.attributes || event || {};
-      const keeper = relationName(eventAttrs.goalkeeper);
-      const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
-      const minute = Number(eventAttrs.minute || 0);
-      const eventSeconds = toTimelineSeconds(minute, 0);
-
-      return {
-        minute,
-        time: `${minute}'`,
-        action: 'Goalkeeper Saves',
-        player: keeper,
-        team: teamLabel,
-        description: `${eventAttrs.saves || 0} saves`,
-        eventSeconds,
-        sortIndex: 2000 + index,
-      };
-    });
-
     const substituteEvents = toArray(attrs.substitution_events).map((event: any, index: number) => {
       const eventAttrs = event?.attributes || event || {};
       const offPlayer = relationName(eventAttrs.player_off);
@@ -228,7 +209,7 @@ export default function MatchPage() {
       };
     });
 
-    const timelineEvents = [...goalEvents, ...cardEvents, ...saveEvents, ...substituteEvents].sort(
+    const timelineEvents = [...goalEvents, ...cardEvents, ...substituteEvents].sort(
       (a: any, b: any) => (a.eventSeconds || 0) - (b.eventSeconds || 0) || (a.sortIndex || 0) - (b.sortIndex || 0)
     );
 
