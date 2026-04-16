@@ -39,6 +39,26 @@ const getNextMatchNumber = async (): Promise<number> => {
   return maxMatchNumber + 1;
 };
 
+const MAX_MATCH_NUMBER_RETRIES = 3;
+
+const isMatchNumberConflictError = (error: any): boolean => {
+  const responseStatus = error?.response?.status;
+  const serializedError = JSON.stringify(error?.response?.data || '').toLowerCase();
+
+  if (responseStatus === 409 && serializedError.includes('match_number')) {
+    return true;
+  }
+
+  return (
+    serializedError.includes('match_number')
+    && (
+      serializedError.includes('unique')
+      || serializedError.includes('constraint')
+      || serializedError.includes('already exists')
+    )
+  );
+};
+
 const buildProxyErrorResponse = (error: any) => {
   const responseStatus = error?.response?.status;
   const responseData = error?.response?.data;
@@ -47,7 +67,11 @@ const buildProxyErrorResponse = (error: any) => {
 
   if (
     serializedError.includes('match_number')
-    && (serializedError.includes('unique') || serializedError.includes('constraint'))
+    && (
+      serializedError.includes('unique')
+      || serializedError.includes('constraint')
+      || serializedError.includes('already exists')
+    )
   ) {
     return NextResponse.json(
       { error: 'Match number conflict while auto-assigning. Please try creating the match again.' },
@@ -115,15 +139,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Team A and Team B must be different' }, { status: 400 });
     }
 
-    const nextMatchNumber = await getNextMatchNumber();
-    const data = await strapiPost('/apl-matches', {
-      data: {
-        ...normalizedPayload,
-        match_number: nextMatchNumber,
-      },
-    });
+    // Retry a few times if another request claims the same auto-assigned number first.
+    for (let attempt = 1; attempt <= MAX_MATCH_NUMBER_RETRIES; attempt += 1) {
+      const nextMatchNumber = await getNextMatchNumber();
 
-    return NextResponse.json(data);
+      try {
+        const data = await strapiPost('/apl-matches', {
+          data: {
+            ...normalizedPayload,
+            match_number: nextMatchNumber,
+          },
+        });
+
+        return NextResponse.json(data);
+      } catch (error) {
+        const shouldRetry = isMatchNumberConflictError(error) && attempt < MAX_MATCH_NUMBER_RETRIES;
+        if (!shouldRetry) {
+          throw error;
+        }
+      }
+    }
+
+    throw new Error('Failed to auto-assign match number after retries');
   } catch (error) {
     console.error("API proxy error:", error);
     return buildProxyErrorResponse(error);
