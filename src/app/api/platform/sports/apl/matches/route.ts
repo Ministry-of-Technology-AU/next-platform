@@ -12,15 +12,67 @@ const extractTeamId = (value: any): string => {
   return typeof candidate === 'string' || typeof candidate === 'number' ? candidate.toString() : '';
 };
 
+const removeMatchNumberFromPayload = (payload: any) => {
+  if (!payload || typeof payload !== 'object') return payload;
+  const { match_number: _ignoredMatchNumber, ...rest } = payload;
+  return rest;
+};
+
+const toPositiveInteger = (value: unknown): number | null => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+};
+
+const getNextMatchNumber = async (): Promise<number> => {
+  const response = await strapiGet('/apl-matches', 'fields[0]=match_number&pagination[limit]=-1');
+  const matches = Array.isArray(response?.data) ? response.data : [];
+
+  let maxMatchNumber = 0;
+  for (const match of matches) {
+    const matchNumber = toPositiveInteger(match?.attributes?.match_number ?? match?.match_number);
+    if (matchNumber !== null && matchNumber > maxMatchNumber) {
+      maxMatchNumber = matchNumber;
+    }
+  }
+
+  return maxMatchNumber + 1;
+};
+
+const buildProxyErrorResponse = (error: any) => {
+  const responseStatus = error?.response?.status;
+  const responseData = error?.response?.data;
+  const serializedError = JSON.stringify(responseData || '').toLowerCase();
+  const message = responseData?.error?.message;
+
+  if (
+    serializedError.includes('match_number')
+    && (serializedError.includes('unique') || serializedError.includes('constraint'))
+  ) {
+    return NextResponse.json(
+      { error: 'Match number conflict while auto-assigning. Please try creating the match again.' },
+      { status: 409 }
+    );
+  }
+
+  if (typeof message === 'string' && message.trim() && responseStatus >= 400 && responseStatus < 500) {
+    return NextResponse.json({ error: message }, { status: responseStatus });
+  }
+
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+};
+
 const normalizeMatchPayload = (payload: any) => {
   if (!payload || typeof payload !== 'object') return payload;
 
-  const normalizedStartTime = typeof payload.start_time === 'string'
-    ? convertISTDateTimeLocalToISOString(payload.start_time)
-    : payload.start_time;
+  const payloadWithoutMatchNumber = removeMatchNumberFromPayload(payload);
+
+  const normalizedStartTime = typeof payloadWithoutMatchNumber.start_time === 'string'
+    ? convertISTDateTimeLocalToISOString(payloadWithoutMatchNumber.start_time)
+    : payloadWithoutMatchNumber.start_time;
 
   return {
-    ...payload,
+    ...payloadWithoutMatchNumber,
     ...(normalizedStartTime ? { start_time: normalizedStartTime } : {}),
   };
 };
@@ -63,11 +115,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Team A and Team B must be different' }, { status: 400 });
     }
 
-    const data = await strapiPost('/apl-matches', { data: normalizedPayload });
+    const nextMatchNumber = await getNextMatchNumber();
+    const data = await strapiPost('/apl-matches', {
+      data: {
+        ...normalizedPayload,
+        match_number: nextMatchNumber,
+      },
+    });
 
     return NextResponse.json(data);
   } catch (error) {
     console.error("API proxy error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return buildProxyErrorResponse(error);
   }
 }

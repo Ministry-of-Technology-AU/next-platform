@@ -58,7 +58,6 @@ export default function APLAdminPage() {
     start_time: '',
     period: 'not_started',
     round: 'group_stage',
-    match_number: '',
     goal_events: [] as any[],
     card_events: [] as any[],
     substitution_events: [] as any[],
@@ -547,8 +546,7 @@ export default function APLAdminPage() {
             ...prepareMatchPayload(matchForm),
             ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
-            team_b: { id: parseInt(matchForm.team_b) },
-            match_number: matchForm.match_number ? parseInt(matchForm.match_number) : null
+            team_b: { id: parseInt(matchForm.team_b) }
           }
         })
       });
@@ -559,7 +557,8 @@ export default function APLAdminPage() {
         resetMatchForm();
         fetchData();
       } else {
-        toast.error("Failed to create match");
+        const errorPayload = await response.json().catch(() => null);
+        toast.error(errorPayload?.error || "Failed to create match");
       }
     } catch {
       toast.error("Error creating match");
@@ -581,8 +580,7 @@ export default function APLAdminPage() {
             ...prepareMatchPayload(matchForm),
             ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
-            team_b: { id: parseInt(matchForm.team_b) },
-            match_number: matchForm.match_number ? parseInt(matchForm.match_number) : null
+            team_b: { id: parseInt(matchForm.team_b) }
           }
         })
       });
@@ -594,7 +592,8 @@ export default function APLAdminPage() {
         resetMatchForm();
         fetchData();
       } else {
-        toast.error("Failed to update match");
+        const errorPayload = await response.json().catch(() => null);
+        toast.error(errorPayload?.error || "Failed to update match");
       }
     } catch {
       toast.error("Error updating match");
@@ -633,7 +632,6 @@ export default function APLAdminPage() {
       start_time: '',
       period: 'not_started',
       round: 'group_stage',
-      match_number: '',
       goal_events: [],
       card_events: [],
       substitution_events: []
@@ -702,7 +700,6 @@ export default function APLAdminPage() {
         start_time: formatISTDateTimeForInput(attrs.start_time),
         period: attrs.period || 'not_started',
         round: attrs.round || 'group_stage',
-        match_number: attrs.match_number?.toString() || '',
         goal_events: goalEvents,
         card_events: cardEvents,
         substitution_events: substitutionEvents
@@ -755,6 +752,7 @@ export default function APLAdminPage() {
   );
 
   const starterValidationError = getStarterValidationError();
+  const editingMatchNumber = editingItem?.attributes?.match_number ?? editingItem?.match_number;
 
   if (loading) {
     return (
@@ -897,12 +895,14 @@ export default function APLAdminPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="match_number">Match Number</Label>
-                        <Input
+                        <div
                           id="match_number"
-                          type="number"
-                          value={matchForm.match_number}
-                          onChange={(e) => setMatchForm({...matchForm, match_number: e.target.value})}
-                        />
+                          className="h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
+                        >
+                          {editingItem
+                            ? (editingMatchNumber ? `Match #${editingMatchNumber}` : 'Auto-assigned when match is created')
+                            : 'Auto-assigned when match is created'}
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="start_time">Start Time</Label>
