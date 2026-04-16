@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { normalizePlayerName } from '@/lib/utils';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -50,7 +51,6 @@ export default function MatchPage() {
   };
 
   useEffect(() => {
-    if (!id) return;
     fetchMatchData();
 
     const eventSource = new EventSource('/api/platform/sports/apl/sse');
@@ -108,7 +108,7 @@ export default function MatchPage() {
           const participant = p?.attributes || p;
           return {
             id: String(p?.id || participant?.id || participant?.documentId || participant?.name || 'unknown'),
-            name: participant?.name || 'Unknown',
+            name: normalizePlayerName(participant?.name),
             goals: Number(participant?.goals || 0),
           };
         })

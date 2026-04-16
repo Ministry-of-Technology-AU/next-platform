@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trophy, Target, Users } from 'lucide-react';
+import { normalizePlayerName } from '@/lib/utils';
 
 export default function APLPlayerStatsPage() {
   const [rawParticipants, setRawParticipants] = useState<any[]>([]);
@@ -49,7 +50,7 @@ export default function APLPlayerStatsPage() {
 
     const participants = rawParticipants.map((p: any) => ({
       id: p.id,
-      name: p.attributes?.name || 'Unknown',
+      name: normalizePlayerName(p.attributes?.name),
       team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
       goals: p.attributes?.goals || 0,
       assists: p.attributes?.assists || 0,

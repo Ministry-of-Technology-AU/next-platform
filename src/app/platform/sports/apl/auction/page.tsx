@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, X } from 'lucide-react';
+import { normalizePlayerName } from '@/lib/utils';
 
 interface AuctionRow {
   serialNo: number;
@@ -75,7 +76,10 @@ export default function APLAuctionPage() {
       const res = await fetch('/api/platform/sports/apl/auction-results');
       if (!res.ok) return;
       const payload = await res.json();
-      setRows(payload.data || []);
+      setRows((payload.data || []).map((row: AuctionRow) => ({
+        ...row,
+        name: normalizePlayerName(row.name),
+      })));
     } catch (error) {
       console.error('Failed to fetch auction feed:', error);
     } finally {

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar, Trophy, BarChart3 } from 'lucide-react';
+import { normalizePlayerName } from '@/lib/utils';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -316,7 +317,7 @@ export default function APLFootballPage() {
       ? rawParticipants
           .map((p: any) => ({
             id: p.id,
-            name: p.attributes?.name || 'Unknown',
+            name: normalizePlayerName(p.attributes?.name),
             team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
             goals: p.attributes?.goals || 0
           }))
