@@ -10,6 +10,7 @@ import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { normalizePlayerName } from '@/lib/utils';
 import { formatISTDateTimeDisplay } from '@/lib/date-utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -253,6 +254,20 @@ export default function MatchPage() {
           </Link>
         </Button>
       </div>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
 
       <Card className="border-2 border-primary/20 shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 m-4">

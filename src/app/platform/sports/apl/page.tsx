@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar, Trophy, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { normalizePlayerName } from '@/lib/utils';
 import { formatISTDateTimeDisplay } from '@/lib/date-utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -852,6 +853,20 @@ export default function APLFootballPage() {
           </TabsContent>
         </Tabs>
       </section>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
     </div>
   );
 }

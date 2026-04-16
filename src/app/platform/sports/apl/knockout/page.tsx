@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Trophy } from 'lucide-react';
 import { formatISTDateTimeDisplay } from '@/lib/date-utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 const roundLabels: Record<string, string> = {
   round_of_16: 'Round of 16',
@@ -150,6 +151,20 @@ export default function APLKnockoutPage() {
           </div>
         </div>
       )}
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
     </div>
   );
 }

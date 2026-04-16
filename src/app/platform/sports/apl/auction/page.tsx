@@ -19,6 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, X } from 'lucide-react';
 import { normalizePlayerName } from '@/lib/utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 interface AuctionRow {
   serialNo: number;
@@ -569,6 +570,16 @@ export default function APLAuctionPage() {
             </div>
           )}
         </DialogContent>
-      </Dialog>    </section>
+      </Dialog>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+        ]}
+      />
+    </section>
   );
 }

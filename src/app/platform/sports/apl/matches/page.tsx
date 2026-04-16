@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Clock, Search, Trophy, Users } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatISTDateTimeDisplay } from '@/lib/date-utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -603,6 +604,20 @@ export default function APLMatchesPage() {
           </ScrollArea>
         </TabsContent>
       </Tabs>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trophy, Target, Users } from 'lucide-react';
 import { normalizePlayerName } from '@/lib/utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 export default function APLPlayerStatsPage() {
   const [rawParticipants, setRawParticipants] = useState<any[]>([]);
@@ -305,6 +306,20 @@ export default function APLPlayerStatsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatISTDateTimeDisplay, formatISTDateTimeForInput } from '@/lib/date-utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 export default function APLAdminPage() {
   const [activeTab, setActiveTab] = useState('matches');
@@ -1205,6 +1206,20 @@ export default function APLAdminPage() {
           </div>
         </TabsContent>
       </Tabs>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
     </div>
   );
 }
