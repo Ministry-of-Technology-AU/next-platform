@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { strapiGet, strapiPost } from '@/lib/apis/strapi';
+import { emitAplUpdate } from '@/lib/sse/apl-events';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -20,7 +21,15 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const data = await strapiPost('/apl-matches', { data: body });
+    const payload = body && typeof body === 'object' && 'data' in body ? body.data : body;
+    const data = await strapiPost('/apl-matches', { data: payload });
+
+    emitAplUpdate({
+      event: 'entry.create',
+      model: 'apl-matches',
+      id: data?.data?.id,
+    });
+
     return NextResponse.json(data);
   } catch (error) {
     console.error("API proxy error:", error);
