@@ -592,14 +592,14 @@ export default function APLFootballPage() {
             <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
           </div>
           <Card className={`w-full bg-slate-50/90 text-foreground pt-4 flex-1 shadow-sm ${styles.sectionCard}`}>
-            <CardContent className="w-full p-0 bg-transparent overflow-hidden rounded-lg">
+            <CardContent className="w-full p-0 bg-transparent overflow-hidden rounded-3xl">
               <ScrollArea className="w-full h-[400px] bg-transparent">
                 <Table className="w-full p-0 border-none">
                   <TableHeader className="bg-slate-900/70 sticky top-0 z-10 backdrop-blur-md border-none">
                     <TableRow className="hover:bg-transparent border-none">
-                      <TableHead className="w-12 text-center rounded-tl-lg text-muted-foreground font-bold px-2">#</TableHead>
+                      <TableHead className="w-12 text-center rounded-tl-3xl text-muted-foreground font-bold px-2">#</TableHead>
                       <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
-                      <TableHead className="text-right text-foreground rounded-tr-lg font-bold px-6 w-24">GOALS</TableHead>
+                      <TableHead className="text-right text-foreground rounded-tr-3xl font-bold px-6 w-24">GOALS</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
