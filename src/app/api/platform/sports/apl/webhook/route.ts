@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { aplEmitter } from '@/lib/sse/apl-emitter';
+import { emitAplUpdate } from '@/lib/sse/apl-events';
 
 export async function POST(request: Request) {
   try {
@@ -27,18 +27,22 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.json();
+    const { model, entry, event } = payload;
 
-    // Verify the webhook comes from Strapi (optional: add bearer token validation)
-    // For now, we'll just emit the update to all connected clients
-    aplEmitter.emit('apl-update', {
-      event: payload.event || 'update',
-      model: payload.model || 'apl-participants',
+    console.log(`[SSE Webhook] ${event} on ${model} (ID: ${entry?.id})`);
+
+    // Broadcast a normalized payload so clients can filter updates by model/id.
+    emitAplUpdate({
+      model,
+      event,
+      entryId: entry?.id,
+      id: entry?.id,
       timestamp: new Date().toISOString(),
     });
 
-    return Response.json({ success: true, message: 'Update broadcast to all clients' });
+    return NextResponse.json({ message: 'SSE broadcast sent' });
   } catch (error) {
-    console.error('[APL Webhook] Error:', error);
-    return Response.json({ success: false, error: 'Failed to process webhook' }, { status: 400 });
+    console.error('[SSE Webhook] Error:', error);
+    return NextResponse.json({ error: 'Failed to process webhook' }, { status: 400 });
   }
 }

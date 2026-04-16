@@ -70,6 +70,19 @@ export default auth(async function middleware(req) {
     return NextResponse.next()
   }
 
+  // Special access control for APL Admin
+  if (pathname === '/platform/sports/apl/admin') {
+    const userAccess = req.auth.user?.access || []
+
+    if (!userAccess.includes('apl_admin')) {
+      console.log(`❌ User ${req.auth.user.email} denied access to APL Admin`)
+      return NextResponse.redirect(new URL('/unauthorized', req.url))
+    }
+
+    console.log(`✅ User ${req.auth.user.email} granted access to APL Admin`)
+    return NextResponse.next()
+  }
+
   // Special access control for Rep Dashboard
   if (pathname === '/platform/rep-dashboard') {
     const userAccess = req.auth.user?.access || []

@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search } from 'lucide-react';
+import { normalizePlayerName } from '@/lib/utils';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -139,7 +140,7 @@ export default function APLRosterPage() {
 
           const player: Player = {
             id: entry.id,
-            name: entry.attributes?.name || `Player ${entry.id}`,
+            name: entry.attributes?.name ? normalizePlayerName(entry.attributes?.name) : `Player ${entry.id}`,
             tier: normalizeTier(entry.attributes?.tier),
             soldAt: entry.attributes?.sold_at ?? null,
             section: entry.attributes?.isCM ? 'CM' : 'NCM',
