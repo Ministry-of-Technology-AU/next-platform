@@ -31,6 +31,12 @@ function relationName(relation: any): string {
   return relation?.data?.attributes?.name || relation?.data?.name || relation?.attributes?.name || relation?.name || 'Unknown';
 }
 
+function toTimelineSeconds(minute: number, second = 0): number {
+  const safeMinute = Math.max(1, Number.isFinite(minute) ? Math.floor(minute) : 1);
+  const safeSecond = Math.min(59, Math.max(0, Number.isFinite(second) ? Math.floor(second) : 0));
+  return (safeMinute - 1) * 60 + safeSecond;
+}
+
 export default function MatchPage() {
   const params = useParams();
   const id = params?.id as string;
@@ -118,6 +124,7 @@ export default function MatchPage() {
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
       const action = eventAttrs.is_own_goal ? 'Own Goal' : eventAttrs.is_penalty ? 'Penalty Goal' : 'Goal';
       const minute = Number(eventAttrs.minute || 0);
+      const eventSeconds = toTimelineSeconds(minute, 0);
       const scorerKey = normalizePlayerName(scorer);
 
       if (scorerKey && scorerKey !== 'Unknown') {
@@ -131,6 +138,7 @@ export default function MatchPage() {
         player: scorer,
         team: teamLabel,
         description: '',
+        eventSeconds,
         sortIndex: index,
       };
     });
@@ -165,6 +173,7 @@ export default function MatchPage() {
             ? 'Yellow + Red Card'
             : 'Yellow Card';
       const minute = Number(eventAttrs.minute || 0);
+      const eventSeconds = toTimelineSeconds(minute, 0);
 
       return {
         minute,
@@ -173,6 +182,7 @@ export default function MatchPage() {
         player,
         team: teamLabel,
         description: '',
+        eventSeconds,
         sortIndex: 1000 + index,
       };
     });
@@ -182,6 +192,7 @@ export default function MatchPage() {
       const keeper = relationName(eventAttrs.goalkeeper);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
       const minute = Number(eventAttrs.minute || 0);
+      const eventSeconds = toTimelineSeconds(minute, 0);
 
       return {
         minute,
@@ -190,6 +201,7 @@ export default function MatchPage() {
         player: keeper,
         team: teamLabel,
         description: `${eventAttrs.saves || 0} saves`,
+        eventSeconds,
         sortIndex: 2000 + index,
       };
     });
@@ -200,20 +212,24 @@ export default function MatchPage() {
       const onPlayer = relationName(eventAttrs.player_on);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
       const minute = Number(eventAttrs.minute || 0);
+      const second = Number(eventAttrs.second || 0);
+      const eventSeconds = toTimelineSeconds(minute, second);
+      const formattedSecond = Math.min(59, Math.max(0, second)).toString().padStart(2, '0');
 
       return {
         minute,
-        time: `${minute}'`,
+        time: `${minute}' ${formattedSecond}\"`,
         action: 'Substitution',
         player: `${offPlayer} off, ${onPlayer} on`,
         team: teamLabel,
         description: '',
+        eventSeconds,
         sortIndex: 3000 + index,
       };
     });
 
     const timelineEvents = [...goalEvents, ...cardEvents, ...saveEvents, ...substituteEvents].sort(
-      (a: any, b: any) => (a.minute || 0) - (b.minute || 0) || (a.sortIndex || 0) - (b.sortIndex || 0)
+      (a: any, b: any) => (a.eventSeconds || 0) - (b.eventSeconds || 0) || (a.sortIndex || 0) - (b.sortIndex || 0)
     );
 
     const scoreA = attrs.team_a_score || 0;

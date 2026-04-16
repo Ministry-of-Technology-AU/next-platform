@@ -12,10 +12,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X, Play, Pause, RotateCcw } from 'lucide-react';
+import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X, Play, Pause, RotateCcw, Check, CircleX, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatISTDateTimeDisplay, formatISTDateTimeForInput } from '@/lib/date-utils';
+import {
+  evaluateTeamSubstitutionCompliance,
+  formatSecondsAsClock,
+  getRequiredSecondsForStartingPlayerCount,
+  toTimelineSeconds,
+} from '@/lib/apl-substitution-compliance';
 import DeveloperCredits from '@/components/developer-credits';
+
+const STARTER_SLOT_COUNT = 6;
+const EMPTY_STARTER_IDS = Array.from({ length: STARTER_SLOT_COUNT }, () => '');
+const STARTING_PLAYER_COUNT_OPTIONS = [10, 9, 8] as const;
 
 export default function APLAdminPage() {
   const [activeTab, setActiveTab] = useState('matches');
@@ -30,7 +40,7 @@ export default function APLAdminPage() {
 
   // Live minute tracking for event entry
   const [clockRunning, setClockRunning] = useState(false);
-  const [clockBaseMinute, setClockBaseMinute] = useState(1);
+  const [clockBaseMinute, setClockBaseMinute] = useState(0);
   const [clockElapsedSeconds, setClockElapsedSeconds] = useState(0);
   const [halftimeCarryMinute, setHalftimeCarryMinute] = useState<number | null>(null);
 
@@ -38,6 +48,10 @@ export default function APLAdminPage() {
   const [matchForm, setMatchForm] = useState<any>({
     team_a: '',
     team_b: '',
+    team_a_starting_player_count: 10,
+    team_b_starting_player_count: 10,
+    team_a_starters: [...EMPTY_STARTER_IDS],
+    team_b_starters: [...EMPTY_STARTER_IDS],
     status: 'upcoming',
     team_a_score: 0,
     team_b_score: 0,
@@ -200,22 +214,33 @@ export default function APLAdminPage() {
     player_off: '',
     player_on: '',
     minute: 1,
+    second: 0,
     team: 'team_a'
   });
 
   const currentSuggestedMinute = useMemo(
-    () => Math.max(1, clockBaseMinute + Math.floor(clockElapsedSeconds / 60)),
+    () => Math.max(0, clockBaseMinute + Math.floor(clockElapsedSeconds / 60)),
     [clockBaseMinute, clockElapsedSeconds]
+  );
+
+  const currentSuggestedSecond = useMemo(
+    () => clockElapsedSeconds % 60,
+    [clockElapsedSeconds]
+  );
+
+  const currentSuggestedTimelineSeconds = useMemo(
+    () => toTimelineSeconds(currentSuggestedMinute, currentSuggestedSecond),
+    [currentSuggestedMinute, currentSuggestedSecond]
   );
 
   const getClockStateLabel = () => {
     if (clockRunning) return 'Running';
-    if (clockElapsedSeconds > 0 || clockBaseMinute > 1) return 'Paused';
+    if (clockElapsedSeconds > 0 || clockBaseMinute > 0) return 'Paused';
     return 'Not started';
   };
 
   const startClock = () => {
-    setClockBaseMinute(1);
+    setClockBaseMinute(0);
     setClockElapsedSeconds(0);
     setHalftimeCarryMinute(null);
     setClockRunning(true);
@@ -227,7 +252,7 @@ export default function APLAdminPage() {
 
   const resetClock = () => {
     setClockRunning(false);
-    setClockBaseMinute(1);
+    setClockBaseMinute(0);
     setClockElapsedSeconds(0);
     setHalftimeCarryMinute(null);
   };
@@ -235,7 +260,11 @@ export default function APLAdminPage() {
   const applyCurrentMinuteToEvent = (eventCollection: string, index: number) => {
     setMatchForm((prev: any) => {
       const nextEvents = [...(prev[eventCollection] || [])];
-      nextEvents[index] = { ...nextEvents[index], minute: currentSuggestedMinute };
+      nextEvents[index] = {
+        ...nextEvents[index],
+        minute: currentSuggestedMinute,
+        ...(eventCollection === 'substitution_events' ? { second: currentSuggestedSecond } : {}),
+      };
       return { ...prev, [eventCollection]: nextEvents };
     });
   };
@@ -277,7 +306,7 @@ export default function APLAdminPage() {
       const value = parseInt(event?.minute?.toString() || '', 10);
       if (Number.isNaN(value)) return maxMinute;
       return Math.max(maxMinute, value);
-    }, 1);
+    }, 0);
   };
 
   const getDerivedMatchScores = (goalEvents: any[] = []) => ({
@@ -291,6 +320,187 @@ export default function APLAdminPage() {
   };
 
   const normalizeMinute = (value: any, fallback = 1) => Math.max(1, toInteger(value, fallback));
+
+  const normalizeSecond = (value: any, fallback = 0) => {
+    const parsedSecond = toInteger(value, fallback);
+    return Math.min(59, Math.max(0, parsedSecond));
+  };
+
+  const normalizeStartingPlayerCount = (value: any, fallback = 10) => {
+    const parsedCount = toInteger(value, fallback);
+    return STARTING_PLAYER_COUNT_OPTIONS.includes(parsedCount as 8 | 9 | 10) ? parsedCount : fallback;
+  };
+
+  const normalizeStarterIds = (value: any): string[] => {
+    if (!Array.isArray(value)) {
+      return [...EMPTY_STARTER_IDS];
+    }
+
+    const rawIds = value
+      .map((item: any) => (item === undefined || item === null ? '' : item.toString()))
+      .slice(0, STARTER_SLOT_COUNT);
+
+    while (rawIds.length < STARTER_SLOT_COUNT) {
+      rawIds.push('');
+    }
+
+    return rawIds;
+  };
+
+  const getUniqueStarterIds = (value: any): string[] => {
+    const starterIds = normalizeStarterIds(value).filter(Boolean);
+    return Array.from(new Set(starterIds));
+  };
+
+  const hasCompleteStarters = (value: any) => getUniqueStarterIds(value).length === STARTER_SLOT_COUNT;
+
+  const getStarterValidationError = () => {
+    if (!matchForm.team_a || !matchForm.team_b) {
+      return null;
+    }
+
+    const hasSubstitutions = (matchForm.substitution_events || []).length > 0;
+    const needsTrackingSetup = matchForm.status === 'live' || matchForm.status === 'completed' || hasSubstitutions;
+
+    if (!needsTrackingSetup) {
+      return null;
+    }
+
+    if (!hasCompleteStarters(matchForm.team_a_starters)) {
+      return `${teamAName}: select 6 unique starters`;
+    }
+
+    if (!hasCompleteStarters(matchForm.team_b_starters)) {
+      return `${teamBName}: select 6 unique starters`;
+    }
+
+    return null;
+  };
+
+  const validateStarterSetup = () => {
+    const validationError = getStarterValidationError();
+    if (!validationError) return true;
+
+    toast.error(validationError);
+    return false;
+  };
+
+  const participantNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    participants.forEach((participant: any) => {
+      map[participant.id.toString()] = participant.attributes?.name || `Player ${participant.id}`;
+    });
+    return map;
+  }, [participants]);
+
+  const substitutionComplianceByTeam = useMemo(() => {
+    const substitutions = (matchForm.substitution_events || []).map((event: any) => ({
+      team: event.team,
+      minute: normalizeMinute(event.minute, 1),
+      second: normalizeSecond(event.second, 0),
+      player_on: event.player_on || '',
+      player_off: event.player_off || '',
+    }));
+
+    const maxEventTimelineSeconds = Math.max(
+      ...substitutions.map((event: any) => toTimelineSeconds(event.minute, event.second)),
+      ...((matchForm.goal_events || []).map((event: any) => toTimelineSeconds(normalizeMinute(event.minute, 1), 0))),
+      ...((matchForm.card_events || []).map((event: any) => toTimelineSeconds(normalizeMinute(event.minute, 1), 0))),
+      ...((matchForm.save_events || []).map((event: any) => toTimelineSeconds(normalizeMinute(event.minute, 1), 0))),
+      0
+    );
+
+    const evaluationEndSeconds = matchForm.status === 'live'
+      ? Math.max(maxEventTimelineSeconds, currentSuggestedTimelineSeconds)
+      : maxEventTimelineSeconds;
+
+    const isMatchComplete = matchForm.status === 'completed' || matchForm.period === 'full_time';
+
+    const teamAStartingCount = normalizeStartingPlayerCount(matchForm.team_a_starting_player_count, 10);
+    const teamBStartingCount = normalizeStartingPlayerCount(matchForm.team_b_starting_player_count, 10);
+
+    const teamAResult = evaluateTeamSubstitutionCompliance({
+      team: 'team_a',
+      substitutions,
+      starterIds: getUniqueStarterIds(matchForm.team_a_starters),
+      requiredSeconds: getRequiredSecondsForStartingPlayerCount(teamAStartingCount),
+      evaluationEndSeconds,
+      isMatchComplete,
+    });
+
+    const teamBResult = evaluateTeamSubstitutionCompliance({
+      team: 'team_b',
+      substitutions,
+      starterIds: getUniqueStarterIds(matchForm.team_b_starters),
+      requiredSeconds: getRequiredSecondsForStartingPlayerCount(teamBStartingCount),
+      evaluationEndSeconds,
+      isMatchComplete,
+    });
+
+    return {
+      team_a: teamAResult,
+      team_b: teamBResult,
+    };
+  }, [
+    currentSuggestedTimelineSeconds,
+    matchForm.card_events,
+    matchForm.goal_events,
+    matchForm.period,
+    matchForm.save_events,
+    matchForm.status,
+    matchForm.substitution_events,
+    matchForm.team_a_starters,
+    matchForm.team_a_starting_player_count,
+    matchForm.team_b_starters,
+    matchForm.team_b_starting_player_count,
+  ]);
+
+  const getPlayerComplianceBadge = (status: 'pass' | 'fail' | 'pending' | 'ignored') => {
+    if (status === 'pass') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+          <Check className="w-3.5 h-3.5" />
+          Tick
+        </span>
+      );
+    }
+
+    if (status === 'fail') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-red-700">
+          <CircleX className="w-3.5 h-3.5" />
+          Cross
+        </span>
+      );
+    }
+
+    if (status === 'pending') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+          <Minus className="w-3.5 h-3.5" />
+          Pending
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+        <Minus className="w-3.5 h-3.5" />
+        Ignored
+      </span>
+    );
+  };
+
+  const updateStarterSlot = (teamKey: 'team_a_starters' | 'team_b_starters', slotIndex: number, playerId: string) => {
+    setMatchForm((prev: any) => {
+      const nextStarterIds = normalizeStarterIds(prev[teamKey]);
+      nextStarterIds[slotIndex] = playerId;
+      return {
+        ...prev,
+        [teamKey]: nextStarterIds,
+      };
+    });
+  };
 
   const prepareMatchPayload = (form: any) => {
     const goal_events = (form.goal_events || []).map((event: any) => ({
@@ -318,21 +528,33 @@ export default function APLAdminPage() {
     const substitution_events = (form.substitution_events || []).map((event: any) => ({
       team: event.team,
       minute: normalizeMinute(event.minute, 1),
+      second: normalizeSecond(event.second, 0),
       ...(event.player_off ? { player_off: { id: parseInt(event.player_off) } } : {}),
       ...(event.player_on ? { player_on: { id: parseInt(event.player_on) } } : {})
     }));
+
+    const team_a_starting_player_count = normalizeStartingPlayerCount(form.team_a_starting_player_count, 10);
+    const team_b_starting_player_count = normalizeStartingPlayerCount(form.team_b_starting_player_count, 10);
+
+    const team_a_starters = getUniqueStarterIds(form.team_a_starters);
+    const team_b_starters = getUniqueStarterIds(form.team_b_starters);
 
     return {
       goal_events,
       card_events,
       save_events,
       substitution_events,
+      team_a_starting_player_count,
+      team_b_starting_player_count,
+      team_a_starters,
+      team_b_starters,
     };
   };
 
   // Match CRUD operations
   const handleCreateMatch = async () => {
     if (!validateTeamSelection()) return;
+    if (!validateStarterSetup()) return;
 
     try {
       const response = await fetch('/api/platform/sports/apl/matches', {
@@ -366,6 +588,7 @@ export default function APLAdminPage() {
   const handleUpdateMatch = async () => {
     if (!editingItem) return;
     if (!validateTeamSelection()) return;
+    if (!validateStarterSetup()) return;
 
     try {
       const response = await fetch(`/api/platform/sports/apl/matches/${editingItem.id}`, {
@@ -419,6 +642,10 @@ export default function APLAdminPage() {
     setMatchForm({
       team_a: '',
       team_b: '',
+      team_a_starting_player_count: 10,
+      team_b_starting_player_count: 10,
+      team_a_starters: [...EMPTY_STARTER_IDS],
+      team_b_starters: [...EMPTY_STARTER_IDS],
       status: 'upcoming',
       team_a_score: 0,
       team_b_score: 0,
@@ -484,13 +711,21 @@ export default function APLAdminPage() {
           player_off: extractRelationId(eventAttrs.player_off),
           player_on: extractRelationId(eventAttrs.player_on),
           minute: eventAttrs.minute || 1,
+          second: eventAttrs.second || 0,
           team: eventAttrs.team || 'team_a'
         };
       });
 
+      const teamAStarters = normalizeStarterIds(attrs.team_a_starters);
+      const teamBStarters = normalizeStarterIds(attrs.team_b_starters);
+
       setMatchForm({
         team_a: extractRelationId(attrs.team_a),
         team_b: extractRelationId(attrs.team_b),
+        team_a_starting_player_count: normalizeStartingPlayerCount(attrs.team_a_starting_player_count, 10),
+        team_b_starting_player_count: normalizeStartingPlayerCount(attrs.team_b_starting_player_count, 10),
+        team_a_starters: teamAStarters,
+        team_b_starters: teamBStarters,
         status: attrs.status || 'upcoming',
         team_a_score: attrs.team_a_score || 0,
         team_b_score: attrs.team_b_score || 0,
@@ -540,6 +775,18 @@ export default function APLAdminPage() {
     () => getDerivedMatchScores(matchForm.goal_events || []),
     [matchForm.goal_events]
   );
+
+  const teamAStarterSlots = useMemo(
+    () => normalizeStarterIds(matchForm.team_a_starters),
+    [matchForm.team_a_starters]
+  );
+
+  const teamBStarterSlots = useMemo(
+    () => normalizeStarterIds(matchForm.team_b_starters),
+    [matchForm.team_b_starters]
+  );
+
+  const starterValidationError = getStarterValidationError();
 
   if (loading) {
     return (
@@ -605,7 +852,11 @@ export default function APLAdminPage() {
                     <div className="grid grid-cols-2 gap-4 py-4">
                       <div className="space-y-2">
                         <Label htmlFor="team_a">Team A</Label>
-                        <Select value={matchForm.team_a} onValueChange={(value) => setMatchForm({...matchForm, team_a: value})}>
+                        <Select value={matchForm.team_a} onValueChange={(value) => setMatchForm((prev: any) => ({
+                          ...prev,
+                          team_a: value,
+                          team_a_starters: [...EMPTY_STARTER_IDS],
+                        }))}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Team A" />
                           </SelectTrigger>
@@ -624,7 +875,11 @@ export default function APLAdminPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="team_b">Team B</Label>
-                        <Select value={matchForm.team_b} onValueChange={(value) => setMatchForm({...matchForm, team_b: value})}>
+                        <Select value={matchForm.team_b} onValueChange={(value) => setMatchForm((prev: any) => ({
+                          ...prev,
+                          team_b: value,
+                          team_b_starters: [...EMPTY_STARTER_IDS],
+                        }))}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Team B" />
                           </SelectTrigger>
@@ -690,6 +945,44 @@ export default function APLAdminPage() {
                           onChange={(e) => setMatchForm({...matchForm, start_time: e.target.value})}
                         />
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="team_a_starting_player_count">{teamAName} Starting Player Count</Label>
+                        <Select
+                          value={normalizeStartingPlayerCount(matchForm.team_a_starting_player_count, 10).toString()}
+                          onValueChange={(value) => setMatchForm({
+                            ...matchForm,
+                            team_a_starting_player_count: normalizeStartingPlayerCount(value, 10),
+                          })}
+                        >
+                          <SelectTrigger id="team_a_starting_player_count">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STARTING_PLAYER_COUNT_OPTIONS.map((count) => (
+                              <SelectItem key={`team-a-count-${count}`} value={count.toString()}>{count}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="team_b_starting_player_count">{teamBName} Starting Player Count</Label>
+                        <Select
+                          value={normalizeStartingPlayerCount(matchForm.team_b_starting_player_count, 10).toString()}
+                          onValueChange={(value) => setMatchForm({
+                            ...matchForm,
+                            team_b_starting_player_count: normalizeStartingPlayerCount(value, 10),
+                          })}
+                        >
+                          <SelectTrigger id="team_b_starting_player_count">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STARTING_PLAYER_COUNT_OPTIONS.map((count) => (
+                              <SelectItem key={`team-b-count-${count}`} value={count.toString()}>{count}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       {matchForm.status === 'live' && (
                         <div className="space-y-2">
                           <Label htmlFor="period">Period</Label>
@@ -732,6 +1025,108 @@ export default function APLAdminPage() {
                       )}
 
                       <div className="col-span-2 space-y-6">
+                        <div className="rounded-lg border p-4 space-y-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">Starting Lineup Setup</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Select 6 starters per team. Starters and players subbed on twice are ignored for tick/cross tracking.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                              <p className="text-sm font-medium">{teamAName} Starters (6)</p>
+                              <p className="text-xs text-muted-foreground">
+                                Required on-field time: {formatSecondsAsClock(
+                                  getRequiredSecondsForStartingPlayerCount(
+                                    normalizeStartingPlayerCount(matchForm.team_a_starting_player_count, 10)
+                                  )
+                                )}
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {Array.from({ length: STARTER_SLOT_COUNT }).map((_, slotIndex) => {
+                                  const selectedStarterIds = new Set(teamAStarterSlots.filter(Boolean));
+                                  const currentStarterId = teamAStarterSlots[slotIndex];
+                                  if (currentStarterId) selectedStarterIds.delete(currentStarterId);
+
+                                  return (
+                                    <Select
+                                      key={`team-a-starter-${slotIndex}`}
+                                      value={currentStarterId || '__empty__'}
+                                      onValueChange={(value) => updateStarterSlot('team_a_starters', slotIndex, value === '__empty__' ? '' : value)}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={`Starter ${slotIndex + 1}`} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="__empty__">Unselected</SelectItem>
+                                        {teamAPlayers.map((player) => {
+                                          const playerId = player.id.toString();
+                                          return (
+                                            <SelectItem
+                                              key={`team-a-starter-option-${slotIndex}-${playerId}`}
+                                              value={playerId}
+                                              disabled={selectedStarterIds.has(playerId)}
+                                            >
+                                              {player.attributes?.name}
+                                            </SelectItem>
+                                          );
+                                        })}
+                                      </SelectContent>
+                                    </Select>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <p className="text-sm font-medium">{teamBName} Starters (6)</p>
+                              <p className="text-xs text-muted-foreground">
+                                Required on-field time: {formatSecondsAsClock(
+                                  getRequiredSecondsForStartingPlayerCount(
+                                    normalizeStartingPlayerCount(matchForm.team_b_starting_player_count, 10)
+                                  )
+                                )}
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {Array.from({ length: STARTER_SLOT_COUNT }).map((_, slotIndex) => {
+                                  const selectedStarterIds = new Set(teamBStarterSlots.filter(Boolean));
+                                  const currentStarterId = teamBStarterSlots[slotIndex];
+                                  if (currentStarterId) selectedStarterIds.delete(currentStarterId);
+
+                                  return (
+                                    <Select
+                                      key={`team-b-starter-${slotIndex}`}
+                                      value={currentStarterId || '__empty__'}
+                                      onValueChange={(value) => updateStarterSlot('team_b_starters', slotIndex, value === '__empty__' ? '' : value)}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={`Starter ${slotIndex + 1}`} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="__empty__">Unselected</SelectItem>
+                                        {teamBPlayers.map((player) => {
+                                          const playerId = player.id.toString();
+                                          return (
+                                            <SelectItem
+                                              key={`team-b-starter-option-${slotIndex}-${playerId}`}
+                                              value={playerId}
+                                              disabled={selectedStarterIds.has(playerId)}
+                                            >
+                                              {player.attributes?.name}
+                                            </SelectItem>
+                                          );
+                                        })}
+                                      </SelectContent>
+                                    </Select>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          {starterValidationError && (
+                            <p className="text-sm text-destructive">{starterValidationError}</p>
+                          )}
+                        </div>
+
                         {matchForm.status === 'live' && (
                           <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                             <div className="flex items-center justify-between gap-3">
@@ -741,7 +1136,9 @@ export default function APLAdminPage() {
                               </div>
                               <Badge variant={clockRunning ? 'default' : 'outline'}>{getClockStateLabel()}</Badge>
                             </div>
-                            <div className="text-2xl font-semibold">{currentSuggestedMinute}'</div>
+                            <div className="text-2xl font-semibold">
+                              {currentSuggestedMinute}' {currentSuggestedSecond.toString().padStart(2, '0')}"
+                            </div>
                             <div className="flex flex-wrap gap-2">
                               <Button size="sm" variant="default" onClick={startClock} disabled={clockRunning}>
                                 <Play className="w-4 h-4 mr-2" />
@@ -1074,7 +1471,11 @@ export default function APLAdminPage() {
                           <h3 className="text-lg font-semibold">Substitution Events</h3>
                           <Button size="sm" variant="outline" onClick={() => setMatchForm({
                             ...matchForm,
-                            substitution_events: [...(matchForm.substitution_events || []), { ...createEmptySubstitutionEvent(), minute: currentSuggestedMinute }]
+                            substitution_events: [...(matchForm.substitution_events || []), {
+                              ...createEmptySubstitutionEvent(),
+                              minute: currentSuggestedMinute,
+                              second: currentSuggestedSecond,
+                            }]
                           })}>
                             Add Substitution
                           </Button>
@@ -1084,7 +1485,7 @@ export default function APLAdminPage() {
                         )}
                         <div className="space-y-3">
                           {(matchForm.substitution_events || []).map((event: any, idx: number) => (
-                            <div key={`sub-${idx}`} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-3 border rounded-lg">
+                            <div key={`sub-${idx}`} className="grid grid-cols-1 md:grid-cols-7 gap-2 p-3 border rounded-lg">
                               <div className="space-y-2">
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
@@ -1119,8 +1520,22 @@ export default function APLAdminPage() {
                                   className="h-7 px-2 text-xs"
                                   onClick={() => applyCurrentMinuteToEvent('substitution_events', idx)}
                                 >
-                                  Use current ({currentSuggestedMinute}')
+                                  Use current ({currentSuggestedMinute}' {currentSuggestedSecond.toString().padStart(2, '0')}")
                                 </Button>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Second</Label>
+                                <Input
+                                  type="number"
+                                  value={event.second ?? 0}
+                                  min={0}
+                                  max={59}
+                                  onChange={(e) => {
+                                    const nextSubs = [...matchForm.substitution_events];
+                                    nextSubs[idx] = { ...nextSubs[idx], second: e.target.value };
+                                    setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                  }}
+                                />
                               </div>
                               <div className="space-y-2">
                                 <Label>Player Off</Label>
@@ -1171,6 +1586,76 @@ export default function APLAdminPage() {
                             </div>
                           ))}
                         </div>
+
+                        <div className="rounded-lg border p-4 space-y-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">Substitution Timer Compliance</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Tick: player met required time before being subbed off. Cross: player did not meet required time.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {(['team_a', 'team_b'] as const).map((teamKey) => {
+                              const teamLabel = teamKey === 'team_a' ? teamAName : teamBName;
+                              const teamSummary = substitutionComplianceByTeam[teamKey];
+
+                              return (
+                                <div key={`compliance-${teamKey}`} className="rounded-md border p-3 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <p className="font-medium">{teamLabel}</p>
+                                    <Badge variant="outline">
+                                      Need {formatSecondsAsClock(teamSummary.requiredSeconds)}
+                                    </Badge>
+                                  </div>
+                                  {teamSummary.playerResults.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">No tracked substitute entries yet.</p>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      {teamSummary.playerResults.map((result) => {
+                                        const playerName = participantNameMap[result.playerId] || `Player ${result.playerId}`;
+                                        const durationLabel = result.status === 'ignored'
+                                          ? result.ignoreReason === 'starter'
+                                            ? 'Starter'
+                                            : 'Subbed on twice'
+                                          : `${formatSecondsAsClock(result.playedSeconds)} played`;
+
+                                        return (
+                                          <div key={`${teamKey}-${result.playerId}`} className="flex items-center justify-between rounded border px-2 py-1.5">
+                                            <div>
+                                              <p className="text-sm font-medium">{playerName}</p>
+                                              <p className="text-xs text-muted-foreground">{durationLabel}</p>
+                                            </div>
+                                            {getPlayerComplianceBadge(result.status)}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <div className="rounded-md border border-red-200 bg-red-50/40 p-3 space-y-2">
+                            <p className="text-sm font-semibold text-red-700">Players Who Did Not Fulfill Criteria (End List)</p>
+                            <div className="space-y-1 text-sm">
+                              <p>
+                                {teamAName}: {substitutionComplianceByTeam.team_a.failedPlayerIds.length === 0
+                                  ? 'None'
+                                  : substitutionComplianceByTeam.team_a.failedPlayerIds
+                                    .map((playerId) => participantNameMap[playerId] || `Player ${playerId}`)
+                                    .join(', ')}
+                              </p>
+                              <p>
+                                {teamBName}: {substitutionComplianceByTeam.team_b.failedPlayerIds.length === 0
+                                  ? 'None'
+                                  : substitutionComplianceByTeam.team_b.failedPlayerIds
+                                    .map((playerId) => participantNameMap[playerId] || `Player ${playerId}`)
+                                    .join(', ')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="flex justify-end gap-2">
@@ -1180,7 +1665,7 @@ export default function APLAdminPage() {
                       </Button>
                       <Button
                         onClick={editingItem ? handleUpdateMatch : handleCreateMatch}
-                        disabled={hasInvalidTeamSelection}
+                        disabled={hasInvalidTeamSelection || Boolean(starterValidationError)}
                       >
                         <Save className="w-4 h-4 mr-2" />
                         {editingItem ? 'Update' : 'Create'}
