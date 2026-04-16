@@ -628,24 +628,24 @@ export default function APLFootballPage() {
         </section>
 
         {/* Top Scorers */}
-        <section className="lg:col-span-2 flex flex-col w-full">
+        <section className="lg:col-span-2 flex flex-col w-full self-start">
           <div className="flex items-center justify-between mb-4 h-10 w-full">
             <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
           </div>
-          <Card className={`w-full bg-slate-50/90 text-foreground pt-4 flex-1 shadow-sm ${styles.sectionCard}`}>
-            <CardContent className="w-full p-0 bg-transparent overflow-hidden rounded-3xl">
-              <ScrollArea className="w-full h-[400px] bg-transparent">
-                <Table className="w-full p-0 border-none">
-                  <TableHeader className="bg-slate-900/70 sticky top-0 z-10 backdrop-blur-md border-none">
-                    <TableRow className="hover:bg-transparent border-none">
-                      <TableHead className="w-12 text-center rounded-tl-3xl text-muted-foreground font-bold px-2">#</TableHead>
+          <Card className="bg-card border-border text-foreground shadow-sm overflow-hidden">
+            <CardContent className="p-0">
+              <ScrollArea className="w-full max-h-[400px]">
+                <Table className="w-full">
+                  <TableHeader className="bg-muted/50">
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
                       <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
-                      <TableHead className="text-right text-foreground rounded-tr-3xl font-bold px-6 w-24">GOALS</TableHead>
+                      <TableHead className="text-right text-foreground font-bold px-6 w-24">GOALS</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {displayScorers.map((scorer: any, index: number) => (
-                      <TableRow key={scorer.id || index} className="hover:bg-muted/30 border-none">
+                      <TableRow key={scorer.id || index} className="border-border hover:bg-muted/30">
                         <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
                         <TableCell className="px-4">
                           <p className="font-bold text-red-500 tracking-wide whitespace-nowrap">{scorer.name}</p>
