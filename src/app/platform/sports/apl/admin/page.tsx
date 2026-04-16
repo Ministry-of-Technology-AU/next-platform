@@ -58,6 +58,7 @@ export default function APLAdminPage() {
     start_time: '',
     period: 'not_started',
     round: 'group_stage',
+    match_number: '',
     goal_events: [] as any[],
     card_events: [] as any[],
     substitution_events: [] as any[],
@@ -546,7 +547,8 @@ export default function APLAdminPage() {
             ...prepareMatchPayload(matchForm),
             ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
-            team_b: { id: parseInt(matchForm.team_b) }
+            team_b: { id: parseInt(matchForm.team_b) },
+            ...(matchForm.match_number ? { match_number: parseInt(matchForm.match_number, 10) } : {})
           }
         })
       });
@@ -632,6 +634,7 @@ export default function APLAdminPage() {
       start_time: '',
       period: 'not_started',
       round: 'group_stage',
+      match_number: '',
       goal_events: [],
       card_events: [],
       substitution_events: []
@@ -700,6 +703,7 @@ export default function APLAdminPage() {
         start_time: formatISTDateTimeForInput(attrs.start_time),
         period: attrs.period || 'not_started',
         round: attrs.round || 'group_stage',
+        match_number: attrs.match_number?.toString() || '',
         goal_events: goalEvents,
         card_events: cardEvents,
         substitution_events: substitutionEvents
@@ -895,14 +899,23 @@ export default function APLAdminPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="match_number">Match Number</Label>
-                        <div
-                          id="match_number"
-                          className="h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
-                        >
-                          {editingItem
-                            ? (editingMatchNumber ? `Match #${editingMatchNumber}` : 'Auto-assigned when match is created')
-                            : 'Auto-assigned when match is created'}
-                        </div>
+                        {editingItem ? (
+                          <div
+                            id="match_number"
+                            className="h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
+                          >
+                            {editingMatchNumber ? `Match #${editingMatchNumber}` : 'No match number assigned'}
+                          </div>
+                        ) : (
+                          <Input
+                            id="match_number"
+                            type="number"
+                            min={1}
+                            placeholder="Leave blank to auto-assign"
+                            value={matchForm.match_number}
+                            onChange={(e) => setMatchForm({...matchForm, match_number: e.target.value})}
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="start_time">Start Time</Label>

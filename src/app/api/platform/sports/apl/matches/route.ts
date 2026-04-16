@@ -19,9 +19,17 @@ const removeMatchNumberFromPayload = (payload: any) => {
 };
 
 const toPositiveInteger = (value: unknown): number | null => {
+  if (typeof value === 'string' && value.trim() === '') return null;
+
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0) return null;
   return parsed;
+};
+
+const isMatchNumberProvided = (value: unknown): boolean => {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string' && value.trim() === '') return false;
+  return true;
 };
 
 const getNextMatchNumber = async (): Promise<number> => {
@@ -130,6 +138,8 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const payload = body && typeof body === 'object' && 'data' in body ? body.data : body;
+    const requestedMatchNumber = toPositiveInteger(payload?.match_number);
+    const hasRequestedMatchNumber = isMatchNumberProvided(payload?.match_number);
 
     const normalizedPayload = normalizeMatchPayload(payload);
 
@@ -137,6 +147,21 @@ export async function POST(request: Request) {
     const teamBId = extractTeamId(normalizedPayload?.team_b);
     if (teamAId && teamBId && teamAId === teamBId) {
       return NextResponse.json({ error: 'Team A and Team B must be different' }, { status: 400 });
+    }
+
+    if (hasRequestedMatchNumber && requestedMatchNumber === null) {
+      return NextResponse.json({ error: 'Match number must be a positive integer' }, { status: 400 });
+    }
+
+    if (requestedMatchNumber !== null) {
+      const data = await strapiPost('/apl-matches', {
+        data: {
+          ...normalizedPayload,
+          match_number: requestedMatchNumber,
+        },
+      });
+
+      return NextResponse.json(data);
     }
 
     // Retry a few times if another request claims the same auto-assigned number first.
