@@ -22,21 +22,13 @@ const normalizeGroupName = (group?: string) => {
 };
 
 export default function APLStandingsPage() {
-  const [rawMatches, setRawMatches] = useState<any[]>([]);
   const [rawTeams, setRawTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
-      const [matchesRes, teamsRes] = await Promise.all([
-        fetch('/api/platform/sports/apl/matches'),
-        fetch('/api/platform/sports/apl/teams'),
-      ]);
+      const teamsRes = await fetch('/api/platform/sports/apl/teams');
 
-      if (matchesRes.ok) {
-        const d = await matchesRes.json();
-        setRawMatches(d.data || []);
-      }
       if (teamsRes.ok) {
         const d = await teamsRes.json();
         setRawTeams(d.data || []);
@@ -74,55 +66,15 @@ export default function APLStandingsPage() {
       const stats = {
         id: team.id,
         team: attrs.name || `Team ${team.id}`,
-        played: 0,
-        won: 0,
-        draws: 0,
-        lost: 0,
-        points: 0,
+        played: attrs.matches_played || 0,
+        won: attrs.matches_won || 0,
+        draws: attrs.matches_tied || 0,
+        lost: attrs.matches_lost || 0,
+        points: attrs.points || 0,
       };
 
       teamStats[team.id] = stats;
       groupsMap[groupName].push(stats);
-    });
-
-    rawMatches.forEach((match: any) => {
-      const attrs = match.attributes || {};
-      const status = (attrs.status || '').toUpperCase();
-      const type = (attrs.type || 'group').toLowerCase();
-      const details = attrs.details || {};
-
-      if (status === 'PAST' && type !== 'knockout') {
-        const teamAId = attrs.team_a?.data?.id;
-        const teamBId = attrs.team_b?.data?.id;
-        const scoreA = details.scoreA || 0;
-        const scoreB = details.scoreB || 0;
-
-        if (teamAId && teamStats[teamAId]) {
-          teamStats[teamAId].played += 1;
-          if (scoreA > scoreB) {
-            teamStats[teamAId].won += 1;
-            teamStats[teamAId].points += 3;
-          } else if (scoreA < scoreB) {
-            teamStats[teamAId].lost += 1;
-          } else {
-            teamStats[teamAId].draws += 1;
-            teamStats[teamAId].points += 1;
-          }
-        }
-
-        if (teamBId && teamStats[teamBId]) {
-          teamStats[teamBId].played += 1;
-          if (scoreB > scoreA) {
-            teamStats[teamBId].won += 1;
-            teamStats[teamBId].points += 3;
-          } else if (scoreB < scoreA) {
-            teamStats[teamBId].lost += 1;
-          } else {
-            teamStats[teamBId].draws += 1;
-            teamStats[teamBId].points += 1;
-          }
-        }
-      }
     });
 
     const orderedGroupNames = [
@@ -139,7 +91,7 @@ export default function APLStandingsPage() {
         teams: teams.map((team, idx) => ({ ...team, rank: idx + 1 })),
       };
     });
-  }, [rawMatches, rawTeams]);
+  }, [rawTeams]);
 
   if (loading) {
     return (
