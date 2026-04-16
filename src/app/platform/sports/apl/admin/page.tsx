@@ -83,6 +83,58 @@ export default function APLAdminPage() {
     return map;
   }, [teams]);
 
+  const getParticipantTeamId = (participant: any): string => {
+    const attrs = participant?.attributes || participant || {};
+    const relation = attrs?.team;
+    const relationData = relation?.data;
+
+    if (relationData?.id) return relationData.id.toString();
+    if (relation?.id) return relation.id.toString();
+    if (typeof relation === 'number' || typeof relation === 'string') return relation.toString();
+
+    return '';
+  };
+
+  const getTeamNameById = (teamId: string, fallback: string) => {
+    const parsedId = parseInt(teamId, 10);
+    if (Number.isNaN(parsedId)) return fallback;
+    return teamMap[parsedId]?.attributes?.name || fallback;
+  };
+
+  const teamAName = getTeamNameById(matchForm.team_a, 'Team A');
+  const teamBName = getTeamNameById(matchForm.team_b, 'Team B');
+
+  const teamAPlayers = useMemo(() => {
+    if (!matchForm.team_a) return [];
+    return participants.filter((player) => getParticipantTeamId(player) === matchForm.team_a);
+  }, [participants, matchForm.team_a]);
+
+  const teamBPlayers = useMemo(() => {
+    if (!matchForm.team_b) return [];
+    return participants.filter((player) => getParticipantTeamId(player) === matchForm.team_b);
+  }, [participants, matchForm.team_b]);
+
+  const getPlayersForEventTeam = (eventTeam: string) => {
+    if (eventTeam === 'team_b') return teamBPlayers;
+    return teamAPlayers;
+  };
+
+  const sanitizeEventPlayerFields = (event: any, nextTeam: string, playerFields: string[]) => {
+    const allowedPlayerIds = new Set(
+      getPlayersForEventTeam(nextTeam).map((player: any) => player.id.toString())
+    );
+    const updatedEvent = { ...event, team: nextTeam };
+
+    playerFields.forEach((field) => {
+      const value = updatedEvent[field];
+      if (value && !allowedPlayerIds.has(value.toString())) {
+        updatedEvent[field] = '';
+      }
+    });
+
+    return updatedEvent;
+  };
+
   const createEmptyGoalEvent = () => ({
     scorer: '',
     assister: '',
@@ -535,15 +587,15 @@ export default function APLAdminPage() {
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
                                   const nextGoals = [...matchForm.goal_events];
-                                  nextGoals[idx] = { ...nextGoals[idx], team: value };
+                                  nextGoals[idx] = sanitizeEventPlayerFields(nextGoals[idx], value, ['scorer', 'assister']);
                                   setMatchForm({ ...matchForm, goal_events: nextGoals });
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="team_a">Team A</SelectItem>
-                                    <SelectItem value="team_b">Team B</SelectItem>
+                                    <SelectItem value="team_a">{teamAName}</SelectItem>
+                                    <SelectItem value="team_b">{teamBName}</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -570,7 +622,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="Select scorer" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {participants.map(player => (
+                                    {getPlayersForEventTeam(event.team).map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -589,7 +641,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="Select assist" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {participants.map(player => (
+                                    {getPlayersForEventTeam(event.team).map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -657,15 +709,15 @@ export default function APLAdminPage() {
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
                                   const nextCards = [...matchForm.card_events];
-                                  nextCards[idx] = { ...nextCards[idx], team: value };
+                                  nextCards[idx] = sanitizeEventPlayerFields(nextCards[idx], value, ['player']);
                                   setMatchForm({ ...matchForm, card_events: nextCards });
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="team_a">Team A</SelectItem>
-                                    <SelectItem value="team_b">Team B</SelectItem>
+                                    <SelectItem value="team_a">{teamAName}</SelectItem>
+                                    <SelectItem value="team_b">{teamBName}</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -692,7 +744,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="Select player" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {participants.map(player => (
+                                    {getPlayersForEventTeam(event.team).map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -748,15 +800,15 @@ export default function APLAdminPage() {
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
                                   const nextSaves = [...matchForm.save_events];
-                                  nextSaves[idx] = { ...nextSaves[idx], team: value };
+                                  nextSaves[idx] = sanitizeEventPlayerFields(nextSaves[idx], value, ['goalkeeper']);
                                   setMatchForm({ ...matchForm, save_events: nextSaves });
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="team_a">Team A</SelectItem>
-                                    <SelectItem value="team_b">Team B</SelectItem>
+                                    <SelectItem value="team_a">{teamAName}</SelectItem>
+                                    <SelectItem value="team_b">{teamBName}</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -783,7 +835,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="Select goalkeeper" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {participants.map(player => (
+                                    {getPlayersForEventTeam(event.team).map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -834,15 +886,15 @@ export default function APLAdminPage() {
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
                                   const nextSubs = [...matchForm.substitution_events];
-                                  nextSubs[idx] = { ...nextSubs[idx], team: value };
+                                  nextSubs[idx] = sanitizeEventPlayerFields(nextSubs[idx], value, ['player_off', 'player_on']);
                                   setMatchForm({ ...matchForm, substitution_events: nextSubs });
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="team_a">Team A</SelectItem>
-                                    <SelectItem value="team_b">Team B</SelectItem>
+                                    <SelectItem value="team_a">{teamAName}</SelectItem>
+                                    <SelectItem value="team_b">{teamBName}</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -869,7 +921,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="Off" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {participants.map(player => (
+                                    {getPlayersForEventTeam(event.team).map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -888,7 +940,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="On" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {participants.map(player => (
+                                    {getPlayersForEventTeam(event.team).map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
