@@ -7,9 +7,10 @@ import styles from './apl.module.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, Trophy, BarChart3 } from 'lucide-react';
+import { Calendar, Trophy, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { normalizePlayerName } from '@/lib/utils';
 import { formatISTDateTimeDisplay } from '@/lib/date-utils';
 
@@ -122,6 +123,8 @@ export default function APLFootballPage() {
   const [rawTeams, setRawTeams] = useState<any[]>([]);
   const [rawParticipants, setRawParticipants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLiveMatchId, setSelectedLiveMatchId] = useState<number | null>(null);
+  const [matchTransitionDirection, setMatchTransitionDirection] = useState<'prev' | 'next' | null>(null);
 
   const fetchData = async () => {
     try {
@@ -187,7 +190,7 @@ export default function APLFootballPage() {
   // Transform Logic (Memoized for performance)
   const dashboardData = useMemo(() => {
     // 1. Matches
-    let liveMatch = null;
+    let liveMatches: any[] = [];
     let upcomingMatches = [];
     let pastMatches = [];
     let nextMatch = null;
@@ -222,11 +225,11 @@ export default function APLFootballPage() {
         };
       });
 
-      liveMatch = parsed.find((m: any) => m.status === 'LIVE') || null;
+      liveMatches = parsed.filter((m: any) => m.status === 'LIVE' && !m.isKnockout);
       upcomingMatches = parsed.filter((m: any) => m.status === 'UPCOMING' && !m.isKnockout);
       pastMatches = parsed.filter((m: any) => m.status === 'COMPLETED' && !m.isKnockout);
 
-      if (!liveMatch && upcomingMatches.length > 0) {
+      if (liveMatches.length === 0 && upcomingMatches.length > 0) {
         // Find earliest upcoming match
         nextMatch = [...upcomingMatches].sort((a, b) => {
           const timeA = a.start_time ? new Date(a.start_time).getTime() : Infinity;
@@ -331,9 +334,13 @@ export default function APLFootballPage() {
       return getStrapiMediaUrl(team?.attributes?.logo) ?? null;
     });
 
-    const currentMatchData = liveMatch || nextMatch;
+    const selectedLiveMatch = liveMatches.find((match: any) => match.id === selectedLiveMatchId) || null;
+    const currentMatchData = selectedLiveMatch || liveMatches[0] || nextMatch;
+    const currentLiveMatchIndex = selectedLiveMatch
+      ? liveMatches.findIndex((match: any) => match.id === selectedLiveMatch.id)
+      : (liveMatches.length > 0 ? 0 : -1);
     return {
-      liveMatch,
+      liveMatches,
       nextMatch,
       currentMatch: currentMatchData ? {
         id: currentMatchData.id,
@@ -351,19 +358,49 @@ export default function APLFootballPage() {
         start_time: currentMatchData.start_time,
         details: (currentMatchData as any).details || {}
       } : null,
+      currentLiveMatchIndex,
       upcomingMatches,
       pastMatches,
       knockoutMatches,
       winnerLogos,
       displayGroups: displayGroups.length > 0 ? displayGroups : MOCK_GROUPS,
       displayScorers,
-      liveMatchSets: liveMatch?.details?.sets || []
+      liveMatchSets: currentMatchData?.details?.sets || []
     };
-  }, [rawMatches, rawTeams, rawParticipants]);
+  }, [rawMatches, rawTeams, rawParticipants, selectedLiveMatchId]);
+
+  useEffect(() => {
+    const liveMatches = dashboardData.liveMatches || [];
+    if (liveMatches.length === 0) {
+      if (selectedLiveMatchId !== null) {
+        setSelectedLiveMatchId(null);
+      }
+      return;
+    }
+
+    const selectedMatchExists = liveMatches.some((match: any) => match.id === selectedLiveMatchId);
+    if (!selectedMatchExists) {
+      setSelectedLiveMatchId(liveMatches[0].id);
+    }
+  }, [dashboardData.liveMatches, selectedLiveMatchId]);
 
   if (loading && rawMatches.length === 0) return <div className="p-8 text-center text-muted-foreground bg-background">Loading Football Portal...</div>;
 
-  const { currentMatch, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers } = dashboardData;
+  const { currentMatch, currentLiveMatchIndex, liveMatches, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers } = dashboardData;
+
+  const hasMultipleLiveMatches = liveMatches.length > 1;
+
+  const navigateLiveMatch = (direction: 'prev' | 'next') => {
+    if (!hasMultipleLiveMatches) return;
+
+    const currentIndex = currentLiveMatchIndex >= 0 ? currentLiveMatchIndex : 0;
+    const nextIndex = direction === 'next'
+      ? (currentIndex + 1) % liveMatches.length
+      : (currentIndex - 1 + liveMatches.length) % liveMatches.length;
+
+    setMatchTransitionDirection(direction);
+    setSelectedLiveMatchId(liveMatches[nextIndex].id);
+  };
 
   return (
     <div className={`p-4 md:p-8 space-y-12 max-w-7xl mx-auto ${styles.aplRoot}`}>
@@ -371,9 +408,38 @@ export default function APLFootballPage() {
       {/* Hero Live Match Banner or Stay Tuned */}
       <section>
         {currentMatch && (
-          <Link href={`/platform/sports/apl/${currentMatch.id}`}>
-            <Card className={`bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer shadow-2xl ${styles.heroCard}`}>
-              <CardContent className="p-8 md:p-12 flex flex-col items-center relative">
+          <Card className={`relative bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all shadow-2xl ${styles.heroCard}`}>
+            <Link href={`/platform/sports/apl/${currentMatch.id}`} aria-label={`View match details for ${currentMatch.teamA} versus ${currentMatch.teamB}`} className="absolute inset-0 z-0" />
+            {hasMultipleLiveMatches && (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigateLiveMatch('prev')}
+                  aria-label="Previous live match"
+                  className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 text-white hover:bg-white/10 hover:text-white md:left-5"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigateLiveMatch('next')}
+                  aria-label="Next live match"
+                  className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 text-white hover:bg-white/10 hover:text-white md:right-5"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </>
+            )}
+            <CardContent className="relative z-10 p-8 md:p-12 flex flex-col items-center">
+              <div
+                key={currentMatch.id}
+                className={`w-full flex flex-col items-center ${matchTransitionDirection === 'next' ? styles.heroSlideNext : matchTransitionDirection === 'prev' ? styles.heroSlidePrev : ''}`}
+                onAnimationEnd={() => setMatchTransitionDirection(null)}
+              >
                 <div className="flex items-center gap-3 mb-8">
                   <Badge variant={currentMatch.status === 'LIVE' ? "destructive" : "secondary"} className={currentMatch.status === 'LIVE' ? "bg-red-500 hover:bg-red-600 animate-pulse text-xs px-2 py-0 rounded-sm" : "text-xs px-2 py-0 rounded-sm"}>
                     {currentMatch.status === 'LIVE' && <span className="w-1.5 h-1.5 rounded-full bg-white mr-1.5 animate-bounce" />}
@@ -429,9 +495,9 @@ export default function APLFootballPage() {
                 <div className="mt-8 text-sm tracking-widest text-zinc-400 font-semibold uppercase">
                   {currentMatch.arena}
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </section>
 

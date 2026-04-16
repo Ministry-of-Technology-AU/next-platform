@@ -36,6 +36,38 @@
   overflow: hidden;
 }
 
+.heroSlideNext {
+  animation: heroSlideNext 560ms ease;
+  will-change: transform, opacity;
+}
+
+.heroSlidePrev {
+  animation: heroSlidePrev 560ms ease;
+  will-change: transform, opacity;
+}
+
+@keyframes heroSlideNext {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes heroSlidePrev {
+  from {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .sectionCard {
   background: linear-gradient(
     180deg,
