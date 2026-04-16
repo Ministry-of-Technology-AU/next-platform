@@ -15,6 +15,65 @@ const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
 
 const GROUP_NAMES = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F'];
 
+const PERIOD_LABELS: Record<string, string> = {
+  not_started: 'Not started',
+  first_half: '1H',
+  half_time: 'Half-time',
+  second_half: '2H',
+  extra_time_first: 'ET 1',
+  extra_time_second: 'ET 2',
+  penalty_shootout: 'Penalties',
+  full_time: 'Full-time',
+};
+
+const normalizeMatchStatus = (status?: string) => {
+  const normalized = (status || 'upcoming').toString().trim().toLowerCase();
+  if (normalized === 'live') return 'LIVE';
+  if (normalized === 'completed' || normalized === 'past') return 'COMPLETED';
+  return 'UPCOMING';
+};
+
+const isKnockoutRound = (round?: string, type?: string) => {
+  const normalizedRound = (round || '').toString().trim().toLowerCase();
+  if (normalizedRound && normalizedRound !== 'group_stage') return true;
+  return (type || '').toString().trim().toLowerCase() === 'knockout';
+};
+
+const getMatchScore = (primary: unknown, fallback: unknown) => {
+  const score = Number(primary);
+  if (Number.isFinite(score)) return score;
+  const fallbackScore = Number(fallback);
+  return Number.isFinite(fallbackScore) ? fallbackScore : 0;
+};
+
+const formatMatchDateTime = (startTime?: string, fallbackDate?: string, fallbackTime?: string) => {
+  if (!startTime) {
+    return {
+      date: fallbackDate || 'TBD',
+      time: fallbackTime || 'TBD',
+    };
+  }
+
+  const parsed = new Date(startTime);
+  if (Number.isNaN(parsed.getTime())) {
+    return {
+      date: fallbackDate || 'TBD',
+      time: fallbackTime || 'TBD',
+    };
+  }
+
+  return {
+    date: parsed.toLocaleDateString([], { dateStyle: 'medium' }),
+    time: parsed.toLocaleTimeString([], { timeStyle: 'short' }),
+  };
+};
+
+const formatPeriodLabel = (period?: string, fallback?: string) => {
+  const normalized = (period || '').toString().trim().toLowerCase();
+  if (normalized && PERIOD_LABELS[normalized]) return PERIOD_LABELS[normalized];
+  return fallback || 'Not started';
+};
+
 const normalizeGroupName = (group?: string) => {
   if (!group || typeof group !== 'string') return 'Unassigned';
   const trimmed = group.trim();
@@ -135,28 +194,35 @@ export default function APLFootballPage() {
       const parsed = rawMatches.map((m: any) => {
         const attrs = m.attributes || {};
         const details = attrs.details || {};
+        const startTime = attrs.start_time;
+        const formattedDateTime = formatMatchDateTime(startTime, details.date, details.time);
+        const normalizedStatus = normalizeMatchStatus(attrs.status);
+        const round = attrs.round || details.round || '';
+        const knockout = isKnockoutRound(round, attrs.type);
+
         return {
           id: m.id,
           teamA: attrs.team_a?.data?.attributes?.name || 'TBD',
           teamB: attrs.team_b?.data?.attributes?.name || 'TBD',
           teamALogo: getStrapiMediaUrl(attrs.team_a?.data?.attributes?.logo),
           teamBLogo: getStrapiMediaUrl(attrs.team_b?.data?.attributes?.logo),
-          scoreA: details.scoreA || 0,
-          scoreB: details.scoreB || 0,
-          status: (attrs.status || 'Upcoming').toUpperCase(),
-          type: (attrs.type || 'group').toLowerCase(),
-          time: details.time || 'TBD',
-          date: details.date || 'TBD',
-          period: details.period || '1H • 00:00',
+          scoreA: getMatchScore(attrs.team_a_score, details.scoreA),
+          scoreB: getMatchScore(attrs.team_b_score, details.scoreB),
+          status: normalizedStatus,
+          isKnockout: knockout,
+          round,
+          time: formattedDateTime.time,
+          date: formattedDateTime.date,
+          period: formatPeriodLabel(attrs.period, details.period),
           arena: details.arena || 'ASHOKA MAIN FIELD',
-          start_time: attrs.start_time,
+          start_time: startTime,
           details: details
         };
       });
 
       liveMatch = parsed.find((m: any) => m.status === 'LIVE') || null;
-      upcomingMatches = parsed.filter((m: any) => m.status === 'UPCOMING' && m.type !== 'knockout');
-      pastMatches = parsed.filter((m: any) => m.status === 'PAST' && m.type !== 'knockout');
+      upcomingMatches = parsed.filter((m: any) => m.status === 'UPCOMING' && !m.isKnockout);
+      pastMatches = parsed.filter((m: any) => m.status === 'COMPLETED' && !m.isKnockout);
 
       if (!liveMatch && upcomingMatches.length > 0) {
         // Find earliest upcoming match
@@ -189,40 +255,14 @@ export default function APLFootballPage() {
         const stats = {
           id: t.id,
           team: attrs.name || `Team ${t.id}`,
-          played: 0,
-          won: 0,
-          draws: 0,
-          lost: 0,
-          points: 0
+          played: attrs.matches_played || 0,
+          won: attrs.matches_won || 0,
+          draws: attrs.matches_tied || 0,
+          lost: attrs.matches_lost || 0,
+          points: attrs.points || 0
         };
         teamStats[t.id] = stats;
         groupsMap[groupName].push(stats);
-      });
-
-      rawMatches.forEach((m: any) => {
-        const attrs = m.attributes || {};
-        const status = (attrs.status || '').toUpperCase();
-        const type = (attrs.type || 'group').toLowerCase();
-        const details = attrs.details || {};
-        if (status === 'PAST' && type !== 'knockout') {
-          const teamAId = attrs.team_a?.data?.id;
-          const teamBId = attrs.team_b?.data?.id;
-          const scoreA = details.scoreA || 0;
-          const scoreB = details.scoreB || 0;
-
-          if (teamAId && teamStats[teamAId]) {
-            teamStats[teamAId].played += 1;
-            if (scoreA > scoreB) { teamStats[teamAId].won += 1; teamStats[teamAId].points += 3; }
-            else if (scoreA < scoreB) { teamStats[teamAId].lost += 1; }
-            else { teamStats[teamAId].draws += 1; teamStats[teamAId].points += 1; }
-          }
-          if (teamBId && teamStats[teamBId]) {
-            teamStats[teamBId].played += 1;
-            if (scoreB > scoreA) { teamStats[teamBId].won += 1; teamStats[teamBId].points += 3; }
-            else if (scoreB < scoreA) { teamStats[teamBId].lost += 1; }
-            else { teamStats[teamBId].draws += 1; teamStats[teamBId].points += 1; }
-          }
-        }
       });
     }
 
@@ -241,25 +281,26 @@ export default function APLFootballPage() {
     // 3. Knockout matches
     const knockoutMatches = rawMatches.length > 0
       ? rawMatches
-        .filter((m: any) => (m.attributes?.type || 'group').toLowerCase() === 'knockout')
+        .filter((m: any) => isKnockoutRound(m.attributes?.round, m.attributes?.type))
         .map((m: any) => {
           const attrs = m.attributes || {};
           const details = attrs.details || {};
+          const formattedDateTime = formatMatchDateTime(attrs.start_time, details.date, details.time);
           return {
             id: m.id,
             teamA: attrs.team_a?.data?.attributes?.name || 'TBD',
             teamB: attrs.team_b?.data?.attributes?.name || 'TBD',
-            scoreA: details.scoreA || 0,
-            scoreB: details.scoreB || 0,
-            status: (attrs.status || 'Upcoming').toUpperCase(),
-            round: details.round || '',
+            scoreA: getMatchScore(attrs.team_a_score, details.scoreA),
+            scoreB: getMatchScore(attrs.team_b_score, details.scoreB),
+            status: normalizeMatchStatus(attrs.status),
+            round: attrs.round || details.round || '',
             start_time: attrs.start_time,
-            date: details.date || 'TBD',
-            time: details.time || 'TBD',
+            date: formattedDateTime.date,
+            time: formattedDateTime.time,
           };
         })
         .sort((a: any, b: any) => {
-          const order = ['PAST', 'LIVE', 'UPCOMING'];
+          const order = ['COMPLETED', 'LIVE', 'UPCOMING'];
           const statusDiff = order.indexOf(a.status) - order.indexOf(b.status);
           if (statusDiff !== 0) return statusDiff;
           // Within same status, latest start_time first
@@ -277,7 +318,7 @@ export default function APLFootballPage() {
             id: p.id,
             name: p.attributes?.name || 'Unknown',
             team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
-            goals: p.attributes?.goals_scored || 0
+            goals: p.attributes?.goals || 0
           }))
           .filter((p: any) => p.goals > 0)
       : MOCK_TOP_SCORERS;
