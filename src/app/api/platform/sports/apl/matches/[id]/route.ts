@@ -4,6 +4,13 @@ import { auth } from '@/auth';
 
 export const dynamic = 'force-dynamic';
 
+const extractTeamId = (value: any): string => {
+  if (!value) return '';
+
+  const candidate = value?.data?.id ?? value?.id ?? value?.documentId ?? value;
+  return typeof candidate === 'string' || typeof candidate === 'number' ? candidate.toString() : '';
+};
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -30,6 +37,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const { id } = await params;
     const body = await request.json();
     const incomingData = body && typeof body === 'object' && 'data' in body ? body.data : body;
+
+    const teamAId = extractTeamId(incomingData?.team_a);
+    const teamBId = extractTeamId(incomingData?.team_b);
+    if (teamAId && teamBId && teamAId === teamBId) {
+      return NextResponse.json({ error: 'Team A and Team B must be different' }, { status: 400 });
+    }
     
     // Merge nested details logic to avoid overwriting existing json sub-fields (date, time, arena, etc.)
     let mergedData = { ...incomingData };

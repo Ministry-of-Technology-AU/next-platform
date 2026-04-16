@@ -4,6 +4,13 @@ import { strapiGet, strapiPost } from '@/lib/apis/strapi';
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
 
+const extractTeamId = (value: any): string => {
+  if (!value) return '';
+
+  const candidate = value?.data?.id ?? value?.id ?? value?.documentId ?? value;
+  return typeof candidate === 'string' || typeof candidate === 'number' ? candidate.toString() : '';
+};
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status'); // Optional filter for Live, Upcoming, Past
@@ -33,6 +40,13 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const payload = body && typeof body === 'object' && 'data' in body ? body.data : body;
+
+    const teamAId = extractTeamId(payload?.team_a);
+    const teamBId = extractTeamId(payload?.team_b);
+    if (teamAId && teamBId && teamAId === teamBId) {
+      return NextResponse.json({ error: 'Team A and Team B must be different' }, { status: 400 });
+    }
+
     const data = await strapiPost('/apl-matches', { data: payload });
 
     return NextResponse.json(data);

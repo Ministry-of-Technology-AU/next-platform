@@ -83,6 +83,13 @@ export default function APLAdminPage() {
     return map;
   }, [teams]);
 
+  const extractRelationId = (relation: any): string => {
+    if (!relation) return '';
+
+    const candidate = relation?.data?.id ?? relation?.id ?? relation?.documentId ?? relation;
+    return typeof candidate === 'string' || typeof candidate === 'number' ? candidate.toString() : '';
+  };
+
   const getParticipantTeamId = (participant: any): string => {
     const attrs = participant?.attributes || participant || {};
     return extractRelationId(attrs?.team);
@@ -92,6 +99,15 @@ export default function APLAdminPage() {
     const parsedId = parseInt(teamId, 10);
     if (Number.isNaN(parsedId)) return fallback;
     return teamMap[parsedId]?.attributes?.name || fallback;
+  };
+
+  const hasInvalidTeamSelection = Boolean(matchForm.team_a && matchForm.team_b && matchForm.team_a === matchForm.team_b);
+
+  const validateTeamSelection = () => {
+    if (!hasInvalidTeamSelection) return true;
+
+    toast.error('Team A and Team B must be different teams');
+    return false;
   };
 
   const teamAName = getTeamNameById(matchForm.team_a, 'Team A');
@@ -111,13 +127,6 @@ export default function APLAdminPage() {
     if (Array.isArray(value)) return value;
     if (Array.isArray(value?.data)) return value.data;
     return [];
-  };
-
-  const extractRelationId = (relation: any): string => {
-    if (!relation) return '';
-
-    const candidate = relation?.data?.id ?? relation?.id ?? relation?.documentId ?? relation;
-    return typeof candidate === 'string' || typeof candidate === 'number' ? candidate.toString() : '';
   };
 
   const getPlayersForEventTeam = (eventTeam: string) => {
@@ -222,6 +231,8 @@ export default function APLAdminPage() {
 
   // Match CRUD operations
   const handleCreateMatch = async () => {
+    if (!validateTeamSelection()) return;
+
     try {
       const response = await fetch('/api/platform/sports/apl/matches', {
         method: 'POST',
@@ -253,6 +264,7 @@ export default function APLAdminPage() {
 
   const handleUpdateMatch = async () => {
     if (!editingItem) return;
+    if (!validateTeamSelection()) return;
 
     try {
       const response = await fetch(`/api/platform/sports/apl/matches/${editingItem.id}`, {
@@ -486,7 +498,11 @@ export default function APLAdminPage() {
                           </SelectTrigger>
                           <SelectContent>
                             {teams.map(team => (
-                              <SelectItem key={team.id} value={team.id.toString()}>
+                              <SelectItem
+                                key={team.id}
+                                value={team.id.toString()}
+                                disabled={team.id.toString() === matchForm.team_b}
+                              >
                                 {team.attributes?.name}
                               </SelectItem>
                             ))}
@@ -501,12 +517,19 @@ export default function APLAdminPage() {
                           </SelectTrigger>
                           <SelectContent>
                             {teams.map(team => (
-                              <SelectItem key={team.id} value={team.id.toString()}>
+                              <SelectItem
+                                key={team.id}
+                                value={team.id.toString()}
+                                disabled={team.id.toString() === matchForm.team_a}
+                              >
                                 {team.attributes?.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        {hasInvalidTeamSelection && (
+                          <p className="text-sm text-destructive">Team A and Team B must be different.</p>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
@@ -994,7 +1017,10 @@ export default function APLAdminPage() {
                         <X className="w-4 h-4 mr-2" />
                         Cancel
                       </Button>
-                      <Button onClick={editingItem ? handleUpdateMatch : handleCreateMatch}>
+                      <Button
+                        onClick={editingItem ? handleUpdateMatch : handleCreateMatch}
+                        disabled={hasInvalidTeamSelection}
+                      >
                         <Save className="w-4 h-4 mr-2" />
                         {editingItem ? 'Update' : 'Create'}
                       </Button>
