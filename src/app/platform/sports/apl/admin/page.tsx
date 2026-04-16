@@ -444,6 +444,27 @@ export default function APLAdminPage() {
     matchForm.team_b_starting_player_count,
   ]);
 
+  const getSubstitutionRowSnapshot = (teamKey: 'team_a' | 'team_b', rowIndex: number) => {
+    const teamSummary = substitutionComplianceByTeam[teamKey];
+    return teamSummary.eventSnapshots.find((snapshot: any) => snapshot.index === rowIndex) || null;
+  };
+
+  const getSubstitutionPlayersForRow = (
+    teamKey: 'team_a' | 'team_b',
+    rowIndex: number,
+    role: 'off' | 'on'
+  ) => {
+    const teamSummary = substitutionComplianceByTeam[teamKey];
+    const snapshot = getSubstitutionRowSnapshot(teamKey, rowIndex);
+    const currentOnFieldIds = new Set((snapshot?.currentOnFieldPlayerIds || teamSummary.currentOnFieldPlayerIds || []).map((playerId: string) => playerId.toString()));
+    const teamPlayers = getPlayersForEventTeam(teamKey);
+
+    return teamPlayers.filter((player: any) => {
+      const playerId = player.id.toString();
+      return role === 'off' ? currentOnFieldIds.has(playerId) : !currentOnFieldIds.has(playerId);
+    });
+  };
+
   const getPlayerComplianceBadge = (status: 'pass' | 'fail' | 'pending' | 'ignored') => {
     if (status === 'pass') {
       return (
@@ -1436,7 +1457,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="Off" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {getPlayersForEventTeam(event.team).map(player => (
+                                    {getSubstitutionPlayersForRow(event.team, idx, 'off').map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -1455,7 +1476,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="On" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {getPlayersForEventTeam(event.team).map(player => (
+                                    {getSubstitutionPlayersForRow(event.team, idx, 'on').map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -1495,6 +1516,9 @@ export default function APLAdminPage() {
                                       Need {formatSecondsAsClock(teamSummary.requiredSeconds)}
                                     </Badge>
                                   </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    On field: {teamSummary.currentOnFieldPlayerIds.length} | Played: {teamSummary.playedPlayerIds.length}
+                                  </p>
                                   {teamSummary.playerResults.length === 0 ? (
                                     <p className="text-sm text-muted-foreground">No tracked substitute entries yet.</p>
                                   ) : (
@@ -1504,7 +1528,7 @@ export default function APLAdminPage() {
                                         const durationLabel = result.status === 'ignored'
                                           ? result.ignoreReason === 'starter'
                                             ? 'Starter'
-                                            : 'Subbed on twice'
+                                            : 'Ignored'
                                           : `${formatSecondsAsClock(result.playedSeconds)} played`;
 
                                         return (
@@ -1525,22 +1549,36 @@ export default function APLAdminPage() {
                           </div>
 
                           <div className="rounded-md border border-red-200 bg-red-50/40 p-3 space-y-2">
-                            <p className="text-sm font-semibold text-red-700">Players Who Did Not Fulfill Criteria (End List)</p>
+                            <p className="text-sm font-semibold text-red-700">Players Who Did Not Fulfill Criteria</p>
                             <div className="space-y-1 text-sm">
-                              <p>
-                                {teamAName}: {substitutionComplianceByTeam.team_a.failedPlayerIds.length === 0
-                                  ? 'None'
-                                  : substitutionComplianceByTeam.team_a.failedPlayerIds
-                                    .map((playerId) => participantNameMap[playerId] || `Player ${playerId}`)
-                                    .join(', ')}
-                              </p>
-                              <p>
-                                {teamBName}: {substitutionComplianceByTeam.team_b.failedPlayerIds.length === 0
-                                  ? 'None'
-                                  : substitutionComplianceByTeam.team_b.failedPlayerIds
-                                    .map((playerId) => participantNameMap[playerId] || `Player ${playerId}`)
-                                    .join(', ')}
-                              </p>
+                              {(['team_a', 'team_b'] as const).map((teamKey) => {
+                                const teamLabel = teamKey === 'team_a' ? teamAName : teamBName;
+                                const teamSummary = substitutionComplianceByTeam[teamKey];
+                                const failingPlayers = teamSummary.playerResults.filter((result) => result.status === 'fail');
+
+                                return (
+                                  <div key={`failed-${teamKey}`} className="space-y-1">
+                                    <p className="font-medium text-foreground">{teamLabel}</p>
+                                    {failingPlayers.length === 0 ? (
+                                      <p className="text-muted-foreground">None</p>
+                                    ) : (
+                                      <div className="space-y-1">
+                                        {failingPlayers.map((result) => {
+                                          const playerName = participantNameMap[result.playerId] || `Player ${result.playerId}`;
+                                          return (
+                                            <div key={`failed-${teamKey}-${result.playerId}`} className="flex items-center justify-between gap-3 rounded border border-red-200 bg-white/60 px-2 py-1">
+                                              <span>{playerName}</span>
+                                              <span className="text-xs text-muted-foreground">
+                                                {formatSecondsAsClock(result.playedSeconds)} / {formatSecondsAsClock(result.requiredSeconds)}
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </div>

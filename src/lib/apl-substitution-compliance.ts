@@ -28,6 +28,21 @@ export type TeamSubstitutionComplianceSummary = {
   failedPlayerIds: string[];
 };
 
+export type TeamSubstitutionStateSnapshot = {
+  index: number;
+  timeSeconds: number;
+  playerOn: string;
+  playerOff: string;
+  currentOnFieldPlayerIds: string[];
+  playedPlayerIds: string[];
+};
+
+export type TeamSubstitutionEvaluation = TeamSubstitutionComplianceSummary & {
+  currentOnFieldPlayerIds: string[];
+  playedPlayerIds: string[];
+  eventSnapshots: TeamSubstitutionStateSnapshot[];
+};
+
 type EvaluateTeamSubstitutionComplianceParams = {
   team: TeamSide;
   substitutions: SubstitutionComplianceEvent[];
@@ -66,6 +81,8 @@ const toPlayerId = (value: unknown): string => {
   return String(value).trim();
 };
 
+const uniqueIds = (values: Iterable<string>): string[] => Array.from(new Set(Array.from(values).filter(Boolean)));
+
 export function getRequiredSecondsForStartingPlayerCount(playerCount: number): number {
   const normalized = Number(playerCount);
   if (STARTING_PLAYER_COUNTS.has(normalized)) {
@@ -94,7 +111,7 @@ export function evaluateTeamSubstitutionCompliance({
   requiredSeconds,
   evaluationEndSeconds,
   isMatchComplete,
-}: EvaluateTeamSubstitutionComplianceParams): TeamSubstitutionComplianceSummary {
+}: EvaluateTeamSubstitutionComplianceParams): TeamSubstitutionEvaluation {
   const starterIdSet = new Set(starterIds.map((id) => toPlayerId(id)).filter(Boolean));
 
   const normalizedEvents = substitutions
@@ -107,21 +124,66 @@ export function evaluateTeamSubstitutionCompliance({
     }))
     .sort((a, b) => a.timeSeconds - b.timeSeconds || a.index - b.index);
 
+  const currentOnFieldPlayerIds = new Set<string>(starterIdSet);
+  const playedPlayerIds = new Set<string>(starterIdSet);
+  const onFieldSinceByPlayer = new Map<string, number>();
+  const playedSecondsByPlayer = new Map<string, number>();
   const onTimesByPlayer = new Map<string, number[]>();
   const offTimesByPlayer = new Map<string, number[]>();
+  const eventSnapshots: TeamSubstitutionStateSnapshot[] = [];
+
+  starterIdSet.forEach((playerId) => {
+    onFieldSinceByPlayer.set(playerId, 0);
+  });
 
   normalizedEvents.forEach((event) => {
+    eventSnapshots.push({
+      index: event.index,
+      timeSeconds: event.timeSeconds,
+      playerOn: event.playerOn,
+      playerOff: event.playerOff,
+      currentOnFieldPlayerIds: uniqueIds(currentOnFieldPlayerIds),
+      playedPlayerIds: uniqueIds(playedPlayerIds),
+    });
+
     if (event.playerOn) {
       const previousOnTimes = onTimesByPlayer.get(event.playerOn) || [];
       previousOnTimes.push(event.timeSeconds);
       onTimesByPlayer.set(event.playerOn, previousOnTimes);
+
+      if (!currentOnFieldPlayerIds.has(event.playerOn)) {
+        currentOnFieldPlayerIds.add(event.playerOn);
+        onFieldSinceByPlayer.set(event.playerOn, event.timeSeconds);
+      }
+
+      playedPlayerIds.add(event.playerOn);
     }
 
     if (event.playerOff) {
       const previousOffTimes = offTimesByPlayer.get(event.playerOff) || [];
       previousOffTimes.push(event.timeSeconds);
       offTimesByPlayer.set(event.playerOff, previousOffTimes);
+
+      if (currentOnFieldPlayerIds.has(event.playerOff)) {
+        const startedAt = onFieldSinceByPlayer.get(event.playerOff) ?? event.timeSeconds;
+        const playedSeconds = Math.max(0, event.timeSeconds - startedAt);
+        playedSecondsByPlayer.set(
+          event.playerOff,
+          (playedSecondsByPlayer.get(event.playerOff) || 0) + playedSeconds,
+        );
+        currentOnFieldPlayerIds.delete(event.playerOff);
+        onFieldSinceByPlayer.delete(event.playerOff);
+      }
     }
+  });
+
+  currentOnFieldPlayerIds.forEach((playerId) => {
+    const startedAt = onFieldSinceByPlayer.get(playerId) ?? evaluationEndSeconds;
+    const playedSeconds = Math.max(0, evaluationEndSeconds - startedAt);
+    playedSecondsByPlayer.set(
+      playerId,
+      (playedSecondsByPlayer.get(playerId) || 0) + playedSeconds,
+    );
   });
 
   const results: PlayerSubstitutionCompliance[] = [];
@@ -144,31 +206,18 @@ export function evaluateTeamSubstitutionCompliance({
         return;
       }
 
-      if (onTimes.length > 1) {
-        results.push({
-          playerId,
-          onTimeSeconds: firstOnTime,
-          offTimeSeconds: null,
-          playedSeconds: 0,
-          requiredSeconds,
-          status: 'ignored',
-          ignoreReason: 'multiple_sub_on_events',
-        });
-        return;
-      }
-
       const offTimes = offTimesByPlayer.get(playerId) || [];
       const firstOffAfterOn = offTimes.find((timeSeconds) => timeSeconds > firstOnTime) ?? null;
-      const cutoffTime = firstOffAfterOn ?? evaluationEndSeconds;
-      const playedSeconds = Math.max(0, cutoffTime - firstOnTime);
+      const playedSeconds = playedSecondsByPlayer.get(playerId) || 0;
+      const isCurrentlyOnField = currentOnFieldPlayerIds.has(playerId);
 
       let status: PlayerComplianceStatus;
-      if (firstOffAfterOn !== null) {
-        status = playedSeconds >= requiredSeconds ? 'pass' : 'fail';
-      } else if (playedSeconds >= requiredSeconds) {
+      if (playedSeconds >= requiredSeconds) {
         status = 'pass';
-      } else {
+      } else if (isCurrentlyOnField) {
         status = isMatchComplete ? 'fail' : 'pending';
+      } else {
+        status = 'fail';
       }
 
       results.push({
@@ -185,5 +234,8 @@ export function evaluateTeamSubstitutionCompliance({
     requiredSeconds,
     playerResults: results,
     failedPlayerIds: results.filter((result) => result.status === 'fail').map((result) => result.playerId),
+    currentOnFieldPlayerIds: uniqueIds(currentOnFieldPlayerIds),
+    playedPlayerIds: uniqueIds(playedPlayerIds),
+    eventSnapshots,
   };
 }
