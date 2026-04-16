@@ -352,7 +352,7 @@ export default function APLFootballPage() {
     });
 
     const selectedLiveMatch = liveMatches.find((match: any) => match.id === selectedLiveMatchId) || null;
-    const currentMatchData = selectedLiveMatch || liveMatches[0] || nextMatch;
+    const currentMatchData = selectedLiveMatch || liveMatches[0] || nextMatch || pastMatches[0] || null;
     const currentLiveMatchIndex = selectedLiveMatch
       ? liveMatches.findIndex((match: any) => match.id === selectedLiveMatch.id)
       : (liveMatches.length > 0 ? 0 : -1);
