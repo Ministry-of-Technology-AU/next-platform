@@ -54,7 +54,8 @@ import {
   Puzzle,
   Route,
   CalendarSearch,
-  Trophy
+  Trophy,
+  MapPinned
 } from "lucide-react";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
 
@@ -81,7 +82,8 @@ const iconMap: Record<string, LucideIcon> = {
   Puzzle,
   Route,
   CalendarSearch,
-  Trophy
+  Trophy,
+  MapPinned
 };
 
 interface RecentlyVisitedProps {
