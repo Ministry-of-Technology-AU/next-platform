@@ -176,7 +176,6 @@ export default function APLAdminPage() {
 
   const createEmptyGoalEvent = () => ({
     scorer: '',
-    assister: '',
     minute: 1,
     is_penalty: false,
     is_own_goal: false,
@@ -299,8 +298,7 @@ export default function APLAdminPage() {
       minute: normalizeMinute(event.minute, 1),
       is_penalty: event.is_penalty,
       is_own_goal: event.is_own_goal,
-      ...(event.scorer ? { scorer: { id: parseInt(event.scorer) } } : {}),
-      ...(event.assister ? { assister: { id: parseInt(event.assister) } } : {})
+      ...(event.scorer ? { scorer: { id: parseInt(event.scorer) } } : {})
     }));
 
     const card_events = (form.card_events || []).map((event: any) => ({
@@ -453,7 +451,6 @@ export default function APLAdminPage() {
         const eventAttrs = event?.attributes || event || {};
         return {
           scorer: extractRelationId(eventAttrs.scorer),
-          assister: extractRelationId(eventAttrs.assister),
           minute: eventAttrs.minute || 1,
           is_penalty: eventAttrs.is_penalty || false,
           is_own_goal: eventAttrs.is_own_goal || false,
@@ -780,12 +777,12 @@ export default function APLAdminPage() {
                         )}
                         <div className="space-y-3">
                           {(matchForm.goal_events || []).map((event: any, idx: number) => (
-                            <div key={`goal-${idx}`} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-3 border rounded-lg">
+                            <div key={`goal-${idx}`} className="grid grid-cols-1 md:grid-cols-5 gap-2 p-3 border rounded-lg">
                               <div className="space-y-2">
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
                                   const nextGoals = [...matchForm.goal_events];
-                                  nextGoals[idx] = sanitizeEventPlayerFields(nextGoals[idx], value, ['scorer', 'assister']);
+                                  nextGoals[idx] = sanitizeEventPlayerFields(nextGoals[idx], value, ['scorer']);
                                   setMatchForm({ ...matchForm, goal_events: nextGoals });
                                 }}>
                                   <SelectTrigger>
@@ -827,25 +824,6 @@ export default function APLAdminPage() {
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select scorer" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {getPlayersForEventTeam(event.team).map(player => (
-                                      <SelectItem key={player.id} value={player.id.toString()}>
-                                        {player.attributes?.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Assist</Label>
-                                <Select value={event.assister} onValueChange={(value) => {
-                                  const nextGoals = [...matchForm.goal_events];
-                                  nextGoals[idx] = { ...nextGoals[idx], assister: value };
-                                  setMatchForm({ ...matchForm, goal_events: nextGoals });
-                                }}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select assist" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {getPlayersForEventTeam(event.team).map(player => (
@@ -1334,57 +1312,6 @@ export default function APLAdminPage() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Scorers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {participants
-                    .filter(p => p.attributes?.goals > 0)
-                    .sort((a, b) => (b.attributes?.goals || 0) - (a.attributes?.goals || 0))
-                    .slice(0, 5)
-                    .map((player, index) => (
-                      <div key={player.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
-                            {index + 1}
-                          </div>
-                          <span className="font-semibold">{player.attributes?.name}</span>
-                        </div>
-                        <Badge>{player.attributes?.goals} goals</Badge>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Assist Providers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {participants
-                    .filter(p => p.attributes?.assists > 0)
-                    .sort((a, b) => (b.attributes?.assists || 0) - (a.attributes?.assists || 0))
-                    .slice(0, 5)
-                    .map((player, index) => (
-                      <div key={player.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
-                            {index + 1}
-                          </div>
-                          <span className="font-semibold">{player.attributes?.name}</span>
-                        </div>
-                        <Badge>{player.attributes?.assists} assists</Badge>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
       <DeveloperCredits

@@ -115,7 +115,6 @@ export default function MatchPage() {
     const goalEvents = goalEventsRaw.map((event: any, index: number) => {
       const eventAttrs = event?.attributes || event || {};
       const scorer = relationName(eventAttrs.scorer);
-      const assister = relationName(eventAttrs.assister);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
       const action = eventAttrs.is_own_goal ? 'Own Goal' : eventAttrs.is_penalty ? 'Penalty Goal' : 'Goal';
       const minute = Number(eventAttrs.minute || 0);
@@ -131,7 +130,7 @@ export default function MatchPage() {
         action,
         player: scorer,
         team: teamLabel,
-        description: assister !== 'Unknown' ? `Assist: ${assister}` : '',
+        description: '',
         sortIndex: index,
       };
     });

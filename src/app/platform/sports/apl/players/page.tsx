@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trophy, Target, Users } from 'lucide-react';
+import { Trophy, Users } from 'lucide-react';
 import { normalizePlayerName } from '@/lib/utils';
 import DeveloperCredits from '@/components/developer-credits';
 
@@ -44,7 +44,6 @@ export default function APLPlayerStatsPage() {
   const statsData = useMemo(() => {
     if (!rawParticipants.length) return {
       topScorers: [],
-      topAssists: [],
       topCleanSheets: [],
       teamStats: []
     };
@@ -54,7 +53,6 @@ export default function APLPlayerStatsPage() {
       name: normalizePlayerName(p.attributes?.name),
       team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
       goals: p.attributes?.goals || 0,
-      assists: p.attributes?.assists || 0,
       clean_sheets: p.attributes?.clean_sheets || 0,
       sold_at: p.attributes?.sold_at || 0,
       tier: p.attributes?.tier || 'tier4',
@@ -66,11 +64,6 @@ export default function APLPlayerStatsPage() {
       .sort((a, b) => b.goals - a.goals)
       .slice(0, 20);
 
-    const topAssists = [...participants]
-      .filter(p => p.assists > 0)
-      .sort((a, b) => b.assists - a.assists)
-      .slice(0, 20);
-
     const topCleanSheets = [...participants]
       .filter(p => p.clean_sheets > 0)
       .sort((a, b) => b.clean_sheets - a.clean_sheets)
@@ -80,20 +73,19 @@ export default function APLPlayerStatsPage() {
     const teamMap: Record<string, any> = {};
     participants.forEach(p => {
       if (!teamMap[p.team]) {
-        teamMap[p.team] = { team: p.team, players: 0, totalGoals: 0, totalAssists: 0 };
+        teamMap[p.team] = { team: p.team, players: 0, totalGoals: 0 };
       }
       teamMap[p.team].players += 1;
       teamMap[p.team].totalGoals += p.goals;
-      teamMap[p.team].totalAssists += p.assists;
     });
     const teamStats = Object.values(teamMap).sort((a: any, b: any) => b.totalGoals - a.totalGoals);
 
-    return { topScorers, topAssists, topCleanSheets, teamStats };
+    return { topScorers, topCleanSheets, teamStats };
   }, [rawParticipants]);
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading Player Stats...</div>;
 
-  const { topScorers, topAssists, teamStats, topCleanSheets } = statsData;
+  const { topScorers, teamStats, topCleanSheets } = statsData;
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
@@ -101,7 +93,7 @@ export default function APLPlayerStatsPage() {
         <div className="flex flex-col items-center gap-3 md:flex-row md:justify-between md:items-center">
           <div className="space-y-2 text-center md:text-left">
             <h1 className="text-3xl font-bold tracking-tight">APL Player Statistics</h1>
-            <p className="text-muted-foreground">Track goals, assists, and team performance</p>
+            <p className="text-muted-foreground">Track goals and team performance</p>
           </div>
           <Link href="/platform/sports/apl">
             <Button variant="outline">
@@ -112,19 +104,12 @@ export default function APLPlayerStatsPage() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6 text-center">
             <Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
             <div className="text-2xl font-bold">{topScorers[0]?.goals || 0}</div>
             <div className="text-sm text-muted-foreground">Top Goals</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Target className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-            <div className="text-2xl font-bold">{topAssists[0]?.assists || 0}</div>
-            <div className="text-sm text-muted-foreground">Top Assists</div>
           </CardContent>
         </Card>
         <Card>
@@ -145,9 +130,8 @@ export default function APLPlayerStatsPage() {
 
       {/* Detailed Stats */}
       <Tabs defaultValue="goals" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="goals">Top Scorers</TabsTrigger>
-          <TabsTrigger value="assists">Top Assists</TabsTrigger>
           <TabsTrigger value="teams">Team Stats</TabsTrigger>
           <TabsTrigger value="cleanSheets">Clean Sheets</TabsTrigger>
         </TabsList>
@@ -192,46 +176,6 @@ export default function APLPlayerStatsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="assists" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Assist Providers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[500px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">#</TableHead>
-                      <TableHead>Player</TableHead>
-                      <TableHead>Team</TableHead>
-                      <TableHead>Tier</TableHead>
-                      <TableHead className="text-right">Assists</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {topAssists.map((player, index) => (
-                      <TableRow key={player.id}>
-                        <TableCell className="font-bold">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{player.name}</TableCell>
-                        <TableCell>{player.team}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="capitalize">
-                            {player.tier.replace('tier', 'Tier ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-blue-600">
-                          {player.assists}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="teams" className="mt-6">
           <Card>
             <CardHeader>
@@ -245,7 +189,6 @@ export default function APLPlayerStatsPage() {
                       <TableHead>Team</TableHead>
                       <TableHead className="text-center">Players</TableHead>
                       <TableHead className="text-center">Total Goals</TableHead>
-                      <TableHead className="text-center">Total Assists</TableHead>
                       <TableHead className="text-center">Avg Goals/Player</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -256,9 +199,6 @@ export default function APLPlayerStatsPage() {
                         <TableCell className="text-center">{team.players}</TableCell>
                         <TableCell className="text-center font-bold text-yellow-600">
                           {team.totalGoals}
-                        </TableCell>
-                        <TableCell className="text-center font-bold text-blue-600">
-                          {team.totalAssists}
                         </TableCell>
                         <TableCell className="text-center">
                           {(team.totalGoals / team.players).toFixed(1)}
