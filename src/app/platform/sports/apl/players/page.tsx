@@ -88,15 +88,15 @@ export default function APLPlayerStatsPage() {
   const { topScorers, teamStats, topCleanSheets } = statsData;
 
   return (
-    <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto">
       <div className="text-center space-y-4">
         <div className="flex flex-col items-center gap-3 md:flex-row md:justify-between md:items-center">
           <div className="space-y-2 text-center md:text-left">
-            <h1 className="text-3xl font-bold tracking-tight">APL Player Statistics</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">APL Player Statistics</h1>
             <p className="text-muted-foreground">Track goals and team performance</p>
           </div>
           <Link href="/platform/sports/apl">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               APL Home
             </Button>
           </Link>
@@ -104,7 +104,7 @@ export default function APLPlayerStatsPage() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6 text-center">
             <Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
@@ -130,10 +130,10 @@ export default function APLPlayerStatsPage() {
 
       {/* Detailed Stats */}
       <Tabs defaultValue="goals" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="goals">Top Scorers</TabsTrigger>
-          <TabsTrigger value="teams">Team Stats</TabsTrigger>
-          <TabsTrigger value="cleanSheets">Clean Sheets</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-1 sm:grid-cols-3 gap-1">
+          <TabsTrigger value="goals" className="text-xs sm:text-sm">Top Scorers</TabsTrigger>
+          <TabsTrigger value="teams" className="text-xs sm:text-sm">Team Stats</TabsTrigger>
+          <TabsTrigger value="cleanSheets" className="text-xs sm:text-sm">Clean Sheets</TabsTrigger>
         </TabsList>
 
         <TabsContent value="goals" className="mt-6">
@@ -142,14 +142,14 @@ export default function APLPlayerStatsPage() {
               <CardTitle>Top Goal Scorers</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[500px]">
+              <ScrollArea className="h-[60vh] max-h-[500px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>
                       <TableHead>Player</TableHead>
-                      <TableHead>Team</TableHead>
-                      <TableHead>Tier</TableHead>
+                      <TableHead className="hidden sm:table-cell">Team</TableHead>
+                      <TableHead className="hidden sm:table-cell">Tier</TableHead>
                       <TableHead className="text-right">Goals</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -157,9 +157,9 @@ export default function APLPlayerStatsPage() {
                     {topScorers.map((player, index) => (
                       <TableRow key={player.id}>
                         <TableCell className="font-bold">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{player.name}</TableCell>
-                        <TableCell>{player.team}</TableCell>
-                        <TableCell>
+                        <TableCell className="font-medium max-w-[10rem] sm:max-w-none truncate">{player.name}</TableCell>
+                        <TableCell className="hidden sm:table-cell max-w-[10rem] truncate">{player.team}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <Badge variant="outline" className="capitalize">
                             {player.tier.replace('tier', 'Tier ')}
                           </Badge>
@@ -182,25 +182,25 @@ export default function APLPlayerStatsPage() {
               <CardTitle>Team Performance</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[500px]">
+              <ScrollArea className="h-[60vh] max-h-[500px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Team</TableHead>
                       <TableHead className="text-center">Players</TableHead>
                       <TableHead className="text-center">Total Goals</TableHead>
-                      <TableHead className="text-center">Avg Goals/Player</TableHead>
+                      <TableHead className="hidden sm:table-cell text-center">Avg Goals/Player</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {teamStats.map((team: any) => (
                       <TableRow key={team.team}>
-                        <TableCell className="font-medium">{team.team}</TableCell>
+                        <TableCell className="font-medium max-w-[10rem] sm:max-w-none truncate">{team.team}</TableCell>
                         <TableCell className="text-center">{team.players}</TableCell>
                         <TableCell className="text-center font-bold text-yellow-600">
                           {team.totalGoals}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="hidden sm:table-cell text-center">
                           {(team.totalGoals / team.players).toFixed(1)}
                         </TableCell>
                       </TableRow>
@@ -218,13 +218,13 @@ export default function APLPlayerStatsPage() {
               <CardTitle>Clean Sheets</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[500px]">
+              <ScrollArea className="h-[60vh] max-h-[500px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>
                       <TableHead>Player</TableHead>
-                      <TableHead>Team</TableHead>
+                      <TableHead className="hidden sm:table-cell">Team</TableHead>
                       <TableHead className="text-right">Clean Sheets</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -232,8 +232,8 @@ export default function APLPlayerStatsPage() {
                     {topCleanSheets.map((player: any, index: number) => (
                       <TableRow key={player.id}>
                         <TableCell className="font-bold">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{player.name}</TableCell>
-                        <TableCell>{player.team}</TableCell>
+                        <TableCell className="font-medium max-w-[10rem] sm:max-w-none truncate">{player.name}</TableCell>
+                        <TableCell className="hidden sm:table-cell max-w-[10rem] truncate">{player.team}</TableCell>
                         <TableCell className="text-right font-bold text-emerald-600">
                           {player.clean_sheets}
                         </TableCell>

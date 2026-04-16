@@ -405,7 +405,7 @@ export default function APLFootballPage() {
   };
 
   return (
-    <div className={`p-4 md:p-8 space-y-12 max-w-7xl mx-auto ${styles.aplRoot}`}>
+    <div className={`p-3 sm:p-4 md:p-8 space-y-8 md:space-y-12 max-w-7xl mx-auto ${styles.aplRoot}`}>
 
       {/* Hero Live Match Banner or Stay Tuned */}
       <section>
@@ -436,18 +436,18 @@ export default function APLFootballPage() {
                 </Button>
               </>
             )}
-            <CardContent className="relative z-10 p-8 md:p-12 flex flex-col items-center">
+            <CardContent className="relative z-10 p-4 sm:p-6 md:p-12 flex flex-col items-center">
               <div
                 key={currentMatch.id}
                 className={`w-full flex flex-col items-center ${matchTransitionDirection === 'next' ? styles.heroSlideNext : matchTransitionDirection === 'prev' ? styles.heroSlidePrev : ''}`}
                 onAnimationEnd={() => setMatchTransitionDirection(null)}
               >
-                <div className="flex items-center gap-3 mb-8">
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
                   <Badge variant={currentMatch.status === 'LIVE' ? "destructive" : "secondary"} className={currentMatch.status === 'LIVE' ? "bg-red-500 hover:bg-red-600 animate-pulse text-xs px-2 py-0 rounded-sm" : "text-xs px-2 py-0 rounded-sm"}>
                     {currentMatch.status === 'LIVE' && <span className="w-1.5 h-1.5 rounded-full bg-white mr-1.5 animate-bounce" />}
                     {currentMatch.status}
                   </Badge>
-                  <span className="text-zinc-400 text-[10px] md:text-sm font-black uppercase tracking-widest bg-zinc-800/50 px-2 py-0.5 rounded border border-zinc-700/50">
+                  <span className="text-zinc-400 text-[11px] sm:text-xs md:text-sm font-black uppercase tracking-wider sm:tracking-widest bg-zinc-800/50 px-2 py-0.5 rounded border border-zinc-700/50 text-center">
                     {currentMatch.start_time ? (() => {
                       const { date, time } = formatISTDateTimeDisplay(currentMatch.start_time);
                       return `${date} • ${time}`.trim();
@@ -455,46 +455,46 @@ export default function APLFootballPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-center w-full max-w-3xl gap-4 md:gap-12">
-                  <div className="flex-1 flex flex-col items-center gap-4">
-                    <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
+                <div className="flex items-center justify-center w-full max-w-3xl gap-2 sm:gap-4 md:gap-12">
+                  <div className="flex-1 flex flex-col items-center gap-2 sm:gap-4 min-w-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
                       {currentMatch.teamALogo ? (
                         <Image src={currentMatch.teamALogo} alt={currentMatch.teamA} width={128} height={128} className="w-full h-full object-cover" unoptimized />
                       ) : (
-                        <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
                       )}
                     </div>
-                    <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{currentMatch.teamA}</h3>
+                    <h3 className="text-xs sm:text-sm md:text-2xl font-black tracking-wide md:tracking-wider text-center leading-tight break-words max-w-full">{currentMatch.teamA}</h3>
                   </div>
 
                   <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center gap-4 md:gap-8">
-                      <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{currentMatch.scoreA}</span>
-                      <span className="text-3xl md:text-5xl font-black text-zinc-700">-</span>
-                      <span className="text-6xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{currentMatch.scoreB}</span>
+                    <div className="flex items-center gap-2 sm:gap-4 md:gap-8">
+                      <span className="text-4xl sm:text-5xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{currentMatch.scoreA}</span>
+                      <span className="text-xl sm:text-2xl md:text-5xl font-black text-zinc-700">-</span>
+                      <span className="text-4xl sm:text-5xl md:text-9xl font-black tabular-nums tracking-tighter text-white">{currentMatch.scoreB}</span>
                     </div>
 
                     {/* Period Display */}
                     {currentMatch.status === 'LIVE' && (
-                      <div className="mt-2">
-                        <span className="text-sm font-bold text-zinc-400 uppercase tracking-wider">{currentMatch.period}</span>
+                      <div className="mt-1 sm:mt-2">
+                        <span className="text-xs sm:text-sm font-bold text-zinc-400 uppercase tracking-wider">{currentMatch.period}</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex-1 flex flex-col items-center gap-4">
-                    <div className="w-20 h-20 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
+                  <div className="flex-1 flex flex-col items-center gap-2 sm:gap-4 min-w-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-32 md:h-32 bg-zinc-950/50 dark:bg-black/50 rounded-2xl flex items-center justify-center border border-zinc-800 overflow-hidden">
                       {currentMatch.teamBLogo ? (
                         <Image src={currentMatch.teamBLogo} alt={currentMatch.teamB} width={128} height={128} className="w-full h-full object-cover" unoptimized />
                       ) : (
-                        <div className="w-12 h-12 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-20 md:h-20 bg-zinc-800 rounded-full opacity-50" />
                       )}
                     </div>
-                    <h3 className="text-sm! md:text-2xl! font-black tracking-wider text-center">{currentMatch.teamB}</h3>
+                    <h3 className="text-xs sm:text-sm md:text-2xl font-black tracking-wide md:tracking-wider text-center leading-tight break-words max-w-full">{currentMatch.teamB}</h3>
                   </div>
                 </div>
 
-                <div className="mt-8 text-sm tracking-widest text-zinc-400 font-semibold uppercase">
+                <div className="mt-5 sm:mt-8 text-xs sm:text-sm tracking-wide sm:tracking-widest text-zinc-400 font-semibold uppercase text-center">
                   {currentMatch.arena}
                 </div>
               </div>
@@ -506,21 +506,21 @@ export default function APLFootballPage() {
       {/* Navigation Links */}
       <section>
         <Card className="bg-card border-border shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link href="/platform/sports/apl/matches" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 justify-center">
+              <Link href="/platform/sports/apl/matches" className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                 <Calendar className="w-4 h-4" />
                 All Matches
               </Link>
-              <Link href="/platform/sports/apl/standings" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+              <Link href="/platform/sports/apl/standings" className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                 <BarChart3 className="w-4 h-4" />
                 Standings
               </Link>
-              <Link href="/platform/sports/apl/players" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+              <Link href="/platform/sports/apl/players" className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                 <Trophy className="w-4 h-4" />
                 Player Statistics
               </Link>
-              <Link href="/platform/sports/apl/knockout" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+              <Link href="/platform/sports/apl/knockout" className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                 <Calendar className="w-4 h-4" />
                 Knockout Bracket
               </Link>
@@ -530,7 +530,7 @@ export default function APLFootballPage() {
       </section>
 
       {/* Middle Section: Standings & Top Scorers */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-12">
         <section className="lg:col-span-3">
           <Tabs defaultValue="group" className="w-full">
             <div className="flex items-center justify-between mb-4">
@@ -571,7 +571,7 @@ export default function APLFootballPage() {
                             group.teams.map((team: any, idx: number) => (
                               <TableRow key={team.id || idx} className="border-border hover:bg-muted/30">
                                 <TableCell className="text-center font-bold text-muted-foreground px-2">{team.rank}</TableCell>
-                                <TableCell className="font-bold tracking-wide px-4 whitespace-nowrap">{team.team}</TableCell>
+                                <TableCell className="font-bold tracking-wide px-4 max-w-[10rem] sm:max-w-[14rem] truncate">{team.team}</TableCell>
                                 <TableCell className="text-center text-muted-foreground px-2">{team.played}</TableCell>
                                 <TableCell className="text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
                                 <TableCell className="text-center text-sky-500 dark:text-sky-400/90 px-2">{team.draws}</TableCell>
@@ -707,7 +707,7 @@ export default function APLFootballPage() {
             </div>
             <Card className="bg-card border-border text-foreground shadow-sm overflow-hidden">
               <CardContent className="p-0">
-                <ScrollArea className="w-full h-[400px]">
+                <ScrollArea className="w-full h-[340px] sm:h-[400px]">
                   <Table className="w-full">
                     <TableHeader className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
                       <TableRow className="border-border hover:bg-transparent">
@@ -721,8 +721,8 @@ export default function APLFootballPage() {
                         <TableRow key={scorer.id || index} className="border-border hover:bg-muted/30">
                           <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
                           <TableCell className="px-4">
-                            <p className="font-bold text-red-500 tracking-wide whitespace-nowrap">{scorer.name}</p>
-                            <p className="text-xs text-muted-foreground font-semibold mt-0.5">{scorer.team}</p>
+                            <p className="font-bold text-red-500 tracking-wide break-words">{scorer.name}</p>
+                            <p className="text-xs text-muted-foreground font-semibold mt-0.5 break-words">{scorer.team}</p>
                           </TableCell>
                           <TableCell className="text-right font-black text-yellow-600 dark:text-yellow-500 text-lg px-6">
                             {scorer.goals}
@@ -751,13 +751,13 @@ export default function APLFootballPage() {
           </div>
 
           <TabsContent value="upcoming" className="mt-0">
-            <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="h-[340px] sm:h-[400px] pr-2 sm:pr-4">
               <div className="space-y-3">
                 {upcomingMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No upcoming matches scheduled.</p>}
                 {upcomingMatches.map((match: any) => (
-                  <div key={match.id} className={`bg-card border border-border rounded-xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors shadow-sm ${styles.matchCard}`}>
-                    <div>
-                      <h4 className="font-bold text-foreground">{match.teamA} VS {match.teamB}</h4>
+                  <div key={match.id} className={`bg-card border border-border rounded-xl p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:bg-muted/50 transition-colors shadow-sm ${styles.matchCard}`}>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-foreground break-words">{match.teamA} VS {match.teamB}</h4>
                       <p className="text-xs text-muted-foreground font-semibold tracking-wide mt-1">
                         {match.start_time ? (() => {
                           const { date, time } = formatISTDateTimeDisplay(match.start_time);
@@ -765,7 +765,7 @@ export default function APLFootballPage() {
                         })() : (match.date + ' • ' + match.time)}
                       </p>
                     </div>
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground self-end sm:self-auto">
                       <Calendar className="w-4 h-4" />
                     </div>
                   </div>
@@ -775,7 +775,7 @@ export default function APLFootballPage() {
           </TabsContent>
 
           <TabsContent value="finished" className="mt-0">
-            <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="h-[340px] sm:h-[400px] pr-2 sm:pr-4">
               <div className="space-y-4">
                 {pastMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No past matches recorded.</p>}
                 {pastMatches.map((match: any) => (
@@ -786,12 +786,12 @@ export default function APLFootballPage() {
                     </div>
                     <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                       <div className="text-center">
-                        <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamA}</h4>
+                        <h4 className="font-bold text-sm text-foreground md:text-base break-words">{match.teamA}</h4>
                         <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreA}</p>
                       </div>
                       <div className="text-xs font-bold text-muted/50 dark:text-zinc-700">VS</div>
                       <div className="text-center">
-                        <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamB}</h4>
+                        <h4 className="font-bold text-sm text-foreground md:text-base break-words">{match.teamB}</h4>
                         <p className={`text-3xl font-black mt-2 ${match.scoreB > match.scoreA ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreB}</p>
                       </div>
                     </div>

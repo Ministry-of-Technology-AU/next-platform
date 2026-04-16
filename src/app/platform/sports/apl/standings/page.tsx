@@ -100,18 +100,18 @@ export default function APLStandingsPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-3 sm:p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-3 text-primary mb-3">
             <BarChart3 className="h-5 w-5" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">APL Standings</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">APL Standings</h1>
           <p className="text-muted-foreground">Full group stage standings for all groups A through F.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full sm:w-auto gap-2">
           <Link href="/platform/sports/apl">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to APL Home
             </Button>
@@ -119,7 +119,7 @@ export default function APLStandingsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {displayGroups.map((group) => (
           <Card key={group.name} className="bg-card border-border shadow-sm overflow-hidden">
             <CardHeader className="py-3 border-b border-border bg-muted/30">
@@ -129,29 +129,29 @@ export default function APLStandingsPage() {
               {group.teams.length === 0 ? (
                 <div className="p-6 text-sm text-muted-foreground">No teams yet in this group.</div>
               ) : (
-                <ScrollArea className="h-[360px]">
+                <ScrollArea className="h-[300px] sm:h-[340px] md:h-[360px]">
                   <Table>
                     <TableHeader className="bg-muted/50 sticky top-0 z-10">
                       <TableRow className="border-border hover:bg-transparent">
-                        <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
-                        <TableHead className="text-muted-foreground font-bold px-4">Team</TableHead>
-                        <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">P</TableHead>
-                        <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">W</TableHead>
-                        <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">D</TableHead>
-                        <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">L</TableHead>
-                        <TableHead className="text-center text-foreground font-bold w-16 px-4">PTS</TableHead>
+                        <TableHead className="w-10 sm:w-12 text-center text-muted-foreground font-bold px-1 sm:px-2">#</TableHead>
+                        <TableHead className="text-muted-foreground font-bold px-2 sm:px-4">Team</TableHead>
+                        <TableHead className="hidden sm:table-cell text-center text-muted-foreground font-bold w-12 px-2">P</TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-muted-foreground font-bold w-12 px-2">W</TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-muted-foreground font-bold w-12 px-2">D</TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-muted-foreground font-bold w-12 px-2">L</TableHead>
+                        <TableHead className="text-center text-foreground font-bold w-14 sm:w-16 px-2 sm:px-4">PTS</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {group.teams.map((team: any) => (
                         <TableRow key={team.id} className="border-border hover:bg-muted/30">
-                          <TableCell className="text-center font-bold text-muted-foreground px-2">{team.rank}</TableCell>
-                          <TableCell className="font-bold tracking-wide px-4 whitespace-nowrap">{team.team}</TableCell>
-                          <TableCell className="text-center text-muted-foreground px-2">{team.played}</TableCell>
-                          <TableCell className="text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
-                          <TableCell className="text-center text-sky-500 dark:text-sky-400/90 px-2">{team.draws}</TableCell>
-                          <TableCell className="text-center text-red-600 dark:text-red-500/80 px-2">{team.lost}</TableCell>
-                          <TableCell className="text-center font-black text-yellow-600 dark:text-yellow-500 text-base px-4">{team.points}</TableCell>
+                          <TableCell className="text-center font-bold text-muted-foreground px-1 sm:px-2">{team.rank}</TableCell>
+                          <TableCell className="font-bold tracking-wide px-2 sm:px-4 max-w-[9rem] sm:max-w-[13rem] truncate">{team.team}</TableCell>
+                          <TableCell className="hidden sm:table-cell text-center text-muted-foreground px-2">{team.played}</TableCell>
+                          <TableCell className="hidden md:table-cell text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
+                          <TableCell className="hidden md:table-cell text-center text-sky-500 dark:text-sky-400/90 px-2">{team.draws}</TableCell>
+                          <TableCell className="hidden md:table-cell text-center text-red-600 dark:text-red-500/80 px-2">{team.lost}</TableCell>
+                          <TableCell className="text-center font-black text-yellow-600 dark:text-yellow-500 text-sm sm:text-base px-2 sm:px-4">{team.points}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

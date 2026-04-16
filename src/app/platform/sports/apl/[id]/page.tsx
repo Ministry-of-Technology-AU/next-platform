@@ -241,9 +241,9 @@ export default function MatchPage() {
   if (loading && !rawData) return <div className="p-8 text-center text-muted-foreground">Loading Match Details...</div>;
 
   return (
-    <div className="p-4 md:p-6 w-full max-w-4xl mx-auto space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 w-full max-w-4xl mx-auto space-y-6">
       <div>
-        <Button variant="ghost" className="mb-4 -ml-4" asChild>
+        <Button variant="ghost" className="mb-4" asChild>
           <Link href="/platform/sports/apl">
             <ChevronLeft className="mr-2 h-4 w-4" />
             Back to APL Event
@@ -271,7 +271,7 @@ export default function MatchPage() {
             {matchData.status}
           </Badge>
         </div>
-        <CardHeader className="text-center pt-8">
+        <CardHeader className="text-center pt-8 px-4 sm:px-6">
           <CardDescription className="uppercase tracking-widest font-semibold text-muted-foreground">
             {matchData.type}
             {matchData.start_time && (() => {
@@ -279,31 +279,31 @@ export default function MatchPage() {
               return ` • ${date} ${time}`.trim();
             })()}
           </CardDescription>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 mt-6">
-            <div className="flex flex-col items-center flex-1">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-12 mt-6">
+            <div className="flex flex-col items-center flex-1 min-w-0">
               {matchData.teamALogo && (
                 <div className="w-16 h-16 md:w-24 md:h-24 rounded-xl overflow-hidden border border-border mb-2">
                   <Image src={matchData.teamALogo} alt={matchData.teamA} width={96} height={96} className="w-full h-full object-cover" unoptimized />
                 </div>
               )}
-              <h2 className="text-3xl md:text-5xl font-bold">{matchData.teamA}</h2>
+              <h2 className="text-xl sm:text-2xl md:text-5xl font-bold text-center leading-tight break-words max-w-full">{matchData.teamA}</h2>
             </div>
 
             <div className="flex flex-col items-center">
-              <div className="text-5xl md:text-7xl font-black tabular-nums tracking-tighter flex items-center gap-4">
+              <div className="text-4xl sm:text-5xl md:text-7xl font-black tabular-nums tracking-tighter flex items-center gap-2 sm:gap-4">
                 <span>{matchData.scoreA}</span>
-                <span className="text-muted-foreground/30 text-3xl">-</span>
+                <span className="text-muted-foreground/30 text-2xl sm:text-3xl">-</span>
                 <span>{matchData.scoreB}</span>
               </div>
             </div>
 
-            <div className="flex flex-col items-center flex-1">
+            <div className="flex flex-col items-center flex-1 min-w-0">
               {matchData.teamBLogo && (
                 <div className="w-16 h-16 md:w-24 md:h-24 rounded-xl overflow-hidden border border-border mb-2">
                   <Image src={matchData.teamBLogo} alt={matchData.teamB} width={96} height={96} className="w-full h-full object-cover" unoptimized />
                 </div>
               )}
-              <h2 className="text-3xl md:text-5xl font-bold">{matchData.teamB}</h2>
+              <h2 className="text-xl sm:text-2xl md:text-5xl font-bold text-center leading-tight break-words max-w-full">{matchData.teamB}</h2>
             </div>
           </div>
         </CardHeader>
@@ -319,9 +319,9 @@ export default function MatchPage() {
               <ul className="space-y-1">
                 {matchData.teamAPlayers.length === 0 ? <p className="text-sm text-muted-foreground">No players.</p> : null}
                 {matchData.teamAPlayers.map((p: any) => (
-                  <li key={p.id} className="flex justify-between items-center text-xs p-1.5 hover:bg-muted/50 transition-colors">
-                    <span className="font-medium">{p.name}</span>
-                    <span className="font-bold text-muted-foreground">{p.goals} GOALS</span>
+                  <li key={p.id} className="flex justify-between items-center text-sm p-1.5 hover:bg-muted/50 transition-colors gap-2">
+                    <span className="font-medium min-w-0 break-words">{p.name}</span>
+                    <span className="font-bold text-muted-foreground whitespace-nowrap">{p.goals} GOALS</span>
                   </li>
                 ))}
               </ul>
@@ -335,9 +335,9 @@ export default function MatchPage() {
               <ul className="space-y-1">
                 {matchData.teamBPlayers.length === 0 ? <p className="text-sm text-muted-foreground">No players.</p> : null}
                 {matchData.teamBPlayers.map((p: any) => (
-                  <li key={p.id} className="flex justify-between items-center text-xs p-1.5 hover:bg-muted/50 transition-colors">
-                    <span className="font-medium">{p.name}</span>
-                    <span className="font-bold text-muted-foreground">{p.goals} GOALS</span>
+                  <li key={p.id} className="flex justify-between items-center text-sm p-1.5 hover:bg-muted/50 transition-colors gap-2">
+                    <span className="font-medium min-w-0 break-words">{p.name}</span>
+                    <span className="font-bold text-muted-foreground whitespace-nowrap">{p.goals} GOALS</span>
                   </li>
                 ))}
               </ul>
@@ -355,7 +355,7 @@ export default function MatchPage() {
                 <p className="text-muted-foreground text-sm">No timeline events recorded.</p>
               ) : (
                 matchData.details.events.map((ev: any, idx: number) => (
-                  <div key={idx} className="flex gap-4 items-start text-sm">
+                  <div key={idx} className="flex gap-3 items-start text-sm min-w-0">
                     <span className="text-muted-foreground whitespace-nowrap">{ev.time}</span>
                     <div className="flex-1 space-y-1">
                       <p className="font-medium">

@@ -108,16 +108,16 @@ export default function APLKnockoutPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-3 sm:p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8">
       <div className="text-center space-y-2">
         <div className="mx-auto inline-flex items-center justify-center rounded-full bg-primary/10 p-3 text-primary">
           <Trophy className="h-5 w-5" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">APL Knockout Bracket</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">APL Knockout Bracket</h1>
         <p className="text-muted-foreground">Round of 16 through Final, rendered as a self-contained APL bracket.</p>
         <div className="flex justify-center">
           <Link href="/platform/sports/apl">
-            <Button variant="outline" className="mt-2">
+            <Button variant="outline" className="mt-2 w-full sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
               APL Home
             </Button>
@@ -132,8 +132,8 @@ export default function APLKnockoutPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="overflow-x-auto">
-          <div className="grid min-w-[760px] grid-cols-4 gap-4">
+        <div className="md:overflow-x-auto">
+          <div className="grid grid-cols-1 gap-4 md:min-w-[760px] md:grid-cols-4">
             {roundOrder.map((roundKey) => (
               <div key={roundKey} className="space-y-4">
                 <div className="rounded-full bg-slate-900 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-slate-500">
