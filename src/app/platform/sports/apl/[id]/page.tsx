@@ -216,8 +216,8 @@ export default function MatchPage() {
       (a: any, b: any) => (a.minute || 0) - (b.minute || 0) || (a.sortIndex || 0) - (b.sortIndex || 0)
     );
 
-    const scoreA = hasGoalEvents ? goalEvents.filter((event: any) => event?.team === 'team_a').length : attrs.team_a_score || 0;
-    const scoreB = hasGoalEvents ? goalEvents.filter((event: any) => event?.team === 'team_b').length : attrs.team_b_score || 0;
+    const scoreA = attrs.team_a_score || 0;
+    const scoreB = attrs.team_b_score || 0;
 
     return {
       id,
