@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,16 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Edit, Trash2, Users, Trophy, Calendar, BarChart3, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-
-function getStrapiMediaUrl(media: any): string | null {
-  if (!media?.data?.attributes?.url) return null;
-  const url = media.data.attributes.url;
-  return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
-}
 
 export default function APLAdminPage() {
   const [activeTab, setActiveTab] = useState('matches');
@@ -33,8 +24,6 @@ export default function APLAdminPage() {
 
   // Dialog states
   const [matchDialogOpen, setMatchDialogOpen] = useState(false);
-  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
-  const [participantDialogOpen, setParticipantDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
 
   // Form states
@@ -52,23 +41,6 @@ export default function APLAdminPage() {
     card_events: [] as any[],
     save_events: [] as any[],
     substitution_events: [] as any[],
-  });
-
-  const [teamForm, setTeamForm] = useState({
-    name: '',
-    group: 'A',
-    logo: null as File | null
-  });
-
-  const [participantForm, setParticipantForm] = useState<any>({
-    name: '',
-    team: '',
-    isCM: false,
-    sold_at: 0,
-    tier: 'tier1',
-    goals: 0,
-    assists: 0,
-    clean_sheets: 0
   });
 
   const fetchData = async () => {
@@ -151,11 +123,6 @@ export default function APLAdminPage() {
     return Number.isNaN(parsed) ? fallback : parsed;
   };
 
-  const toFloat = (value: any, fallback = 0) => {
-    const parsed = parseFloat(value?.toString() || '');
-    return Number.isNaN(parsed) ? fallback : parsed;
-  };
-
   const prepareMatchPayload = (form: any) => {
     const goal_events = (form.goal_events || []).map((event: any) => ({
       team: event.team,
@@ -194,14 +161,6 @@ export default function APLAdminPage() {
       substitution_events,
     };
   };
-
-  const prepareParticipantPayload = (form: any) => ({
-    ...form,
-    sold_at: toFloat(form.sold_at, 0),
-    goals: toInteger(form.goals, 0),
-    assists: toInteger(form.assists, 0),
-    clean_sheets: toInteger(form.clean_sheets, 0),
-  });
 
   // Match CRUD operations
   const handleCreateMatch = async () => {
@@ -284,158 +243,6 @@ export default function APLAdminPage() {
     }
   };
 
-  // Team CRUD operations
-  const handleCreateTeam = async () => {
-    try {
-      const formData = new FormData();
-      formData.append('data', JSON.stringify({
-        name: teamForm.name,
-        group: teamForm.group
-      }));
-      if (teamForm.logo) {
-        formData.append('files.logo', teamForm.logo);
-      }
-
-      const response = await fetch('/api/platform/sports/apl/teams', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (response.ok) {
-        toast.success("Team created successfully");
-        setTeamDialogOpen(false);
-        resetTeamForm();
-        fetchData();
-      } else {
-        toast.error("Failed to create team");
-      }
-    } catch {
-      toast.error("Error creating team");
-    }
-  };
-
-  const handleUpdateTeam = async () => {
-    if (!editingItem) return;
-
-    try {
-      const formData = new FormData();
-      formData.append('data', JSON.stringify({
-        name: teamForm.name,
-        group: teamForm.group
-      }));
-      if (teamForm.logo) {
-        formData.append('files.logo', teamForm.logo);
-      }
-
-      const response = await fetch(`/api/platform/sports/apl/teams/${editingItem.id}`, {
-        method: 'PATCH',
-        body: formData
-      });
-
-      if (response.ok) {
-        toast.success("Team updated successfully");
-        setTeamDialogOpen(false);
-        setEditingItem(null);
-        resetTeamForm();
-        fetchData();
-      } else {
-        toast.error("Failed to update team");
-      }
-    } catch {
-      toast.error("Error updating team");
-    }
-  };
-
-  const handleDeleteTeam = async (id: number) => {
-    try {
-      const response = await fetch(`/api/platform/sports/apl/teams/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        toast.success("Team deleted successfully");
-        fetchData();
-      } else {
-        toast.error("Failed to delete team");
-      }
-    } catch {
-      toast.error("Error deleting team");
-    }
-  };
-
-  // Participant CRUD operations
-  const handleCreateParticipant = async () => {
-    try {
-      const response = await fetch('/api/platform/sports/apl/participants', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: {
-            ...prepareParticipantPayload(participantForm),
-            team: { id: parseInt(participantForm.team) }
-          }
-        })
-      });
-
-      if (response.ok) {
-        toast.success("Participant created successfully");
-        setParticipantDialogOpen(false);
-        resetParticipantForm();
-        fetchData();
-      } else {
-        toast.error("Failed to create participant");
-      }
-    } catch {
-      toast.error("Error creating participant");
-    }
-  };
-
-  const handleUpdateParticipant = async () => {
-    if (!editingItem) return;
-
-    try {
-      const response = await fetch(`/api/platform/sports/apl/participants/${editingItem.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: {
-            ...prepareParticipantPayload(participantForm),
-            team: { id: parseInt(participantForm.team) }
-          }
-        })
-      });
-
-      if (response.ok) {
-        toast.success("Participant updated successfully");
-        setParticipantDialogOpen(false);
-        setEditingItem(null);
-        resetParticipantForm();
-        fetchData();
-      } else {
-        toast.error("Failed to update participant");
-      }
-    } catch {
-      toast.error("Error updating participant");
-    }
-  };
-
-  const handleDeleteParticipant = async (id: number) => {
-    try {
-      const response = await fetch(`/api/platform/sports/apl/participants/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        toast.success("Participant deleted successfully");
-        fetchData();
-      } else {
-        toast.error("Failed to delete participant");
-      }
-    } catch {
-      toast.error("Error deleting participant");
-    }
-  };
-
   // Form reset functions
   const resetMatchForm = () => {
     setMatchForm({
@@ -452,27 +259,6 @@ export default function APLAdminPage() {
       card_events: [],
       save_events: [],
       substitution_events: []
-    });
-  };
-
-  const resetTeamForm = () => {
-    setTeamForm({
-      name: '',
-      group: 'A',
-      logo: null
-    });
-  };
-
-  const resetParticipantForm = () => {
-    setParticipantForm({
-      name: '',
-      team: '',
-      isCM: false,
-      sold_at: 0,
-      tier: 'tier1',
-      goals: 0,
-      assists: 0,
-      clean_sheets: 0
     });
   };
 
@@ -532,33 +318,6 @@ export default function APLAdminPage() {
     setMatchDialogOpen(true);
   };
 
-  const editTeam = (team: any) => {
-    const attrs = team.attributes || {};
-    setTeamForm({
-      name: attrs.name || '',
-      group: attrs.group || 'A',
-      logo: null
-    });
-    setEditingItem(team);
-    setTeamDialogOpen(true);
-  };
-
-  const editParticipant = (participant: any) => {
-    const attrs = participant.attributes || {};
-    setParticipantForm({
-      name: attrs.name || '',
-      team: attrs.team?.data?.id?.toString() || '',
-      isCM: attrs.isCM || false,
-      sold_at: attrs.sold_at || 0,
-      tier: attrs.tier || 'tier1',
-      goals: attrs.goals || 0,
-      assists: attrs.assists || 0,
-      clean_sheets: attrs.clean_sheets || 0
-    });
-    setEditingItem(participant);
-    setParticipantDialogOpen(true);
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'live':
@@ -610,18 +369,10 @@ export default function APLAdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="matches">
             <Calendar className="w-4 h-4 mr-2" />
             Matches ({matches.length})
-          </TabsTrigger>
-          <TabsTrigger value="teams">
-            <Trophy className="w-4 h-4 mr-2" />
-            Teams ({teams.length})
-          </TabsTrigger>
-          <TabsTrigger value="participants">
-            <Users className="w-4 h-4 mr-2" />
-            Players ({participants.length})
           </TabsTrigger>
           <TabsTrigger value="stats">
             <BarChart3 className="w-4 h-4 mr-2" />
@@ -1221,319 +972,6 @@ export default function APLAdminPage() {
                               <Button size="sm" variant="outline" onClick={() => {
                                 if (window.confirm('Are you sure you want to delete this match? This action cannot be undone.')) {
                                   handleDeleteMatch(match.id);
-                                }
-                              }}>
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Teams Tab */}
-        <TabsContent value="teams" className="mt-6">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Team Management</CardTitle>
-                <Dialog open={teamDialogOpen} onOpenChange={setTeamDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => { setEditingItem(null); resetTeamForm(); }}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Team
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{editingItem ? 'Edit Team' : 'Create New Team'}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="team_name">Team Name</Label>
-                        <Input
-                          id="team_name"
-                          value={teamForm.name}
-                          onChange={(e) => setTeamForm({...teamForm, name: e.target.value})}
-                          placeholder="Enter team name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="group">Group</Label>
-                        <Select value={teamForm.group} onValueChange={(value) => setTeamForm({...teamForm, group: value})}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="A">Group A</SelectItem>
-                            <SelectItem value="B">Group B</SelectItem>
-                            <SelectItem value="C">Group C</SelectItem>
-                            <SelectItem value="D">Group D</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="logo">Team Logo</Label>
-                        <Input
-                          id="logo"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => setTeamForm({...teamForm, logo: e.target.files?.[0] || null})}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setTeamDialogOpen(false)}>
-                        <X className="w-4 h-4 mr-2" />
-                        Cancel
-                      </Button>
-                      <Button onClick={editingItem ? handleUpdateTeam : handleCreateTeam}>
-                        <Save className="w-4 h-4 mr-2" />
-                        {editingItem ? 'Update' : 'Create'}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[600px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Logo</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Group</TableHead>
-                      <TableHead>Players</TableHead>
-                      <TableHead>Stats</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {teams.map((team) => {
-                      const attrs = team.attributes || {};
-                      const teamParticipants = participants.filter(p => p.attributes?.team?.data?.id === team.id);
-
-                      return (
-                        <TableRow key={team.id}>
-                          <TableCell>
-                            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center overflow-hidden">
-                              {attrs.logo ? (
-                                <Image
-                                  src={getStrapiMediaUrl(attrs.logo)!}
-                                  alt={attrs.name}
-                                  width={32}
-                                  height={32}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-4 h-4 bg-muted-foreground/20 rounded" />
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-semibold">{attrs.name}</TableCell>
-                          <TableCell>Group {attrs.group}</TableCell>
-                          <TableCell>{teamParticipants.length} players</TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <div>W: {attrs.matches_won || 0}</div>
-                              <div>L: {attrs.matches_lost || 0}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => editTeam(team)}>
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => {
-                                if (window.confirm('Are you sure you want to delete this team? This will also remove all associated matches and participants.')) {
-                                  handleDeleteTeam(team.id);
-                                }
-                              }}>
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Participants Tab */}
-        <TabsContent value="participants" className="mt-6">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Player Management</CardTitle>
-                <Dialog open={participantDialogOpen} onOpenChange={setParticipantDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => { setEditingItem(null); resetParticipantForm(); }}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Player
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{editingItem ? 'Edit Player' : 'Create New Player'}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="player_name">Player Name</Label>
-                        <Input
-                          id="player_name"
-                          value={participantForm.name}
-                          onChange={(e) => setParticipantForm({...participantForm, name: e.target.value})}
-                          placeholder="Enter player name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="team">Team</Label>
-                        <Select value={participantForm.team} onValueChange={(value) => setParticipantForm({...participantForm, team: value})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select team" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {teams.map(team => (
-                              <SelectItem key={team.id} value={team.id.toString()}>
-                                {team.attributes?.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="tier">Tier</Label>
-                          <Select value={participantForm.tier} onValueChange={(value) => setParticipantForm({...participantForm, tier: value})}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="tier1">Tier 1</SelectItem>
-                              <SelectItem value="tier2">Tier 2</SelectItem>
-                              <SelectItem value="tier3">Tier 3</SelectItem>
-                              <SelectItem value="tier4">Tier 4</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="sold_at">Auction Price (₹)</Label>
-                          <Input
-                            id="sold_at"
-                            type="number"
-                            value={participantForm.sold_at}
-                            onChange={(e) => setParticipantForm({...participantForm, sold_at: e.target.value})}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="goals">Goals</Label>
-                          <Input
-                            id="goals"
-                            type="number"
-                            value={participantForm.goals}
-                            onChange={(e) => setParticipantForm({...participantForm, goals: e.target.value})}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="assists">Assists</Label>
-                          <Input
-                            id="assists"
-                            type="number"
-                            value={participantForm.assists}
-                            onChange={(e) => setParticipantForm({...participantForm, assists: e.target.value})}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="clean_sheets">Clean Sheets</Label>
-                          <Input
-                            id="clean_sheets"
-                            type="number"
-                            value={participantForm.clean_sheets}
-                            onChange={(e) => setParticipantForm({...participantForm, clean_sheets: e.target.value})}
-                          />
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id="isCM"
-                          checked={participantForm.isCM}
-                          onChange={(e) => setParticipantForm({...participantForm, isCM: e.target.checked})}
-                        />
-                        <Label htmlFor="isCM">Captain / Marquee Player</Label>
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setParticipantDialogOpen(false)}>
-                        <X className="w-4 h-4 mr-2" />
-                        Cancel
-                      </Button>
-                      <Button onClick={editingItem ? handleUpdateParticipant : handleCreateParticipant}>
-                        <Save className="w-4 h-4 mr-2" />
-                        {editingItem ? 'Update' : 'Create'}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[600px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Team</TableHead>
-                      <TableHead>Tier</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Goals</TableHead>
-                      <TableHead>Assists</TableHead>
-                      <TableHead>Clean Sheets</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {participants.map((participant) => {
-                      const attrs = participant.attributes || {};
-                      const playerTeam = teamMap[attrs.team?.data?.id];
-
-                      return (
-                        <TableRow key={participant.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{attrs.name}</span>
-                              {attrs.isCM && <Badge variant="secondary" className="text-xs">CM</Badge>}
-                            </div>
-                          </TableCell>
-                          <TableCell>{playerTeam?.attributes?.name || 'No Team'}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{attrs.tier?.replace('tier', 'Tier ')}</Badge>
-                          </TableCell>
-                          <TableCell>₹{attrs.sold_at || 0}M</TableCell>
-                          <TableCell>{attrs.goals || 0}</TableCell>
-                          <TableCell>{attrs.assists || 0}</TableCell>
-                          <TableCell>{attrs.clean_sheets || 0}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => editParticipant(participant)}>
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => {
-                                if (window.confirm('Are you sure you want to delete this player? This action cannot be undone.')) {
-                                  handleDeleteParticipant(participant.id);
                                 }
                               }}>
                                 <Trash2 className="w-4 h-4" />
