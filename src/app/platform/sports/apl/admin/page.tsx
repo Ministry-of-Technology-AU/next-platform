@@ -1111,29 +1111,31 @@ export default function APLAdminPage() {
                         {matchForm.status === 'live' && (
                           <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                             <div className="flex items-center justify-between gap-3">
-                              <div>
+                              <div className="flex-1 min-w-0">
                                 <h3 className="text-lg font-semibold">Match Clock</h3>
                                 <p className="text-sm text-muted-foreground">Suggested event minute updates from this clock.</p>
                               </div>
-                              <Badge variant={clockRunning ? 'default' : 'outline'}>{getClockStateLabel()}</Badge>
+                              <Badge className="whitespace-nowrap flex-shrink-0" variant={clockRunning ? 'default' : 'outline'}>{getClockStateLabel()}</Badge>
                             </div>
-                            <div className="text-2xl font-semibold">
-                              {currentSuggestedMinute}' {currentSuggestedSecond.toString().padStart(2, '0')}"
+                            <div className="h-8 flex items-center">
+                              <div className="text-2xl font-semibold leading-none">
+                                {currentSuggestedMinute}' {currentSuggestedSecond.toString().padStart(2, '0')}"
+                              </div>
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                              <Button size="sm" variant="default" onClick={startClock} disabled={clockRunning}>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              <Button className="w-full" size="sm" variant="default" onClick={startClock} disabled={clockRunning}>
                                 <Play className="w-4 h-4 mr-2" />
                                 Start
                               </Button>
-                              <Button size="sm" variant="outline" onClick={pauseClock} disabled={!clockRunning}>
+                              <Button className="w-full" size="sm" variant="outline" onClick={pauseClock} disabled={!clockRunning}>
                                 <Pause className="w-4 h-4 mr-2" />
                                 Pause
                               </Button>
-                              <Button size="sm" variant="outline" onClick={resumeClock} disabled={clockRunning}>
+                              <Button className="w-full" size="sm" variant="outline" onClick={resumeClock} disabled={clockRunning}>
                                 <Play className="w-4 h-4 mr-2" />
                                 Resume
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={resetClock}>
+                              <Button className="w-full" size="sm" variant="ghost" onClick={resetClock}>
                                 <RotateCcw className="w-4 h-4 mr-2" />
                                 Reset
                               </Button>
