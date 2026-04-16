@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { normalizePlayerName } from '@/lib/utils';
+import { formatISTDateTimeDisplay } from '@/lib/date-utils';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -262,7 +263,10 @@ export default function MatchPage() {
         <CardHeader className="text-center pt-8">
           <CardDescription className="uppercase tracking-widest font-semibold text-muted-foreground">
             {matchData.type}
-            {matchData.start_time && ` • ${new Date(matchData.start_time).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}`}
+            {matchData.start_time && (() => {
+              const { date, time } = formatISTDateTimeDisplay(matchData.start_time);
+              return ` • ${date} ${time}`.trim();
+            })()}
           </CardDescription>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 mt-6">
             <div className="flex flex-col items-center flex-1">

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { strapiDelete, strapiGet, strapiPut } from '@/lib/apis/strapi';
 import { auth } from '@/auth';
+import { convertISTDateTimeLocalToISOString } from '@/lib/date-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,19 @@ const extractTeamId = (value: any): string => {
 
   const candidate = value?.data?.id ?? value?.id ?? value?.documentId ?? value;
   return typeof candidate === 'string' || typeof candidate === 'number' ? candidate.toString() : '';
+};
+
+const normalizeMatchPayload = (payload: any) => {
+  if (!payload || typeof payload !== 'object') return payload;
+
+  const normalizedStartTime = typeof payload.start_time === 'string'
+    ? convertISTDateTimeLocalToISOString(payload.start_time)
+    : payload.start_time;
+
+  return {
+    ...payload,
+    ...(normalizedStartTime ? { start_time: normalizedStartTime } : {}),
+  };
 };
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -38,18 +52,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const body = await request.json();
     const incomingData = body && typeof body === 'object' && 'data' in body ? body.data : body;
 
-    const teamAId = extractTeamId(incomingData?.team_a);
-    const teamBId = extractTeamId(incomingData?.team_b);
+    const normalizedIncomingData = normalizeMatchPayload(incomingData);
+
+    const teamAId = extractTeamId(normalizedIncomingData?.team_a);
+    const teamBId = extractTeamId(normalizedIncomingData?.team_b);
     if (teamAId && teamBId && teamAId === teamBId) {
       return NextResponse.json({ error: 'Team A and Team B must be different' }, { status: 400 });
     }
     
     // Merge nested details logic to avoid overwriting existing json sub-fields (date, time, arena, etc.)
-    let mergedData = { ...incomingData };
-    if (incomingData?.details) {
+    let mergedData = { ...normalizedIncomingData };
+    if (normalizedIncomingData?.details) {
       const existingMatch = await strapiGet(`/apl-matches/${id}`);
       const existingDetails = existingMatch?.data?.attributes?.details || {};
-      mergedData.details = { ...existingDetails, ...incomingData.details };
+      mergedData.details = { ...existingDetails, ...normalizedIncomingData.details };
     }
 
     const data = await strapiPut(`/apl-matches/${id}`, { data: mergedData });

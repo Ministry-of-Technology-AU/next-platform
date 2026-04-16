@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar, Trophy, BarChart3 } from 'lucide-react';
 import { normalizePlayerName } from '@/lib/utils';
+import { formatISTDateTimeDisplay } from '@/lib/date-utils';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -55,18 +56,15 @@ const formatMatchDateTime = (startTime?: string, fallbackDate?: string, fallback
     };
   }
 
-  const parsed = new Date(startTime);
-  if (Number.isNaN(parsed.getTime())) {
+  const formatted = formatISTDateTimeDisplay(startTime);
+  if (!formatted.date || !formatted.time) {
     return {
       date: fallbackDate || 'TBD',
       time: fallbackTime || 'TBD',
     };
   }
 
-  return {
-    date: parsed.toLocaleDateString([], { dateStyle: 'medium' }),
-    time: parsed.toLocaleTimeString([], { timeStyle: 'short' }),
-  };
+  return formatted;
 };
 
 const formatPeriodLabel = (period?: string, fallback?: string) => {
@@ -382,7 +380,10 @@ export default function APLFootballPage() {
                     {currentMatch.status}
                   </Badge>
                   <span className="text-zinc-400 text-[10px] md:text-sm font-black uppercase tracking-widest bg-zinc-800/50 px-2 py-0.5 rounded border border-zinc-700/50">
-                    {currentMatch.start_time ? new Date(currentMatch.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (currentMatch.date + ' • ' + currentMatch.time)}
+                    {currentMatch.start_time ? (() => {
+                      const { date, time } = formatISTDateTimeDisplay(currentMatch.start_time);
+                      return `${date} • ${time}`.trim();
+                    })() : (currentMatch.date + ' • ' + currentMatch.time)}
                   </span>
                 </div>
 
@@ -688,7 +689,10 @@ export default function APLFootballPage() {
                     <div>
                       <h4 className="font-bold text-foreground">{match.teamA} VS {match.teamB}</h4>
                       <p className="text-xs text-muted-foreground font-semibold tracking-wide mt-1">
-                        {match.start_time ? new Date(match.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (match.date + ' • ' + match.time)}
+                        {match.start_time ? (() => {
+                          const { date, time } = formatISTDateTimeDisplay(match.start_time);
+                          return `${date} • ${time}`.trim();
+                        })() : (match.date + ' • ' + match.time)}
                       </p>
                     </div>
                     <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">

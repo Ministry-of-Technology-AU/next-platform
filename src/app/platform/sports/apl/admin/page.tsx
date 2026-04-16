@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatISTDateTimeDisplay, formatISTDateTimeForInput } from '@/lib/date-utils';
 
 export default function APLAdminPage() {
   const [activeTab, setActiveTab] = useState('matches');
@@ -393,7 +394,7 @@ export default function APLAdminPage() {
         status: attrs.status || 'upcoming',
         team_a_score: attrs.team_a_score || 0,
         team_b_score: attrs.team_b_score || 0,
-        start_time: attrs.start_time ? new Date(attrs.start_time).toISOString().slice(0, 16) : '',
+        start_time: formatISTDateTimeForInput(attrs.start_time),
         period: attrs.period || 'not_started',
         round: attrs.round || 'group_stage',
         match_number: attrs.match_number?.toString() || '',
@@ -1068,7 +1069,10 @@ export default function APLAdminPage() {
                             }
                           </TableCell>
                           <TableCell>
-                            {attrs.start_time ? new Date(attrs.start_time).toLocaleString() : '-'}
+                            {attrs.start_time ? (() => {
+                              const { date, time } = formatISTDateTimeDisplay(attrs.start_time);
+                              return `${date} ${time}`.trim();
+                            })() : '-'}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Clock, Search, Trophy, Users } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatISTDateTimeDisplay } from '@/lib/date-utils';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -282,9 +283,9 @@ export default function APLMatchesPage() {
                             {attrs.start_time && (
                               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4" />
-                                {new Date(attrs.start_time).toLocaleDateString()}
+                                {formatISTDateTimeDisplay(attrs.start_time).date}
                                 <Clock className="w-4 h-4 ml-2" />
-                                {new Date(attrs.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {formatISTDateTimeDisplay(attrs.start_time).time}
                               </div>
                             )}
                           </div>
@@ -465,9 +466,9 @@ export default function APLMatchesPage() {
                             {attrs.start_time && (
                               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4" />
-                                {new Date(attrs.start_time).toLocaleDateString()}
+                                {formatISTDateTimeDisplay(attrs.start_time).date}
                                 <Clock className="w-4 h-4 ml-2" />
-                                {new Date(attrs.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {formatISTDateTimeDisplay(attrs.start_time).time}
                               </div>
                             )}
                           </div>

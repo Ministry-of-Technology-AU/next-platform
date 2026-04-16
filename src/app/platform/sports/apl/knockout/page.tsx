@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Trophy } from 'lucide-react';
+import { formatISTDateTimeDisplay } from '@/lib/date-utils';
 
 const roundLabels: Record<string, string> = {
   round_of_16: 'Round of 16',
@@ -92,7 +93,7 @@ export default function APLKnockoutPage() {
           </div>
         </div>
         <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
-          <span>{match.attributes?.start_time ? new Date(match.attributes.start_time).toLocaleDateString() : 'TBA'}</span>
+          <span>{match.attributes?.start_time ? formatISTDateTimeDisplay(match.attributes.start_time).date : 'TBA'}</span>
           <span>{stateLabel}</span>
         </div>
       </div>
