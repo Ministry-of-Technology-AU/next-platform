@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X, Play, Pause, RotateCcw } from 'lucide-react';
+import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatISTDateTimeDisplay, formatISTDateTimeForInput } from '@/lib/date-utils';
 import DeveloperCredits from '@/components/developer-credits';
@@ -27,12 +27,6 @@ export default function APLAdminPage() {
   // Dialog states
   const [matchDialogOpen, setMatchDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-
-  // Live minute tracking for event entry
-  const [clockRunning, setClockRunning] = useState(false);
-  const [clockBaseMinute, setClockBaseMinute] = useState(1);
-  const [clockElapsedSeconds, setClockElapsedSeconds] = useState(0);
-  const [halftimeCarryMinute, setHalftimeCarryMinute] = useState<number | null>(null);
 
   // Form states
   const [matchForm, setMatchForm] = useState<any>({
@@ -82,22 +76,6 @@ export default function APLAdminPage() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (!clockRunning) return;
-
-    const intervalId = window.setInterval(() => {
-      setClockElapsedSeconds((prev) => prev + 1);
-    }, 1000);
-
-    return () => window.clearInterval(intervalId);
-  }, [clockRunning]);
-
-  useEffect(() => {
-    if (matchForm.status !== 'live') {
-      setClockRunning(false);
-    }
-  }, [matchForm.status]);
 
   const teamMap = useMemo(() => {
     const map: Record<number, any> = {};
@@ -204,83 +182,6 @@ export default function APLAdminPage() {
     team: 'team_a'
   });
 
-  const currentSuggestedMinute = useMemo(
-    () => Math.max(1, clockBaseMinute + Math.floor(clockElapsedSeconds / 60)),
-    [clockBaseMinute, clockElapsedSeconds]
-  );
-
-  const getClockStateLabel = () => {
-    if (clockRunning) return 'Running';
-    if (clockElapsedSeconds > 0 || clockBaseMinute > 1) return 'Paused';
-    return 'Not started';
-  };
-
-  const startClock = () => {
-    setClockBaseMinute(1);
-    setClockElapsedSeconds(0);
-    setHalftimeCarryMinute(null);
-    setClockRunning(true);
-  };
-
-  const pauseClock = () => setClockRunning(false);
-
-  const resumeClock = () => setClockRunning(true);
-
-  const resetClock = () => {
-    setClockRunning(false);
-    setClockBaseMinute(1);
-    setClockElapsedSeconds(0);
-    setHalftimeCarryMinute(null);
-  };
-
-  const applyCurrentMinuteToEvent = (eventCollection: string, index: number) => {
-    setMatchForm((prev: any) => {
-      const nextEvents = [...(prev[eventCollection] || [])];
-      nextEvents[index] = { ...nextEvents[index], minute: currentSuggestedMinute };
-      return { ...prev, [eventCollection]: nextEvents };
-    });
-  };
-
-  const handlePeriodChange = (nextPeriod: string) => {
-    const previousPeriod = matchForm.period;
-    const minuteAtSwitch = currentSuggestedMinute;
-
-    setMatchForm((prev: any) => ({ ...prev, period: nextPeriod }));
-
-    if (nextPeriod === 'half_time') {
-      setHalftimeCarryMinute(minuteAtSwitch);
-      setClockRunning(false);
-      return;
-    }
-
-    if (previousPeriod === 'half_time' && nextPeriod === 'second_half') {
-      const resumeFromMinute = Math.max(1, (halftimeCarryMinute ?? minuteAtSwitch) + 1);
-      setClockBaseMinute(resumeFromMinute);
-      setClockElapsedSeconds(0);
-      setClockRunning(true);
-      return;
-    }
-
-    if (nextPeriod === 'not_started') {
-      resetClock();
-    }
-  };
-
-  const getMaxEventMinute = (form: any) => {
-    const eventCollections = [
-      ...(form.goal_events || []),
-      ...(form.card_events || []),
-      ...(form.save_events || []),
-      ...(form.substitution_events || []),
-    ];
-
-    return eventCollections.reduce((maxMinute: number, event: any) => {
-      const value = parseInt(event?.minute?.toString() || '', 10);
-      if (Number.isNaN(value)) return maxMinute;
-      return Math.max(maxMinute, value);
-    }, 1);
-  };
-
   const getDerivedMatchScores = (goalEvents: any[] = []) => ({
     team_a_score: goalEvents.filter((event: any) => event?.team === 'team_a').length,
     team_b_score: goalEvents.filter((event: any) => event?.team === 'team_b').length,
@@ -291,12 +192,10 @@ export default function APLAdminPage() {
     return Number.isNaN(parsed) ? fallback : parsed;
   };
 
-  const normalizeMinute = (value: any, fallback = 1) => Math.max(1, toInteger(value, fallback));
-
   const prepareMatchPayload = (form: any) => {
     const goal_events = (form.goal_events || []).map((event: any) => ({
       team: event.team,
-      minute: normalizeMinute(event.minute, 1),
+      minute: toInteger(event.minute, 1),
       is_penalty: event.is_penalty,
       is_own_goal: event.is_own_goal,
       ...(event.scorer ? { scorer: { id: parseInt(event.scorer) } } : {}),
@@ -305,21 +204,21 @@ export default function APLAdminPage() {
 
     const card_events = (form.card_events || []).map((event: any) => ({
       team: event.team,
-      minute: normalizeMinute(event.minute, 1),
+      minute: toInteger(event.minute, 1),
       card_type: event.card_type,
       ...(event.player ? { player: { id: parseInt(event.player) } } : {})
     }));
 
     const save_events = (form.save_events || []).map((event: any) => ({
       team: event.team,
-      minute: normalizeMinute(event.minute, 1),
+      minute: toInteger(event.minute, 1),
       saves: toInteger(event.saves, 0),
       ...(event.goalkeeper ? { goalkeeper: { id: parseInt(event.goalkeeper) } } : {})
     }));
 
     const substitution_events = (form.substitution_events || []).map((event: any) => ({
       team: event.team,
-      minute: normalizeMinute(event.minute, 1),
+      minute: toInteger(event.minute, 1),
       ...(event.player_off ? { player_off: { id: parseInt(event.player_off) } } : {}),
       ...(event.player_on ? { player_on: { id: parseInt(event.player_on) } } : {})
     }));
@@ -433,7 +332,6 @@ export default function APLAdminPage() {
       save_events: [],
       substitution_events: []
     });
-    resetClock();
   };
 
   // Edit functions
@@ -506,18 +404,6 @@ export default function APLAdminPage() {
         save_events: saveEvents,
         substitution_events: substitutionEvents
       });
-
-      const maxExistingMinute = getMaxEventMinute({
-        goal_events: goalEvents,
-        card_events: cardEvents,
-        save_events: saveEvents,
-        substitution_events: substitutionEvents,
-      });
-      setClockBaseMinute(maxExistingMinute);
-      setClockElapsedSeconds(0);
-      setHalftimeCarryMinute(attrs.period === 'half_time' ? maxExistingMinute : null);
-      setClockRunning(false);
-
       setEditingItem(record);
       setMatchDialogOpen(true);
     } catch (error) {
@@ -696,7 +582,7 @@ export default function APLAdminPage() {
                       {matchForm.status === 'live' && (
                         <div className="space-y-2">
                           <Label htmlFor="period">Period</Label>
-                          <Select value={matchForm.period} onValueChange={handlePeriodChange}>
+                          <Select value={matchForm.period} onValueChange={(value) => setMatchForm({...matchForm, period: value})}>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
@@ -735,42 +621,11 @@ export default function APLAdminPage() {
                       )}
 
                       <div className="col-span-2 space-y-6">
-                        {matchForm.status === 'live' && (
-                          <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-                            <div className="flex items-center justify-between gap-3">
-                              <div>
-                                <h3 className="text-lg font-semibold">Match Clock</h3>
-                                <p className="text-sm text-muted-foreground">Suggested event minute updates from this clock.</p>
-                              </div>
-                              <Badge variant={clockRunning ? 'default' : 'outline'}>{getClockStateLabel()}</Badge>
-                            </div>
-                            <div className="text-2xl font-semibold">{currentSuggestedMinute}'</div>
-                            <div className="flex flex-wrap gap-2">
-                              <Button size="sm" variant="default" onClick={startClock} disabled={clockRunning}>
-                                <Play className="w-4 h-4 mr-2" />
-                                Start
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={pauseClock} disabled={!clockRunning}>
-                                <Pause className="w-4 h-4 mr-2" />
-                                Pause
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={resumeClock} disabled={clockRunning}>
-                                <Play className="w-4 h-4 mr-2" />
-                                Resume
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={resetClock}>
-                                <RotateCcw className="w-4 h-4 mr-2" />
-                                Reset
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold">Goal Events</h3>
                           <Button size="sm" variant="outline" onClick={() => setMatchForm({
                             ...matchForm,
-                            goal_events: [...(matchForm.goal_events || []), { ...createEmptyGoalEvent(), minute: currentSuggestedMinute }]
+                            goal_events: [...(matchForm.goal_events || []), createEmptyGoalEvent()]
                           })}>
                             Add Goal
                           </Button>
@@ -802,21 +657,12 @@ export default function APLAdminPage() {
                                 <Input
                                   type="number"
                                   value={event.minute}
-                                  min={1}
                                   onChange={(e) => {
                                     const nextGoals = [...matchForm.goal_events];
                                     nextGoals[idx] = { ...nextGoals[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, goal_events: nextGoals });
                                   }}
                                 />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() => applyCurrentMinuteToEvent('goal_events', idx)}
-                                >
-                                  Use current ({currentSuggestedMinute}')
-                                </Button>
                               </div>
                               <div className="space-y-2">
                                 <Label>Scorer</Label>
@@ -901,7 +747,7 @@ export default function APLAdminPage() {
                           <h3 className="text-lg font-semibold">Card Events</h3>
                           <Button size="sm" variant="outline" onClick={() => setMatchForm({
                             ...matchForm,
-                            card_events: [...(matchForm.card_events || []), { ...createEmptyCardEvent(), minute: currentSuggestedMinute }]
+                            card_events: [...(matchForm.card_events || []), createEmptyCardEvent()]
                           })}>
                             Add Card
                           </Button>
@@ -933,21 +779,12 @@ export default function APLAdminPage() {
                                 <Input
                                   type="number"
                                   value={event.minute}
-                                  min={1}
                                   onChange={(e) => {
                                     const nextCards = [...matchForm.card_events];
                                     nextCards[idx] = { ...nextCards[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, card_events: nextCards });
                                   }}
                                 />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() => applyCurrentMinuteToEvent('card_events', idx)}
-                                >
-                                  Use current ({currentSuggestedMinute}')
-                                </Button>
                               </div>
                               <div className="space-y-2">
                                 <Label>Player</Label>
@@ -1001,7 +838,7 @@ export default function APLAdminPage() {
                           <h3 className="text-lg font-semibold">Goalkeeper Saves</h3>
                           <Button size="sm" variant="outline" onClick={() => setMatchForm({
                             ...matchForm,
-                            save_events: [...(matchForm.save_events || []), { ...createEmptySaveEvent(), minute: currentSuggestedMinute }]
+                            save_events: [...(matchForm.save_events || []), createEmptySaveEvent()]
                           })}>
                             Add Save
                           </Button>
@@ -1033,21 +870,12 @@ export default function APLAdminPage() {
                                 <Input
                                   type="number"
                                   value={event.minute}
-                                  min={1}
                                   onChange={(e) => {
                                     const nextSaves = [...matchForm.save_events];
                                     nextSaves[idx] = { ...nextSaves[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, save_events: nextSaves });
                                   }}
                                 />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() => applyCurrentMinuteToEvent('save_events', idx)}
-                                >
-                                  Use current ({currentSuggestedMinute}')
-                                </Button>
                               </div>
                               <div className="space-y-2">
                                 <Label>Goalkeeper</Label>
@@ -1096,7 +924,7 @@ export default function APLAdminPage() {
                           <h3 className="text-lg font-semibold">Substitution Events</h3>
                           <Button size="sm" variant="outline" onClick={() => setMatchForm({
                             ...matchForm,
-                            substitution_events: [...(matchForm.substitution_events || []), { ...createEmptySubstitutionEvent(), minute: currentSuggestedMinute }]
+                            substitution_events: [...(matchForm.substitution_events || []), createEmptySubstitutionEvent()]
                           })}>
                             Add Substitution
                           </Button>
@@ -1128,21 +956,12 @@ export default function APLAdminPage() {
                                 <Input
                                   type="number"
                                   value={event.minute}
-                                  min={1}
                                   onChange={(e) => {
                                     const nextSubs = [...matchForm.substitution_events];
                                     nextSubs[idx] = { ...nextSubs[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, substitution_events: nextSubs });
                                   }}
                                 />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() => applyCurrentMinuteToEvent('substitution_events', idx)}
-                                >
-                                  Use current ({currentSuggestedMinute}')
-                                </Button>
                               </div>
                               <div className="space-y-2">
                                 <Label>Player Off</Label>
