@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { strapiGet, strapiPost } from '@/lib/apis/strapi';
+import { auth } from '@/auth';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -19,6 +20,15 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!session.user?.access?.includes('apl_admin')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
     const payload = body && typeof body === 'object' && 'data' in body ? body.data : body;
     const data = await strapiPost('/apl-matches', { data: payload });
