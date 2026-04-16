@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { strapiDelete, strapiGet, strapiPut } from '@/lib/apis/strapi';
-import { emitAplUpdate } from '@/lib/sse/apl-events';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -30,12 +29,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const data = await strapiPut(`/apl-matches/${id}`, { data: mergedData });
 
-    emitAplUpdate({
-      event: 'entry.update',
-      model: 'apl-matches',
-      id,
-    });
-
     return NextResponse.json(data);
   } catch (error) {
     console.error("API proxy error:", error);
@@ -47,12 +40,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const data = await strapiDelete(`/apl-matches/${id}`);
-
-    emitAplUpdate({
-      event: 'entry.delete',
-      model: 'apl-matches',
-      id,
-    });
 
     return NextResponse.json(data);
   } catch (error) {

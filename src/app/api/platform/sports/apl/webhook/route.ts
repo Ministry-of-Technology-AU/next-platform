@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { emitAplUpdate } from '@/lib/sse/apl-events';
+import { aplEmitter } from '@/lib/sse/apl-emitter';
 
 export async function POST(request: Request) {
   try {
@@ -27,15 +27,21 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.json();
-    const normalizedEvent = emitAplUpdate(payload);
+    const { model, entry, event } = payload;
 
-    return Response.json({
-      success: true,
-      message: 'Update broadcast to all clients',
-      event: normalizedEvent,
+    console.log(`[SSE Webhook] ${event} on ${model} (ID: ${entry?.id})`);
+
+    // Broadcast to all connected SSE clients
+    aplEmitter.emit('apl-update', {
+      model,
+      event,
+      entryId: entry?.id,
+      timestamp: Date.now(),
     });
+
+    return NextResponse.json({ message: 'SSE broadcast sent' });
   } catch (error) {
-    console.error('[APL Webhook] Error:', error);
-    return Response.json({ success: false, error: 'Failed to process webhook' }, { status: 400 });
+    console.error('[SSE Webhook] Error:', error);
+    return NextResponse.json({ error: 'Failed to process webhook' }, { status: 400 });
   }
 }
