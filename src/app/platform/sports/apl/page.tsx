@@ -99,6 +99,10 @@ const MOCK_TOP_SCORERS = [
   { id: 101, name: 'Jason M.', team: 'STEEL TITANS', goals: 5 },
 ];
 
+const MOCK_TOP_ASSISTS = [
+  { id: 201, name: 'Jason M.', team: 'STEEL TITANS', assists: 3 },
+];
+
 const MOCK_PAST_MATCHES = [
   { id: 7, teamA: 'BLIZZARD', teamB: 'VIPERS', scoreA: 3, scoreB: 2, date: 'FINAL • DEC 12' },
 ];
@@ -326,7 +330,20 @@ export default function APLFootballPage() {
             goals: p.attributes?.goals || 0
           }))
           .filter((p: any) => p.goals > 0)
+          .sort((a: any, b: any) => b.goals - a.goals || a.name.localeCompare(b.name))
       : MOCK_TOP_SCORERS;
+
+    const displayAssists = rawParticipants.length > 0
+      ? rawParticipants
+          .map((p: any) => ({
+            id: p.id,
+            name: normalizePlayerName(p.attributes?.name),
+            team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
+            assists: p.attributes?.assists || 0
+          }))
+          .filter((p: any) => p.assists > 0)
+          .sort((a: any, b: any) => b.assists - a.assists || a.name.localeCompare(b.name))
+      : MOCK_TOP_ASSISTS;
 
     // 5. Winner team logos
     const winnerLogos = WINNERS.map(w => {
@@ -365,6 +382,7 @@ export default function APLFootballPage() {
       winnerLogos,
       displayGroups: displayGroups.length > 0 ? displayGroups : MOCK_GROUPS,
       displayScorers,
+      displayAssists,
       liveMatchSets: currentMatchData?.details?.sets || []
     };
   }, [rawMatches, rawTeams, rawParticipants, selectedLiveMatchId]);
@@ -386,7 +404,7 @@ export default function APLFootballPage() {
 
   if (loading && rawMatches.length === 0) return <div className="p-8 text-center text-muted-foreground bg-background">Loading Football Portal...</div>;
 
-  const { currentMatch, currentLiveMatchIndex, liveMatches, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers } = dashboardData;
+  const { currentMatch, currentLiveMatchIndex, liveMatches, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers, displayAssists } = dashboardData;
 
   const hasMultipleLiveMatches = liveMatches.length > 1;
 
@@ -698,41 +716,77 @@ export default function APLFootballPage() {
           </Tabs>
         </section>
 
-        {/* Top Scorers */}
-        <section className="lg:col-span-2 flex flex-col w-full self-start">
-          <div className="flex items-center justify-between mb-4 h-10 w-full">
-            <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
-          </div>
-          <Card className="bg-card border-border text-foreground shadow-sm overflow-hidden">
-            <CardContent className="p-0">
-              <ScrollArea className="w-full max-h-[400px]">
-                <Table className="w-full">
-                  <TableHeader className="bg-muted/50">
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
-                      <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
-                      <TableHead className="text-right text-foreground font-bold px-6 w-24">GOALS</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayScorers.map((scorer: any, index: number) => (
-                      <TableRow key={scorer.id || index} className="border-border hover:bg-muted/30">
-                        <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
-                        <TableCell className="px-4">
-                          <p className="font-bold text-red-500 tracking-wide whitespace-nowrap">{scorer.name}</p>
-                          <p className="text-xs text-muted-foreground font-semibold mt-0.5">{scorer.team}</p>
-                        </TableCell>
-                        <TableCell className="text-right font-black text-yellow-600 dark:text-yellow-500 text-lg px-6">
-                          {scorer.goals}
-                        </TableCell>
+        <div className="lg:col-span-2 flex flex-col gap-8 w-full self-start">
+          <section className="flex flex-col w-full">
+            <div className="flex items-center justify-between mb-4 h-10 w-full">
+              <h3 className="text-xl font-bold tracking-tight">Top Scorers</h3>
+            </div>
+            <Card className="bg-card border-border text-foreground shadow-sm overflow-hidden">
+              <CardContent className="p-0">
+                <ScrollArea className="w-full h-[400px]">
+                  <Table className="w-full">
+                    <TableHeader className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
+                      <TableRow className="border-border hover:bg-transparent">
+                        <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
+                        <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
+                        <TableHead className="text-right text-foreground font-bold px-6 w-24">GOALS</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </section>
+                    </TableHeader>
+                    <TableBody>
+                      {displayScorers.map((scorer: any, index: number) => (
+                        <TableRow key={scorer.id || index} className="border-border hover:bg-muted/30">
+                          <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
+                          <TableCell className="px-4">
+                            <p className="font-bold text-red-500 tracking-wide whitespace-nowrap">{scorer.name}</p>
+                            <p className="text-xs text-muted-foreground font-semibold mt-0.5">{scorer.team}</p>
+                          </TableCell>
+                          <TableCell className="text-right font-black text-yellow-600 dark:text-yellow-500 text-lg px-6">
+                            {scorer.goals}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="flex flex-col w-full">
+            <div className="flex items-center justify-between mb-4 h-10 w-full">
+              <h3 className="text-xl font-bold tracking-tight">Top Assists</h3>
+            </div>
+            <Card className="bg-card border-border text-foreground shadow-sm overflow-hidden">
+              <CardContent className="p-0">
+                <ScrollArea className="w-full h-[400px]">
+                  <Table className="w-full">
+                    <TableHeader className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
+                      <TableRow className="border-border hover:bg-transparent">
+                        <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
+                        <TableHead className="text-muted-foreground font-bold px-4">PLAYER</TableHead>
+                        <TableHead className="text-right text-foreground font-bold px-6 w-24">ASSISTS</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {displayAssists.map((player: any, index: number) => (
+                        <TableRow key={player.id || index} className="border-border hover:bg-muted/30">
+                          <TableCell className="text-center font-bold text-muted-foreground px-2">{index + 1}</TableCell>
+                          <TableCell className="px-4">
+                            <p className="font-bold text-red-500 tracking-wide whitespace-nowrap">{player.name}</p>
+                            <p className="text-xs text-muted-foreground font-semibold mt-0.5">{player.team}</p>
+                          </TableCell>
+                          <TableCell className="text-right font-black text-yellow-600 dark:text-yellow-500 text-lg px-6">
+                            {player.assists}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </section>
+        </div>
       </div>
 
       {/* Matches */}
