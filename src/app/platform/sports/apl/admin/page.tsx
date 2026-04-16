@@ -46,9 +46,9 @@ export default function APLAdminPage() {
   const fetchData = async () => {
     try {
       const [matchesRes, teamsRes, participantsRes] = await Promise.all([
-        fetch('/api/platform/sports/apl/matches?populate=*'),
-        fetch('/api/platform/sports/apl/teams?populate=*'),
-        fetch('/api/platform/sports/apl/participants?populate=*&limit=1000')
+        fetch('/api/platform/sports/apl/matches?populate=*', { cache: 'no-store' }),
+        fetch('/api/platform/sports/apl/teams?populate=*', { cache: 'no-store' }),
+        fetch('/api/platform/sports/apl/participants?populate=*&limit=1000', { cache: 'no-store' })
       ]);
 
       if (matchesRes.ok) {
@@ -85,14 +85,7 @@ export default function APLAdminPage() {
 
   const getParticipantTeamId = (participant: any): string => {
     const attrs = participant?.attributes || participant || {};
-    const relation = attrs?.team;
-    const relationData = relation?.data;
-
-    if (relationData?.id) return relationData.id.toString();
-    if (relation?.id) return relation.id.toString();
-    if (typeof relation === 'number' || typeof relation === 'string') return relation.toString();
-
-    return '';
+    return extractRelationId(attrs?.team);
   };
 
   const getTeamNameById = (teamId: string, fallback: string) => {
@@ -113,6 +106,19 @@ export default function APLAdminPage() {
     if (!matchForm.team_b) return [];
     return participants.filter((player) => getParticipantTeamId(player) === matchForm.team_b);
   }, [participants, matchForm.team_b]);
+
+  const normalizeComponentCollection = (value: any): any[] => {
+    if (Array.isArray(value)) return value;
+    if (Array.isArray(value?.data)) return value.data;
+    return [];
+  };
+
+  const extractRelationId = (relation: any): string => {
+    if (!relation) return '';
+
+    const candidate = relation?.data?.id ?? relation?.id ?? relation?.documentId ?? relation;
+    return typeof candidate === 'string' || typeof candidate === 'number' ? candidate.toString() : '';
+  };
 
   const getPlayersForEventTeam = (eventTeam: string) => {
     if (eventTeam === 'team_b') return teamBPlayers;
@@ -315,59 +321,81 @@ export default function APLAdminPage() {
   };
 
   // Edit functions
-  const editMatch = (match: any) => {
-    const attrs = match.attributes || {};
-    setMatchForm({
-      team_a: attrs.team_a?.data?.id?.toString() || '',
-      team_b: attrs.team_b?.data?.id?.toString() || '',
-      status: attrs.status || 'upcoming',
-      team_a_score: attrs.team_a_score || 0,
-      team_b_score: attrs.team_b_score || 0,
-      start_time: attrs.start_time ? new Date(attrs.start_time).toISOString().slice(0, 16) : '',
-      period: attrs.period || 'not_started',
-      round: attrs.round || 'group_stage',
-      match_number: attrs.match_number?.toString() || '',
-      goal_events: (attrs.goal_events?.data || []).map((event: any) => {
-        const eventAttrs = event.attributes || {};
+  const editMatch = async (match: any) => {
+    try {
+      const response = await fetch(`/api/platform/sports/apl/matches/${match.id}`, { cache: 'no-store' });
+      if (!response.ok) {
+        toast.error('Failed to load match for editing');
+        return;
+      }
+
+      const data = await response.json();
+      const record = data?.data || data || match;
+      const attrs = record.attributes || record || {};
+
+      const goalEvents = normalizeComponentCollection(attrs.goal_events).map((event: any) => {
+        const eventAttrs = event?.attributes || event || {};
         return {
-          scorer: eventAttrs.scorer?.data?.id?.toString() || '',
-          assister: eventAttrs.assister?.data?.id?.toString() || '',
+          scorer: extractRelationId(eventAttrs.scorer),
+          assister: extractRelationId(eventAttrs.assister),
           minute: eventAttrs.minute || 1,
           is_penalty: eventAttrs.is_penalty || false,
           is_own_goal: eventAttrs.is_own_goal || false,
           team: eventAttrs.team || 'team_a'
         };
-      }),
-      card_events: (attrs.card_events?.data || []).map((event: any) => {
-        const eventAttrs = event.attributes || {};
+      });
+
+      const cardEvents = normalizeComponentCollection(attrs.card_events).map((event: any) => {
+        const eventAttrs = event?.attributes || event || {};
         return {
-          player: eventAttrs.player?.data?.id?.toString() || '',
+          player: extractRelationId(eventAttrs.player),
           minute: eventAttrs.minute || 1,
           card_type: eventAttrs.card_type || 'yellow',
           team: eventAttrs.team || 'team_a'
         };
-      }),
-      save_events: (attrs.save_events?.data || []).map((event: any) => {
-        const eventAttrs = event.attributes || {};
+      });
+
+      const saveEvents = normalizeComponentCollection(attrs.save_events).map((event: any) => {
+        const eventAttrs = event?.attributes || event || {};
         return {
-          goalkeeper: eventAttrs.goalkeeper?.data?.id?.toString() || '',
+          goalkeeper: extractRelationId(eventAttrs.goalkeeper),
           minute: eventAttrs.minute || 1,
           saves: eventAttrs.saves || 1,
           team: eventAttrs.team || 'team_a'
         };
-      }),
-      substitution_events: (attrs.substitution_events?.data || []).map((event: any) => {
-        const eventAttrs = event.attributes || {};
+      });
+
+      const substitutionEvents = normalizeComponentCollection(attrs.substitution_events).map((event: any) => {
+        const eventAttrs = event?.attributes || event || {};
         return {
-          player_off: eventAttrs.player_off?.data?.id?.toString() || '',
-          player_on: eventAttrs.player_on?.data?.id?.toString() || '',
+          player_off: extractRelationId(eventAttrs.player_off),
+          player_on: extractRelationId(eventAttrs.player_on),
           minute: eventAttrs.minute || 1,
           team: eventAttrs.team || 'team_a'
         };
-      })
-    });
-    setEditingItem(match);
-    setMatchDialogOpen(true);
+      });
+
+      setMatchForm({
+        team_a: extractRelationId(attrs.team_a),
+        team_b: extractRelationId(attrs.team_b),
+        status: attrs.status || 'upcoming',
+        team_a_score: attrs.team_a_score || 0,
+        team_b_score: attrs.team_b_score || 0,
+        start_time: attrs.start_time ? new Date(attrs.start_time).toISOString().slice(0, 16) : '',
+        period: attrs.period || 'not_started',
+        round: attrs.round || 'group_stage',
+        match_number: attrs.match_number?.toString() || '',
+        goal_events: goalEvents,
+        card_events: cardEvents,
+        save_events: saveEvents,
+        substitution_events: substitutionEvents
+      });
+      setEditingItem(record);
+      setMatchDialogOpen(true);
+    } catch (error) {
+      console.error('Error loading match for editing:', error);
+      toast.error('Error loading match for editing');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -1018,7 +1046,7 @@ export default function APLAdminPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => editMatch(match)}>
+                              <Button size="sm" variant="outline" onClick={() => { void editMatch(match); }}>
                                 <Edit className="w-4 h-4" />
                               </Button>
                               <Button size="sm" variant="outline" onClick={() => {

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { strapiDelete, strapiGet, strapiPut } from '@/lib/apis/strapi';
 import { auth } from '@/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;

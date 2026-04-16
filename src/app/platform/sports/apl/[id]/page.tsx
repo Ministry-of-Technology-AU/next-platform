@@ -38,7 +38,7 @@ export default function MatchPage() {
 
   const fetchMatchData = async () => {
     try {
-      const response = await fetch(`/api/platform/sports/apl/matches/${id}`);
+      const response = await fetch(`/api/platform/sports/apl/matches/${id}`, { cache: 'no-store' });
       if (response.ok) {
         const d = await response.json();
         setRawData(d.data || null);
@@ -57,7 +57,14 @@ export default function MatchPage() {
 
     eventSource.onmessage = (event) => {
       try {
-        JSON.parse(event.data);
+        const payload = JSON.parse(event.data);
+        if (payload?.model && payload.model !== 'apl-matches') {
+          return;
+        }
+        const payloadId = payload?.entryId ?? payload?.id;
+        if (payloadId !== undefined && String(payloadId) !== String(id)) {
+          return;
+        }
         fetchMatchData();
       } catch (e) {
         console.error('[SSE] Parse error:', e);
@@ -98,30 +105,23 @@ export default function MatchPage() {
     const teamBData = attrs.team_b?.data?.attributes || attrs.team_b?.data || attrs.team_b || {};
     const teamAName = teamAData.name || 'Team A';
     const teamBName = teamBData.name || 'Team B';
+    const hasGoalEvents = attrs.goal_events !== undefined && attrs.goal_events !== null;
 
-    const parsePlayers = (teamKey: 'team_a' | 'team_b'): any[] => {
-      const team = attrs[teamKey]?.data?.attributes || attrs[teamKey]?.data || attrs[teamKey] || {};
-      const players = toArray(team.participants || team.members);
+    const goalEventsRaw = toArray(attrs.goal_events);
+    const goalScorerCounts = new Map<string, number>();
 
-      return players
-        .map((p: any) => {
-          const participant = p?.attributes || p;
-          return {
-            id: String(p?.id || participant?.id || participant?.documentId || participant?.name || 'unknown'),
-            name: normalizePlayerName(participant?.name),
-            goals: Number(participant?.goals || 0),
-          };
-        })
-        .sort((a: any, b: any) => b.goals - a.goals);
-    };
-
-    const goalEvents = toArray(attrs.goal_events).map((event: any) => {
+    const goalEvents = goalEventsRaw.map((event: any, index: number) => {
       const eventAttrs = event?.attributes || event || {};
       const scorer = relationName(eventAttrs.scorer);
       const assister = relationName(eventAttrs.assister);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
       const action = eventAttrs.is_own_goal ? 'Own Goal' : eventAttrs.is_penalty ? 'Penalty Goal' : 'Goal';
       const minute = Number(eventAttrs.minute || 0);
+      const scorerKey = normalizePlayerName(scorer);
+
+      if (scorerKey && scorerKey !== 'Unknown') {
+        goalScorerCounts.set(scorerKey, (goalScorerCounts.get(scorerKey) || 0) + 1);
+      }
 
       return {
         minute,
@@ -130,10 +130,30 @@ export default function MatchPage() {
         player: scorer,
         team: teamLabel,
         description: assister !== 'Unknown' ? `Assist: ${assister}` : '',
+        sortIndex: index,
       };
     });
 
-    const cardEvents = toArray(attrs.card_events).map((event: any) => {
+    const parsePlayers = (teamKey: 'team_a' | 'team_b'): any[] => {
+      const team = attrs[teamKey]?.data?.attributes || attrs[teamKey]?.data || attrs[teamKey] || {};
+      const players = toArray(team.participants || team.members);
+
+      return players
+        .map((p: any) => {
+          const participant = p?.attributes || p;
+          const normalizedName = normalizePlayerName(participant?.name);
+          return {
+            id: String(p?.id || participant?.id || participant?.documentId || participant?.name || 'unknown'),
+            name: normalizedName,
+            goals: hasGoalEvents
+              ? Number(goalScorerCounts.get(normalizedName) || 0)
+              : Number(participant?.goals || 0),
+          };
+        })
+        .sort((a: any, b: any) => b.goals - a.goals);
+    };
+
+    const cardEvents = toArray(attrs.card_events).map((event: any, index: number) => {
       const eventAttrs = event?.attributes || event || {};
       const player = relationName(eventAttrs.player);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
@@ -152,10 +172,11 @@ export default function MatchPage() {
         player,
         team: teamLabel,
         description: '',
+        sortIndex: 1000 + index,
       };
     });
 
-    const saveEvents = toArray(attrs.save_events).map((event: any) => {
+    const saveEvents = toArray(attrs.save_events).map((event: any, index: number) => {
       const eventAttrs = event?.attributes || event || {};
       const keeper = relationName(eventAttrs.goalkeeper);
       const teamLabel = eventAttrs.team === 'team_a' ? teamAName : teamBName;
@@ -168,10 +189,11 @@ export default function MatchPage() {
         player: keeper,
         team: teamLabel,
         description: `${eventAttrs.saves || 0} saves`,
+        sortIndex: 2000 + index,
       };
     });
 
-    const substituteEvents = toArray(attrs.substitution_events).map((event: any) => {
+    const substituteEvents = toArray(attrs.substitution_events).map((event: any, index: number) => {
       const eventAttrs = event?.attributes || event || {};
       const offPlayer = relationName(eventAttrs.player_off);
       const onPlayer = relationName(eventAttrs.player_on);
@@ -185,8 +207,16 @@ export default function MatchPage() {
         player: `${offPlayer} off, ${onPlayer} on`,
         team: teamLabel,
         description: '',
+        sortIndex: 3000 + index,
       };
     });
+
+    const timelineEvents = [...goalEvents, ...cardEvents, ...saveEvents, ...substituteEvents].sort(
+      (a: any, b: any) => (a.minute || 0) - (b.minute || 0) || (a.sortIndex || 0) - (b.sortIndex || 0)
+    );
+
+    const scoreA = hasGoalEvents ? goalEvents.filter((event: any) => event?.team === 'team_a').length : attrs.team_a_score || 0;
+    const scoreB = hasGoalEvents ? goalEvents.filter((event: any) => event?.team === 'team_b').length : attrs.team_b_score || 0;
 
     return {
       id,
@@ -194,14 +224,14 @@ export default function MatchPage() {
       teamB: teamBName,
       teamALogo: getStrapiMediaUrl(teamAData.logo),
       teamBLogo: getStrapiMediaUrl(teamBData.logo),
-      scoreA: attrs.team_a_score || 0,
-      scoreB: attrs.team_b_score || 0,
+      scoreA,
+      scoreB,
       status: attrs.status || 'upcoming',
       type: attrs.round?.replace('_', ' ') || 'Group stage',
       period: attrs.period?.replace('_', ' ') || 'Not started',
       start_time: attrs.start_time,
       details: {
-        events: [...goalEvents, ...cardEvents, ...saveEvents, ...substituteEvents].sort((a: any, b: any) => (a.minute || 0) - (b.minute || 0)),
+        events: timelineEvents,
       },
       teamAPlayers: parsePlayers('team_a'),
       teamBPlayers: parsePlayers('team_b'),

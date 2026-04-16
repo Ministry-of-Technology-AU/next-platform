@@ -128,9 +128,9 @@ export default function APLFootballPage() {
   const fetchData = async () => {
     try {
       const [matchesRes, teamsRes, participantsRes] = await Promise.all([
-        fetch('/api/platform/sports/apl/matches'),
-        fetch('/api/platform/sports/apl/teams'),
-        fetch('/api/platform/sports/apl/participants?limit=500')
+        fetch('/api/platform/sports/apl/matches', { cache: 'no-store' }),
+        fetch('/api/platform/sports/apl/teams', { cache: 'no-store' }),
+        fetch('/api/platform/sports/apl/participants?limit=500', { cache: 'no-store' })
       ]);
 
       if (matchesRes.ok) {
@@ -162,7 +162,10 @@ export default function APLFootballPage() {
       try {
         const payload = JSON.parse(event.data);
         console.log('[SSE] Received update:', payload);
-        // Re-fetch all data when any APL entity changes
+        if (payload?.model && !['apl-matches', 'apl-teams', 'apl-participants'].includes(payload.model)) {
+          return;
+        }
+        // Re-fetch all data when relevant APL entity changes
         fetchData();
       } catch (e) {
         console.error('[SSE] Parse error:', e);
