@@ -12,26 +12,26 @@ import {
 import { CloudRain } from 'lucide-react';
 
 export default function APLLayout({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+  // useEffect(() => {
+  //   let timeoutId: NodeJS.Timeout;
 
-    if (!isOpen) {
-      // relaunch every 30s if dismissed
-      timeoutId = setTimeout(() => {
-        setIsOpen(true);
-      }, 15000);
-    }
+  //   if (!isOpen) {
+  //     // relaunch every 30s if dismissed
+  //     timeoutId = setTimeout(() => {
+  //       setIsOpen(true);
+  //     }, 15000);
+  //   }
 
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [isOpen]);
+  //   return () => {
+  //     if (timeoutId) clearTimeout(timeoutId);
+  //   };
+  // }, [isOpen]);
 
   return (
     <div className={`${styles.aplRoot} min-h-screen bg-background flex flex-col w-full`}>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      {/* <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md" showCloseButton={true}>
           <DialogHeader className="flex flex-col items-center justify-center text-center">
             <div className="bg-primary/10 p-3 rounded-full mb-4">
@@ -39,11 +39,11 @@ export default function APLLayout({ children }: { children: ReactNode }) {
             </div>
             <DialogTitle className="text-2xl font-bold tracking-tight">Tool Temporarily Suspended</DialogTitle>
             <DialogDescription className="text-base mt-2">
-              This tool is temporarily suspended because oh the weather. We'll try to get back online ASAP
+              This tool is temporarily suspended because of the weather. We'll try to get back online ASAP
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
       <main className="flex-1 w-full max-w-7xl mx-auto relative">
         {children}
       </main>
