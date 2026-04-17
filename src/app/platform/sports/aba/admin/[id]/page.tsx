@@ -19,8 +19,10 @@ type Player = {
   matchPoints: number;
   isActive: boolean;
   strapiId: number;
+  assists: number;
   fouls: number;
   rebounds: number;
+  newAssists?: number;
   newFouls?: number;
   newRebounds?: number;
 };
@@ -85,9 +87,11 @@ export default function AdminMatchScoringPage() {
           name: p.attributes?.name || 'Unknown',
           points: p.attributes?.points_scored || 0,
           matchPoints: 0,
+          assists: p.attributes?.assists || 0,
           fouls: p.attributes?.fouls || 0,
           rebounds: p.attributes?.rebounds || 0,
           isActive: false,
+          newAssists: 0,
           newFouls: 0,
           newRebounds: 0
         }));
@@ -217,7 +221,7 @@ export default function AdminMatchScoringPage() {
     });
   };
 
-  const handleUpdateModalStat = (team: 'A' | 'B', playerId: string, field: 'newFouls' | 'newRebounds', val: string) => {
+  const handleUpdateModalStat = (team: 'A' | 'B', playerId: string, field: 'newAssists' | 'newFouls' | 'newRebounds', val: string) => {
     const setTargetTeam = team === 'A' ? setTeamAPlayers : setTeamBPlayers;
     const num = parseInt(val) || 0;
     setTargetTeam(prev => prev.map(p => p.id === playerId ? { ...p, [field]: num } : p));
@@ -234,6 +238,7 @@ export default function AdminMatchScoringPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             points_scored: p.points,
+            assists: p.assists + (p.newAssists || 0),
             fouls: p.fouls + (p.newFouls || 0),
             rebounds: p.rebounds + (p.newRebounds || 0)
           })
@@ -410,7 +415,7 @@ export default function AdminMatchScoringPage() {
         <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2"><Trophy className="w-6 h-6 text-yellow-500" /> Finalize Match Stats</DialogTitle>
-            <DialogDescription>Record final fouls and rebounds for all players before closing the match.</DialogDescription>
+            <DialogDescription>Record final assists, fouls, and rebounds for all players before closing the match.</DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
@@ -426,6 +431,10 @@ export default function AdminMatchScoringPage() {
                           <Badge variant="secondary" className="font-mono">{p.matchPoints} PTS</Badge>
                         </div>
                         <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Assists</Label>
+                            <Input type="number" size={1} className="h-8 text-center" value={p.newAssists} onChange={(e) => handleUpdateModalStat(t.team as 'A' | 'B', p.id, 'newAssists', e.target.value)} />
+                          </div>
                           <div className="space-y-1">
                             <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fouls</Label>
                             <Input type="number" size={1} className="h-8 text-center" value={p.newFouls} onChange={(e) => handleUpdateModalStat(t.team as 'A' | 'B', p.id, 'newFouls', e.target.value)} />

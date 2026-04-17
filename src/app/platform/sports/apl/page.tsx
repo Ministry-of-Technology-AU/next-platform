@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import styles from './apl.module.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -368,13 +367,13 @@ export default function APLFootballPage() {
   };
 
   return (
-    <div className={`p-3 sm:p-4 md:p-8 space-y-8 md:space-y-12 max-w-7xl mx-auto ${styles.aplRoot}`}>
+    <div className="apl-root p-3 sm:p-4 md:p-8 space-y-8 md:space-y-12 max-w-7xl mx-auto">
 
       {/* Hero Live Match Banner or Stay Tuned */}
       <section>
         {currentMatch && (
           <Link href={`/platform/sports/apl/${currentMatch.id}`} aria-label={`View match details for ${currentMatch.teamA} versus ${currentMatch.teamB}`}>
-            <Card className={`relative cursor-pointer bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all shadow-2xl ${styles.heroCard}`}>
+            <Card className="apl-hero-card relative cursor-pointer bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all shadow-2xl">
               {hasMultipleLiveMatches && (
                 <>
                   <Button
@@ -410,7 +409,7 @@ export default function APLFootballPage() {
               <CardContent className="relative z-10 p-4 sm:p-6 md:p-12 flex flex-col items-center">
               <div
                 key={currentMatch.id}
-                className={`w-full flex flex-col items-center ${matchTransitionDirection === 'next' ? styles.heroSlideNext : matchTransitionDirection === 'prev' ? styles.heroSlidePrev : ''}`}
+                className={`w-full flex flex-col items-center ${matchTransitionDirection === 'next' ? 'apl-hero-slide-next' : matchTransitionDirection === 'prev' ? 'apl-hero-slide-prev' : ''}`}
                 onAnimationEnd={() => setMatchTransitionDirection(null)}
               >
                 <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
@@ -632,7 +631,7 @@ export default function APLFootballPage() {
               <div className="space-y-3">
                 {upcomingMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No upcoming matches scheduled.</p>}
                 {upcomingMatches.map((match: any) => (
-                  <div key={match.id} className={`bg-card border border-border rounded-xl p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:bg-muted/50 transition-colors shadow-sm ${styles.matchCard}`}>
+                  <div key={match.id} className="apl-match-card bg-card border border-border rounded-xl p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:bg-muted/50 transition-colors shadow-sm">
                     <div className="min-w-0">
                       <h4 className="font-bold text-foreground break-words">{match.teamA} VS {match.teamB}</h4>
                       <p className="text-xs text-muted-foreground font-semibold tracking-wide mt-1">
@@ -656,7 +655,7 @@ export default function APLFootballPage() {
               <div className="space-y-4">
                 {pastMatches.length === 0 && <p className="text-center py-10 text-muted-foreground">No past matches recorded.</p>}
                 {pastMatches.map((match: any) => (
-                  <div key={match.id} className={`bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm ${styles.matchCard}`}>
+                  <div key={match.id} className="apl-match-card bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <span className="text-xs font-bold text-muted-foreground tracking-wide">{match.date}</span>
                       <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 hover:bg-yellow-500/20 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Finished</Badge>
@@ -693,6 +692,84 @@ export default function APLFootballPage() {
           },
         ]}
       />
+      <style jsx global>{`
+        .apl-root {
+          min-height: 100%;
+        }
+
+        .apl-root h2,
+        .apl-root h3,
+        .apl-root h4 {
+          color: var(--foreground);
+        }
+
+        .apl-root .section-title {
+          color: var(--color-primary-dark);
+        }
+
+        .apl-root .trendAccent {
+          color: var(--color-primary);
+        }
+
+        .apl-hero-card {
+          background: linear-gradient(
+            180deg,
+            rgba(15, 23, 42, 0.98),
+            rgba(10, 12, 19, 0.98)
+          );
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 35px 90px rgba(0, 0, 0, 0.35);
+          border-radius: 2rem;
+          overflow: hidden;
+        }
+
+        .apl-hero-slide-next {
+          animation: apl-hero-slide-next 560ms ease;
+          will-change: transform, opacity;
+        }
+
+        .apl-hero-slide-prev {
+          animation: apl-hero-slide-prev 560ms ease;
+          will-change: transform, opacity;
+        }
+
+        @keyframes apl-hero-slide-next {
+          from {
+            opacity: 0;
+            transform: translateX(2rem);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes apl-hero-slide-prev {
+          from {
+            opacity: 0;
+            transform: translateX(-2rem);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .apl-match-card {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+          border-radius: 1.25rem;
+          transition:
+            transform 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .apl-match-card:hover {
+          background: rgba(255, 255, 255, 0.12);
+          transform: translateY(-1px);
+        }
+      `}</style>
     </div>
   );
 }

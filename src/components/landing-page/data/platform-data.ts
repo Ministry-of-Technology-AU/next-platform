@@ -14,20 +14,12 @@ export const banners: Array<{
 }> = [
     {
       id: 4,
-      title: "APL Score Tracker Is Now Live",
-      subtitle: "New on Platform",
-      description: "Follow APL scores and match momentum in real time.",
-      image: "/mascot-football-happy.png",
-      alt: "Football cat mascot banner",
+      title: "",
+      subtitle: "",
+      description: "",
+      image: "/z6ggcs3unvoquykoyupo.webp",
+      alt: "Welcome to the Platform!",
       gradient: "",
-      buttons: [
-        {
-          variant: "default",
-          children: "Open APL Score Tracker",
-          url: "/platform/sports/apl",
-          className: "bg-white text-black hover:bg-white/90 font-semibold",
-        },
-      ],
     },
     {
       id: 5,
