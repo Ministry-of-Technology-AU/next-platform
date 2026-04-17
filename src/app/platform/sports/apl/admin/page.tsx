@@ -12,8 +12,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X, Play, Pause, RotateCcw, Check, CircleX, Minus } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatISTDateTimeDisplay, formatISTDateTimeForInput } from '@/lib/date-utils';
+import {
+  evaluateTeamSubstitutionCompliance,
+  formatSecondsAsClock,
+  getRequiredSecondsForStartingPlayerCount,
+  toTimelineSeconds,
+} from '@/lib/apl-substitution-compliance';
+import { isKnockoutRound } from '@/lib/apl-knockout';
+import DeveloperCredits from '@/components/developer-credits';
+
+const STARTER_SLOT_COUNT = 6;
+const EMPTY_STARTER_IDS = Array.from({ length: STARTER_SLOT_COUNT }, () => '');
+const STARTING_PLAYER_COUNT_OPTIONS = [10, 9, 8] as const;
+const MATCH_CLOCK_STORAGE_PREFIX = 'apl-admin-match-clock:';
+
+type PersistedMatchClockState = {
+  baseMinute: number;
+  elapsedBeforeRunSeconds: number;
+  runStartedAtMs: number | null;
+  running: boolean;
+  halftimeCarryMinute: number | null;
+};
+
+const getMatchClockStorageKey = (matchId: string) => `${MATCH_CLOCK_STORAGE_PREFIX}${matchId}`;
 
 export default function APLAdminPage() {
   const [activeTab, setActiveTab] = useState('matches');
@@ -26,20 +50,32 @@ export default function APLAdminPage() {
   const [matchDialogOpen, setMatchDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
 
+  // Live minute tracking for event entry
+  const [clockRunning, setClockRunning] = useState(false);
+  const [clockBaseMinute, setClockBaseMinute] = useState(0);
+  const [clockElapsedBeforeRunSeconds, setClockElapsedBeforeRunSeconds] = useState(0);
+  const [clockRunStartedAtMs, setClockRunStartedAtMs] = useState<number | null>(null);
+  const [clockNowMs, setClockNowMs] = useState(() => Date.now());
+  const [halftimeCarryMinute, setHalftimeCarryMinute] = useState<number | null>(null);
+
   // Form states
   const [matchForm, setMatchForm] = useState<any>({
     team_a: '',
     team_b: '',
+    team_a_starting_player_count: 10,
+    team_b_starting_player_count: 10,
+    team_a_starters: [...EMPTY_STARTER_IDS],
+    team_b_starters: [...EMPTY_STARTER_IDS],
     status: 'upcoming',
     team_a_score: 0,
     team_b_score: 0,
     start_time: '',
     period: 'not_started',
     round: 'group_stage',
+    knockout_winner_team_id: '',
     match_number: '',
     goal_events: [] as any[],
     card_events: [] as any[],
-    save_events: [] as any[],
     substitution_events: [] as any[],
   });
 
@@ -75,6 +111,59 @@ export default function APLAdminPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (!clockRunning) return;
+
+    const intervalId = window.setInterval(() => {
+      setClockNowMs(Date.now());
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [clockRunning]);
+
+  useEffect(() => {
+    if (matchForm.status !== 'live') {
+      if (clockRunning && clockRunStartedAtMs) {
+        const now = Date.now();
+        const additionalElapsedSeconds = Math.max(0, Math.floor((now - clockRunStartedAtMs) / 1000));
+        setClockElapsedBeforeRunSeconds((prev) => prev + additionalElapsedSeconds);
+        setClockRunStartedAtMs(null);
+      }
+      setClockRunning(false);
+    }
+  }, [clockRunStartedAtMs, clockRunning, matchForm.status]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const currentMatchId = editingItem?.id?.toString();
+    if (!currentMatchId) return;
+
+    if (matchForm.status === 'completed' || matchForm.period === 'full_time') {
+      window.localStorage.removeItem(getMatchClockStorageKey(currentMatchId));
+      return;
+    }
+
+    const stateToPersist: PersistedMatchClockState = {
+      baseMinute: clockBaseMinute,
+      elapsedBeforeRunSeconds: clockElapsedBeforeRunSeconds,
+      runStartedAtMs: clockRunStartedAtMs,
+      running: clockRunning,
+      halftimeCarryMinute,
+    };
+
+    window.localStorage.setItem(getMatchClockStorageKey(currentMatchId), JSON.stringify(stateToPersist));
+  }, [
+    clockBaseMinute,
+    clockElapsedBeforeRunSeconds,
+    clockRunStartedAtMs,
+    clockRunning,
+    editingItem?.id,
+    halftimeCarryMinute,
+    matchForm.period,
+    matchForm.status,
+  ]);
+
   const teamMap = useMemo(() => {
     const map: Record<number, any> = {};
     teams.forEach(team => {
@@ -102,6 +191,7 @@ export default function APLAdminPage() {
   };
 
   const hasInvalidTeamSelection = Boolean(matchForm.team_a && matchForm.team_b && matchForm.team_a === matchForm.team_b);
+  const isKnockoutSelection = isKnockoutRound(matchForm.round, 'knockout');
 
   const validateTeamSelection = () => {
     if (!hasInvalidTeamSelection) return true;
@@ -152,7 +242,6 @@ export default function APLAdminPage() {
 
   const createEmptyGoalEvent = () => ({
     scorer: '',
-    assister: '',
     minute: 1,
     is_penalty: false,
     is_own_goal: false,
@@ -166,19 +255,139 @@ export default function APLAdminPage() {
     team: 'team_a'
   });
 
-  const createEmptySaveEvent = () => ({
-    goalkeeper: '',
-    minute: 1,
-    saves: 1,
-    team: 'team_a'
-  });
-
   const createEmptySubstitutionEvent = () => ({
     player_off: '',
     player_on: '',
     minute: 1,
+    second: 0,
     team: 'team_a'
   });
+
+  const getEffectiveClockElapsedSeconds = () => {
+    if (!clockRunning || !clockRunStartedAtMs) {
+      return clockElapsedBeforeRunSeconds;
+    }
+
+    const runningElapsedSeconds = Math.max(0, Math.floor((clockNowMs - clockRunStartedAtMs) / 1000));
+    return clockElapsedBeforeRunSeconds + runningElapsedSeconds;
+  };
+
+  const effectiveClockElapsedSeconds = getEffectiveClockElapsedSeconds();
+
+  const currentSuggestedMinute = useMemo(
+    () => Math.max(0, clockBaseMinute + Math.floor(effectiveClockElapsedSeconds / 60)),
+    [clockBaseMinute, effectiveClockElapsedSeconds]
+  );
+
+  const currentSuggestedSecond = useMemo(
+    () => effectiveClockElapsedSeconds % 60,
+    [effectiveClockElapsedSeconds]
+  );
+
+  const currentSuggestedTimelineSeconds = useMemo(
+    () => toTimelineSeconds(currentSuggestedMinute, currentSuggestedSecond),
+    [currentSuggestedMinute, currentSuggestedSecond]
+  );
+
+  const getClockStateLabel = () => {
+    if (clockRunning) return 'Running';
+    if (effectiveClockElapsedSeconds > 0 || clockBaseMinute > 0) return 'Paused';
+    return 'Not started';
+  };
+
+  const startClock = () => {
+    const now = Date.now();
+    setClockBaseMinute(0);
+    setClockElapsedBeforeRunSeconds(0);
+    setClockRunStartedAtMs(now);
+    setClockNowMs(now);
+    setHalftimeCarryMinute(null);
+    setClockRunning(true);
+  };
+
+  const pauseClock = () => {
+    if (!clockRunning || !clockRunStartedAtMs) {
+      setClockRunning(false);
+      return;
+    }
+
+    const now = Date.now();
+    const additionalElapsedSeconds = Math.max(0, Math.floor((now - clockRunStartedAtMs) / 1000));
+    setClockElapsedBeforeRunSeconds((prev) => prev + additionalElapsedSeconds);
+    setClockRunStartedAtMs(null);
+    setClockNowMs(now);
+    setClockRunning(false);
+  };
+
+  const resumeClock = () => {
+    if (clockRunning) return;
+    const now = Date.now();
+    setClockRunStartedAtMs(now);
+    setClockNowMs(now);
+    setClockRunning(true);
+  };
+
+  const resetClock = () => {
+    setClockRunning(false);
+    setClockBaseMinute(0);
+    setClockElapsedBeforeRunSeconds(0);
+    setClockRunStartedAtMs(null);
+    setHalftimeCarryMinute(null);
+  };
+
+  const applyCurrentMinuteToEvent = (eventCollection: string, index: number) => {
+    setMatchForm((prev: any) => {
+      const nextEvents = [...(prev[eventCollection] || [])];
+      nextEvents[index] = {
+        ...nextEvents[index],
+        minute: currentSuggestedMinute,
+        ...(eventCollection === 'substitution_events' ? { second: currentSuggestedSecond } : {}),
+      };
+      return { ...prev, [eventCollection]: nextEvents };
+    });
+  };
+
+  const handlePeriodChange = (nextPeriod: string) => {
+    const previousPeriod = matchForm.period;
+    const minuteAtSwitch = currentSuggestedMinute;
+
+    setMatchForm((prev: any) => ({ ...prev, period: nextPeriod }));
+
+    if (nextPeriod === 'half_time') {
+      setHalftimeCarryMinute(minuteAtSwitch);
+      pauseClock();
+      return;
+    }
+
+    if (previousPeriod === 'half_time' && nextPeriod === 'second_half') {
+      const now = Date.now();
+      const resumeFromMinute = Math.max(1, (halftimeCarryMinute ?? minuteAtSwitch) + 1);
+      setClockBaseMinute(resumeFromMinute);
+      setClockElapsedBeforeRunSeconds(0);
+      setClockRunStartedAtMs(now);
+      setClockNowMs(now);
+      setClockRunning(true);
+      return;
+    }
+
+    if (nextPeriod === 'not_started') {
+      resetClock();
+    }
+  };
+
+  const getMaxEventMinute = (form: any) => {
+    const eventCollections = [
+      ...(form.goal_events || []),
+      ...(form.card_events || []),
+      ...(form.substitution_events || []),
+    ];
+
+    return eventCollections.reduce((maxMinute: number, event: any) => {
+      const value = parseInt(event?.minute?.toString() || '', 10);
+      if (Number.isNaN(value)) return maxMinute;
+      return Math.max(maxMinute, value);
+    }, 0);
+  };
 
   const getDerivedMatchScores = (goalEvents: any[] = []) => ({
     team_a_score: goalEvents.filter((event: any) => event?.team === 'team_a').length,
@@ -190,61 +399,304 @@ export default function APLAdminPage() {
     return Number.isNaN(parsed) ? fallback : parsed;
   };
 
+  const normalizeMinute = (value: any, fallback = 1) => Math.max(1, toInteger(value, fallback));
+
+  const normalizeSecond = (value: any, fallback = 0) => {
+    const parsedSecond = toInteger(value, fallback);
+    return Math.min(59, Math.max(0, parsedSecond));
+  };
+
+  const normalizeStartingPlayerCount = (value: any, fallback = 10) => {
+    const parsedCount = toInteger(value, fallback);
+    return STARTING_PLAYER_COUNT_OPTIONS.includes(parsedCount as 8 | 9 | 10) ? parsedCount : fallback;
+  };
+
+  const normalizeStarterIds = (value: any): string[] => {
+    if (!Array.isArray(value)) {
+      return [...EMPTY_STARTER_IDS];
+    }
+
+    const rawIds = value
+      .map((item: any) => (item === undefined || item === null ? '' : item.toString()))
+      .slice(0, STARTER_SLOT_COUNT);
+
+    while (rawIds.length < STARTER_SLOT_COUNT) {
+      rawIds.push('');
+    }
+
+    return rawIds;
+  };
+
+  const getUniqueStarterIds = (value: any): string[] => {
+    const starterIds = normalizeStarterIds(value).filter(Boolean);
+    return Array.from(new Set(starterIds));
+  };
+
+  const hasCompleteStarters = (value: any) => getUniqueStarterIds(value).length === STARTER_SLOT_COUNT;
+
+  const getStarterValidationError = () => {
+    if (!matchForm.team_a || !matchForm.team_b) {
+      return null;
+    }
+
+    const hasSubstitutions = (matchForm.substitution_events || []).length > 0;
+    const needsTrackingSetup = matchForm.status === 'live' || matchForm.status === 'completed' || hasSubstitutions;
+
+    if (!needsTrackingSetup) {
+      return null;
+    }
+
+    if (!hasCompleteStarters(matchForm.team_a_starters)) {
+      return `${teamAName}: select 6 unique starters`;
+    }
+
+    if (!hasCompleteStarters(matchForm.team_b_starters)) {
+      return `${teamBName}: select 6 unique starters`;
+    }
+
+    return null;
+  };
+
+  const validateStarterSetup = () => {
+    const validationError = getStarterValidationError();
+    if (!validationError) return true;
+
+    toast.error(validationError);
+    return false;
+  };
+
+  const validateKnockoutWinnerSelection = () => {
+    if (!isKnockoutSelection) {
+      return true;
+    }
+
+    const winnerTeamId = (matchForm.knockout_winner_team_id || '').toString();
+    if (winnerTeamId && winnerTeamId !== matchForm.team_a && winnerTeamId !== matchForm.team_b) {
+      toast.error('Knockout winner must be Team A or Team B');
+      return false;
+    }
+
+    if (matchForm.status !== 'completed') {
+      return true;
+    }
+
+    const scoreA = Number(derivedScores.team_a_score);
+    const scoreB = Number(derivedScores.team_b_score);
+    if (Number.isFinite(scoreA) && Number.isFinite(scoreB) && scoreA === scoreB && !winnerTeamId) {
+      toast.error('Select a manual winner for tied knockout matches');
+      return false;
+    }
+
+    return true;
+  };
+
+  const participantNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    participants.forEach((participant: any) => {
+      map[participant.id.toString()] = participant.attributes?.name || `Player ${participant.id}`;
+    });
+    return map;
+  }, [participants]);
+
+  const substitutionComplianceByTeam = useMemo(() => {
+    const substitutions = (matchForm.substitution_events || []).map((event: any) => ({
+      team: event.team,
+      minute: normalizeMinute(event.minute, 1),
+      second: normalizeSecond(event.second, 0),
+      player_on: event.player_on || '',
+      player_off: event.player_off || '',
+    }));
+
+    const maxEventTimelineSeconds = Math.max(
+      ...substitutions.map((event: any) => toTimelineSeconds(event.minute, event.second)),
+      ...((matchForm.goal_events || []).map((event: any) => toTimelineSeconds(normalizeMinute(event.minute, 1), 0))),
+      ...((matchForm.card_events || []).map((event: any) => toTimelineSeconds(normalizeMinute(event.minute, 1), 0))),
+      0
+    );
+
+    const evaluationEndSeconds = (matchForm.status === 'live' || matchForm.status === 'completed' || matchForm.period === 'full_time')
+      ? Math.max(maxEventTimelineSeconds, currentSuggestedTimelineSeconds)
+      : maxEventTimelineSeconds;
+
+    const isMatchComplete = matchForm.status === 'completed' || matchForm.period === 'full_time';
+
+    const teamAStartingCount = normalizeStartingPlayerCount(matchForm.team_a_starting_player_count, 10);
+    const teamBStartingCount = normalizeStartingPlayerCount(matchForm.team_b_starting_player_count, 10);
+
+    const teamAResult = evaluateTeamSubstitutionCompliance({
+      team: 'team_a',
+      substitutions,
+      starterIds: getUniqueStarterIds(matchForm.team_a_starters),
+      requiredSeconds: getRequiredSecondsForStartingPlayerCount(teamAStartingCount),
+      evaluationEndSeconds,
+      isMatchComplete,
+    });
+
+    const teamBResult = evaluateTeamSubstitutionCompliance({
+      team: 'team_b',
+      substitutions,
+      starterIds: getUniqueStarterIds(matchForm.team_b_starters),
+      requiredSeconds: getRequiredSecondsForStartingPlayerCount(teamBStartingCount),
+      evaluationEndSeconds,
+      isMatchComplete,
+    });
+
+    return {
+      team_a: teamAResult,
+      team_b: teamBResult,
+    };
+  }, [
+    currentSuggestedTimelineSeconds,
+    matchForm.card_events,
+    matchForm.goal_events,
+    matchForm.period,
+    matchForm.status,
+    matchForm.substitution_events,
+    matchForm.team_a_starters,
+    matchForm.team_a_starting_player_count,
+    matchForm.team_b_starters,
+    matchForm.team_b_starting_player_count,
+  ]);
+
+  const getSubstitutionRowSnapshot = (teamKey: 'team_a' | 'team_b', rowIndex: number) => {
+    const teamSummary = substitutionComplianceByTeam[teamKey];
+    return teamSummary.eventSnapshots.find((snapshot: any) => snapshot.index === rowIndex) || null;
+  };
+
+  const getSubstitutionPlayersForRow = (
+    teamKey: 'team_a' | 'team_b',
+    rowIndex: number,
+    role: 'off' | 'on'
+  ) => {
+    const teamSummary = substitutionComplianceByTeam[teamKey];
+    const snapshot = getSubstitutionRowSnapshot(teamKey, rowIndex);
+    const currentOnFieldIds = new Set((snapshot?.currentOnFieldPlayerIds || teamSummary.currentOnFieldPlayerIds || []).map((playerId: string) => playerId.toString()));
+    const teamPlayers = getPlayersForEventTeam(teamKey);
+
+    return teamPlayers.filter((player: any) => {
+      const playerId = player.id.toString();
+      return role === 'off' ? currentOnFieldIds.has(playerId) : !currentOnFieldIds.has(playerId);
+    });
+  };
+
+  const getPlayerComplianceBadge = (status: 'pass' | 'fail' | 'pending' | 'ignored') => {
+    if (status === 'pass') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+          <Check className="w-3.5 h-3.5" />
+          Tick
+        </span>
+      );
+    }
+
+    if (status === 'fail') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-red-700">
+          <CircleX className="w-3.5 h-3.5" />
+          Cross
+        </span>
+      );
+    }
+
+    if (status === 'pending') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+          <Minus className="w-3.5 h-3.5" />
+          Pending
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+        <Minus className="w-3.5 h-3.5" />
+        Ignored
+      </span>
+    );
+  };
+
+  const updateStarterSlot = (teamKey: 'team_a_starters' | 'team_b_starters', slotIndex: number, playerId: string) => {
+    setMatchForm((prev: any) => {
+      const nextStarterIds = normalizeStarterIds(prev[teamKey]);
+      nextStarterIds[slotIndex] = playerId;
+      return {
+        ...prev,
+        [teamKey]: nextStarterIds,
+      };
+    });
+  };
+
   const prepareMatchPayload = (form: any) => {
     const goal_events = (form.goal_events || []).map((event: any) => ({
       team: event.team,
-      minute: toInteger(event.minute, 1),
+      minute: normalizeMinute(event.minute, 1),
       is_penalty: event.is_penalty,
       is_own_goal: event.is_own_goal,
-      ...(event.scorer ? { scorer: { id: parseInt(event.scorer) } } : {}),
-      ...(event.assister ? { assister: { id: parseInt(event.assister) } } : {})
+      ...(event.scorer ? { scorer: { id: parseInt(event.scorer) } } : {})
     }));
 
     const card_events = (form.card_events || []).map((event: any) => ({
       team: event.team,
-      minute: toInteger(event.minute, 1),
+      minute: normalizeMinute(event.minute, 1),
       card_type: event.card_type,
       ...(event.player ? { player: { id: parseInt(event.player) } } : {})
     }));
 
-    const save_events = (form.save_events || []).map((event: any) => ({
-      team: event.team,
-      minute: toInteger(event.minute, 1),
-      saves: toInteger(event.saves, 0),
-      ...(event.goalkeeper ? { goalkeeper: { id: parseInt(event.goalkeeper) } } : {})
-    }));
-
     const substitution_events = (form.substitution_events || []).map((event: any) => ({
       team: event.team,
-      minute: toInteger(event.minute, 1),
+      minute: normalizeMinute(event.minute, 1),
+      second: normalizeSecond(event.second, 0),
       ...(event.player_off ? { player_off: { id: parseInt(event.player_off) } } : {}),
       ...(event.player_on ? { player_on: { id: parseInt(event.player_on) } } : {})
     }));
 
+    const team_a_starting_player_count = normalizeStartingPlayerCount(form.team_a_starting_player_count, 10);
+    const team_b_starting_player_count = normalizeStartingPlayerCount(form.team_b_starting_player_count, 10);
+
+    const team_a_starters = getUniqueStarterIds(form.team_a_starters);
+    const team_b_starters = getUniqueStarterIds(form.team_b_starters);
+    const existingDetails = form.details && typeof form.details === 'object' ? form.details : {};
+    const winnerCandidate = (form.knockout_winner_team_id || '').toString();
+    const normalizedWinnerId = winnerCandidate && /^\d+$/.test(winnerCandidate)
+      ? Number(winnerCandidate)
+      : null;
+
     return {
       goal_events,
       card_events,
-      save_events,
       substitution_events,
+      team_a_starting_player_count,
+      team_b_starting_player_count,
+      team_a_starters,
+      team_b_starters,
+      details: {
+        ...existingDetails,
+        knockout_winner_team_id: normalizedWinnerId,
+      },
     };
   };
 
   // Match CRUD operations
   const handleCreateMatch = async () => {
     if (!validateTeamSelection()) return;
+    if (!validateStarterSetup()) return;
+    if (!validateKnockoutWinnerSelection()) return;
 
     try {
+      const matchFormPayload = { ...matchForm };
+      delete matchFormPayload.knockout_winner_team_id;
+
       const response = await fetch('/api/platform/sports/apl/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           data: {
-            ...matchForm,
+            ...matchFormPayload,
             ...prepareMatchPayload(matchForm),
             ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
             team_b: { id: parseInt(matchForm.team_b) },
-            match_number: matchForm.match_number ? parseInt(matchForm.match_number) : null
+            ...(matchForm.match_number ? { match_number: parseInt(matchForm.match_number, 10) } : {})
           }
         })
       });
@@ -255,7 +707,8 @@ export default function APLAdminPage() {
         resetMatchForm();
         fetchData();
       } else {
-        toast.error("Failed to create match");
+        const errorPayload = await response.json().catch(() => null);
+        toast.error(errorPayload?.error || "Failed to create match");
       }
     } catch {
       toast.error("Error creating match");
@@ -265,19 +718,23 @@ export default function APLAdminPage() {
   const handleUpdateMatch = async () => {
     if (!editingItem) return;
     if (!validateTeamSelection()) return;
+    if (!validateStarterSetup()) return;
+    if (!validateKnockoutWinnerSelection()) return;
 
     try {
+      const matchFormPayload = { ...matchForm };
+      delete matchFormPayload.knockout_winner_team_id;
+
       const response = await fetch(`/api/platform/sports/apl/matches/${editingItem.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           data: {
-            ...matchForm,
+            ...matchFormPayload,
             ...prepareMatchPayload(matchForm),
             ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
-            team_b: { id: parseInt(matchForm.team_b) },
-            match_number: matchForm.match_number ? parseInt(matchForm.match_number) : null
+            team_b: { id: parseInt(matchForm.team_b) }
           }
         })
       });
@@ -289,7 +746,8 @@ export default function APLAdminPage() {
         resetMatchForm();
         fetchData();
       } else {
-        toast.error("Failed to update match");
+        const errorPayload = await response.json().catch(() => null);
+        toast.error(errorPayload?.error || "Failed to update match");
       }
     } catch {
       toast.error("Error updating match");
@@ -318,18 +776,23 @@ export default function APLAdminPage() {
     setMatchForm({
       team_a: '',
       team_b: '',
+      team_a_starting_player_count: 10,
+      team_b_starting_player_count: 10,
+      team_a_starters: [...EMPTY_STARTER_IDS],
+      team_b_starters: [...EMPTY_STARTER_IDS],
       status: 'upcoming',
       team_a_score: 0,
       team_b_score: 0,
       start_time: '',
       period: 'not_started',
       round: 'group_stage',
+      knockout_winner_team_id: '',
       match_number: '',
       goal_events: [],
       card_events: [],
-      save_events: [],
       substitution_events: []
     });
+    resetClock();
   };
 
   // Edit functions
@@ -349,7 +812,6 @@ export default function APLAdminPage() {
         const eventAttrs = event?.attributes || event || {};
         return {
           scorer: extractRelationId(eventAttrs.scorer),
-          assister: extractRelationId(eventAttrs.assister),
           minute: eventAttrs.minute || 1,
           is_penalty: eventAttrs.is_penalty || false,
           is_own_goal: eventAttrs.is_own_goal || false,
@@ -367,41 +829,84 @@ export default function APLAdminPage() {
         };
       });
 
-      const saveEvents = normalizeComponentCollection(attrs.save_events).map((event: any) => {
-        const eventAttrs = event?.attributes || event || {};
-        return {
-          goalkeeper: extractRelationId(eventAttrs.goalkeeper),
-          minute: eventAttrs.minute || 1,
-          saves: eventAttrs.saves || 1,
-          team: eventAttrs.team || 'team_a'
-        };
-      });
-
       const substitutionEvents = normalizeComponentCollection(attrs.substitution_events).map((event: any) => {
         const eventAttrs = event?.attributes || event || {};
         return {
           player_off: extractRelationId(eventAttrs.player_off),
           player_on: extractRelationId(eventAttrs.player_on),
           minute: eventAttrs.minute || 1,
+          second: eventAttrs.second || 0,
           team: eventAttrs.team || 'team_a'
         };
       });
 
+      const teamAStarters = normalizeStarterIds(attrs.team_a_starters);
+      const teamBStarters = normalizeStarterIds(attrs.team_b_starters);
+
       setMatchForm({
         team_a: extractRelationId(attrs.team_a),
         team_b: extractRelationId(attrs.team_b),
+        team_a_starting_player_count: normalizeStartingPlayerCount(attrs.team_a_starting_player_count, 10),
+        team_b_starting_player_count: normalizeStartingPlayerCount(attrs.team_b_starting_player_count, 10),
+        team_a_starters: teamAStarters,
+        team_b_starters: teamBStarters,
         status: attrs.status || 'upcoming',
         team_a_score: attrs.team_a_score || 0,
         team_b_score: attrs.team_b_score || 0,
-        start_time: attrs.start_time ? new Date(attrs.start_time).toISOString().slice(0, 16) : '',
+        start_time: formatISTDateTimeForInput(attrs.start_time),
         period: attrs.period || 'not_started',
         round: attrs.round || 'group_stage',
+        knockout_winner_team_id: attrs?.details?.knockout_winner_team_id?.toString?.() || '',
         match_number: attrs.match_number?.toString() || '',
         goal_events: goalEvents,
         card_events: cardEvents,
-        save_events: saveEvents,
         substitution_events: substitutionEvents
       });
+
+      const maxExistingMinute = getMaxEventMinute({
+        goal_events: goalEvents,
+        card_events: cardEvents,
+        substitution_events: substitutionEvents,
+      });
+      const currentMatchId = record.id?.toString();
+      let persistedClockState: PersistedMatchClockState | null = null;
+
+      if (typeof window !== 'undefined' && currentMatchId) {
+        const rawPersistedState = window.localStorage.getItem(getMatchClockStorageKey(currentMatchId));
+        if (rawPersistedState) {
+          try {
+            persistedClockState = JSON.parse(rawPersistedState) as PersistedMatchClockState;
+          } catch {
+            window.localStorage.removeItem(getMatchClockStorageKey(currentMatchId));
+          }
+        }
+      }
+
+      const shouldRestorePersistedClock = Boolean(
+        persistedClockState && attrs.status === 'live' && attrs.period !== 'full_time'
+      );
+
+      if (shouldRestorePersistedClock && persistedClockState) {
+        const now = Date.now();
+        setClockBaseMinute(Math.max(0, persistedClockState.baseMinute || 0));
+        setClockElapsedBeforeRunSeconds(Math.max(0, persistedClockState.elapsedBeforeRunSeconds || 0));
+        setClockRunStartedAtMs(
+          persistedClockState.running && persistedClockState.runStartedAtMs
+            ? persistedClockState.runStartedAtMs
+            : null
+        );
+        setClockNowMs(now);
+        setHalftimeCarryMinute(persistedClockState.halftimeCarryMinute ?? (attrs.period === 'half_time' ? maxExistingMinute : null));
+        setClockRunning(Boolean(persistedClockState.running && persistedClockState.runStartedAtMs));
+      } else {
+        setClockBaseMinute(maxExistingMinute);
+        setClockElapsedBeforeRunSeconds(0);
+        setClockRunStartedAtMs(null);
+        setClockNowMs(Date.now());
+        setHalftimeCarryMinute(attrs.period === 'half_time' ? maxExistingMinute : null);
+        setClockRunning(false);
+      }
+
       setEditingItem(record);
       setMatchDialogOpen(true);
     } catch (error) {
@@ -427,6 +932,78 @@ export default function APLAdminPage() {
     () => getDerivedMatchScores(matchForm.goal_events || []),
     [matchForm.goal_events]
   );
+
+  const teamAStarterSlots = useMemo(
+    () => normalizeStarterIds(matchForm.team_a_starters),
+    [matchForm.team_a_starters]
+  );
+
+  const teamBStarterSlots = useMemo(
+    () => normalizeStarterIds(matchForm.team_b_starters),
+    [matchForm.team_b_starters]
+  );
+
+  const substitutionIssueSummaryByTeam = useMemo(() => {
+    const subbedInByTeam: Record<'team_a' | 'team_b', Set<string>> = {
+      team_a: new Set<string>(),
+      team_b: new Set<string>(),
+    };
+
+    (matchForm.substitution_events || []).forEach((event: any) => {
+      const teamKey = event?.team === 'team_b' ? 'team_b' : 'team_a';
+      const playerOnId = event?.player_on?.toString().trim();
+      if (playerOnId) {
+        subbedInByTeam[teamKey].add(playerOnId);
+      }
+    });
+
+    const teamConfigs = {
+      team_a: {
+        players: teamAPlayers,
+        starterIds: new Set(getUniqueStarterIds(matchForm.team_a_starters)),
+      },
+      team_b: {
+        players: teamBPlayers,
+        starterIds: new Set(getUniqueStarterIds(matchForm.team_b_starters)),
+      },
+    } as const;
+
+    return (['team_a', 'team_b'] as const).reduce((acc, teamKey) => {
+      const teamSummary = substitutionComplianceByTeam[teamKey];
+      const insufficientTimePlayers = teamSummary.playerResults.filter((result) => result.status === 'fail');
+
+      const neverSubbedInPlayerIds = teamConfigs[teamKey].players
+        .map((player: any) => player.id.toString())
+        .filter((playerId: string) => !teamConfigs[teamKey].starterIds.has(playerId))
+        .filter((playerId: string) => !subbedInByTeam[teamKey].has(playerId));
+
+      acc[teamKey] = {
+        insufficientTimePlayers,
+        neverSubbedInPlayerIds,
+      };
+
+      return acc;
+    }, {
+      team_a: {
+        insufficientTimePlayers: [] as any[],
+        neverSubbedInPlayerIds: [] as string[],
+      },
+      team_b: {
+        insufficientTimePlayers: [] as any[],
+        neverSubbedInPlayerIds: [] as string[],
+      },
+    });
+  }, [
+    matchForm.substitution_events,
+    matchForm.team_a_starters,
+    matchForm.team_b_starters,
+    substitutionComplianceByTeam,
+    teamAPlayers,
+    teamBPlayers,
+  ]);
+
+  const starterValidationError = getStarterValidationError();
+  const editingMatchNumber = editingItem?.attributes?.match_number ?? editingItem?.match_number;
 
   if (loading) {
     return (
@@ -485,14 +1062,21 @@ export default function APLAdminPage() {
                       Add Match
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogContent className="w-[96vw] max-w-[82rem] max-h-[86vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>{editingItem ? 'Edit Match' : 'Create New Match'}</DialogTitle>
                     </DialogHeader>
                     <div className="grid grid-cols-2 gap-4 py-4">
                       <div className="space-y-2">
                         <Label htmlFor="team_a">Team A</Label>
-                        <Select value={matchForm.team_a} onValueChange={(value) => setMatchForm({...matchForm, team_a: value})}>
+                        <Select value={matchForm.team_a} onValueChange={(value) => setMatchForm((prev: any) => ({
+                          ...prev,
+                          team_a: value,
+                          team_a_starters: [...EMPTY_STARTER_IDS],
+                          knockout_winner_team_id: prev.knockout_winner_team_id === value || prev.knockout_winner_team_id === prev.team_b
+                            ? prev.knockout_winner_team_id
+                            : '',
+                        }))}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Team A" />
                           </SelectTrigger>
@@ -511,7 +1095,14 @@ export default function APLAdminPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="team_b">Team B</Label>
-                        <Select value={matchForm.team_b} onValueChange={(value) => setMatchForm({...matchForm, team_b: value})}>
+                        <Select value={matchForm.team_b} onValueChange={(value) => setMatchForm((prev: any) => ({
+                          ...prev,
+                          team_b: value,
+                          team_b_starters: [...EMPTY_STARTER_IDS],
+                          knockout_winner_team_id: prev.knockout_winner_team_id === value || prev.knockout_winner_team_id === prev.team_a
+                            ? prev.knockout_winner_team_id
+                            : '',
+                        }))}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Team B" />
                           </SelectTrigger>
@@ -546,7 +1137,11 @@ export default function APLAdminPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="round">Round</Label>
-                        <Select value={matchForm.round} onValueChange={(value) => setMatchForm({...matchForm, round: value})}>
+                        <Select value={matchForm.round} onValueChange={(value) => setMatchForm({
+                          ...matchForm,
+                          round: value,
+                          knockout_winner_team_id: isKnockoutRound(value, 'knockout') ? matchForm.knockout_winner_team_id : '',
+                        })}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -560,13 +1155,51 @@ export default function APLAdminPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
+                        <Label htmlFor="knockout_winner_team_id">Knockout Winner (Tie Break)</Label>
+                        <Select
+                          value={matchForm.knockout_winner_team_id || '__none__'}
+                          onValueChange={(value) => setMatchForm({
+                            ...matchForm,
+                            knockout_winner_team_id: value === '__none__' ? '' : value,
+                          })}
+                          disabled={!isKnockoutSelection || !matchForm.team_a || !matchForm.team_b}
+                        >
+                          <SelectTrigger id="knockout_winner_team_id">
+                            <SelectValue placeholder="No manual winner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__">No manual winner</SelectItem>
+                            {matchForm.team_a && (
+                              <SelectItem value={matchForm.team_a}>{teamAName}</SelectItem>
+                            )}
+                            {matchForm.team_b && (
+                              <SelectItem value={matchForm.team_b}>{teamBName}</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Required only when a knockout match is completed with tied scores.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
                         <Label htmlFor="match_number">Match Number</Label>
-                        <Input
-                          id="match_number"
-                          type="number"
-                          value={matchForm.match_number}
-                          onChange={(e) => setMatchForm({...matchForm, match_number: e.target.value})}
-                        />
+                        {editingItem ? (
+                          <div
+                            id="match_number"
+                            className="h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
+                          >
+                            {editingMatchNumber ? `Match #${editingMatchNumber}` : 'No match number assigned'}
+                          </div>
+                        ) : (
+                          <Input
+                            id="match_number"
+                            type="number"
+                            min={1}
+                            placeholder="Leave blank to auto-assign"
+                            value={matchForm.match_number}
+                            onChange={(e) => setMatchForm({...matchForm, match_number: e.target.value})}
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="start_time">Start Time</Label>
@@ -577,10 +1210,48 @@ export default function APLAdminPage() {
                           onChange={(e) => setMatchForm({...matchForm, start_time: e.target.value})}
                         />
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="team_a_starting_player_count">{teamAName} Starting Player Count</Label>
+                        <Select
+                          value={normalizeStartingPlayerCount(matchForm.team_a_starting_player_count, 10).toString()}
+                          onValueChange={(value) => setMatchForm({
+                            ...matchForm,
+                            team_a_starting_player_count: normalizeStartingPlayerCount(value, 10),
+                          })}
+                        >
+                          <SelectTrigger id="team_a_starting_player_count">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STARTING_PLAYER_COUNT_OPTIONS.map((count) => (
+                              <SelectItem key={`team-a-count-${count}`} value={count.toString()}>{count}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="team_b_starting_player_count">{teamBName} Starting Player Count</Label>
+                        <Select
+                          value={normalizeStartingPlayerCount(matchForm.team_b_starting_player_count, 10).toString()}
+                          onValueChange={(value) => setMatchForm({
+                            ...matchForm,
+                            team_b_starting_player_count: normalizeStartingPlayerCount(value, 10),
+                          })}
+                        >
+                          <SelectTrigger id="team_b_starting_player_count">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STARTING_PLAYER_COUNT_OPTIONS.map((count) => (
+                              <SelectItem key={`team-b-count-${count}`} value={count.toString()}>{count}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       {matchForm.status === 'live' && (
                         <div className="space-y-2">
                           <Label htmlFor="period">Period</Label>
-                          <Select value={matchForm.period} onValueChange={(value) => setMatchForm({...matchForm, period: value})}>
+                          <Select value={matchForm.period} onValueChange={handlePeriodChange}>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
@@ -619,11 +1290,148 @@ export default function APLAdminPage() {
                       )}
 
                       <div className="col-span-2 space-y-6">
+                        <div className="rounded-lg border p-4 space-y-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">Starting Lineup Setup</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Select 6 starters per team. Starters and players subbed on twice are ignored for tick/cross tracking.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                              <p className="text-sm font-medium">{teamAName} Starters (6)</p>
+                              <p className="text-xs text-muted-foreground">
+                                Required on-field time: {formatSecondsAsClock(
+                                  getRequiredSecondsForStartingPlayerCount(
+                                    normalizeStartingPlayerCount(matchForm.team_a_starting_player_count, 10)
+                                  )
+                                )}
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {Array.from({ length: STARTER_SLOT_COUNT }).map((_, slotIndex) => {
+                                  const selectedStarterIds = new Set(teamAStarterSlots.filter(Boolean));
+                                  const currentStarterId = teamAStarterSlots[slotIndex];
+                                  if (currentStarterId) selectedStarterIds.delete(currentStarterId);
+
+                                  return (
+                                    <Select
+                                      key={`team-a-starter-${slotIndex}`}
+                                      value={currentStarterId || '__empty__'}
+                                      onValueChange={(value) => updateStarterSlot('team_a_starters', slotIndex, value === '__empty__' ? '' : value)}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={`Starter ${slotIndex + 1}`} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="__empty__">Unselected</SelectItem>
+                                        {teamAPlayers.map((player) => {
+                                          const playerId = player.id.toString();
+                                          return (
+                                            <SelectItem
+                                              key={`team-a-starter-option-${slotIndex}-${playerId}`}
+                                              value={playerId}
+                                              disabled={selectedStarterIds.has(playerId)}
+                                            >
+                                              {player.attributes?.name}
+                                            </SelectItem>
+                                          );
+                                        })}
+                                      </SelectContent>
+                                    </Select>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <p className="text-sm font-medium">{teamBName} Starters (6)</p>
+                              <p className="text-xs text-muted-foreground">
+                                Required on-field time: {formatSecondsAsClock(
+                                  getRequiredSecondsForStartingPlayerCount(
+                                    normalizeStartingPlayerCount(matchForm.team_b_starting_player_count, 10)
+                                  )
+                                )}
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {Array.from({ length: STARTER_SLOT_COUNT }).map((_, slotIndex) => {
+                                  const selectedStarterIds = new Set(teamBStarterSlots.filter(Boolean));
+                                  const currentStarterId = teamBStarterSlots[slotIndex];
+                                  if (currentStarterId) selectedStarterIds.delete(currentStarterId);
+
+                                  return (
+                                    <Select
+                                      key={`team-b-starter-${slotIndex}`}
+                                      value={currentStarterId || '__empty__'}
+                                      onValueChange={(value) => updateStarterSlot('team_b_starters', slotIndex, value === '__empty__' ? '' : value)}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={`Starter ${slotIndex + 1}`} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="__empty__">Unselected</SelectItem>
+                                        {teamBPlayers.map((player) => {
+                                          const playerId = player.id.toString();
+                                          return (
+                                            <SelectItem
+                                              key={`team-b-starter-option-${slotIndex}-${playerId}`}
+                                              value={playerId}
+                                              disabled={selectedStarterIds.has(playerId)}
+                                            >
+                                              {player.attributes?.name}
+                                            </SelectItem>
+                                          );
+                                        })}
+                                      </SelectContent>
+                                    </Select>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          {starterValidationError && (
+                            <p className="text-sm text-destructive">{starterValidationError}</p>
+                          )}
+                        </div>
+
+                        {matchForm.status === 'live' && (
+                          <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-semibold">Match Clock</h3>
+                                <p className="text-sm text-muted-foreground">Suggested event minute updates from this clock.</p>
+                              </div>
+                              <Badge className="whitespace-nowrap flex-shrink-0" variant={clockRunning ? 'default' : 'outline'}>{getClockStateLabel()}</Badge>
+                            </div>
+                            <div className="h-8 flex items-center">
+                              <div className="text-2xl font-semibold leading-none">
+                                {currentSuggestedMinute}' {currentSuggestedSecond.toString().padStart(2, '0')}"
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              <Button className="w-full" size="sm" variant="default" onClick={startClock} disabled={clockRunning}>
+                                <Play className="w-4 h-4 mr-2" />
+                                Start
+                              </Button>
+                              <Button className="w-full" size="sm" variant="outline" onClick={pauseClock} disabled={!clockRunning}>
+                                <Pause className="w-4 h-4 mr-2" />
+                                Pause
+                              </Button>
+                              <Button className="w-full" size="sm" variant="outline" onClick={resumeClock} disabled={clockRunning}>
+                                <Play className="w-4 h-4 mr-2" />
+                                Resume
+                              </Button>
+                              <Button className="w-full" size="sm" variant="ghost" onClick={resetClock}>
+                                <RotateCcw className="w-4 h-4 mr-2" />
+                                Reset
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold">Goal Events</h3>
                           <Button size="sm" variant="outline" onClick={() => setMatchForm({
                             ...matchForm,
-                            goal_events: [...(matchForm.goal_events || []), createEmptyGoalEvent()]
+                            goal_events: [...(matchForm.goal_events || []), { ...createEmptyGoalEvent(), minute: currentSuggestedMinute }]
                           })}>
                             Add Goal
                           </Button>
@@ -633,12 +1441,12 @@ export default function APLAdminPage() {
                         )}
                         <div className="space-y-3">
                           {(matchForm.goal_events || []).map((event: any, idx: number) => (
-                            <div key={`goal-${idx}`} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-3 border rounded-lg">
+                            <div key={`goal-${idx}`} className="grid grid-cols-1 md:grid-cols-5 gap-2 p-3 border rounded-lg">
                               <div className="space-y-2">
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
                                   const nextGoals = [...matchForm.goal_events];
-                                  nextGoals[idx] = sanitizeEventPlayerFields(nextGoals[idx], value, ['scorer', 'assister']);
+                                  nextGoals[idx] = sanitizeEventPlayerFields(nextGoals[idx], value, ['scorer']);
                                   setMatchForm({ ...matchForm, goal_events: nextGoals });
                                 }}>
                                   <SelectTrigger>
@@ -655,12 +1463,21 @@ export default function APLAdminPage() {
                                 <Input
                                   type="number"
                                   value={event.minute}
+                                  min={1}
                                   onChange={(e) => {
                                     const nextGoals = [...matchForm.goal_events];
                                     nextGoals[idx] = { ...nextGoals[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, goal_events: nextGoals });
                                   }}
                                 />
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => applyCurrentMinuteToEvent('goal_events', idx)}
+                                >
+                                  Use current ({currentSuggestedMinute}')
+                                </Button>
                               </div>
                               <div className="space-y-2">
                                 <Label>Scorer</Label>
@@ -671,25 +1488,6 @@ export default function APLAdminPage() {
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select scorer" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {getPlayersForEventTeam(event.team).map(player => (
-                                      <SelectItem key={player.id} value={player.id.toString()}>
-                                        {player.attributes?.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Assist</Label>
-                                <Select value={event.assister} onValueChange={(value) => {
-                                  const nextGoals = [...matchForm.goal_events];
-                                  nextGoals[idx] = { ...nextGoals[idx], assister: value };
-                                  setMatchForm({ ...matchForm, goal_events: nextGoals });
-                                }}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select assist" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {getPlayersForEventTeam(event.team).map(player => (
@@ -745,7 +1543,7 @@ export default function APLAdminPage() {
                           <h3 className="text-lg font-semibold">Card Events</h3>
                           <Button size="sm" variant="outline" onClick={() => setMatchForm({
                             ...matchForm,
-                            card_events: [...(matchForm.card_events || []), createEmptyCardEvent()]
+                            card_events: [...(matchForm.card_events || []), { ...createEmptyCardEvent(), minute: currentSuggestedMinute }]
                           })}>
                             Add Card
                           </Button>
@@ -777,12 +1575,21 @@ export default function APLAdminPage() {
                                 <Input
                                   type="number"
                                   value={event.minute}
+                                  min={1}
                                   onChange={(e) => {
                                     const nextCards = [...matchForm.card_events];
                                     nextCards[idx] = { ...nextCards[idx], minute: e.target.value };
                                     setMatchForm({ ...matchForm, card_events: nextCards });
                                   }}
                                 />
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => applyCurrentMinuteToEvent('card_events', idx)}
+                                >
+                                  Use current ({currentSuggestedMinute}')
+                                </Button>
                               </div>
                               <div className="space-y-2">
                                 <Label>Player</Label>
@@ -833,96 +1640,14 @@ export default function APLAdminPage() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-semibold">Goalkeeper Saves</h3>
-                          <Button size="sm" variant="outline" onClick={() => setMatchForm({
-                            ...matchForm,
-                            save_events: [...(matchForm.save_events || []), createEmptySaveEvent()]
-                          })}>
-                            Add Save
-                          </Button>
-                        </div>
-                        {matchForm.save_events.length === 0 && (
-                          <p className="text-sm text-muted-foreground">No goalkeeper saves recorded.</p>
-                        )}
-                        <div className="space-y-3">
-                          {(matchForm.save_events || []).map((event: any, idx: number) => (
-                            <div key={`save-${idx}`} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-3 border rounded-lg">
-                              <div className="space-y-2">
-                                <Label>Team</Label>
-                                <Select value={event.team} onValueChange={(value) => {
-                                  const nextSaves = [...matchForm.save_events];
-                                  nextSaves[idx] = sanitizeEventPlayerFields(nextSaves[idx], value, ['goalkeeper']);
-                                  setMatchForm({ ...matchForm, save_events: nextSaves });
-                                }}>
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="team_a">{teamAName}</SelectItem>
-                                    <SelectItem value="team_b">{teamBName}</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Minute</Label>
-                                <Input
-                                  type="number"
-                                  value={event.minute}
-                                  onChange={(e) => {
-                                    const nextSaves = [...matchForm.save_events];
-                                    nextSaves[idx] = { ...nextSaves[idx], minute: e.target.value };
-                                    setMatchForm({ ...matchForm, save_events: nextSaves });
-                                  }}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Goalkeeper</Label>
-                                <Select value={event.goalkeeper} onValueChange={(value) => {
-                                  const nextSaves = [...matchForm.save_events];
-                                  nextSaves[idx] = { ...nextSaves[idx], goalkeeper: value };
-                                  setMatchForm({ ...matchForm, save_events: nextSaves });
-                                }}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select goalkeeper" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {getPlayersForEventTeam(event.team).map(player => (
-                                      <SelectItem key={player.id} value={player.id.toString()}>
-                                        {player.attributes?.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Saves</Label>
-                                <Input
-                                  type="number"
-                                  value={event.saves}
-                                  onChange={(e) => {
-                                    const nextSaves = [...matchForm.save_events];
-                                    nextSaves[idx] = { ...nextSaves[idx], saves: e.target.value };
-                                    setMatchForm({ ...matchForm, save_events: nextSaves });
-                                  }}
-                                />
-                              </div>
-                              <div className="flex items-end justify-end">
-                                <Button size="sm" variant="ghost" onClick={() => {
-                                  const nextSaves = matchForm.save_events.filter((_: any, i: number) => i !== idx);
-                                  setMatchForm({ ...matchForm, save_events: nextSaves });
-                                }}>
-                                  Remove
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold">Substitution Events</h3>
                           <Button size="sm" variant="outline" onClick={() => setMatchForm({
                             ...matchForm,
-                            substitution_events: [...(matchForm.substitution_events || []), createEmptySubstitutionEvent()]
+                            substitution_events: [...(matchForm.substitution_events || []), {
+                              ...createEmptySubstitutionEvent(),
+                              minute: currentSuggestedMinute,
+                              second: currentSuggestedSecond,
+                            }]
                           })}>
                             Add Substitution
                           </Button>
@@ -932,7 +1657,7 @@ export default function APLAdminPage() {
                         )}
                         <div className="space-y-3">
                           {(matchForm.substitution_events || []).map((event: any, idx: number) => (
-                            <div key={`sub-${idx}`} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-3 border rounded-lg">
+                            <div key={`sub-${idx}`} className="grid grid-cols-1 md:grid-cols-7 gap-2 p-3 border rounded-lg">
                               <div className="space-y-2">
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
@@ -954,9 +1679,32 @@ export default function APLAdminPage() {
                                 <Input
                                   type="number"
                                   value={event.minute}
+                                  min={1}
                                   onChange={(e) => {
                                     const nextSubs = [...matchForm.substitution_events];
                                     nextSubs[idx] = { ...nextSubs[idx], minute: e.target.value };
+                                    setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                  }}
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => applyCurrentMinuteToEvent('substitution_events', idx)}
+                                >
+                                  Use current ({currentSuggestedMinute}' {currentSuggestedSecond.toString().padStart(2, '0')}")
+                                </Button>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Second</Label>
+                                <Input
+                                  type="number"
+                                  value={event.second ?? 0}
+                                  min={0}
+                                  max={59}
+                                  onChange={(e) => {
+                                    const nextSubs = [...matchForm.substitution_events];
+                                    nextSubs[idx] = { ...nextSubs[idx], second: e.target.value };
                                     setMatchForm({ ...matchForm, substitution_events: nextSubs });
                                   }}
                                 />
@@ -972,7 +1720,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="Off" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {getPlayersForEventTeam(event.team).map(player => (
+                                    {getSubstitutionPlayersForRow(event.team, idx, 'off').map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -991,7 +1739,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="On" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {getPlayersForEventTeam(event.team).map(player => (
+                                    {getSubstitutionPlayersForRow(event.team, idx, 'on').map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -1010,6 +1758,130 @@ export default function APLAdminPage() {
                             </div>
                           ))}
                         </div>
+
+                        <div className="rounded-lg border p-4 space-y-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">Substitution Timer Compliance</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Tick: player met required time before being subbed off. Cross: player did not meet required time.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {(['team_a', 'team_b'] as const).map((teamKey) => {
+                              const teamLabel = teamKey === 'team_a' ? teamAName : teamBName;
+                              const teamSummary = substitutionComplianceByTeam[teamKey];
+
+                              return (
+                                <div key={`compliance-${teamKey}`} className="rounded-md border p-3 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <p className="font-medium">{teamLabel}</p>
+                                    <Badge variant="outline">
+                                      Need {formatSecondsAsClock(teamSummary.requiredSeconds)}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    On field: {teamSummary.currentOnFieldPlayerIds.length} | Played: {teamSummary.playedPlayerIds.length}
+                                  </p>
+                                  {teamSummary.playerResults.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">No tracked substitute entries yet.</p>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      {teamSummary.playerResults.map((result) => {
+                                        const playerName = participantNameMap[result.playerId] || `Player ${result.playerId}`;
+                                        const durationLabel = result.status === 'ignored'
+                                          ? result.ignoreReason === 'starter'
+                                            ? 'Starter'
+                                            : 'Ignored'
+                                          : `${formatSecondsAsClock(result.playedSeconds)} played`;
+
+                                        return (
+                                          <div key={`${teamKey}-${result.playerId}`} className="flex items-center justify-between rounded border px-2 py-1.5">
+                                            <div>
+                                              <p className="text-sm font-medium">{playerName}</p>
+                                              <p className="text-xs text-muted-foreground">{durationLabel}</p>
+                                            </div>
+                                            {getPlayerComplianceBadge(result.status)}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <div className="rounded-lg border bg-muted/20 p-4 space-y-3">
+                            <p className="text-sm font-semibold text-foreground">Players Who Did Not Fulfill Criteria</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              {(['team_a', 'team_b'] as const).map((teamKey) => {
+                                const teamLabel = teamKey === 'team_a' ? teamAName : teamBName;
+                                const issueSummary = substitutionIssueSummaryByTeam[teamKey];
+                                const missedTimePlayers = issueSummary.insufficientTimePlayers;
+                                const neverSubbedInPlayerIds = issueSummary.neverSubbedInPlayerIds;
+
+                                return (
+                                  <div key={`failed-${teamKey}`} className="rounded-md border bg-card p-3 space-y-3 min-w-0">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <p className="font-medium text-foreground">{teamLabel}</p>
+                                      <div className="flex flex-wrap items-center gap-1.5">
+                                        <Badge variant="outline" className="text-[11px]">
+                                          Missed Time: {missedTimePlayers.length}
+                                        </Badge>
+                                        <Badge variant="outline" className="text-[11px]">
+                                          Never Subbed: {neverSubbedInPlayerIds.length}
+                                        </Badge>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-[11rem_minmax(0,1fr)] gap-3">
+                                      <div className="rounded-md border bg-background p-2.5 space-y-1.5">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Missed Required Time</p>
+                                        {missedTimePlayers.length === 0 ? (
+                                          <p className="text-sm text-muted-foreground">None</p>
+                                        ) : (
+                                          <div className="space-y-1.5">
+                                            {missedTimePlayers.map((result) => {
+                                              const playerName = participantNameMap[result.playerId] || `Player ${result.playerId}`;
+                                              return (
+                                                <div key={`missed-${teamKey}-${result.playerId}`} className="rounded border px-2.5 py-2 space-y-1 min-w-0">
+                                                  <p className="text-sm font-medium break-words leading-snug">{playerName}</p>
+                                                  <p className="text-xs text-muted-foreground">Subbed in but missed required time</p>
+                                                  <p className="text-xs font-medium text-muted-foreground">
+                                                    Played {formatSecondsAsClock(result.playedSeconds)} of {formatSecondsAsClock(result.requiredSeconds)} required
+                                                  </p>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div className="rounded-md border bg-background p-2.5 space-y-1.5">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Never Subbed In</p>
+                                        {neverSubbedInPlayerIds.length === 0 ? (
+                                          <p className="text-sm text-muted-foreground">None</p>
+                                        ) : (
+                                          <div className="space-y-1.5">
+                                            {neverSubbedInPlayerIds.map((playerId) => {
+                                              const playerName = participantNameMap[playerId] || `Player ${playerId}`;
+                                              return (
+                                                <div key={`never-subbed-${teamKey}-${playerId}`} className="rounded border px-2.5 py-2 space-y-1 min-w-0">
+                                                  <p className="text-sm font-medium break-words leading-snug">{playerName}</p>
+                                                  <p className="text-xs text-muted-foreground">Never entered (0:00)</p>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="flex justify-end gap-2">
@@ -1019,7 +1891,7 @@ export default function APLAdminPage() {
                       </Button>
                       <Button
                         onClick={editingItem ? handleUpdateMatch : handleCreateMatch}
-                        disabled={hasInvalidTeamSelection}
+                        disabled={hasInvalidTeamSelection || Boolean(starterValidationError)}
                       >
                         <Save className="w-4 h-4 mr-2" />
                         {editingItem ? 'Update' : 'Create'}
@@ -1068,7 +1940,10 @@ export default function APLAdminPage() {
                             }
                           </TableCell>
                           <TableCell>
-                            {attrs.start_time ? new Date(attrs.start_time).toLocaleString() : '-'}
+                            {attrs.start_time ? (() => {
+                              const { date, time } = formatISTDateTimeDisplay(attrs.start_time);
+                              return `${date} ${time}`.trim();
+                            })() : '-'}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -1148,59 +2023,22 @@ export default function APLAdminPage() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Scorers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {participants
-                    .filter(p => p.attributes?.goals > 0)
-                    .sort((a, b) => (b.attributes?.goals || 0) - (a.attributes?.goals || 0))
-                    .slice(0, 5)
-                    .map((player, index) => (
-                      <div key={player.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
-                            {index + 1}
-                          </div>
-                          <span className="font-semibold">{player.attributes?.name}</span>
-                        </div>
-                        <Badge>{player.attributes?.goals} goals</Badge>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Assist Providers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {participants
-                    .filter(p => p.attributes?.assists > 0)
-                    .sort((a, b) => (b.attributes?.assists || 0) - (a.attributes?.assists || 0))
-                    .slice(0, 5)
-                    .map((player, index) => (
-                      <div key={player.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
-                            {index + 1}
-                          </div>
-                          <span className="font-semibold">{player.attributes?.name}</span>
-                        </div>
-                        <Badge>{player.attributes?.assists} assists</Badge>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
     </div>
   );
 }

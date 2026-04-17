@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Clock, Search, Trophy, Users } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatISTDateTimeDisplay } from '@/lib/date-utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -173,7 +175,7 @@ export default function APLMatchesPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">APL Matches</h1>
@@ -234,20 +236,20 @@ export default function APLMatchesPage() {
 
       {/* Match Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">All ({filteredMatches.length})</TabsTrigger>
-          <TabsTrigger value="live" className="relative">
+        <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4 gap-1">
+          <TabsTrigger value="all" className="text-xs sm:text-sm px-2">All ({filteredMatches.length})</TabsTrigger>
+          <TabsTrigger value="live" className="relative text-xs sm:text-sm px-2">
             Live ({matchesByStatus.live.length})
             {matchesByStatus.live.length > 0 && (
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
             )}
           </TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming ({matchesByStatus.upcoming.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({matchesByStatus.completed.length})</TabsTrigger>
+          <TabsTrigger value="upcoming" className="text-xs sm:text-sm px-2">Upcoming ({matchesByStatus.upcoming.length})</TabsTrigger>
+          <TabsTrigger value="completed" className="text-xs sm:text-sm px-2">Completed ({matchesByStatus.completed.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
-          <ScrollArea className="h-[600px] pr-4">
+          <ScrollArea className="h-[65vh] max-h-[600px] pr-2 sm:pr-4">
             <div className="space-y-4">
               {filteredMatches.length === 0 ? (
                 <Card>
@@ -264,9 +266,9 @@ export default function APLMatchesPage() {
                   return (
                     <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
                       <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+                            <div className="flex flex-wrap items-center gap-2">
                               {getStatusBadge(attrs.status)}
                               {attrs.round && (
                                 <Badge variant="outline">
@@ -280,18 +282,18 @@ export default function APLMatchesPage() {
                               )}
                             </div>
                             {attrs.start_time && (
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <div className="flex flex-wrap items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4" />
-                                {new Date(attrs.start_time).toLocaleDateString()}
+                                {formatISTDateTimeDisplay(attrs.start_time).date}
                                 <Clock className="w-4 h-4 ml-2" />
-                                {new Date(attrs.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {formatISTDateTimeDisplay(attrs.start_time).time}
                               </div>
                             )}
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                             {/* Team A */}
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 justify-center sm:justify-start">
                               <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
                                 {teamA?.attributes?.logo ? (
                                   <Image
@@ -305,10 +307,10 @@ export default function APLMatchesPage() {
                                   <div className="w-8 h-8 bg-muted-foreground/20 rounded" />
                                 )}
                               </div>
-                              <div>
-                                <p className="font-semibold">{teamA?.attributes?.name || 'TBD'}</p>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-center sm:text-left break-words">{teamA?.attributes?.name || 'TBD'}</p>
                                 {attrs.status === 'completed' && (
-                                  <p className="text-2xl font-bold text-primary">{attrs.team_a_score || 0}</p>
+                                  <p className="text-2xl font-bold text-primary text-center sm:text-left">{attrs.team_a_score || 0}</p>
                                 )}
                               </div>
                             </div>
@@ -330,11 +332,11 @@ export default function APLMatchesPage() {
                             </div>
 
                             {/* Team B */}
-                            <div className="flex items-center gap-3 justify-end">
-                              <div>
-                                <p className="font-semibold text-right">{teamB?.attributes?.name || 'TBD'}</p>
+                            <div className="flex items-center gap-3 justify-center sm:justify-end">
+                              <div className="min-w-0">
+                                <p className="font-semibold text-center sm:text-right break-words">{teamB?.attributes?.name || 'TBD'}</p>
                                 {attrs.status === 'completed' && (
-                                  <p className="text-2xl font-bold text-primary text-right">{attrs.team_b_score || 0}</p>
+                                  <p className="text-2xl font-bold text-primary text-center sm:text-right">{attrs.team_b_score || 0}</p>
                                 )}
                               </div>
                               <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
@@ -364,7 +366,7 @@ export default function APLMatchesPage() {
 
         {/* Live Tab */}
         <TabsContent value="live" className="mt-6">
-          <ScrollArea className="h-[600px] pr-4">
+          <ScrollArea className="h-[65vh] max-h-[600px] pr-2 sm:pr-4">
             <div className="space-y-4">
               {matchesByStatus.live.length === 0 ? (
                 <Card>
@@ -381,15 +383,15 @@ export default function APLMatchesPage() {
                   return (
                     <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
                       <Card className="border-red-200 hover:shadow-lg transition-shadow cursor-pointer">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between mb-4">
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
                             <Badge className="bg-red-500 hover:bg-red-600 animate-pulse">LIVE NOW</Badge>
                             <p className="text-sm text-muted-foreground">
                               {getPeriodDisplay(attrs.period || 'not_started')}
                             </p>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-4 items-center">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
                             <div className="text-center">
                               <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mx-auto mb-2 overflow-hidden">
                                 {teamA?.attributes?.logo ? (
@@ -404,7 +406,7 @@ export default function APLMatchesPage() {
                                   <div className="w-12 h-12 bg-muted-foreground/20 rounded" />
                                 )}
                               </div>
-                              <p className="font-semibold">{teamA?.attributes?.name || 'TBD'}</p>
+                              <p className="font-semibold break-words">{teamA?.attributes?.name || 'TBD'}</p>
                               <p className="text-3xl font-bold text-primary">{attrs.team_a_score || 0}</p>
                             </div>
 
@@ -426,7 +428,7 @@ export default function APLMatchesPage() {
                                   <div className="w-12 h-12 bg-muted-foreground/20 rounded" />
                                 )}
                               </div>
-                              <p className="font-semibold">{teamB?.attributes?.name || 'TBD'}</p>
+                              <p className="font-semibold break-words">{teamB?.attributes?.name || 'TBD'}</p>
                               <p className="text-3xl font-bold text-primary">{attrs.team_b_score || 0}</p>
                             </div>
                           </div>
@@ -442,7 +444,7 @@ export default function APLMatchesPage() {
 
         {/* Similar structure for upcoming and completed tabs */}
         <TabsContent value="upcoming" className="mt-6">
-          <ScrollArea className="h-[600px] pr-4">
+          <ScrollArea className="h-[65vh] max-h-[600px] pr-2 sm:pr-4">
             <div className="space-y-4">
               {matchesByStatus.upcoming.length === 0 ? (
                 <Card>
@@ -459,20 +461,20 @@ export default function APLMatchesPage() {
                   return (
                     <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
                       <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between mb-4">
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
                             <Badge variant="outline" className="border-blue-500 text-blue-500">UPCOMING</Badge>
                             {attrs.start_time && (
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <div className="flex flex-wrap items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4" />
-                                {new Date(attrs.start_time).toLocaleDateString()}
+                                {formatISTDateTimeDisplay(attrs.start_time).date}
                                 <Clock className="w-4 h-4 ml-2" />
-                                {new Date(attrs.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {formatISTDateTimeDisplay(attrs.start_time).time}
                               </div>
                             )}
                           </div>
 
-                          <div className="grid grid-cols-3 gap-4 items-center">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
                             <div className="text-center">
                               <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-2 overflow-hidden">
                                 {teamA?.attributes?.logo ? (
@@ -487,7 +489,7 @@ export default function APLMatchesPage() {
                                   <div className="w-8 h-8 bg-muted-foreground/20 rounded" />
                                 )}
                               </div>
-                              <p className="font-semibold">{teamA?.attributes?.name || 'TBD'}</p>
+                              <p className="font-semibold break-words">{teamA?.attributes?.name || 'TBD'}</p>
                             </div>
 
                             <div className="text-center">
@@ -508,7 +510,7 @@ export default function APLMatchesPage() {
                                   <div className="w-8 h-8 bg-muted-foreground/20 rounded" />
                                 )}
                               </div>
-                              <p className="font-semibold">{teamB?.attributes?.name || 'TBD'}</p>
+                              <p className="font-semibold break-words">{teamB?.attributes?.name || 'TBD'}</p>
                             </div>
                           </div>
                         </CardContent>
@@ -522,7 +524,7 @@ export default function APLMatchesPage() {
         </TabsContent>
 
         <TabsContent value="completed" className="mt-6">
-          <ScrollArea className="h-[600px] pr-4">
+          <ScrollArea className="h-[65vh] max-h-[600px] pr-2 sm:pr-4">
             <div className="space-y-4">
               {matchesByStatus.completed.length === 0 ? (
                 <Card>
@@ -539,15 +541,15 @@ export default function APLMatchesPage() {
                   return (
                     <Link key={match.id} href={`/platform/sports/apl/${match.id}`}>
                       <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between mb-4">
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
                             <Badge variant="secondary">COMPLETED</Badge>
                             <p className="text-sm text-muted-foreground">
                               Final Score
                             </p>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-4 items-center">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
                             <div className="text-center">
                               <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mx-auto mb-2 overflow-hidden">
                                 {teamA?.attributes?.logo ? (
@@ -562,7 +564,7 @@ export default function APLMatchesPage() {
                                   <div className="w-8 h-8 bg-muted-foreground/20 rounded" />
                                 )}
                               </div>
-                              <p className="font-semibold">{teamA?.attributes?.name || 'TBD'}</p>
+                              <p className="font-semibold break-words">{teamA?.attributes?.name || 'TBD'}</p>
                               <p className={`text-2xl font-bold ${attrs.team_a_score > attrs.team_b_score ? 'text-green-600' : 'text-muted-foreground'}`}>
                                 {attrs.team_a_score || 0}
                               </p>
@@ -586,7 +588,7 @@ export default function APLMatchesPage() {
                                   <div className="w-8 h-8 bg-muted-foreground/20 rounded" />
                                 )}
                               </div>
-                              <p className="font-semibold">{teamB?.attributes?.name || 'TBD'}</p>
+                              <p className="font-semibold break-words">{teamB?.attributes?.name || 'TBD'}</p>
                               <p className={`text-2xl font-bold ${attrs.team_b_score > attrs.team_a_score ? 'text-green-600' : 'text-muted-foreground'}`}>
                                 {attrs.team_b_score || 0}
                               </p>
@@ -602,6 +604,20 @@ export default function APLMatchesPage() {
           </ScrollArea>
         </TabsContent>
       </Tabs>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
     </div>
   );
 }

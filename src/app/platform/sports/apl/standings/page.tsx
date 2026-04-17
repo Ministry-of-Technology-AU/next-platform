@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import DeveloperCredits from '@/components/developer-credits';
 
 const GROUP_NAMES = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F'];
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
@@ -21,21 +22,13 @@ const normalizeGroupName = (group?: string) => {
 };
 
 export default function APLStandingsPage() {
-  const [rawMatches, setRawMatches] = useState<any[]>([]);
   const [rawTeams, setRawTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
-      const [matchesRes, teamsRes] = await Promise.all([
-        fetch('/api/platform/sports/apl/matches'),
-        fetch('/api/platform/sports/apl/teams'),
-      ]);
+      const teamsRes = await fetch('/api/platform/sports/apl/teams');
 
-      if (matchesRes.ok) {
-        const d = await matchesRes.json();
-        setRawMatches(d.data || []);
-      }
       if (teamsRes.ok) {
         const d = await teamsRes.json();
         setRawTeams(d.data || []);
@@ -73,55 +66,15 @@ export default function APLStandingsPage() {
       const stats = {
         id: team.id,
         team: attrs.name || `Team ${team.id}`,
-        played: 0,
-        won: 0,
-        draws: 0,
-        lost: 0,
-        points: 0,
+        played: attrs.matches_played || 0,
+        won: attrs.matches_won || 0,
+        draws: attrs.matches_tied || 0,
+        lost: attrs.matches_lost || 0,
+        points: attrs.points || 0,
       };
 
       teamStats[team.id] = stats;
       groupsMap[groupName].push(stats);
-    });
-
-    rawMatches.forEach((match: any) => {
-      const attrs = match.attributes || {};
-      const status = (attrs.status || '').toUpperCase();
-      const type = (attrs.type || 'group').toLowerCase();
-      const details = attrs.details || {};
-
-      if (status === 'PAST' && type !== 'knockout') {
-        const teamAId = attrs.team_a?.data?.id;
-        const teamBId = attrs.team_b?.data?.id;
-        const scoreA = details.scoreA || 0;
-        const scoreB = details.scoreB || 0;
-
-        if (teamAId && teamStats[teamAId]) {
-          teamStats[teamAId].played += 1;
-          if (scoreA > scoreB) {
-            teamStats[teamAId].won += 1;
-            teamStats[teamAId].points += 3;
-          } else if (scoreA < scoreB) {
-            teamStats[teamAId].lost += 1;
-          } else {
-            teamStats[teamAId].draws += 1;
-            teamStats[teamAId].points += 1;
-          }
-        }
-
-        if (teamBId && teamStats[teamBId]) {
-          teamStats[teamBId].played += 1;
-          if (scoreB > scoreA) {
-            teamStats[teamBId].won += 1;
-            teamStats[teamBId].points += 3;
-          } else if (scoreB < scoreA) {
-            teamStats[teamBId].lost += 1;
-          } else {
-            teamStats[teamBId].draws += 1;
-            teamStats[teamBId].points += 1;
-          }
-        }
-      }
     });
 
     const orderedGroupNames = [
@@ -138,7 +91,7 @@ export default function APLStandingsPage() {
         teams: teams.map((team, idx) => ({ ...team, rank: idx + 1 })),
       };
     });
-  }, [rawMatches, rawTeams]);
+  }, [rawTeams]);
 
   if (loading) {
     return (
@@ -147,18 +100,18 @@ export default function APLStandingsPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-3 sm:p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-3 text-primary mb-3">
             <BarChart3 className="h-5 w-5" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">APL Standings</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">APL Standings</h1>
           <p className="text-muted-foreground">Full group stage standings for all groups A through F.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full sm:w-auto gap-2">
           <Link href="/platform/sports/apl">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to APL Home
             </Button>
@@ -166,7 +119,7 @@ export default function APLStandingsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {displayGroups.map((group) => (
           <Card key={group.name} className="bg-card border-border shadow-sm overflow-hidden">
             <CardHeader className="py-3 border-b border-border bg-muted/30">
@@ -176,29 +129,29 @@ export default function APLStandingsPage() {
               {group.teams.length === 0 ? (
                 <div className="p-6 text-sm text-muted-foreground">No teams yet in this group.</div>
               ) : (
-                <ScrollArea className="h-[360px]">
+                <ScrollArea className="h-[300px] sm:h-[340px] md:h-[360px]">
                   <Table>
                     <TableHeader className="bg-muted/50 sticky top-0 z-10">
                       <TableRow className="border-border hover:bg-transparent">
-                        <TableHead className="w-12 text-center text-muted-foreground font-bold px-2">#</TableHead>
-                        <TableHead className="text-muted-foreground font-bold px-4">Team</TableHead>
-                        <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">P</TableHead>
-                        <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">W</TableHead>
-                        <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">D</TableHead>
-                        <TableHead className="text-center text-muted-foreground font-bold w-12 px-2">L</TableHead>
-                        <TableHead className="text-center text-foreground font-bold w-16 px-4">PTS</TableHead>
+                        <TableHead className="w-10 sm:w-12 text-center text-muted-foreground font-bold px-1 sm:px-2">#</TableHead>
+                        <TableHead className="text-muted-foreground font-bold px-2 sm:px-4">Team</TableHead>
+                        <TableHead className="hidden sm:table-cell text-center text-muted-foreground font-bold w-12 px-2">P</TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-muted-foreground font-bold w-12 px-2">W</TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-muted-foreground font-bold w-12 px-2">D</TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-muted-foreground font-bold w-12 px-2">L</TableHead>
+                        <TableHead className="text-center text-foreground font-bold w-14 sm:w-16 px-2 sm:px-4">PTS</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {group.teams.map((team: any) => (
                         <TableRow key={team.id} className="border-border hover:bg-muted/30">
-                          <TableCell className="text-center font-bold text-muted-foreground px-2">{team.rank}</TableCell>
-                          <TableCell className="font-bold tracking-wide px-4 whitespace-nowrap">{team.team}</TableCell>
-                          <TableCell className="text-center text-muted-foreground px-2">{team.played}</TableCell>
-                          <TableCell className="text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
-                          <TableCell className="text-center text-sky-500 dark:text-sky-400/90 px-2">{team.draws}</TableCell>
-                          <TableCell className="text-center text-red-600 dark:text-red-500/80 px-2">{team.lost}</TableCell>
-                          <TableCell className="text-center font-black text-yellow-600 dark:text-yellow-500 text-base px-4">{team.points}</TableCell>
+                          <TableCell className="text-center font-bold text-muted-foreground px-1 sm:px-2">{team.rank}</TableCell>
+                          <TableCell className="font-bold tracking-wide px-2 sm:px-4 max-w-[9rem] sm:max-w-[13rem] truncate">{team.team}</TableCell>
+                          <TableCell className="hidden sm:table-cell text-center text-muted-foreground px-2">{team.played}</TableCell>
+                          <TableCell className="hidden md:table-cell text-center text-green-600 dark:text-green-500/80 px-2">{team.won}</TableCell>
+                          <TableCell className="hidden md:table-cell text-center text-sky-500 dark:text-sky-400/90 px-2">{team.draws}</TableCell>
+                          <TableCell className="hidden md:table-cell text-center text-red-600 dark:text-red-500/80 px-2">{team.lost}</TableCell>
+                          <TableCell className="text-center font-black text-yellow-600 dark:text-yellow-500 text-sm sm:text-base px-2 sm:px-4">{team.points}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -209,6 +162,20 @@ export default function APLStandingsPage() {
           </Card>
         ))}
       </div>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+          {
+            name: 'Atharvajeet Singh',
+            role: 'Developer',
+            profileUrl: 'https://github.com/atharvajeetsingh',
+          },
+        ]}
+      />
     </div>
   );
 }

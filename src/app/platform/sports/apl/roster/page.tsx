@@ -19,6 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search } from 'lucide-react';
 import { normalizePlayerName } from '@/lib/utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -33,6 +34,16 @@ interface TeamInfo {
   name: string;
   logo: any;
 }
+
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+        ]}
+      />
 
 interface Player {
   id: number;

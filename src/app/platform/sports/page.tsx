@@ -51,7 +51,7 @@ export default function SportsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Coming soon. The portal for the Ashoka Premier League football league.
+                View live scores, match schedules, the group and knockout stage leaderboards, and detailed player statistics for the APL season.
               </p>
             </CardContent>
           </Card>
