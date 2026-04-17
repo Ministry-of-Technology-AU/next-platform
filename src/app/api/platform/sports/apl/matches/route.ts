@@ -67,11 +67,36 @@ const isMatchNumberConflictError = (error: any): boolean => {
   );
 };
 
+const extractStrapiValidationMessage = (responseData: any): string | null => {
+  const directMessage = responseData?.error?.message;
+  if (typeof directMessage === 'string' && directMessage.trim()) {
+    return directMessage;
+  }
+
+  const detailErrors = responseData?.error?.details?.errors;
+  if (Array.isArray(detailErrors) && detailErrors.length > 0) {
+    const firstMessage = detailErrors
+      .map((error: any) => {
+        const pathLabel = Array.isArray(error?.path) ? error.path.join('.') : error?.path;
+        const message = typeof error?.message === 'string' ? error.message.trim() : '';
+        if (!message) return '';
+        return pathLabel ? `${pathLabel}: ${message}` : message;
+      })
+      .find((message: string) => Boolean(message));
+
+    if (firstMessage) {
+      return firstMessage;
+    }
+  }
+
+  return null;
+};
+
 const buildProxyErrorResponse = (error: any) => {
   const responseStatus = error?.response?.status;
   const responseData = error?.response?.data;
   const serializedError = JSON.stringify(responseData || '').toLowerCase();
-  const message = responseData?.error?.message;
+  const message = extractStrapiValidationMessage(responseData);
 
   if (
     serializedError.includes('match_number')
@@ -187,7 +212,10 @@ export async function POST(request: Request) {
 
     throw new Error('Failed to auto-assign match number after retries');
   } catch (error) {
-    console.error("API proxy error:", error);
+    console.error('API proxy error:', {
+      status: (error as any)?.response?.status,
+      data: (error as any)?.response?.data,
+    });
     return buildProxyErrorResponse(error);
   }
 }
