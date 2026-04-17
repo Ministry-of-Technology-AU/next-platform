@@ -410,33 +410,41 @@ export default function APLFootballPage() {
       {/* Hero Live Match Banner or Stay Tuned */}
       <section>
         {currentMatch && (
-          <Card className={`relative bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all shadow-2xl ${styles.heroCard}`}>
-            <Link href={`/platform/sports/apl/${currentMatch.id}`} aria-label={`View match details for ${currentMatch.teamA} versus ${currentMatch.teamB}`} className="absolute inset-0 z-0" />
-            {hasMultipleLiveMatches && (
-              <>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigateLiveMatch('prev')}
-                  aria-label="Previous live match"
-                  className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 text-white hover:bg-white/10 hover:text-white md:left-5"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigateLiveMatch('next')}
-                  aria-label="Next live match"
-                  className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 text-white hover:bg-white/10 hover:text-white md:right-5"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-              </>
-            )}
-            <CardContent className="relative z-10 p-4 sm:p-6 md:p-12 flex flex-col items-center">
+          <Link href={`/platform/sports/apl/${currentMatch.id}`} aria-label={`View match details for ${currentMatch.teamA} versus ${currentMatch.teamB}`}>
+            <Card className={`relative cursor-pointer bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all shadow-2xl ${styles.heroCard}`}>
+              {hasMultipleLiveMatches && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      navigateLiveMatch('prev');
+                    }}
+                    aria-label="Previous live match"
+                    className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 text-white hover:bg-white/10 hover:text-white md:left-5"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      navigateLiveMatch('next');
+                    }}
+                    aria-label="Next live match"
+                    className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 text-white hover:bg-white/10 hover:text-white md:right-5"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </>
+              )}
+              <CardContent className="relative z-10 p-4 sm:p-6 md:p-12 flex flex-col items-center">
               <div
                 key={currentMatch.id}
                 className={`w-full flex flex-col items-center ${matchTransitionDirection === 'next' ? styles.heroSlideNext : matchTransitionDirection === 'prev' ? styles.heroSlidePrev : ''}`}
@@ -498,8 +506,9 @@ export default function APLFootballPage() {
                   {currentMatch.arena}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         )}
       </section>
 
