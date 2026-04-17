@@ -20,6 +20,14 @@ export const banners: Array<{
       image: "/mascot-football-happy.png",
       alt: "Football cat mascot banner",
       gradient: "",
+      buttons: [
+        {
+          variant: "default",
+          children: "Open APL Score Tracker",
+          url: "/platform/sports/apl",
+          className: "bg-white text-black hover:bg-white/90 font-semibold",
+        },
+      ],
     },
     {
       id: 5,

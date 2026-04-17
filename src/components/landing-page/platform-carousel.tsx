@@ -163,7 +163,13 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
                         const finalClassName = `text-xs sm:text-sm ${filteredClasses.join(" ")}`;
 
                         const handleClick = url
-                          ? () => window.open(url, '_blank')
+                          ? () => {
+                            if (url.startsWith('/')) {
+                              window.location.href = url;
+                              return;
+                            }
+                            window.open(url, '_blank');
+                          }
                           : otherProps.onClick;
 
                         return (
