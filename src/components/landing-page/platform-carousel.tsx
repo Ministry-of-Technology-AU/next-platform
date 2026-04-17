@@ -73,21 +73,41 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
           className="flex w-full h-full transition-transform duration-1000 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
-          {allBanners.map((banner, index) => (
+          {allBanners.map((banner, index) => {
+            const isMascotBanner = banner.image === '/mascot-football-happy.png';
+            const imageSrc = banner.image.startsWith('/uploads/')
+              ? `${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}${banner.image}`
+              : banner.image;
+
+            return (
             <div
               key={banner.id}
               className="relative w-full h-full flex-shrink-0 min-w-full"
             >
+              {isMascotBanner && (
+                // Fill side gaps with a soft blurred bleed instead of hard black bars.
+                <Image
+                  src={imageSrc}
+                  alt=""
+                  width={1200}
+                  height={720}
+                  className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-65"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 75vw, 1200px"
+                  aria-hidden
+                />
+              )}
+
               <Image
-                src={banner.image.startsWith('/') && !banner.image.startsWith('/_next') && banner.image !== '/yyh4iiocug5dnctfkd5t.webp' && banner.image !== '/Neev-Banner.webp' && banner.image !== '/z6ggcs3unvoquykoyupo.webp' ? `${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}${banner.image}` : banner.image}
+                src={imageSrc}
                 alt={banner.title || 'Banner'}
                 width={1200}
                 height={720}
-                className="w-full h-full object-cover"
+                className={`relative w-full h-full ${isMascotBanner ? 'object-contain object-center scale-105' : 'object-cover'}`}
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 75vw, 1200px"
                 priority={index === 0}
               />
-              <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
+
+              <div className={`absolute inset-0 bg-gradient-to-r ${isMascotBanner ? 'from-black/75 via-black/40 to-black/10' : banner.gradient}`} />
 
               {/* Content Overlay */}w
               <div className="absolute inset-0 flex items-center justify-start text-left text-white px-8 py-3 sm:px-14 sm:py-6 md:px-16 md:py-8">
@@ -164,7 +184,8 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       </div>
 

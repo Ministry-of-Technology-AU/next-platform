@@ -1,7 +1,14 @@
 {
-    "version": "1.0.8",
-    "lastUpdated": "2026-04-01",
+    "version": "1.0.9",
+    "lastUpdated": "2026-04-17",
     "updates": [
+        {
+            "id": "apl-score-tracker-launch",
+            "title": "APL score tracker is now live",
+            "description": "Track live APL scores directly on Platform.",
+            "type": "new",
+            "link": "/platform/sports/apl"
+        },
         {
             "id": "apl-auction-tracker-launch",
             "title": "APL Auction Tracker now live!",
