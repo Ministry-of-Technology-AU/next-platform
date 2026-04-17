@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X, Play, Pause, RotateCcw, Check, CircleX, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatISTDateTimeDisplay, formatISTDateTimeForInput } from '@/lib/date-utils';
@@ -1761,25 +1760,17 @@ export default function APLAdminPage() {
                                             {missedTimePlayers.map((result) => {
                                               const playerName = participantNameMap[result.playerId] || `Player ${result.playerId}`;
                                               return (
-                                                <Tooltip key={`missed-${teamKey}-${result.playerId}`}>
-                                                  <TooltipTrigger asChild>
-                                                    <div className="flex cursor-help items-center justify-between gap-2 rounded border px-2 py-1.5">
-                                                      <div>
-                                                        <p className="text-sm font-medium">{playerName}</p>
-                                                        <p className="text-xs text-muted-foreground">Subbed in but missed required time</p>
-                                                      </div>
-                                                      <span className="text-xs font-medium text-muted-foreground">
-                                                        {formatSecondsAsClock(result.playedSeconds)} / {formatSecondsAsClock(result.requiredSeconds)}
-                                                      </span>
+                                                <div key={`missed-${teamKey}-${result.playerId}`} className="rounded border px-2 py-1.5">
+                                                  <div className="flex items-center justify-between gap-2">
+                                                    <div>
+                                                      <p className="text-sm font-medium">{playerName}</p>
+                                                      <p className="text-xs text-muted-foreground">Subbed in but missed required time</p>
                                                     </div>
-                                                  </TooltipTrigger>
-                                                  <TooltipContent className="max-w-xs text-xs">
-                                                    <p className="font-medium">{playerName}</p>
-                                                    <p>Reason: Subbed in but did not complete required on-field time.</p>
-                                                    <p>Played: {formatSecondsAsClock(result.playedSeconds)}</p>
-                                                    <p>Required: {formatSecondsAsClock(result.requiredSeconds)}</p>
-                                                  </TooltipContent>
-                                                </Tooltip>
+                                                    <span className="text-xs font-medium text-muted-foreground">
+                                                      {formatSecondsAsClock(result.playedSeconds)} / {formatSecondsAsClock(result.requiredSeconds)}
+                                                    </span>
+                                                  </div>
+                                                </div>
                                               );
                                             })}
                                           </div>
@@ -1795,19 +1786,12 @@ export default function APLAdminPage() {
                                             {neverSubbedInPlayerIds.map((playerId) => {
                                               const playerName = participantNameMap[playerId] || `Player ${playerId}`;
                                               return (
-                                                <Tooltip key={`never-subbed-${teamKey}-${playerId}`}>
-                                                  <TooltipTrigger asChild>
-                                                    <div className="flex cursor-help items-center justify-between gap-2 rounded border px-2 py-1.5">
-                                                      <span className="text-sm font-medium">{playerName}</span>
-                                                      <span className="text-xs text-muted-foreground">Never entered (0:00)</span>
-                                                    </div>
-                                                  </TooltipTrigger>
-                                                  <TooltipContent className="max-w-xs text-xs">
-                                                    <p className="font-medium">{playerName}</p>
-                                                    <p>Reason: Never subbed on during the tracked match timeline.</p>
-                                                    <p>Played: 0:00</p>
-                                                  </TooltipContent>
-                                                </Tooltip>
+                                                <div key={`never-subbed-${teamKey}-${playerId}`} className="rounded border px-2 py-1.5">
+                                                  <div className="flex items-center justify-between gap-2">
+                                                    <span className="text-sm font-medium">{playerName}</span>
+                                                    <span className="text-xs text-muted-foreground">Never entered (0:00)</span>
+                                                  </div>
+                                                </div>
                                               );
                                             })}
                                           </div>
