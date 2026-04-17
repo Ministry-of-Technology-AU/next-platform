@@ -527,7 +527,7 @@ export default function APLFootballPage() {
               </Link>
               <Link href="/platform/sports/apl/players" className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                 <Trophy className="w-4 h-4" />
-                Player Statistics
+                Statistics
               </Link>
               <Link href="/platform/sports/apl/knockout" className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                 <Calendar className="w-4 h-4" />
