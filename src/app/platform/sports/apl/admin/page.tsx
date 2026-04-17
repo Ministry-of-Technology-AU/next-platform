@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus, Edit, Trash2, Trophy, Calendar, BarChart3, Save, X, Play, Pause, RotateCcw, Check, CircleX, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatISTDateTimeDisplay, formatISTDateTimeForInput } from '@/lib/date-utils';
@@ -26,6 +27,17 @@ import DeveloperCredits from '@/components/developer-credits';
 const STARTER_SLOT_COUNT = 6;
 const EMPTY_STARTER_IDS = Array.from({ length: STARTER_SLOT_COUNT }, () => '');
 const STARTING_PLAYER_COUNT_OPTIONS = [10, 9, 8] as const;
+const MATCH_CLOCK_STORAGE_PREFIX = 'apl-admin-match-clock:';
+
+type PersistedMatchClockState = {
+  baseMinute: number;
+  elapsedBeforeRunSeconds: number;
+  runStartedAtMs: number | null;
+  running: boolean;
+  halftimeCarryMinute: number | null;
+};
+
+const getMatchClockStorageKey = (matchId: string) => `${MATCH_CLOCK_STORAGE_PREFIX}${matchId}`;
 
 export default function APLAdminPage() {
   const [activeTab, setActiveTab] = useState('matches');
@@ -41,7 +53,9 @@ export default function APLAdminPage() {
   // Live minute tracking for event entry
   const [clockRunning, setClockRunning] = useState(false);
   const [clockBaseMinute, setClockBaseMinute] = useState(0);
-  const [clockElapsedSeconds, setClockElapsedSeconds] = useState(0);
+  const [clockElapsedBeforeRunSeconds, setClockElapsedBeforeRunSeconds] = useState(0);
+  const [clockRunStartedAtMs, setClockRunStartedAtMs] = useState<number | null>(null);
+  const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [halftimeCarryMinute, setHalftimeCarryMinute] = useState<number | null>(null);
 
   // Form states
@@ -100,7 +114,7 @@ export default function APLAdminPage() {
     if (!clockRunning) return;
 
     const intervalId = window.setInterval(() => {
-      setClockElapsedSeconds((prev) => prev + 1);
+      setClockNowMs(Date.now());
     }, 1000);
 
     return () => window.clearInterval(intervalId);
@@ -108,9 +122,46 @@ export default function APLAdminPage() {
 
   useEffect(() => {
     if (matchForm.status !== 'live') {
+      if (clockRunning && clockRunStartedAtMs) {
+        const now = Date.now();
+        const additionalElapsedSeconds = Math.max(0, Math.floor((now - clockRunStartedAtMs) / 1000));
+        setClockElapsedBeforeRunSeconds((prev) => prev + additionalElapsedSeconds);
+        setClockRunStartedAtMs(null);
+      }
       setClockRunning(false);
     }
-  }, [matchForm.status]);
+  }, [clockRunStartedAtMs, clockRunning, matchForm.status]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const currentMatchId = editingItem?.id?.toString();
+    if (!currentMatchId) return;
+
+    if (matchForm.status === 'completed' || matchForm.period === 'full_time') {
+      window.localStorage.removeItem(getMatchClockStorageKey(currentMatchId));
+      return;
+    }
+
+    const stateToPersist: PersistedMatchClockState = {
+      baseMinute: clockBaseMinute,
+      elapsedBeforeRunSeconds: clockElapsedBeforeRunSeconds,
+      runStartedAtMs: clockRunStartedAtMs,
+      running: clockRunning,
+      halftimeCarryMinute,
+    };
+
+    window.localStorage.setItem(getMatchClockStorageKey(currentMatchId), JSON.stringify(stateToPersist));
+  }, [
+    clockBaseMinute,
+    clockElapsedBeforeRunSeconds,
+    clockRunStartedAtMs,
+    clockRunning,
+    editingItem?.id,
+    halftimeCarryMinute,
+    matchForm.period,
+    matchForm.status,
+  ]);
 
   const teamMap = useMemo(() => {
     const map: Record<number, any> = {};
@@ -210,14 +261,25 @@ export default function APLAdminPage() {
     team: 'team_a'
   });
 
+  const getEffectiveClockElapsedSeconds = () => {
+    if (!clockRunning || !clockRunStartedAtMs) {
+      return clockElapsedBeforeRunSeconds;
+    }
+
+    const runningElapsedSeconds = Math.max(0, Math.floor((clockNowMs - clockRunStartedAtMs) / 1000));
+    return clockElapsedBeforeRunSeconds + runningElapsedSeconds;
+  };
+
+  const effectiveClockElapsedSeconds = getEffectiveClockElapsedSeconds();
+
   const currentSuggestedMinute = useMemo(
-    () => Math.max(0, clockBaseMinute + Math.floor(clockElapsedSeconds / 60)),
-    [clockBaseMinute, clockElapsedSeconds]
+    () => Math.max(0, clockBaseMinute + Math.floor(effectiveClockElapsedSeconds / 60)),
+    [clockBaseMinute, effectiveClockElapsedSeconds]
   );
 
   const currentSuggestedSecond = useMemo(
-    () => clockElapsedSeconds % 60,
-    [clockElapsedSeconds]
+    () => effectiveClockElapsedSeconds % 60,
+    [effectiveClockElapsedSeconds]
   );
 
   const currentSuggestedTimelineSeconds = useMemo(
@@ -227,25 +289,47 @@ export default function APLAdminPage() {
 
   const getClockStateLabel = () => {
     if (clockRunning) return 'Running';
-    if (clockElapsedSeconds > 0 || clockBaseMinute > 0) return 'Paused';
+    if (effectiveClockElapsedSeconds > 0 || clockBaseMinute > 0) return 'Paused';
     return 'Not started';
   };
 
   const startClock = () => {
+    const now = Date.now();
     setClockBaseMinute(0);
-    setClockElapsedSeconds(0);
+    setClockElapsedBeforeRunSeconds(0);
+    setClockRunStartedAtMs(now);
+    setClockNowMs(now);
     setHalftimeCarryMinute(null);
     setClockRunning(true);
   };
 
-  const pauseClock = () => setClockRunning(false);
+  const pauseClock = () => {
+    if (!clockRunning || !clockRunStartedAtMs) {
+      setClockRunning(false);
+      return;
+    }
 
-  const resumeClock = () => setClockRunning(true);
+    const now = Date.now();
+    const additionalElapsedSeconds = Math.max(0, Math.floor((now - clockRunStartedAtMs) / 1000));
+    setClockElapsedBeforeRunSeconds((prev) => prev + additionalElapsedSeconds);
+    setClockRunStartedAtMs(null);
+    setClockNowMs(now);
+    setClockRunning(false);
+  };
+
+  const resumeClock = () => {
+    if (clockRunning) return;
+    const now = Date.now();
+    setClockRunStartedAtMs(now);
+    setClockNowMs(now);
+    setClockRunning(true);
+  };
 
   const resetClock = () => {
     setClockRunning(false);
     setClockBaseMinute(0);
-    setClockElapsedSeconds(0);
+    setClockElapsedBeforeRunSeconds(0);
+    setClockRunStartedAtMs(null);
     setHalftimeCarryMinute(null);
   };
 
@@ -269,14 +353,17 @@ export default function APLAdminPage() {
 
     if (nextPeriod === 'half_time') {
       setHalftimeCarryMinute(minuteAtSwitch);
-      setClockRunning(false);
+      pauseClock();
       return;
     }
 
     if (previousPeriod === 'half_time' && nextPeriod === 'second_half') {
+      const now = Date.now();
       const resumeFromMinute = Math.max(1, (halftimeCarryMinute ?? minuteAtSwitch) + 1);
       setClockBaseMinute(resumeFromMinute);
-      setClockElapsedSeconds(0);
+      setClockElapsedBeforeRunSeconds(0);
+      setClockRunStartedAtMs(now);
+      setClockNowMs(now);
       setClockRunning(true);
       return;
     }
@@ -400,7 +487,7 @@ export default function APLAdminPage() {
       0
     );
 
-    const evaluationEndSeconds = matchForm.status === 'live'
+    const evaluationEndSeconds = (matchForm.status === 'live' || matchForm.status === 'completed' || matchForm.period === 'full_time')
       ? Math.max(maxEventTimelineSeconds, currentSuggestedTimelineSeconds)
       : maxEventTimelineSeconds;
 
@@ -735,10 +822,44 @@ export default function APLAdminPage() {
         card_events: cardEvents,
         substitution_events: substitutionEvents,
       });
-      setClockBaseMinute(maxExistingMinute);
-      setClockElapsedSeconds(0);
-      setHalftimeCarryMinute(attrs.period === 'half_time' ? maxExistingMinute : null);
-      setClockRunning(false);
+      const currentMatchId = record.id?.toString();
+      let persistedClockState: PersistedMatchClockState | null = null;
+
+      if (typeof window !== 'undefined' && currentMatchId) {
+        const rawPersistedState = window.localStorage.getItem(getMatchClockStorageKey(currentMatchId));
+        if (rawPersistedState) {
+          try {
+            persistedClockState = JSON.parse(rawPersistedState) as PersistedMatchClockState;
+          } catch {
+            window.localStorage.removeItem(getMatchClockStorageKey(currentMatchId));
+          }
+        }
+      }
+
+      const shouldRestorePersistedClock = Boolean(
+        persistedClockState && attrs.status === 'live' && attrs.period !== 'full_time'
+      );
+
+      if (shouldRestorePersistedClock && persistedClockState) {
+        const now = Date.now();
+        setClockBaseMinute(Math.max(0, persistedClockState.baseMinute || 0));
+        setClockElapsedBeforeRunSeconds(Math.max(0, persistedClockState.elapsedBeforeRunSeconds || 0));
+        setClockRunStartedAtMs(
+          persistedClockState.running && persistedClockState.runStartedAtMs
+            ? persistedClockState.runStartedAtMs
+            : null
+        );
+        setClockNowMs(now);
+        setHalftimeCarryMinute(persistedClockState.halftimeCarryMinute ?? (attrs.period === 'half_time' ? maxExistingMinute : null));
+        setClockRunning(Boolean(persistedClockState.running && persistedClockState.runStartedAtMs));
+      } else {
+        setClockBaseMinute(maxExistingMinute);
+        setClockElapsedBeforeRunSeconds(0);
+        setClockRunStartedAtMs(null);
+        setClockNowMs(Date.now());
+        setHalftimeCarryMinute(attrs.period === 'half_time' ? maxExistingMinute : null);
+        setClockRunning(false);
+      }
 
       setEditingItem(record);
       setMatchDialogOpen(true);
@@ -775,6 +896,65 @@ export default function APLAdminPage() {
     () => normalizeStarterIds(matchForm.team_b_starters),
     [matchForm.team_b_starters]
   );
+
+  const substitutionIssueSummaryByTeam = useMemo(() => {
+    const subbedInByTeam: Record<'team_a' | 'team_b', Set<string>> = {
+      team_a: new Set<string>(),
+      team_b: new Set<string>(),
+    };
+
+    (matchForm.substitution_events || []).forEach((event: any) => {
+      const teamKey = event?.team === 'team_b' ? 'team_b' : 'team_a';
+      const playerOnId = event?.player_on?.toString().trim();
+      if (playerOnId) {
+        subbedInByTeam[teamKey].add(playerOnId);
+      }
+    });
+
+    const teamConfigs = {
+      team_a: {
+        players: teamAPlayers,
+        starterIds: new Set(getUniqueStarterIds(matchForm.team_a_starters)),
+      },
+      team_b: {
+        players: teamBPlayers,
+        starterIds: new Set(getUniqueStarterIds(matchForm.team_b_starters)),
+      },
+    } as const;
+
+    return (['team_a', 'team_b'] as const).reduce((acc, teamKey) => {
+      const teamSummary = substitutionComplianceByTeam[teamKey];
+      const insufficientTimePlayers = teamSummary.playerResults.filter((result) => result.status === 'fail');
+
+      const neverSubbedInPlayerIds = teamConfigs[teamKey].players
+        .map((player: any) => player.id.toString())
+        .filter((playerId: string) => !teamConfigs[teamKey].starterIds.has(playerId))
+        .filter((playerId: string) => !subbedInByTeam[teamKey].has(playerId));
+
+      acc[teamKey] = {
+        insufficientTimePlayers,
+        neverSubbedInPlayerIds,
+      };
+
+      return acc;
+    }, {
+      team_a: {
+        insufficientTimePlayers: [] as any[],
+        neverSubbedInPlayerIds: [] as string[],
+      },
+      team_b: {
+        insufficientTimePlayers: [] as any[],
+        neverSubbedInPlayerIds: [] as string[],
+      },
+    });
+  }, [
+    matchForm.substitution_events,
+    matchForm.team_a_starters,
+    matchForm.team_b_starters,
+    substitutionComplianceByTeam,
+    teamAPlayers,
+    teamBPlayers,
+  ]);
 
   const starterValidationError = getStarterValidationError();
   const editingMatchNumber = editingItem?.attributes?.match_number ?? editingItem?.match_number;
@@ -1548,34 +1728,92 @@ export default function APLAdminPage() {
                             })}
                           </div>
 
-                          <div className="rounded-md border border-red-200 bg-red-50/40 p-3 space-y-2">
-                            <p className="text-sm font-semibold text-red-700">Players Who Did Not Fulfill Criteria</p>
-                            <div className="space-y-1 text-sm">
+                          <div className="rounded-lg border bg-muted/20 p-4 space-y-3">
+                            <p className="text-sm font-semibold text-foreground">Players Who Did Not Fulfill Criteria</p>
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                               {(['team_a', 'team_b'] as const).map((teamKey) => {
                                 const teamLabel = teamKey === 'team_a' ? teamAName : teamBName;
-                                const teamSummary = substitutionComplianceByTeam[teamKey];
-                                const failingPlayers = teamSummary.playerResults.filter((result) => result.status === 'fail');
+                                const issueSummary = substitutionIssueSummaryByTeam[teamKey];
+                                const missedTimePlayers = issueSummary.insufficientTimePlayers;
+                                const neverSubbedInPlayerIds = issueSummary.neverSubbedInPlayerIds;
 
                                 return (
-                                  <div key={`failed-${teamKey}`} className="space-y-1">
-                                    <p className="font-medium text-foreground">{teamLabel}</p>
-                                    {failingPlayers.length === 0 ? (
-                                      <p className="text-muted-foreground">None</p>
-                                    ) : (
-                                      <div className="space-y-1">
-                                        {failingPlayers.map((result) => {
-                                          const playerName = participantNameMap[result.playerId] || `Player ${result.playerId}`;
-                                          return (
-                                            <div key={`failed-${teamKey}-${result.playerId}`} className="flex items-center justify-between gap-3 rounded border border-red-200 bg-white/60 px-2 py-1">
-                                              <span>{playerName}</span>
-                                              <span className="text-xs text-muted-foreground">
-                                                {formatSecondsAsClock(result.playedSeconds)} / {formatSecondsAsClock(result.requiredSeconds)}
-                                              </span>
-                                            </div>
-                                          );
-                                        })}
+                                  <div key={`failed-${teamKey}`} className="rounded-md border bg-card p-3 space-y-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <p className="font-medium text-foreground">{teamLabel}</p>
+                                      <div className="flex items-center gap-1.5">
+                                        <Badge variant="outline" className="text-[11px]">
+                                          Missed Time: {missedTimePlayers.length}
+                                        </Badge>
+                                        <Badge variant="outline" className="text-[11px]">
+                                          Never Subbed: {neverSubbedInPlayerIds.length}
+                                        </Badge>
                                       </div>
-                                    )}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      <div className="rounded-md border bg-background p-2.5 space-y-1.5">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Missed Required Time</p>
+                                        {missedTimePlayers.length === 0 ? (
+                                          <p className="text-sm text-muted-foreground">None</p>
+                                        ) : (
+                                          <div className="space-y-1.5">
+                                            {missedTimePlayers.map((result) => {
+                                              const playerName = participantNameMap[result.playerId] || `Player ${result.playerId}`;
+                                              return (
+                                                <Tooltip key={`missed-${teamKey}-${result.playerId}`}>
+                                                  <TooltipTrigger asChild>
+                                                    <div className="flex cursor-help items-center justify-between gap-2 rounded border px-2 py-1.5">
+                                                      <div>
+                                                        <p className="text-sm font-medium">{playerName}</p>
+                                                        <p className="text-xs text-muted-foreground">Subbed in but missed required time</p>
+                                                      </div>
+                                                      <span className="text-xs font-medium text-muted-foreground">
+                                                        {formatSecondsAsClock(result.playedSeconds)} / {formatSecondsAsClock(result.requiredSeconds)}
+                                                      </span>
+                                                    </div>
+                                                  </TooltipTrigger>
+                                                  <TooltipContent className="max-w-xs text-xs">
+                                                    <p className="font-medium">{playerName}</p>
+                                                    <p>Reason: Subbed in but did not complete required on-field time.</p>
+                                                    <p>Played: {formatSecondsAsClock(result.playedSeconds)}</p>
+                                                    <p>Required: {formatSecondsAsClock(result.requiredSeconds)}</p>
+                                                  </TooltipContent>
+                                                </Tooltip>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div className="rounded-md border bg-background p-2.5 space-y-1.5">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Never Subbed In</p>
+                                        {neverSubbedInPlayerIds.length === 0 ? (
+                                          <p className="text-sm text-muted-foreground">None</p>
+                                        ) : (
+                                          <div className="space-y-1.5">
+                                            {neverSubbedInPlayerIds.map((playerId) => {
+                                              const playerName = participantNameMap[playerId] || `Player ${playerId}`;
+                                              return (
+                                                <Tooltip key={`never-subbed-${teamKey}-${playerId}`}>
+                                                  <TooltipTrigger asChild>
+                                                    <div className="flex cursor-help items-center justify-between gap-2 rounded border px-2 py-1.5">
+                                                      <span className="text-sm font-medium">{playerName}</span>
+                                                      <span className="text-xs text-muted-foreground">Never entered (0:00)</span>
+                                                    </div>
+                                                  </TooltipTrigger>
+                                                  <TooltipContent className="max-w-xs text-xs">
+                                                    <p className="font-medium">{playerName}</p>
+                                                    <p>Reason: Never subbed on during the tracked match timeline.</p>
+                                                    <p>Played: 0:00</p>
+                                                  </TooltipContent>
+                                                </Tooltip>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 );
                               })}
