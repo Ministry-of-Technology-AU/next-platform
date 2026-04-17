@@ -21,6 +21,7 @@ import {
   getRequiredSecondsForStartingPlayerCount,
   toTimelineSeconds,
 } from '@/lib/apl-substitution-compliance';
+import { isKnockoutRound } from '@/lib/apl-knockout';
 import DeveloperCredits from '@/components/developer-credits';
 
 const STARTER_SLOT_COUNT = 6;
@@ -71,6 +72,7 @@ export default function APLAdminPage() {
     start_time: '',
     period: 'not_started',
     round: 'group_stage',
+    knockout_winner_team_id: '',
     match_number: '',
     goal_events: [] as any[],
     card_events: [] as any[],
@@ -189,6 +191,7 @@ export default function APLAdminPage() {
   };
 
   const hasInvalidTeamSelection = Boolean(matchForm.team_a && matchForm.team_b && matchForm.team_a === matchForm.team_b);
+  const isKnockoutSelection = isKnockoutRound(matchForm.round, 'knockout');
 
   const validateTeamSelection = () => {
     if (!hasInvalidTeamSelection) return true;
@@ -462,6 +465,31 @@ export default function APLAdminPage() {
     return false;
   };
 
+  const validateKnockoutWinnerSelection = () => {
+    if (!isKnockoutSelection) {
+      return true;
+    }
+
+    const winnerTeamId = (matchForm.knockout_winner_team_id || '').toString();
+    if (winnerTeamId && winnerTeamId !== matchForm.team_a && winnerTeamId !== matchForm.team_b) {
+      toast.error('Knockout winner must be Team A or Team B');
+      return false;
+    }
+
+    if (matchForm.status !== 'completed') {
+      return true;
+    }
+
+    const scoreA = Number(derivedScores.team_a_score);
+    const scoreB = Number(derivedScores.team_b_score);
+    if (Number.isFinite(scoreA) && Number.isFinite(scoreB) && scoreA === scoreB && !winnerTeamId) {
+      toast.error('Select a manual winner for tied knockout matches');
+      return false;
+    }
+
+    return true;
+  };
+
   const participantNameMap = useMemo(() => {
     const map: Record<string, string> = {};
     participants.forEach((participant: any) => {
@@ -627,6 +655,11 @@ export default function APLAdminPage() {
 
     const team_a_starters = getUniqueStarterIds(form.team_a_starters);
     const team_b_starters = getUniqueStarterIds(form.team_b_starters);
+    const existingDetails = form.details && typeof form.details === 'object' ? form.details : {};
+    const winnerCandidate = (form.knockout_winner_team_id || '').toString();
+    const normalizedWinnerId = winnerCandidate && /^\d+$/.test(winnerCandidate)
+      ? Number(winnerCandidate)
+      : null;
 
     return {
       goal_events,
@@ -636,6 +669,10 @@ export default function APLAdminPage() {
       team_b_starting_player_count,
       team_a_starters,
       team_b_starters,
+      details: {
+        ...existingDetails,
+        knockout_winner_team_id: normalizedWinnerId,
+      },
     };
   };
 
@@ -643,14 +680,18 @@ export default function APLAdminPage() {
   const handleCreateMatch = async () => {
     if (!validateTeamSelection()) return;
     if (!validateStarterSetup()) return;
+    if (!validateKnockoutWinnerSelection()) return;
 
     try {
+      const matchFormPayload = { ...matchForm };
+      delete matchFormPayload.knockout_winner_team_id;
+
       const response = await fetch('/api/platform/sports/apl/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           data: {
-            ...matchForm,
+            ...matchFormPayload,
             ...prepareMatchPayload(matchForm),
             ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
@@ -678,14 +719,18 @@ export default function APLAdminPage() {
     if (!editingItem) return;
     if (!validateTeamSelection()) return;
     if (!validateStarterSetup()) return;
+    if (!validateKnockoutWinnerSelection()) return;
 
     try {
+      const matchFormPayload = { ...matchForm };
+      delete matchFormPayload.knockout_winner_team_id;
+
       const response = await fetch(`/api/platform/sports/apl/matches/${editingItem.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           data: {
-            ...matchForm,
+            ...matchFormPayload,
             ...prepareMatchPayload(matchForm),
             ...getDerivedMatchScores(matchForm.goal_events || []),
             team_a: { id: parseInt(matchForm.team_a) },
@@ -741,6 +786,7 @@ export default function APLAdminPage() {
       start_time: '',
       period: 'not_started',
       round: 'group_stage',
+      knockout_winner_team_id: '',
       match_number: '',
       goal_events: [],
       card_events: [],
@@ -810,6 +856,7 @@ export default function APLAdminPage() {
         start_time: formatISTDateTimeForInput(attrs.start_time),
         period: attrs.period || 'not_started',
         round: attrs.round || 'group_stage',
+        knockout_winner_team_id: attrs?.details?.knockout_winner_team_id?.toString?.() || '',
         match_number: attrs.match_number?.toString() || '',
         goal_events: goalEvents,
         card_events: cardEvents,
@@ -1026,6 +1073,9 @@ export default function APLAdminPage() {
                           ...prev,
                           team_a: value,
                           team_a_starters: [...EMPTY_STARTER_IDS],
+                          knockout_winner_team_id: prev.knockout_winner_team_id === value || prev.knockout_winner_team_id === prev.team_b
+                            ? prev.knockout_winner_team_id
+                            : '',
                         }))}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Team A" />
@@ -1049,6 +1099,9 @@ export default function APLAdminPage() {
                           ...prev,
                           team_b: value,
                           team_b_starters: [...EMPTY_STARTER_IDS],
+                          knockout_winner_team_id: prev.knockout_winner_team_id === value || prev.knockout_winner_team_id === prev.team_a
+                            ? prev.knockout_winner_team_id
+                            : '',
                         }))}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Team B" />
@@ -1084,7 +1137,11 @@ export default function APLAdminPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="round">Round</Label>
-                        <Select value={matchForm.round} onValueChange={(value) => setMatchForm({...matchForm, round: value})}>
+                        <Select value={matchForm.round} onValueChange={(value) => setMatchForm({
+                          ...matchForm,
+                          round: value,
+                          knockout_winner_team_id: isKnockoutRound(value, 'knockout') ? matchForm.knockout_winner_team_id : '',
+                        })}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -1096,6 +1153,33 @@ export default function APLAdminPage() {
                             <SelectItem value="final">Final</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="knockout_winner_team_id">Knockout Winner (Tie Break)</Label>
+                        <Select
+                          value={matchForm.knockout_winner_team_id || '__none__'}
+                          onValueChange={(value) => setMatchForm({
+                            ...matchForm,
+                            knockout_winner_team_id: value === '__none__' ? '' : value,
+                          })}
+                          disabled={!isKnockoutSelection || !matchForm.team_a || !matchForm.team_b}
+                        >
+                          <SelectTrigger id="knockout_winner_team_id">
+                            <SelectValue placeholder="No manual winner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__">No manual winner</SelectItem>
+                            {matchForm.team_a && (
+                              <SelectItem value={matchForm.team_a}>{teamAName}</SelectItem>
+                            )}
+                            {matchForm.team_b && (
+                              <SelectItem value={matchForm.team_b}>{teamBName}</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Required only when a knockout match is completed with tied scores.
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="match_number">Match Number</Label>

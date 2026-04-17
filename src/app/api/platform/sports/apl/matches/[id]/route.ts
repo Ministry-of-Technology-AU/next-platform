@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { strapiDelete, strapiGet, strapiPut } from '@/lib/apis/strapi';
 import { auth } from '@/auth';
 import { convertISTDateTimeLocalToISOString } from '@/lib/date-utils';
+import {
+  buildOrderedKnockoutRoundMap,
+  createRecordFromStrapiMatch,
+  getNextRoundTarget,
+  isKnockoutRound,
+  resolveKnockoutWinner,
+  type KnockoutRound,
+} from '@/lib/apl-knockout';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +22,8 @@ const extractTeamId = (value: any): string => {
 
 const removeMatchNumberFromPayload = (payload: any) => {
   if (!payload || typeof payload !== 'object') return payload;
-  const { match_number: _ignoredMatchNumber, ...rest } = payload;
+  const rest = { ...payload };
+  delete rest.match_number;
   return rest;
 };
 
@@ -75,10 +84,114 @@ const normalizeMatchPayload = (payload: any) => {
     ? convertISTDateTimeLocalToISOString(payloadWithoutMatchNumber.start_time)
     : payloadWithoutMatchNumber.start_time;
 
+  const normalizedDetails = normalizeDetailsPayload(payloadWithoutMatchNumber.details);
+
   return {
     ...payloadWithoutMatchNumber,
     ...(normalizedStartTime ? { start_time: normalizedStartTime } : {}),
+    ...(normalizedDetails ? { details: normalizedDetails } : {}),
   };
+};
+
+const normalizeKnockoutWinnerId = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+};
+
+const normalizeDetailsPayload = (details: any) => {
+  if (!details || typeof details !== 'object') return details;
+
+  const winnerId = normalizeKnockoutWinnerId(details.knockout_winner_team_id);
+  return {
+    ...details,
+    knockout_winner_team_id: winnerId,
+  };
+};
+
+const listMatchesForKnockoutPropagation = async () => {
+  const query = [
+    'pagination[limit]=-1',
+    'fields[0]=round',
+    'fields[1]=status',
+    'fields[2]=team_a_score',
+    'fields[3]=team_b_score',
+    'fields[4]=match_number',
+    'fields[5]=details',
+    'populate[team_a][fields][0]=id',
+    'populate[team_b][fields][0]=id',
+  ].join('&');
+
+  const response = await strapiGet('/apl-matches', query);
+  return Array.isArray(response?.data) ? response.data : [];
+};
+
+const findMatchRoundIndex = (roundMap: Record<KnockoutRound, any[]>, matchId: number) => {
+  const roundEntries = Object.entries(roundMap) as Array<[KnockoutRound, any[]]>;
+  for (const [round, matches] of roundEntries) {
+    const index = matches.findIndex((record) => Number(record.id) === matchId);
+    if (index >= 0) {
+      return { round, index };
+    }
+  }
+
+  return null;
+};
+
+const propagateKnockoutWinnersFromMatch = async (seedMatchId: number) => {
+  const rawMatches = await listMatchesForKnockoutPropagation();
+  const roundMap = buildOrderedKnockoutRoundMap(rawMatches);
+
+  const byId = new Map<number, any>();
+  (Object.values(roundMap).flat() as any[]).forEach((record: any) => {
+    byId.set(Number(record.id), record);
+  });
+
+  const queue: number[] = [seedMatchId];
+  const visited = new Set<number>();
+
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    if (!currentId || visited.has(currentId)) continue;
+    visited.add(currentId);
+
+    const currentRecord = byId.get(currentId);
+    if (!currentRecord) continue;
+
+    const currentPosition = findMatchRoundIndex(roundMap, currentId);
+    if (!currentPosition) continue;
+
+    const target = getNextRoundTarget(currentPosition.round, currentPosition.index);
+    if (!target) continue;
+
+    const targetRoundRecords = roundMap[target.round] || [];
+    const nextRecord = targetRoundRecords[target.index];
+    if (!nextRecord) continue;
+
+    const winner = resolveKnockoutWinner(currentRecord);
+    const desiredTeamId = winner.winnerTeamId || '';
+    const currentTargetTeamId = target.slot === 'team_a' ? nextRecord.teamAId : nextRecord.teamBId;
+
+    if (currentTargetTeamId === desiredTeamId) {
+      queue.push(Number(nextRecord.id));
+      continue;
+    }
+
+    await strapiPut(`/apl-matches/${nextRecord.id}`, {
+      data: {
+        [target.slot]: desiredTeamId ? { id: Number(desiredTeamId) } : null,
+      },
+    });
+
+    if (target.slot === 'team_a') {
+      nextRecord.teamAId = desiredTeamId;
+    } else {
+      nextRecord.teamBId = desiredTeamId;
+    }
+
+    queue.push(Number(nextRecord.id));
+  }
 };
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -108,20 +221,53 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const body = await request.json();
     const incomingData = body && typeof body === 'object' && 'data' in body ? body.data : body;
 
+    const existingMatch = await strapiGet(`/apl-matches/${id}`);
+    const existingAttrs = existingMatch?.data?.attributes || {};
+
     const normalizedIncomingData = normalizeMatchPayload(incomingData);
 
-    const teamAId = extractTeamId(normalizedIncomingData?.team_a);
-    const teamBId = extractTeamId(normalizedIncomingData?.team_b);
+    const teamAId = extractTeamId(normalizedIncomingData?.team_a) || extractTeamId(existingAttrs?.team_a);
+    const teamBId = extractTeamId(normalizedIncomingData?.team_b) || extractTeamId(existingAttrs?.team_b);
     if (teamAId && teamBId && teamAId === teamBId) {
       return NextResponse.json({ error: 'Team A and Team B must be different' }, { status: 400 });
     }
     
     // Merge nested details logic to avoid overwriting existing json sub-fields (date, time, arena, etc.)
-    let mergedData = { ...normalizedIncomingData };
+    const mergedData = { ...normalizedIncomingData };
+    const existingDetails = existingAttrs?.details || {};
     if (normalizedIncomingData?.details) {
-      const existingMatch = await strapiGet(`/apl-matches/${id}`);
-      const existingDetails = existingMatch?.data?.attributes?.details || {};
       mergedData.details = { ...existingDetails, ...normalizedIncomingData.details };
+    }
+
+    const effectiveRound = (mergedData.round ?? existingAttrs.round ?? '').toString();
+    const effectiveType = (mergedData.type ?? existingAttrs.type ?? '').toString();
+    const isKnockoutMatch = isKnockoutRound(effectiveRound, effectiveType);
+
+    if (isKnockoutMatch) {
+      const syntheticMatch = {
+        id: Number(id),
+        attributes: {
+          round: effectiveRound,
+          status: mergedData.status ?? existingAttrs.status,
+          team_a_score: mergedData.team_a_score ?? existingAttrs.team_a_score,
+          team_b_score: mergedData.team_b_score ?? existingAttrs.team_b_score,
+          match_number: mergedData.match_number ?? existingAttrs.match_number,
+          team_a: mergedData.team_a ?? existingAttrs.team_a,
+          team_b: mergedData.team_b ?? existingAttrs.team_b,
+          details: mergedData.details ?? existingDetails,
+        },
+      };
+
+      const knockoutRecord = createRecordFromStrapiMatch(syntheticMatch);
+      if (knockoutRecord) {
+        const winnerResolution = resolveKnockoutWinner(knockoutRecord);
+        if (winnerResolution.reason === 'tie_requires_manual_winner') {
+          return NextResponse.json(
+            { error: 'Completed knockout matches with tied scores require a manual winner.' },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     if (Object.prototype.hasOwnProperty.call(mergedData, 'match_number')) {
@@ -129,6 +275,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const data = await strapiPut(`/apl-matches/${id}`, { data: mergedData });
+
+    if (isKnockoutMatch) {
+      await propagateKnockoutWinnersFromMatch(Number(id));
+    }
 
     return NextResponse.json(data);
   } catch (error) {

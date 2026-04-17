@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { strapiGet, strapiPost } from '@/lib/apis/strapi';
 import { convertISTDateTimeLocalToISOString } from '@/lib/date-utils';
+import { createRecordFromStrapiMatch, isKnockoutRound, resolveKnockoutWinner } from '@/lib/apl-knockout';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -14,7 +15,8 @@ const extractTeamId = (value: any): string => {
 
 const removeMatchNumberFromPayload = (payload: any) => {
   if (!payload || typeof payload !== 'object') return payload;
-  const { match_number: _ignoredMatchNumber, ...rest } = payload;
+  const rest = { ...payload };
+  delete rest.match_number;
   return rest;
 };
 
@@ -128,9 +130,29 @@ const normalizeMatchPayload = (payload: any) => {
     ? convertISTDateTimeLocalToISOString(payloadWithoutMatchNumber.start_time)
     : payloadWithoutMatchNumber.start_time;
 
+  const normalizedDetails = normalizeDetailsPayload(payloadWithoutMatchNumber.details);
+
   return {
     ...payloadWithoutMatchNumber,
     ...(normalizedStartTime ? { start_time: normalizedStartTime } : {}),
+    ...(normalizedDetails ? { details: normalizedDetails } : {}),
+  };
+};
+
+const normalizeKnockoutWinnerId = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+};
+
+const normalizeDetailsPayload = (details: any) => {
+  if (!details || typeof details !== 'object') return details;
+
+  const winnerId = normalizeKnockoutWinnerId(details.knockout_winner_team_id);
+  return {
+    ...details,
+    knockout_winner_team_id: winnerId,
   };
 };
 
@@ -176,6 +198,30 @@ export async function POST(request: Request) {
 
     if (hasRequestedMatchNumber && requestedMatchNumber === null) {
       return NextResponse.json({ error: 'Match number must be a positive integer' }, { status: 400 });
+    }
+
+    const knockoutRound = (normalizedPayload?.round || '').toString();
+    const knockoutType = (normalizedPayload?.type || '').toString();
+    if (isKnockoutRound(knockoutRound, knockoutType)) {
+      const syntheticMatch = {
+        id: 0,
+        attributes: {
+          ...normalizedPayload,
+          team_a: normalizedPayload.team_a,
+          team_b: normalizedPayload.team_b,
+        },
+      };
+
+      const knockoutRecord = createRecordFromStrapiMatch(syntheticMatch);
+      if (knockoutRecord) {
+        const winnerResolution = resolveKnockoutWinner(knockoutRecord);
+        if (winnerResolution.reason === 'tie_requires_manual_winner') {
+          return NextResponse.json(
+            { error: 'Completed knockout matches with tied scores require a manual winner.' },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     if (requestedMatchNumber !== null) {

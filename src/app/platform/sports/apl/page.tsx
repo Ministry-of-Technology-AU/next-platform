@@ -14,6 +14,8 @@ import { Calendar, Trophy, BarChart3, ChevronLeft, ChevronRight } from 'lucide-r
 import { normalizePlayerName } from '@/lib/utils';
 import { formatISTDateTimeDisplay } from '@/lib/date-utils';
 import DeveloperCredits from '@/components/developer-credits';
+import KnockoutBracketTree from '@/components/apl/knockout-bracket-tree';
+import { isKnockoutRound } from '@/lib/apl-knockout';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -35,12 +37,6 @@ const normalizeMatchStatus = (status?: string) => {
   if (normalized === 'live') return 'LIVE';
   if (normalized === 'completed' || normalized === 'past') return 'COMPLETED';
   return 'UPCOMING';
-};
-
-const isKnockoutRound = (round?: string, type?: string) => {
-  const normalizedRound = (round || '').toString().trim().toLowerCase();
-  if (normalizedRound && normalizedRound !== 'group_stage') return true;
-  return (type || '').toString().trim().toLowerCase() === 'knockout';
 };
 
 const getMatchScore = (primary: unknown, fallback: unknown) => {
@@ -284,39 +280,7 @@ export default function APLFootballPage() {
       return { name: groupName, teams: sortedTeams };
     });
 
-    // 3. Knockout matches
-    const knockoutMatches = rawMatches.length > 0
-      ? rawMatches
-        .filter((m: any) => isKnockoutRound(m.attributes?.round, m.attributes?.type))
-        .map((m: any) => {
-          const attrs = m.attributes || {};
-          const details = attrs.details || {};
-          const formattedDateTime = formatMatchDateTime(attrs.start_time, details.date, details.time);
-          return {
-            id: m.id,
-            teamA: attrs.team_a?.data?.attributes?.name || 'TBD',
-            teamB: attrs.team_b?.data?.attributes?.name || 'TBD',
-            scoreA: getMatchScore(attrs.team_a_score, details.scoreA),
-            scoreB: getMatchScore(attrs.team_b_score, details.scoreB),
-            status: normalizeMatchStatus(attrs.status),
-            round: attrs.round || details.round || '',
-            start_time: attrs.start_time,
-            date: formattedDateTime.date,
-            time: formattedDateTime.time,
-          };
-        })
-        .sort((a: any, b: any) => {
-          const order = ['COMPLETED', 'LIVE', 'UPCOMING'];
-          const statusDiff = order.indexOf(a.status) - order.indexOf(b.status);
-          if (statusDiff !== 0) return statusDiff;
-          // Within same status, latest start_time first
-          const timeA = a.start_time ? new Date(a.start_time).getTime() : 0;
-          const timeB = b.start_time ? new Date(b.start_time).getTime() : 0;
-          return timeB - timeA;
-        })
-      : [];
-
-    // 4. Top Scorers (Goals)
+    // 3. Top Scorers (Goals)
 
     const displayScorers = rawParticipants.length > 0
       ? rawParticipants
@@ -330,7 +294,7 @@ export default function APLFootballPage() {
           .sort((a: any, b: any) => b.goals - a.goals || a.name.localeCompare(b.name))
       : MOCK_TOP_SCORERS;
 
-    // 5. Winner team logos
+    // 4. Winner team logos
     const winnerLogos = WINNERS.map(w => {
       const team = rawTeams.find((t: any) => t.id === w.teamId);
       return getStrapiMediaUrl(team?.attributes?.logo) ?? null;
@@ -363,7 +327,6 @@ export default function APLFootballPage() {
       currentLiveMatchIndex,
       upcomingMatches,
       pastMatches,
-      knockoutMatches,
       winnerLogos,
       displayGroups: displayGroups.length > 0 ? displayGroups : MOCK_GROUPS,
       displayScorers,
@@ -388,7 +351,7 @@ export default function APLFootballPage() {
 
   if (loading && rawMatches.length === 0) return <div className="p-8 text-center text-muted-foreground bg-background">Loading Football Portal...</div>;
 
-  const { currentMatch, currentLiveMatchIndex, liveMatches, upcomingMatches, pastMatches, knockoutMatches, displayGroups, displayScorers } = dashboardData;
+  const { currentMatch, currentLiveMatchIndex, liveMatches, upcomingMatches, pastMatches, displayGroups, displayScorers } = dashboardData;
 
   const hasMultipleLiveMatches = liveMatches.length > 1;
 
@@ -598,107 +561,12 @@ export default function APLFootballPage() {
               </TabsContent>
 
             <TabsContent value="knockout" className="mt-0">
-                  <div className="space-y-6">
+              <div className="space-y-6">
                 <div className="text-center">
                   <h4 className="text-lg font-bold">Knockout Bracket Preview</h4>
                   <p className="text-sm text-muted-foreground">Matchups are shown with placeholders until teams are confirmed.</p>
                 </div>
-                <div className="w-full overflow-x-auto">
-                  <div className={styles.bracketPreviewMini}>
-                    <div className="space-y-4">
-                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Round of 16</div>
-                      {knockoutMatches.filter(m => m.round === 'round_of_16').slice(0, 4).map((match: any) => (
-                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
-                          </div>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Quarterfinals</div>
-                      {knockoutMatches.filter(m => m.round === 'quarter_final').slice(0, 2).map((match: any) => (
-                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
-                          </div>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Semifinals</div>
-                      {knockoutMatches.filter(m => m.round === 'semi_final').map((match: any) => (
-                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
-                          </div>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center mt-4">Final</div>
-                      {knockoutMatches.filter(m => m.round === 'final').map((match: any) => (
-                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
-                          </div>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Quarterfinals</div>
-                      {knockoutMatches.filter(m => m.round === 'quarter_final').slice(2, 4).map((match: any) => (
-                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
-                          </div>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground font-semibold text-center">Round of 16</div>
-                      {knockoutMatches.filter(m => m.round === 'round_of_16').slice(4, 8).map((match: any) => (
-                        <div key={match.id} className={`${styles.bracketCard} ${styles.bracketPlaceholder}`}>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamA || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreA ?? '-'}</span>
-                          </div>
-                          <div className={styles.bracketCardTitle}>
-                            <span className={styles.bracketTeam}>{match.teamB || 'TBD'}</span>
-                            <span className={styles.bracketScore}>{match.scoreB ?? '-'}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <KnockoutBracketTree matches={rawMatches.filter((m: any) => isKnockoutRound(m?.attributes?.round, m?.attributes?.type))} />
                 <div className="text-center">
                   <Link href="/platform/sports/apl/knockout" className="text-sm text-primary hover:underline">
                     View Full Bracket →
