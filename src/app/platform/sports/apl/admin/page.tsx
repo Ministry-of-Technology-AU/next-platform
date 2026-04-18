@@ -670,6 +670,35 @@ export default function APLAdminPage() {
     });
   };
 
+  const addSubstitutionEvent = () => {
+    setMatchForm((prev: any) => ({
+      ...prev,
+      substitution_events: [
+        ...(prev.substitution_events || []),
+        {
+          ...createEmptySubstitutionEvent(),
+          minute: currentSuggestedMinute,
+          second: currentSuggestedSecond,
+        },
+      ],
+    }));
+  };
+
+  const updateSubstitutionEvent = (index: number, updater: (event: any) => any) => {
+    setMatchForm((prev: any) => {
+      const nextSubs = [...(prev.substitution_events || [])];
+      nextSubs[index] = updater(nextSubs[index] || createEmptySubstitutionEvent());
+      return { ...prev, substitution_events: nextSubs };
+    });
+  };
+
+  const removeSubstitutionEvent = (index: number) => {
+    setMatchForm((prev: any) => ({
+      ...prev,
+      substitution_events: (prev.substitution_events || []).filter((_: any, i: number) => i !== index),
+    }));
+  };
+
   const prepareMatchPayload = (form: any) => {
     const goal_events = (form.goal_events || []).map((event: any) => ({
       team: event.team,
@@ -1729,14 +1758,7 @@ export default function APLAdminPage() {
 
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold">Substitution Events</h3>
-                          <Button size="sm" variant="outline" onClick={() => setMatchForm({
-                            ...matchForm,
-                            substitution_events: [...(matchForm.substitution_events || []), {
-                              ...createEmptySubstitutionEvent(),
-                              minute: currentSuggestedMinute,
-                              second: currentSuggestedSecond,
-                            }]
-                          })}>
+                          <Button size="sm" variant="outline" onClick={addSubstitutionEvent}>
                             Add Substitution
                           </Button>
                         </div>
@@ -1749,9 +1771,9 @@ export default function APLAdminPage() {
                               <div className="space-y-2">
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
-                                  const nextSubs = [...matchForm.substitution_events];
-                                  nextSubs[idx] = sanitizeEventPlayerFields(nextSubs[idx], value, ['player_off', 'player_on']);
-                                  setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                  updateSubstitutionEvent(idx, (currentEvent) =>
+                                    sanitizeEventPlayerFields(currentEvent, value, ['player_off', 'player_on'])
+                                  );
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue />
@@ -1769,9 +1791,10 @@ export default function APLAdminPage() {
                                   value={event.minute}
                                   min={1}
                                   onChange={(e) => {
-                                    const nextSubs = [...matchForm.substitution_events];
-                                    nextSubs[idx] = { ...nextSubs[idx], minute: e.target.value };
-                                    setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                    updateSubstitutionEvent(idx, (currentEvent) => ({
+                                      ...currentEvent,
+                                      minute: e.target.value,
+                                    }));
                                   }}
                                 />
                                 <Button
@@ -1791,18 +1814,20 @@ export default function APLAdminPage() {
                                   min={0}
                                   max={59}
                                   onChange={(e) => {
-                                    const nextSubs = [...matchForm.substitution_events];
-                                    nextSubs[idx] = { ...nextSubs[idx], second: e.target.value };
-                                    setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                    updateSubstitutionEvent(idx, (currentEvent) => ({
+                                      ...currentEvent,
+                                      second: e.target.value,
+                                    }));
                                   }}
                                 />
                               </div>
                               <div className="space-y-2">
                                 <Label>Player Off</Label>
                                 <Select value={event.player_off} onValueChange={(value) => {
-                                  const nextSubs = [...matchForm.substitution_events];
-                                  nextSubs[idx] = { ...nextSubs[idx], player_off: value };
-                                  setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                  updateSubstitutionEvent(idx, (currentEvent) => ({
+                                    ...currentEvent,
+                                    player_off: value,
+                                  }));
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Off" />
@@ -1819,9 +1844,10 @@ export default function APLAdminPage() {
                               <div className="space-y-2">
                                 <Label>Player On</Label>
                                 <Select value={event.player_on} onValueChange={(value) => {
-                                  const nextSubs = [...matchForm.substitution_events];
-                                  nextSubs[idx] = { ...nextSubs[idx], player_on: value };
-                                  setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                  updateSubstitutionEvent(idx, (currentEvent) => ({
+                                    ...currentEvent,
+                                    player_on: value,
+                                  }));
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="On" />
@@ -1836,10 +1862,7 @@ export default function APLAdminPage() {
                                 </Select>
                               </div>
                               <div className="flex items-end justify-end">
-                                <Button size="sm" variant="ghost" onClick={() => {
-                                  const nextSubs = matchForm.substitution_events.filter((_: any, i: number) => i !== idx);
-                                  setMatchForm({ ...matchForm, substitution_events: nextSubs });
-                                }}>
+                                <Button size="sm" variant="ghost" onClick={() => removeSubstitutionEvent(idx)}>
                                   Remove
                                 </Button>
                               </div>
