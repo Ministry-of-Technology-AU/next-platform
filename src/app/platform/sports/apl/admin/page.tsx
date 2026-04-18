@@ -566,17 +566,37 @@ export default function APLAdminPage() {
   const getSubstitutionPlayersForRow = (
     teamKey: 'team_a' | 'team_b',
     rowIndex: number,
-    role: 'off' | 'on'
+    role: 'off' | 'on',
+    selectedPlayerId?: string
   ) => {
     const teamSummary = substitutionComplianceByTeam[teamKey];
     const snapshot = getSubstitutionRowSnapshot(teamKey, rowIndex);
     const currentOnFieldIds = new Set((snapshot?.currentOnFieldPlayerIds || teamSummary.currentOnFieldPlayerIds || []).map((playerId: string) => playerId.toString()));
     const teamPlayers = getPlayersForEventTeam(teamKey);
+    const normalizedSelectedPlayerId = selectedPlayerId?.toString().trim();
 
-    return teamPlayers.filter((player: any) => {
+    const filteredPlayers = teamPlayers.filter((player: any) => {
       const playerId = player.id.toString();
       return role === 'off' ? currentOnFieldIds.has(playerId) : !currentOnFieldIds.has(playerId);
     });
+
+    if (!normalizedSelectedPlayerId) {
+      return filteredPlayers;
+    }
+
+    const hasSelectedInOptions = filteredPlayers.some(
+      (player: any) => player.id.toString() === normalizedSelectedPlayerId
+    );
+
+    if (hasSelectedInOptions) {
+      return filteredPlayers;
+    }
+
+    const selectedPlayer = teamPlayers.find(
+      (player: any) => player.id.toString() === normalizedSelectedPlayerId
+    );
+
+    return selectedPlayer ? [...filteredPlayers, selectedPlayer] : filteredPlayers;
   };
 
   const getPlayerComplianceBadge = (status: 'pass' | 'fail' | 'pending' | 'ignored') => {
@@ -1720,7 +1740,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="Off" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {getSubstitutionPlayersForRow(event.team, idx, 'off').map(player => (
+                                    {getSubstitutionPlayersForRow(event.team, idx, 'off', event.player_off).map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>
@@ -1739,7 +1759,7 @@ export default function APLAdminPage() {
                                     <SelectValue placeholder="On" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {getSubstitutionPlayersForRow(event.team, idx, 'on').map(player => (
+                                    {getSubstitutionPlayersForRow(event.team, idx, 'on', event.player_on).map(player => (
                                       <SelectItem key={player.id} value={player.id.toString()}>
                                         {player.attributes?.name}
                                       </SelectItem>

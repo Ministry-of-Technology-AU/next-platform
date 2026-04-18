@@ -115,13 +115,14 @@ export function evaluateTeamSubstitutionCompliance({
   const starterIdSet = new Set(starterIds.map((id) => toPlayerId(id)).filter(Boolean));
 
   const normalizedEvents = substitutions
-    .filter((event) => event?.team === team)
     .map((event, index) => ({
       index,
+      team: event?.team,
       timeSeconds: toTimelineSeconds(event.minute, event.second ?? 0),
       playerOn: toPlayerId(event.player_on),
       playerOff: toPlayerId(event.player_off),
     }))
+    .filter((event) => event.team === team)
     .sort((a, b) => a.timeSeconds - b.timeSeconds || a.index - b.index);
 
   const currentOnFieldPlayerIds = new Set<string>(starterIdSet);
