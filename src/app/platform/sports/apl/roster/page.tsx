@@ -111,6 +111,7 @@ export default function APLRosterPage() {
   const [selectedTier, setSelectedTier] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const sseModels = useMemo(() => new Set(['apl-participants', 'apl-teams']), []);
 
   useEffect(() => {
     async function fetchRoster() {
@@ -192,7 +193,10 @@ export default function APLRosterPage() {
 
     eventSource.onmessage = (event) => {
       try {
-        JSON.parse(event.data);
+        const payload = JSON.parse(event.data);
+        if (payload?.model && !sseModels.has(payload.model)) {
+          return;
+        }
         // Re-fetch roster data when any APL entity changes
         fetchRoster();
       } catch (e) {
@@ -207,7 +211,7 @@ export default function APLRosterPage() {
     return () => {
       eventSource.close();
     };
-  }, []);
+  }, [sseModels]);
 
   const filteredGroups = useMemo(() => {
     let result = groups;
