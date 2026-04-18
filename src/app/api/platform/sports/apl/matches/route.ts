@@ -159,9 +159,22 @@ const normalizeDetailsPayload = (details: any) => {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status'); // Optional filter for Live, Upcoming, Past
+  const limit = searchParams.get('limit') || '-1';
+  const sort = searchParams.get('sort') || 'start_time:asc';
+  const includeTeamLogos = searchParams.get('includeTeamLogos') !== 'false';
   
   try {
-    const query = `populate[team_a][populate][0]=logo&populate[team_b][populate][0]=logo&pagination[limit]=-1&sort[0]=start_time:asc`;
+    const queryParts = [
+      `pagination[limit]=${limit}`,
+      `sort[0]=${sort}`,
+    ];
+
+    if (includeTeamLogos) {
+      queryParts.push('populate[team_a][populate][0]=logo');
+      queryParts.push('populate[team_b][populate][0]=logo');
+    }
+
+    const query = queryParts.join('&');
     const filterQuery = status ? `&filters[status][$eq]=${status}` : '';
 
     const data = await strapiGet(`/apl-matches`, query + filterQuery);

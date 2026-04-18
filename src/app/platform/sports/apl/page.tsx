@@ -122,26 +122,30 @@ export default function APLFootballPage() {
   const [selectedLiveMatchId, setSelectedLiveMatchId] = useState<number | null>(null);
   const [matchTransitionDirection, setMatchTransitionDirection] = useState<'prev' | 'next' | null>(null);
 
+  const fetchMatches = async () => {
+    const response = await fetch('/api/platform/sports/apl/matches', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    setRawMatches(data.data || []);
+  };
+
+  const fetchTeams = async () => {
+    const response = await fetch('/api/platform/sports/apl/teams', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    setRawTeams(data.data || []);
+  };
+
+  const fetchParticipants = async () => {
+    const response = await fetch('/api/platform/sports/apl/participants?limit=500', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    setRawParticipants(data.data || []);
+  };
+
   const fetchData = async () => {
     try {
-      const [matchesRes, teamsRes, participantsRes] = await Promise.all([
-        fetch('/api/platform/sports/apl/matches', { cache: 'no-store' }),
-        fetch('/api/platform/sports/apl/teams', { cache: 'no-store' }),
-        fetch('/api/platform/sports/apl/participants?limit=500', { cache: 'no-store' })
-      ]);
-
-      if (matchesRes.ok) {
-        const d = await matchesRes.json();
-        setRawMatches(d.data || []);
-      }
-      if (teamsRes.ok) {
-        const d = await teamsRes.json();
-        setRawTeams(d.data || []);
-      }
-      if (participantsRes.ok) {
-        const d = await participantsRes.json();
-        setRawParticipants(d.data || []);
-      }
+      await Promise.all([fetchMatches(), fetchTeams(), fetchParticipants()]);
     } catch (e) {
       console.error("Polling error:", e);
     } finally {
@@ -158,11 +162,26 @@ export default function APLFootballPage() {
     eventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        console.log('[SSE] Received update:', payload);
         if (payload?.model && !['apl-matches', 'apl-teams', 'apl-participants'].includes(payload.model)) {
           return;
         }
-        // Re-fetch all data when relevant APL entity changes
+
+        if (payload?.model === 'apl-matches') {
+          fetchMatches();
+          return;
+        }
+
+        if (payload?.model === 'apl-teams') {
+          fetchTeams();
+          return;
+        }
+
+        if (payload?.model === 'apl-participants') {
+          fetchParticipants();
+          return;
+        }
+
+        // Fallback for payloads without model
         fetchData();
       } catch (e) {
         console.error('[SSE] Parse error:', e);

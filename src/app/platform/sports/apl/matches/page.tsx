@@ -30,21 +30,23 @@ export default function APLMatchesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [roundFilter, setRoundFilter] = useState('all');
 
+  const fetchMatches = async () => {
+    const response = await fetch('/api/platform/sports/apl/matches', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    setRawMatches(data.data || []);
+  };
+
+  const fetchTeams = async () => {
+    const response = await fetch('/api/platform/sports/apl/teams', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    setRawTeams(data.data || []);
+  };
+
   const fetchData = async () => {
     try {
-      const [matchesRes, teamsRes] = await Promise.all([
-        fetch('/api/platform/sports/apl/matches?populate=*'),
-        fetch('/api/platform/sports/apl/teams')
-      ]);
-
-      if (matchesRes.ok) {
-        const d = await matchesRes.json();
-        setRawMatches(d.data || []);
-      }
-      if (teamsRes.ok) {
-        const d = await teamsRes.json();
-        setRawTeams(d.data || []);
-      }
+      await Promise.all([fetchMatches(), fetchTeams()]);
     } catch (e) {
       console.error("Error fetching matches:", e);
     } finally {
@@ -59,7 +61,21 @@ export default function APLMatchesPage() {
     const eventSource = new EventSource('/api/platform/sports/apl/sse');
     eventSource.onmessage = (event) => {
       try {
-        JSON.parse(event.data);
+        const payload = JSON.parse(event.data);
+        if (payload?.model && !['apl-matches', 'apl-teams'].includes(payload.model)) {
+          return;
+        }
+
+        if (payload?.model === 'apl-matches') {
+          fetchMatches();
+          return;
+        }
+
+        if (payload?.model === 'apl-teams') {
+          fetchTeams();
+          return;
+        }
+
         fetchData();
       } catch (e) {
         console.error('[SSE] Parse error:', e);
@@ -83,16 +99,20 @@ export default function APLMatchesPage() {
   }, [rawTeams]);
 
   const filteredMatches = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
     return rawMatches.filter(match => {
       const attrs = match.attributes || {};
       const teamA = teamMap[attrs.team_a?.data?.id];
       const teamB = teamMap[attrs.team_b?.data?.id];
+      const teamAName = (teamA?.attributes?.name || '').toLowerCase();
+      const teamBName = (teamB?.attributes?.name || '').toLowerCase();
 
       // Search filter
-      const searchMatch = searchTerm === '' ||
-        (teamA?.attributes?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (teamB?.attributes?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (attrs.match_number && attrs.match_number.toString().includes(searchTerm));
+      const searchMatch = normalizedSearch === '' ||
+        teamAName.includes(normalizedSearch) ||
+        teamBName.includes(normalizedSearch) ||
+        (attrs.match_number && attrs.match_number.toString().includes(normalizedSearch));
 
       // Status filter
       const statusMatch = statusFilter === 'all' || attrs.status === statusFilter;
