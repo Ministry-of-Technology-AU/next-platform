@@ -109,9 +109,16 @@ const MOCK_GROUPS = [
 ];
 
 const WINNERS = [
-  { rank: 1, teamId: 18, name: 'Club Penguin' },
-  { rank: 2, teamId: 3, name: 'Topbar' },
-  { rank: 3, teamId: 20, name: 'Chhoti Advance Bade Sapne' },
+  { rank: 1, teamId: 17, name: 'BroCode BC' },
+  { rank: 2, teamId: 18, name: 'Penguin Express' },
+  { rank: 3, teamId: 19, name: 'Dolla Demgas' },
+];
+
+const INDIVIDUAL_AWARDS = [
+  { id: 'golden-glove', title: 'Golden Glove', winner: 'Ashraya Adhikari', team: 'Dolla Demgas' },
+  { id: 'golden-boot', title: 'Golden Boot', winner: 'Bhavin Shivaa', team: 'Penguin Express' },
+  { id: 'mvp-cis-men', title: 'MVP (Cis Men)', winner: 'Dhruv Achappa', team: 'Bro Code' },
+  { id: 'mvp-non-cis-men', title: 'MVP (Non Cis Men)', winner: 'Priyanshi Singh', team: 'Bro Code' },
 ];
 
 export default function APLFootballPage() {
@@ -388,6 +395,74 @@ export default function APLFootballPage() {
 
   return (
     <div className="apl-root p-3 sm:p-4 md:p-8 space-y-8 md:space-y-12 max-w-7xl mx-auto">
+
+      <section>
+        <Card className="bg-zinc-900 border-zinc-800 dark:bg-zinc-950 text-white overflow-hidden shadow-2xl">
+          <CardContent className="p-4 sm:p-6 md:p-10 flex flex-col items-center gap-6 md:gap-8">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs px-3 py-1">APL 2025-26 Final Results</Badge>
+            </div>
+
+            <div className="flex items-end justify-center gap-2 sm:gap-3 md:gap-6 w-full max-w-3xl">
+              <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-zinc-800 rounded-xl border border-zinc-700 overflow-hidden flex items-center justify-center">
+                  {dashboardData.winnerLogos[1] ? (
+                    <Image src={dashboardData.winnerLogos[1]} alt={WINNERS[1].name} width={80} height={80} className="w-full h-full object-cover" unoptimized />
+                  ) : (
+                    <span className="text-lg sm:text-xl font-black text-zinc-500">2</span>
+                  )}
+                </div>
+                <p className="text-[10px] sm:text-xs font-bold text-zinc-300 text-center leading-tight truncate max-w-full">{WINNERS[1].name}</p>
+                <p className="text-[10px] uppercase tracking-widest text-zinc-500">Runner-up</p>
+                <div className="bg-zinc-600 rounded-t-lg w-full h-14 sm:h-16 md:h-20 flex items-center justify-center">
+                  <span className="text-lg sm:text-xl font-black text-zinc-300">2</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-zinc-800 rounded-xl border-2 border-yellow-500/60 overflow-hidden flex items-center justify-center ring-2 ring-yellow-500/20">
+                  {dashboardData.winnerLogos[0] ? (
+                    <Image src={dashboardData.winnerLogos[0]} alt={WINNERS[0].name} width={112} height={112} className="w-full h-full object-cover" unoptimized />
+                  ) : (
+                    <span className="text-xl sm:text-2xl font-black text-yellow-500">1</span>
+                  )}
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-white text-center leading-tight truncate max-w-full">{WINNERS[0].name}</p>
+                <p className="text-[10px] uppercase tracking-widest text-yellow-300">Winners</p>
+                <div className="bg-yellow-500 rounded-t-lg w-full h-20 sm:h-24 md:h-28 flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl font-black text-yellow-900">1</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-zinc-800 rounded-xl border border-zinc-700 overflow-hidden flex items-center justify-center">
+                  {dashboardData.winnerLogos[2] ? (
+                    <Image src={dashboardData.winnerLogos[2]} alt={WINNERS[2].name} width={80} height={80} className="w-full h-full object-cover" unoptimized />
+                  ) : (
+                    <span className="text-lg sm:text-xl font-black text-zinc-500">3</span>
+                  )}
+                </div>
+                <p className="text-[10px] sm:text-xs font-bold text-zinc-300 text-center leading-tight truncate max-w-full">{WINNERS[2].name}</p>
+                <p className="text-[10px] uppercase tracking-widest text-zinc-500">3rd Place</p>
+                <div className="bg-zinc-700 rounded-t-lg w-full h-10 sm:h-12 md:h-14 flex items-center justify-center">
+                  <span className="text-base sm:text-lg font-black text-zinc-300">3</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+              {INDIVIDUAL_AWARDS.map((award) => (
+                <div key={award.id} className="bg-zinc-800/60 border border-zinc-700 rounded-xl p-4 text-center">
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">{award.title}</p>
+                  <p className="font-bold text-white text-sm leading-tight">{award.winner}</p>
+                  <p className="text-xs text-zinc-400 mt-1 leading-tight">{award.team}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Hero Live Match Banner or Stay Tuned */}
       <section>
