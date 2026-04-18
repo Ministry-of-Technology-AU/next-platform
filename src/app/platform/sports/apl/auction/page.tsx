@@ -74,7 +74,7 @@ export default function APLAuctionPage() {
 
   async function fetchAuction() {
     try {
-      const res = await fetch('/api/platform/sports/apl/auction-results');
+      const res = await fetch('/api/platform/sports/apl/auction-results', { cache: 'no-store' });
       if (!res.ok) return;
       const payload = await res.json();
       setRows((payload.data || []).map((row: AuctionRow) => ({
@@ -98,7 +98,9 @@ export default function APLAuctionPage() {
     eventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        console.log('[APL SSE] Received update:', payload);
+        if (payload?.model && !['apl-participants', 'apl-teams'].includes(payload.model)) {
+          return;
+        }
         // Re-fetch auction data when any APL entity changes
         fetchAuction();
       } catch (e) {

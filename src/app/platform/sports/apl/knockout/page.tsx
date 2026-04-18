@@ -15,7 +15,7 @@ export default function APLKnockoutPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const matchesRes = await fetch('/api/platform/sports/apl/matches');
+        const matchesRes = await fetch('/api/platform/sports/apl/matches', { cache: 'no-store' });
 
         if (matchesRes.ok) {
           const d = await matchesRes.json();
@@ -31,7 +31,17 @@ export default function APLKnockoutPage() {
     fetchData();
 
     const eventSource = new EventSource('/api/platform/sports/apl/sse');
-    eventSource.onmessage = () => fetchData();
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload?.model && !['apl-matches', 'apl-teams'].includes(payload.model)) {
+          return;
+        }
+        fetchData();
+      } catch (e) {
+        console.error('[SSE] Parse error:', e);
+      }
+    };
     eventSource.onerror = () => console.warn('[SSE] Connection lost');
 
     return () => eventSource.close();
@@ -66,11 +76,6 @@ export default function APLKnockoutPage() {
             name: 'Nitin S',
             role: 'Lead Developer',
             profileUrl: 'https://github.com/28nitin07',
-          },
-          {
-            name: 'Atharvajeet Singh',
-            role: 'Developer',
-            profileUrl: 'https://github.com/atharvajeetsingh',
           },
         ]}
       />

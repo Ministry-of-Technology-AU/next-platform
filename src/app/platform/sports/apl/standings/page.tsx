@@ -10,7 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import DeveloperCredits from '@/components/developer-credits';
 
 const GROUP_NAMES = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F'];
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
 const normalizeGroupName = (group?: string) => {
   if (!group || typeof group !== 'string') return 'Unassigned';
@@ -27,7 +26,7 @@ export default function APLStandingsPage() {
 
   const fetchData = async () => {
     try {
-      const teamsRes = await fetch('/api/platform/sports/apl/teams');
+      const teamsRes = await fetch('/api/platform/sports/apl/teams', { cache: 'no-store' });
 
       if (teamsRes.ok) {
         const d = await teamsRes.json();
@@ -44,7 +43,17 @@ export default function APLStandingsPage() {
     fetchData();
 
     const eventSource = new EventSource('/api/platform/sports/apl/sse');
-    eventSource.onmessage = () => fetchData();
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload?.model && payload.model !== 'apl-teams') {
+          return;
+        }
+        fetchData();
+      } catch (e) {
+        console.error('[SSE] Parse error:', e);
+      }
+    };
     eventSource.onerror = () => console.warn('[SSE] Connection lost');
 
     return () => eventSource.close();
@@ -55,8 +64,6 @@ export default function APLStandingsPage() {
     GROUP_NAMES.forEach((groupName) => {
       groupsMap[groupName] = [];
     });
-
-    const teamStats: Record<number, any> = {};
 
     rawTeams.forEach((team: any) => {
       const attrs = team.attributes || {};
@@ -73,7 +80,6 @@ export default function APLStandingsPage() {
         points: attrs.points || 0,
       };
 
-      teamStats[team.id] = stats;
       groupsMap[groupName].push(stats);
     });
 
@@ -168,11 +174,6 @@ export default function APLStandingsPage() {
             name: 'Nitin S',
             role: 'Lead Developer',
             profileUrl: 'https://github.com/28nitin07',
-          },
-          {
-            name: 'Atharvajeet Singh',
-            role: 'Developer',
-            profileUrl: 'https://github.com/atharvajeetsingh',
           },
         ]}
       />

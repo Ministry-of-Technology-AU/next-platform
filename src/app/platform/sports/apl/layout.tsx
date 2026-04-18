@@ -1,7 +1,6 @@
 'use client';
 
 import { ReactNode, useState, useEffect } from 'react';
-import styles from './apl.module.css';
 import {
   Dialog,
   DialogContent,
@@ -30,7 +29,7 @@ export default function APLLayout({ children }: { children: ReactNode }) {
   // }, [isOpen]);
 
   return (
-    <div className={`${styles.aplRoot} min-h-screen bg-background flex flex-col w-full`}>
+    <div className="min-h-screen bg-background flex flex-col w-full">
       {/* <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md" showCloseButton={true}>
           <DialogHeader className="flex flex-col items-center justify-center text-center">

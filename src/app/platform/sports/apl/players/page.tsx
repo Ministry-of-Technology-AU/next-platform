@@ -17,22 +17,23 @@ export default function APLPlayerStatsPage() {
   const [rawTeams, setRawTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchParticipants = async () => {
+    const response = await fetch('/api/platform/sports/apl/participants?limit=500', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    setRawParticipants(data.data || []);
+  };
+
+  const fetchTeams = async () => {
+    const response = await fetch('/api/platform/sports/apl/teams', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    setRawTeams(data.data || []);
+  };
+
   const fetchData = async () => {
     try {
-      const [participantsResponse, teamsResponse] = await Promise.all([
-        fetch('/api/platform/sports/apl/participants?limit=500'),
-        fetch('/api/platform/sports/apl/teams'),
-      ]);
-
-      if (participantsResponse.ok) {
-        const participantsData = await participantsResponse.json();
-        setRawParticipants(participantsData.data || []);
-      }
-
-      if (teamsResponse.ok) {
-        const teamsData = await teamsResponse.json();
-        setRawTeams(teamsData.data || []);
-      }
+      await Promise.all([fetchParticipants(), fetchTeams()]);
     } catch (e) {
       console.error('Error fetching player stats data:', e);
     } finally {
@@ -45,7 +46,28 @@ export default function APLPlayerStatsPage() {
 
     // SSE: listen for real-time updates
     const eventSource = new EventSource('/api/platform/sports/apl/sse');
-    eventSource.onmessage = () => fetchData();
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload?.model && !['apl-participants', 'apl-teams'].includes(payload.model)) {
+          return;
+        }
+
+        if (payload?.model === 'apl-participants') {
+          fetchParticipants();
+          return;
+        }
+
+        if (payload?.model === 'apl-teams') {
+          fetchTeams();
+          return;
+        }
+
+        fetchData();
+      } catch (e) {
+        console.error('[SSE] Parse error:', e);
+      }
+    };
     eventSource.onerror = () => console.warn('[SSE] Connection lost');
 
     return () => eventSource.close();
@@ -264,11 +286,6 @@ export default function APLPlayerStatsPage() {
             name: 'Nitin S',
             role: 'Lead Developer',
             profileUrl: 'https://github.com/28nitin07',
-          },
-          {
-            name: 'Atharvajeet Singh',
-            role: 'Developer',
-            profileUrl: 'https://github.com/atharvajeetsingh',
           },
         ]}
       />

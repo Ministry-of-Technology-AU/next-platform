@@ -35,16 +35,6 @@ interface TeamInfo {
   logo: any;
 }
 
-      <DeveloperCredits
-        developers={[
-          {
-            name: 'Nitin S',
-            role: 'Lead Developer',
-            profileUrl: 'https://github.com/28nitin07',
-          },
-        ]}
-      />
-
 interface Player {
   id: number;
   name: string;
@@ -121,13 +111,14 @@ export default function APLRosterPage() {
   const [selectedTier, setSelectedTier] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const sseModels = useMemo(() => new Set(['apl-participants', 'apl-teams']), []);
 
   useEffect(() => {
     async function fetchRoster() {
       try {
         const [teamsRes, participantsRes] = await Promise.all([
-          fetch('/api/platform/sports/apl/teams'),
-          fetch('/api/platform/sports/apl/participants?limit=800'),
+          fetch('/api/platform/sports/apl/teams', { cache: 'no-store' }),
+          fetch('/api/platform/sports/apl/participants?limit=800', { cache: 'no-store' }),
         ]);
 
         const teamsPayload = teamsRes.ok ? await teamsRes.json() : { data: [] };
@@ -203,7 +194,9 @@ export default function APLRosterPage() {
     eventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        console.log('[APL SSE] Received update (roster):', payload);
+        if (payload?.model && !sseModels.has(payload.model)) {
+          return;
+        }
         // Re-fetch roster data when any APL entity changes
         fetchRoster();
       } catch (e) {
@@ -218,7 +211,7 @@ export default function APLRosterPage() {
     return () => {
       eventSource.close();
     };
-  }, []);
+  }, [sseModels]);
 
   const filteredGroups = useMemo(() => {
     let result = groups;
