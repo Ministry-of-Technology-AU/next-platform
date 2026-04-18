@@ -194,7 +194,7 @@ export default function APLAdminPage() {
   };
 
   const hasInvalidTeamSelection = Boolean(matchForm.team_a && matchForm.team_b && matchForm.team_a === matchForm.team_b);
-  const isKnockoutSelection = isKnockoutRound(matchForm.round, 'knockout');
+  const isKnockoutSelection = isKnockoutRound(matchForm.round);
 
   const validateTeamSelection = () => {
     if (!hasInvalidTeamSelection) return true;
@@ -1207,7 +1207,7 @@ export default function APLAdminPage() {
                         <Select value={matchForm.round} onValueChange={(value) => setMatchForm({
                           ...matchForm,
                           round: value,
-                          knockout_winner_team_id: isKnockoutRound(value, 'knockout') ? matchForm.knockout_winner_team_id : '',
+                          knockout_winner_team_id: isKnockoutRound(value) ? matchForm.knockout_winner_team_id : '',
                         })}>
                           <SelectTrigger>
                             <SelectValue />

@@ -63,10 +63,33 @@ const ROUND_LABELS: Record<KnockoutRound, string> = {
 
 const KNOCKOUT_ROUNDS: KnockoutRound[] = ['round_of_16', 'quarter_final', 'semi_final', 'final'];
 
+const KNOCKOUT_ROUND_ALIASES = new Set<string>([
+  'round_of_16',
+  'roundof16',
+  'round16',
+  'r16',
+  'quarter_final',
+  'quarterfinal',
+  'qf',
+  'semi_final',
+  'semifinal',
+  'sf',
+  'final',
+]);
+
+const normalizeRoundToken = (value?: string) => (
+  (value || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+    .replace(/_+/g, '_')
+);
+
 export const isKnockoutRound = (round?: string, type?: string) => {
-  const normalizedRound = (round || '').toString().trim().toLowerCase();
-  if (KNOCKOUT_ROUNDS.includes(normalizedRound as KnockoutRound)) return true;
-  if (normalizedRound && normalizedRound !== 'group_stage') return true;
+  const normalizedRound = normalizeRoundToken(round);
+  if (KNOCKOUT_ROUND_ALIASES.has(normalizedRound)) return true;
+  if (normalizedRound === 'group_stage') return false;
   return (type || '').toString().trim().toLowerCase() === 'knockout';
 };
 
