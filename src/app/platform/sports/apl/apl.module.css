@@ -1,5 +1,20 @@
 .aplRoot {
   min-height: 100%;
+  --apl-bracket-surface: color-mix(in srgb, var(--card) 92%, white 8%);
+  --apl-bracket-border: color-mix(in srgb, var(--border) 68%, var(--primary) 32%);
+  --apl-bracket-shadow: 0 10px 24px color-mix(in srgb, black 10%, transparent 90%);
+  --apl-bracket-header-bg: color-mix(in srgb, var(--primary) 78%, #0f5a72 22%);
+  --apl-bracket-header-fg: var(--primary-foreground);
+  --apl-bracket-card-bg: color-mix(in srgb, var(--card) 95%, white 5%);
+  --apl-bracket-card-border: color-mix(in srgb, var(--border) 72%, black 28%);
+  --apl-bracket-divider: color-mix(in srgb, var(--border) 72%, black 28%);
+  --apl-bracket-team-fg: var(--foreground);
+  --apl-bracket-badge-bg: color-mix(in srgb, var(--muted) 74%, var(--card) 26%);
+  --apl-bracket-badge-border: color-mix(in srgb, var(--border) 86%, black 14%);
+  --apl-bracket-badge-fg: color-mix(in srgb, var(--muted-foreground) 88%, black 12%);
+  --apl-bracket-logo-border: color-mix(in srgb, var(--border) 82%, var(--primary) 18%);
+  --apl-bracket-connector: color-mix(in srgb, var(--border) 56%, black 44%);
+  --apl-bracket-empty-fg: var(--muted-foreground);
   /* background:
     radial-gradient(
       circle at top left,
@@ -18,6 +33,24 @@
     ),
     var(--background);
   color: var(--foreground); */
+}
+
+.dark .aplRoot {
+  --apl-bracket-surface: color-mix(in srgb, var(--card) 90%, black 10%);
+  --apl-bracket-border: color-mix(in srgb, var(--border) 60%, var(--primary) 40%);
+  --apl-bracket-shadow: 0 14px 26px rgba(2, 6, 23, 0.42);
+  --apl-bracket-header-bg: color-mix(in srgb, var(--primary) 64%, #062a38 36%);
+  --apl-bracket-header-fg: color-mix(in srgb, var(--primary-foreground) 94%, white 6%);
+  --apl-bracket-card-bg: color-mix(in srgb, var(--card) 84%, black 16%);
+  --apl-bracket-card-border: color-mix(in srgb, var(--border) 72%, white 28%);
+  --apl-bracket-divider: color-mix(in srgb, var(--border) 72%, white 28%);
+  --apl-bracket-team-fg: color-mix(in srgb, var(--foreground) 92%, white 8%);
+  --apl-bracket-badge-bg: color-mix(in srgb, var(--muted) 70%, black 30%);
+  --apl-bracket-badge-border: color-mix(in srgb, var(--border) 78%, white 22%);
+  --apl-bracket-badge-fg: var(--muted-foreground);
+  --apl-bracket-logo-border: color-mix(in srgb, var(--border) 72%, var(--primary) 28%);
+  --apl-bracket-connector: color-mix(in srgb, var(--border) 62%, white 38%);
+  --apl-bracket-empty-fg: var(--muted-foreground);
 }
 
 .aplRoot > main {
@@ -45,19 +78,6 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
   border-radius: 1.5rem;
-}
-
-.dark .sectionCard {
-  background: rgba(15, 23, 42, 0.88);
-
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.92),
-    rgba(248, 250, 252, 0.86)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
-  border-radius: 1.75rem;
 }
 
 .dark .sectionCard {
@@ -92,6 +112,84 @@
   min-height: 20rem;
 }
 
+.knockoutPanelWrap {
+  width: 100%;
+  border-radius: 1.4rem;
+  border: 1px solid var(--apl-bracket-border);
+  background: var(--apl-bracket-surface);
+  box-shadow: var(--apl-bracket-shadow);
+  overflow: hidden;
+}
+
+.knockoutPanelHeader {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1.15rem;
+  background: var(--apl-bracket-header-bg);
+  color: var(--apl-bracket-header-fg);
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.knockoutPanelEmpty {
+  padding: 2rem 1.25rem;
+  color: var(--apl-bracket-empty-fg);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.bracketStageRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(8.5rem, 1fr));
+  gap: 0.75rem;
+  padding: 0.85rem 1rem 0.55rem;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.24);
+}
+
+.bracketStageLabel {
+  text-align: center;
+  color: rgba(148, 163, 184, 0.92);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.bracketTreeContainer {
+  position: relative;
+  width: 100%;
+  padding: 1rem 0.95rem 1.2rem;
+  overflow: hidden;
+}
+
+.bracketTreeScroller {
+  width: 100%;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.bracketTree {
+  position: relative;
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1.35fr 1.15fr 1fr 0.9fr 1fr 1.15fr 1.35fr;
+  gap: clamp(0.35rem, 1.05vw, 0.95rem);
+  min-width: 0;
+  min-height: clamp(25rem, 54vw, 32rem);
+}
+
+.bracketColumn {
+  position: relative;
+}
+
+.bracketGrid16 {
+  display: grid;
+  grid-template-rows: repeat(16, minmax(1.35rem, 1fr));
+  row-gap: clamp(0.12rem, 0.45vw, 0.35rem);
+}
+
 .knockoutBracket {
   display: grid;
   grid-template-columns:
@@ -110,12 +208,6 @@
   min-width: 900px;
 }
 
-.bracketColumn {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 .bracketHeader {
   font-size: 0.72rem;
   font-weight: 700;
@@ -126,14 +218,14 @@
 }
 
 .bracketCard {
-  border-radius: 1.5rem;
-  padding: 1rem;
-  min-height: 6rem;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  box-shadow: 0 16px 35px rgba(15, 23, 42, 0.12);
+  border-radius: 0.5rem;
+  padding: 0.28rem 0.5rem;
+  min-height: 3.65rem;
+  background: var(--apl-bracket-card-bg);
+  border: 1px solid var(--apl-bracket-card-border);
+  box-shadow: none;
   display: grid;
-  gap: 0.5rem;
+  gap: 0.2rem;
 }
 
 .bracketCardTitle {
@@ -167,7 +259,98 @@
 }
 
 .bracketPlaceholder {
-  opacity: 0.75;
+  opacity: 1;
+}
+
+.bracketDivider {
+  border-top: 1px solid var(--apl-bracket-divider);
+}
+
+.bracketTeamRow {
+  display: grid;
+  align-items: center;
+  min-height: 1.55rem;
+}
+
+.bracketTeamRowLeft {
+  grid-template-columns: auto 1fr;
+  gap: 0.42rem;
+}
+
+.bracketTeamRowRight {
+  grid-template-columns: 1fr auto;
+  gap: 0.42rem;
+}
+
+.bracketTeamLabel {
+  color: var(--apl-bracket-team-fg);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bracketTeamRowRight .bracketTeamLabel {
+  text-align: right;
+}
+
+.bracketTeamBadge,
+.bracketTeamBadgeImage {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.bracketTeamBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--apl-bracket-badge-border);
+  background: var(--apl-bracket-badge-bg);
+  color: var(--apl-bracket-badge-fg);
+  font-size: 0.56rem;
+  font-weight: 700;
+}
+
+.bracketTeamBadgeImage {
+  border: 1px solid var(--apl-bracket-logo-border);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.bracketMarkerOnlyRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.06rem;
+}
+
+.bracketTbdMarker {
+  width: 0.34rem;
+  height: 0.95rem;
+  border-radius: 0.12rem;
+  background: rgba(100, 116, 139, 0.8);
+}
+
+.bracketConnectorLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.bracketConnectorLine {
+  stroke: var(--apl-bracket-connector);
+  stroke-width: 0.18;
+  fill: none;
+  stroke-linecap: round;
 }
 
 @media (max-width: 1100px) {
@@ -175,6 +358,15 @@
   .bracketPreviewMini {
     grid-template-columns: 1fr;
     min-width: auto;
+  }
+
+  .bracketTree {
+    min-height: clamp(20rem, 66vw, 27rem);
+  }
+
+  .knockoutPanelHeader {
+    font-size: 1.15rem;
+    padding: 0.72rem 0.9rem;
   }
 }
 

@@ -19,12 +19,11 @@ const RIGHT_QF_ROWS = [3, 11];
 const LEFT_SF_ROW = 6;
 const RIGHT_SF_ROW = 10;
 const FINAL_ROW = 8;
-const STAGE_LABELS = ['R16', 'QF', 'SF', 'F', 'SF', 'QF', 'R16'];
 
 const sanitizeTeamLabel = (name: string) => {
   const normalized = (name || '').trim();
   if (!normalized || /^tb[ad]$/i.test(normalized)) {
-    return '';
+    return 'TBA';
   }
   return normalized.toUpperCase();
 };
@@ -38,6 +37,7 @@ const toMediaUrl = (url: string) => {
 
 function TeamBadge({ name, logoUrl }: { name: string; logoUrl: string }) {
   const normalized = (name || '').trim();
+  const hasMeaningfulName = normalized && !/^tb[ad]$/i.test(normalized);
   const initials = normalized
     .split(/\s+/)
     .filter(Boolean)
@@ -51,7 +51,7 @@ function TeamBadge({ name, logoUrl }: { name: string; logoUrl: string }) {
     return <span className={styles.bracketTeamBadgeImage} style={{ backgroundImage: `url(${resolvedLogo})` }} />;
   }
 
-  return <span className={styles.bracketTeamBadge}>{initials || 'T'}</span>;
+  return <span className={styles.bracketTeamBadge}>{hasMeaningfulName ? initials : ''}</span>;
 }
 
 function BracketTeamRow({
@@ -88,10 +88,6 @@ type BracketItemProps = {
 };
 
 function BracketItem({ slot, side }: BracketItemProps) {
-  const teamALabel = sanitizeTeamLabel(slot.teamAName);
-  const teamBLabel = sanitizeTeamLabel(slot.teamBName);
-  const isUnresolved = !teamALabel && !teamBLabel;
-
   const firstRowSide: 'left' | 'right' = side === 'right' ? 'right' : 'left';
   const secondRowSide: 'left' | 'right' = side === 'center'
     ? 'right'
@@ -104,12 +100,6 @@ function BracketItem({ slot, side }: BracketItemProps) {
       <BracketTeamRow teamName={slot.teamAName} logoUrl={slot.teamALogoUrl} side={firstRowSide} />
       <div className={styles.bracketDivider} />
       <BracketTeamRow teamName={slot.teamBName} logoUrl={slot.teamBLogoUrl} side={secondRowSide} />
-      {isUnresolved && (
-        <div className={styles.bracketMarkerOnlyRow}>
-          <span className={styles.bracketTbdMarker} />
-          <span className={styles.bracketTbdMarker} />
-        </div>
-      )}
     </div>
   );
 }
@@ -245,13 +235,6 @@ export default function KnockoutBracketTree({ matches }: KnockoutBracketTreeProp
   return (
     <div className={styles.knockoutPanelWrap}>
       <div className={styles.knockoutPanelHeader}>KNOCKOUT CHART</div>
-      <div className={styles.bracketStageRow}>
-        {STAGE_LABELS.map((label, index) => (
-          <span key={`${label}-${index}`} className={styles.bracketStageLabel}>
-            {label}
-          </span>
-        ))}
-      </div>
       <div className={styles.bracketTreeContainer}>
         <div className={styles.bracketTreeScroller}>
           <div className={styles.bracketTree}>
