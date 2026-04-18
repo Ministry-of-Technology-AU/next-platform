@@ -67,11 +67,6 @@ export default function APLKnockoutPage() {
             role: 'Lead Developer',
             profileUrl: 'https://github.com/28nitin07',
           },
-          {
-            name: 'Atharvajeet Singh',
-            role: 'Developer',
-            profileUrl: 'https://github.com/atharvajeetsingh',
-          },
         ]}
       />
     </div>

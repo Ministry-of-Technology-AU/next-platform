@@ -685,11 +685,6 @@ export default function APLFootballPage() {
             role: 'Lead Developer',
             profileUrl: 'https://github.com/28nitin07',
           },
-          {
-            name: 'Atharvajeet Singh',
-            role: 'Developer',
-            profileUrl: 'https://github.com/atharvajeetsingh',
-          },
         ]}
       />
       <style jsx global>{`
