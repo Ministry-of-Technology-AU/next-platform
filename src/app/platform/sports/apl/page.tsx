@@ -109,8 +109,8 @@ const MOCK_GROUPS = [
 ];
 
 const WINNERS = [
-  { rank: 1, teamId: 17, name: 'BroCode BC' },
-  { rank: 2, teamId: 18, name: 'Penguin Express' },
+  { rank: 1, teamId: 18, name: 'Penguin Express' },
+  { rank: 2, teamId: 17, name: 'BroCode BC' },
   { rank: 3, teamId: 19, name: 'Dolla Demgas' },
 ];
 
