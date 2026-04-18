@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { emitAplUpdate } from '@/lib/sse/apl-events';
+import { aplEmitter } from '@/lib/sse/apl-emitter';
 
 export async function POST(request: Request) {
   try {
@@ -31,13 +31,12 @@ export async function POST(request: Request) {
 
     console.log(`[SSE Webhook] ${event} on ${model} (ID: ${entry?.id})`);
 
-    // Broadcast a normalized payload so clients can filter updates by model/id.
-    emitAplUpdate({
-      model,
-      event,
+    // Broadcast to all connected SSE clients
+    aplEmitter.emit('apl-update', {
+      model,          // e.g. "apl-match", "apl-participant", "apl-team"
+      event,          // e.g. "entry.update", "entry.create"
       entryId: entry?.id,
-      id: entry?.id,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
     });
 
     return NextResponse.json({ message: 'SSE broadcast sent' });

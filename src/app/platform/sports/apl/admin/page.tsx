@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,10 @@ export default function APLAdminPage() {
   const [clockRunStartedAtMs, setClockRunStartedAtMs] = useState<number | null>(null);
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [halftimeCarryMinute, setHalftimeCarryMinute] = useState<number | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
+  const autoSaveTimerRef = useRef<number | null>(null);
+  const lastSavedFormSnapshotRef = useRef('');
 
   // Form states
   const [matchForm, setMatchForm] = useState<any>({
@@ -749,6 +753,19 @@ export default function APLAdminPage() {
     };
   };
 
+  const buildMatchUpdateData = useCallback((form: any) => {
+    const formPayload = { ...form };
+    delete formPayload.knockout_winner_team_id;
+
+    return {
+      ...formPayload,
+      ...prepareMatchPayload(form),
+      ...getDerivedMatchScores(form.goal_events || []),
+      team_a: { id: parseInt(form.team_a) },
+      team_b: { id: parseInt(form.team_b) },
+    };
+  }, []);
+
   // Match CRUD operations
   const handleCreateMatch = async () => {
     if (!validateTeamSelection()) return;
@@ -795,24 +812,17 @@ export default function APLAdminPage() {
     if (!validateKnockoutWinnerSelection()) return;
 
     try {
-      const matchFormPayload = { ...matchForm };
-      delete matchFormPayload.knockout_winner_team_id;
-
       const response = await fetch(`/api/platform/sports/apl/matches/${editingItem.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          data: {
-            ...matchFormPayload,
-            ...prepareMatchPayload(matchForm),
-            ...getDerivedMatchScores(matchForm.goal_events || []),
-            team_a: { id: parseInt(matchForm.team_a) },
-            team_b: { id: parseInt(matchForm.team_b) }
-          }
+          data: buildMatchUpdateData(matchForm)
         })
       });
 
       if (response.ok) {
+        lastSavedFormSnapshotRef.current = JSON.stringify(matchForm);
+        setAutoSaveError(null);
         toast.success("Match updated successfully");
         setMatchDialogOpen(false);
         setEditingItem(null);
@@ -846,6 +856,11 @@ export default function APLAdminPage() {
 
   // Form reset functions
   const resetMatchForm = () => {
+    if (autoSaveTimerRef.current !== null) {
+      window.clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
+
     setMatchForm({
       team_a: '',
       team_b: '',
@@ -865,6 +880,9 @@ export default function APLAdminPage() {
       card_events: [],
       substitution_events: []
     });
+    lastSavedFormSnapshotRef.current = '';
+    setAutoSaveError(null);
+    setIsAutoSaving(false);
     resetClock();
   };
 
@@ -916,7 +934,7 @@ export default function APLAdminPage() {
       const teamAStarters = normalizeStarterIds(attrs.team_a_starters);
       const teamBStarters = normalizeStarterIds(attrs.team_b_starters);
 
-      setMatchForm({
+      const nextFormState = {
         team_a: extractRelationId(attrs.team_a),
         team_b: extractRelationId(attrs.team_b),
         team_a_starting_player_count: normalizeStartingPlayerCount(attrs.team_a_starting_player_count, 10),
@@ -934,7 +952,11 @@ export default function APLAdminPage() {
         goal_events: goalEvents,
         card_events: cardEvents,
         substitution_events: substitutionEvents
-      });
+      };
+
+      setMatchForm(nextFormState);
+      lastSavedFormSnapshotRef.current = JSON.stringify(nextFormState);
+      setAutoSaveError(null);
 
       const maxExistingMinute = getMaxEventMinute({
         goal_events: goalEvents,
@@ -1049,6 +1071,90 @@ export default function APLAdminPage() {
     () => getDerivedMatchScores(matchForm.goal_events || []),
     [matchForm.goal_events]
   );
+
+  const canAutoSaveEdit = useMemo(() => {
+    if (!editingItem || !matchDialogOpen) return false;
+    if (!matchForm.team_a || !matchForm.team_b) return false;
+    if (hasInvalidTeamSelection) return false;
+    if (Boolean(getStarterValidationError())) return false;
+
+    const winnerTeamId = (matchForm.knockout_winner_team_id || '').toString();
+    if (isKnockoutSelection) {
+      if (winnerTeamId && winnerTeamId !== matchForm.team_a && winnerTeamId !== matchForm.team_b) {
+        return false;
+      }
+
+      const scoreA = Number(derivedScores.team_a_score);
+      const scoreB = Number(derivedScores.team_b_score);
+      if (matchForm.status === 'completed' && scoreA === scoreB && !winnerTeamId) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [
+    derivedScores.team_a_score,
+    derivedScores.team_b_score,
+    editingItem,
+    hasInvalidTeamSelection,
+    isKnockoutSelection,
+    matchDialogOpen,
+    matchForm,
+  ]);
+
+  useEffect(() => {
+    if (!editingItem || !matchDialogOpen) return;
+
+    const currentSnapshot = JSON.stringify(matchForm);
+    if (currentSnapshot === lastSavedFormSnapshotRef.current) {
+      return;
+    }
+
+    if (!canAutoSaveEdit) {
+      if (autoSaveTimerRef.current !== null) {
+        window.clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
+      return;
+    }
+
+    if (autoSaveTimerRef.current !== null) {
+      window.clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = window.setTimeout(async () => {
+      setIsAutoSaving(true);
+
+      try {
+        const response = await fetch(`/api/platform/sports/apl/matches/${editingItem.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: buildMatchUpdateData(matchForm) })
+        });
+
+        if (!response.ok) {
+          const errorPayload = await response.json().catch(() => null);
+          const errorMessage = errorPayload?.error || 'Autosave failed';
+          setAutoSaveError(errorMessage);
+          return;
+        }
+
+        lastSavedFormSnapshotRef.current = currentSnapshot;
+        setAutoSaveError(null);
+      } catch {
+        setAutoSaveError('Autosave failed');
+      } finally {
+        setIsAutoSaving(false);
+      }
+    }, 700);
+
+    return () => {
+      if (autoSaveTimerRef.current !== null) {
+        window.clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
+    };
+  }, [buildMatchUpdateData, canAutoSaveEdit, editingItem, matchDialogOpen, matchForm]);
 
   const teamAStarterSlots = useMemo(
     () => normalizeStarterIds(matchForm.team_a_starters),
@@ -1181,8 +1287,18 @@ export default function APLAdminPage() {
                   </DialogTrigger>
                   <DialogContent className="w-[96vw] max-w-[82rem] max-h-[86vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>{editingItem ? 'Edit Match' : 'Create New Match'}</DialogTitle>
+                      <div className="flex items-center justify-between gap-3">
+                        <DialogTitle>{editingItem ? 'Edit Match' : 'Create New Match'}</DialogTitle>
+                        {editingItem && (
+                          <Badge variant={autoSaveError ? 'destructive' : (isAutoSaving ? 'default' : 'outline')}>
+                            {autoSaveError ? 'Autosave failed' : (isAutoSaving ? 'Autosaving...' : 'Autosave on')}
+                          </Badge>
+                        )}
+                      </div>
                     </DialogHeader>
+                    {editingItem && autoSaveError && (
+                      <p className="text-sm text-destructive">{autoSaveError}</p>
+                    )}
                     <div className="grid grid-cols-2 gap-4 py-4">
                       <div className="space-y-2">
                         <Label htmlFor="team_a">Team A</Label>
@@ -2002,10 +2118,10 @@ export default function APLAdminPage() {
                       </Button>
                       <Button
                         onClick={editingItem ? handleUpdateMatch : handleCreateMatch}
-                        disabled={hasInvalidTeamSelection || Boolean(starterValidationError)}
+                        disabled={hasInvalidTeamSelection || Boolean(starterValidationError) || isAutoSaving}
                       >
                         <Save className="w-4 h-4 mr-2" />
-                        {editingItem ? 'Update' : 'Create'}
+                        {editingItem ? 'Save Now' : 'Create'}
                       </Button>
                     </div>
                   </DialogContent>
