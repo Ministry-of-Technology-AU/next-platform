@@ -18,6 +18,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, X } from 'lucide-react';
+import { normalizePlayerName } from '@/lib/utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 interface AuctionRow {
   serialNo: number;
@@ -72,10 +74,13 @@ export default function APLAuctionPage() {
 
   async function fetchAuction() {
     try {
-      const res = await fetch('/api/platform/sports/apl/auction-results');
+      const res = await fetch('/api/platform/sports/apl/auction-results', { cache: 'no-store' });
       if (!res.ok) return;
       const payload = await res.json();
-      setRows(payload.data || []);
+      setRows((payload.data || []).map((row: AuctionRow) => ({
+        ...row,
+        name: normalizePlayerName(row.name),
+      })));
     } catch (error) {
       console.error('Failed to fetch auction feed:', error);
     } finally {
@@ -93,7 +98,9 @@ export default function APLAuctionPage() {
     eventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        console.log('[APL SSE] Received update:', payload);
+        if (payload?.model && !['apl-participants', 'apl-teams'].includes(payload.model)) {
+          return;
+        }
         // Re-fetch auction data when any APL entity changes
         fetchAuction();
       } catch (e) {
@@ -396,9 +403,11 @@ export default function APLAuctionPage() {
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           {row.playerImage ? (
                             <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
-                              <img
+                              <Image
                                 src={row.playerImage}
                                 alt={row.name}
+                                width={32}
+                                height={32}
                                 className="h-full w-full object-cover"
                               />
                             </div>
@@ -461,9 +470,11 @@ export default function APLAuctionPage() {
                           <div className="flex items-center gap-2">
                             {row.playerImage ? (
                               <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-border bg-background">
-                                <img
+                                <Image
                                   src={row.playerImage}
                                   alt={row.name}
+                                  width={32}
+                                  height={32}
                                   className="h-full w-full object-cover"
                                 />
                               </div>
@@ -561,6 +572,16 @@ export default function APLAuctionPage() {
             </div>
           )}
         </DialogContent>
-      </Dialog>    </section>
+      </Dialog>
+      <DeveloperCredits
+        developers={[
+          {
+            name: 'Nitin S',
+            role: 'Lead Developer',
+            profileUrl: 'https://github.com/28nitin07',
+          },
+        ]}
+      />
+    </section>
   );
 }

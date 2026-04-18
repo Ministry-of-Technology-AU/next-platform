@@ -38,8 +38,8 @@ export async function GET() {
       'populate[user]=profile_url',
       'filters[sold_at][$notNull]=true',
       'pagination[limit]=-1',
-      'sort[0]=updatedAt:desc',
-      'sort[1]=name:asc',
+      'sort[0]=order:asc',
+      'sort[1]=id:asc',
     ].join('&');
 
     const payload = await strapiGet('/apl-participants', query);

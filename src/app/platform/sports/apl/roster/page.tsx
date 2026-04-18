@@ -18,6 +18,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search } from 'lucide-react';
+import { normalizePlayerName } from '@/lib/utils';
+import DeveloperCredits from '@/components/developer-credits';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -109,13 +111,14 @@ export default function APLRosterPage() {
   const [selectedTier, setSelectedTier] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const sseModels = useMemo(() => new Set(['apl-participants', 'apl-teams']), []);
 
   useEffect(() => {
     async function fetchRoster() {
       try {
         const [teamsRes, participantsRes] = await Promise.all([
-          fetch('/api/platform/sports/apl/teams'),
-          fetch('/api/platform/sports/apl/participants?limit=800'),
+          fetch('/api/platform/sports/apl/teams', { cache: 'no-store' }),
+          fetch('/api/platform/sports/apl/participants?limit=800', { cache: 'no-store' }),
         ]);
 
         const teamsPayload = teamsRes.ok ? await teamsRes.json() : { data: [] };
@@ -139,7 +142,7 @@ export default function APLRosterPage() {
 
           const player: Player = {
             id: entry.id,
-            name: entry.attributes?.name || `Player ${entry.id}`,
+            name: entry.attributes?.name ? normalizePlayerName(entry.attributes?.name) : `Player ${entry.id}`,
             tier: normalizeTier(entry.attributes?.tier),
             soldAt: entry.attributes?.sold_at ?? null,
             section: entry.attributes?.isCM ? 'CM' : 'NCM',
@@ -191,7 +194,9 @@ export default function APLRosterPage() {
     eventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        console.log('[APL SSE] Received update (roster):', payload);
+        if (payload?.model && !sseModels.has(payload.model)) {
+          return;
+        }
         // Re-fetch roster data when any APL entity changes
         fetchRoster();
       } catch (e) {
@@ -206,7 +211,7 @@ export default function APLRosterPage() {
     return () => {
       eventSource.close();
     };
-  }, []);
+  }, [sseModels]);
 
   const filteredGroups = useMemo(() => {
     let result = groups;

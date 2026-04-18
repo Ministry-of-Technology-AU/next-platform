@@ -27,18 +27,21 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.json();
+    const { model, entry, event } = payload;
 
-    // Verify the webhook comes from Strapi (optional: add bearer token validation)
-    // For now, we'll just emit the update to all connected clients
+    console.log(`[SSE Webhook] ${event} on ${model} (ID: ${entry?.id})`);
+
+    // Broadcast to all connected SSE clients
     aplEmitter.emit('apl-update', {
-      event: payload.event || 'update',
-      model: payload.model || 'apl-participants',
-      timestamp: new Date().toISOString(),
+      model,          // e.g. "apl-match", "apl-participant", "apl-team"
+      event,          // e.g. "entry.update", "entry.create"
+      entryId: entry?.id,
+      timestamp: Date.now(),
     });
 
-    return Response.json({ success: true, message: 'Update broadcast to all clients' });
+    return NextResponse.json({ message: 'SSE broadcast sent' });
   } catch (error) {
-    console.error('[APL Webhook] Error:', error);
-    return Response.json({ success: false, error: 'Failed to process webhook' }, { status: 400 });
+    console.error('[SSE Webhook] Error:', error);
+    return NextResponse.json({ error: 'Failed to process webhook' }, { status: 400 });
   }
 }

@@ -1,13 +1,11 @@
 {
     "version": "1.0.9",
-    "lastUpdated": "2026-04-16",
+    "lastUpdated": "2026-04-18",
     "updates": [
         {
             "id": "ashokan-around-launch",
             "title": "NEW FEATURE: Ashokan Around!",
             "description": "Find and share accommodation during this internship season! Connect with other Ashokans to find roommates or offer spare rooms.",
-            "type": "new",
-            "link": "/platform/ashokan-around"
         },
         {
             "id": "apl-scorekeeping-launch",

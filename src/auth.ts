@@ -133,6 +133,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Initial sign in
       if (user) {
         const email = user.email!;
+        const aplAdminEmails = (process.env.APL_ADMIN_EMAILS || '').split(',').map(email => email.trim());
 
         // Determine user role based on email patterns
         // if (ORGANIZATION_EMAILS.includes(email)) {
@@ -167,6 +168,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } else {
           token.role = 'user';
           token.access = ['none']; // Default access
+        }
+
+        if (aplAdminEmails.includes(email)) {
+          const currentAccess = Array.isArray(token.access) ? token.access : [];
+          if (!currentAccess.includes('apl_admin')) {
+            token.access = [...currentAccess, 'apl_admin'];
+          }
         }
 
         token.email = email;
