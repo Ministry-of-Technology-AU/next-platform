@@ -2,6 +2,29 @@ import { aplEmitter } from '@/lib/sse/apl-emitter';
 
 export const dynamic = 'force-dynamic'; // Never cache this route
 
+const APL_MODEL_ALIASES: Record<string, string> = {
+  'apl-match': 'apl-matches',
+  'apl-matches': 'apl-matches',
+  'api::apl-match.apl-match': 'apl-matches',
+  'apl-team': 'apl-teams',
+  'apl-teams': 'apl-teams',
+  'api::apl-team.apl-team': 'apl-teams',
+  'apl-participant': 'apl-participants',
+  'apl-participants': 'apl-participants',
+  'api::apl-participant.apl-participant': 'apl-participants',
+};
+
+function normalizeAplSsePayload(data: Record<string, unknown>) {
+  const normalized: Record<string, unknown> = { ...data };
+
+  if (typeof data.model === 'string') {
+    const modelKey = data.model.trim().toLowerCase();
+    normalized.model = APL_MODEL_ALIASES[modelKey] || modelKey;
+  }
+
+  return normalized;
+}
+
 export async function GET() {
   const encoder = new TextEncoder();
 
@@ -12,7 +35,8 @@ export async function GET() {
 
       const onUpdate = (data: Record<string, unknown>) => {
         try {
-          const payload = `data: ${JSON.stringify(data)}\n\n`;
+          const normalized = normalizeAplSsePayload(data);
+          const payload = `data: ${JSON.stringify(normalized)}\n\n`;
           controller.enqueue(encoder.encode(payload));
         } catch {
           // Client disconnected, clean up
