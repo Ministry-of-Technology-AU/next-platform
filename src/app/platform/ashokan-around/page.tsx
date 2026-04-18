@@ -2,6 +2,7 @@ import { Loader } from "lucide-react";
 import AshokanAroundForm from "./_components/ashokan-around-form";
 import ActiveAccommodationRequest from "./ActiveAccommodationRequest";
 import { Suspense } from "react";
+import { TourStep } from "@/components/guided-tour";
 
 import { AccommodationData } from "./types";
 
@@ -40,9 +41,23 @@ export default async function AshokanAroundPage() {
       <div className="w-full space-y-6">
         <Suspense fallback={<Loader />}>
           {hasActiveRequest ? (
-            <ActiveAccommodationRequest userAccommodation={existingRequest.userAccommodation} />
+            <TourStep
+              id="ashokan-around-active-request"
+              title="Manage Active Request"
+              content="You already have an active housing request. You can view its status and responses here, or cancel it if needed."
+              order={1}
+            >
+              <ActiveAccommodationRequest userAccommodation={existingRequest.userAccommodation} />
+            </TourStep>
           ) : (
-            <AshokanAroundForm />
+            <TourStep
+              id="ashokan-around-form"
+              title="Post/Find Accommodation"
+              content="Looking for a roommate or have a room to spare? Fill out this form with your city, budget and preferences!"
+              order={1}
+            >
+              <AshokanAroundForm />
+            </TourStep>
           )}
         </Suspense>
       </div>

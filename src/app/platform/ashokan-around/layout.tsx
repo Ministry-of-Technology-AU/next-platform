@@ -5,6 +5,7 @@ import Loader from "../loading"
 import DeveloperCredits from "@/components/developer-credits"
 import { TourManager } from "./_components/tour-manager"
 import { TourStep } from "@/components/guided-tour"
+import { DismissNewToolAlert } from "@/components/dismiss-new-tool-alert"
 
 export default function AshokanAroundLayout({
   children,
@@ -13,6 +14,7 @@ export default function AshokanAroundLayout({
 }) {
   return (
     <div className="max-w-7xl mx-auto p-6 sm:px-6 lg:px-8 pb-10">
+      <DismissNewToolAlert storageKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1" />
       <TourManager />
       <TourStep
         id="ashokan-around-intro"
