@@ -79,6 +79,11 @@ const normalizeGroupName = (group?: string) => {
   return `Group ${trimmed.toUpperCase()}`;
 };
 
+const toTeamKey = (value?: string) =>
+  (value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+
 function getStrapiMediaUrl(media: any): string | null {
   if (!media?.data?.attributes?.url) return null;
   const url = media.data.attributes.url;
@@ -321,8 +326,10 @@ export default function APLFootballPage() {
       : MOCK_TOP_SCORERS;
 
     // 4. Winner team logos
-    const winnerLogos = WINNERS.map(w => {
-      const team = rawTeams.find((t: any) => t.id === w.teamId);
+    const winnerLogos = WINNERS.map((winner) => {
+      const winnerKey = toTeamKey(winner.name);
+      const teamByName = rawTeams.find((team: any) => toTeamKey(team?.attributes?.name) === winnerKey);
+      const team = teamByName || rawTeams.find((team: any) => team.id === winner.teamId);
       return getStrapiMediaUrl(team?.attributes?.logo) ?? null;
     });
 
