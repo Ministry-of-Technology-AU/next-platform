@@ -147,34 +147,40 @@ export function evaluateTeamSubstitutionCompliance({
       playedPlayerIds: uniqueIds(playedPlayerIds),
     });
 
-    if (event.playerOn) {
-      const previousOnTimes = onTimesByPlayer.get(event.playerOn) || [];
-      previousOnTimes.push(event.timeSeconds);
-      onTimesByPlayer.set(event.playerOn, previousOnTimes);
+    const hasValidPair = Boolean(
+      event.playerOn
+      && event.playerOff
+      && event.playerOn !== event.playerOff
+    );
 
-      if (!currentOnFieldPlayerIds.has(event.playerOn)) {
-        currentOnFieldPlayerIds.add(event.playerOn);
-        onFieldSinceByPlayer.set(event.playerOn, event.timeSeconds);
-      }
-
-      playedPlayerIds.add(event.playerOn);
+    if (!hasValidPair) {
+      return;
     }
 
-    if (event.playerOff) {
-      const previousOffTimes = offTimesByPlayer.get(event.playerOff) || [];
-      previousOffTimes.push(event.timeSeconds);
-      offTimesByPlayer.set(event.playerOff, previousOffTimes);
+    const previousOnTimes = onTimesByPlayer.get(event.playerOn) || [];
+    previousOnTimes.push(event.timeSeconds);
+    onTimesByPlayer.set(event.playerOn, previousOnTimes);
 
-      if (currentOnFieldPlayerIds.has(event.playerOff)) {
-        const startedAt = onFieldSinceByPlayer.get(event.playerOff) ?? event.timeSeconds;
-        const playedSeconds = Math.max(0, event.timeSeconds - startedAt);
-        playedSecondsByPlayer.set(
-          event.playerOff,
-          (playedSecondsByPlayer.get(event.playerOff) || 0) + playedSeconds,
-        );
-        currentOnFieldPlayerIds.delete(event.playerOff);
-        onFieldSinceByPlayer.delete(event.playerOff);
-      }
+    if (!currentOnFieldPlayerIds.has(event.playerOn)) {
+      currentOnFieldPlayerIds.add(event.playerOn);
+      onFieldSinceByPlayer.set(event.playerOn, event.timeSeconds);
+    }
+
+    playedPlayerIds.add(event.playerOn);
+
+    const previousOffTimes = offTimesByPlayer.get(event.playerOff) || [];
+    previousOffTimes.push(event.timeSeconds);
+    offTimesByPlayer.set(event.playerOff, previousOffTimes);
+
+    if (currentOnFieldPlayerIds.has(event.playerOff)) {
+      const startedAt = onFieldSinceByPlayer.get(event.playerOff) ?? event.timeSeconds;
+      const playedSeconds = Math.max(0, event.timeSeconds - startedAt);
+      playedSecondsByPlayer.set(
+        event.playerOff,
+        (playedSecondsByPlayer.get(event.playerOff) || 0) + playedSeconds,
+      );
+      currentOnFieldPlayerIds.delete(event.playerOff);
+      onFieldSinceByPlayer.delete(event.playerOff);
     }
   });
 

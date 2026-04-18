@@ -240,7 +240,8 @@ export default function APLFootballPage() {
         };
       });
 
-      liveMatches = parsed.filter((m: any) => m.status === 'LIVE' && !m.isKnockout);
+      // Keep all live matches visible on the homepage, including knockout rounds.
+      liveMatches = parsed.filter((m: any) => m.status === 'LIVE');
       upcomingMatches = parsed.filter((m: any) => m.status === 'UPCOMING' && !m.isKnockout);
       pastMatches = parsed.filter((m: any) => m.status === 'COMPLETED' && !m.isKnockout);
 

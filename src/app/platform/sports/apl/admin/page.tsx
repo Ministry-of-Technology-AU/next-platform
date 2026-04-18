@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,7 @@ export default function APLAdminPage() {
   const [clockRunStartedAtMs, setClockRunStartedAtMs] = useState<number | null>(null);
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [halftimeCarryMinute, setHalftimeCarryMinute] = useState<number | null>(null);
+  const lastSavedFormSnapshotRef = useRef('');
 
   // Form states
   const [matchForm, setMatchForm] = useState<any>({
@@ -112,6 +113,27 @@ export default function APLAdminPage() {
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const eventSource = new EventSource('/api/platform/sports/apl/sse');
+
+    eventSource.onmessage = (event) => {
+      try {
+        JSON.parse(event.data);
+        fetchData();
+      } catch (error) {
+        console.error('[APL SSE] Parse error:', error);
+      }
+    };
+
+    eventSource.onerror = () => {
+      console.warn('[APL SSE] Connection lost, will auto-reconnect...');
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   useEffect(() => {
@@ -197,6 +219,14 @@ export default function APLAdminPage() {
   const isKnockoutSelection = isKnockoutRound(matchForm.round);
 
   const validateTeamSelection = () => {
+    const teamAId = toPositiveIntegerOrNull(matchForm.team_a);
+    const teamBId = toPositiveIntegerOrNull(matchForm.team_b);
+
+    if (!teamAId || !teamBId) {
+      toast.error('Please select valid teams for Team A and Team B');
+      return false;
+    }
+
     if (!hasInvalidTeamSelection) return true;
 
     toast.error('Team A and Team B must be different teams');
@@ -400,6 +430,12 @@ export default function APLAdminPage() {
   const toInteger = (value: any, fallback = 0) => {
     const parsed = parseInt(value?.toString() || '', 10);
     return Number.isNaN(parsed) ? fallback : parsed;
+  };
+
+  const toPositiveIntegerOrNull = (value: any): number | null => {
+    const parsed = parseInt(value?.toString() || '', 10);
+    if (Number.isNaN(parsed) || parsed <= 0) return null;
+    return parsed;
   };
 
   const normalizeMinute = (value: any, fallback = 1) => Math.max(1, toInteger(value, fallback));
@@ -649,29 +685,71 @@ export default function APLAdminPage() {
     });
   };
 
+  const addSubstitutionEvent = () => {
+    setMatchForm((prev: any) => ({
+      ...prev,
+      substitution_events: [
+        ...(prev.substitution_events || []),
+        {
+          ...createEmptySubstitutionEvent(),
+          minute: currentSuggestedMinute,
+          second: currentSuggestedSecond,
+        },
+      ],
+    }));
+  };
+
+  const updateSubstitutionEvent = (index: number, updater: (event: any) => any) => {
+    setMatchForm((prev: any) => {
+      const nextSubs = [...(prev.substitution_events || [])];
+      nextSubs[index] = updater(nextSubs[index] || createEmptySubstitutionEvent());
+      return { ...prev, substitution_events: nextSubs };
+    });
+  };
+
+  const removeSubstitutionEvent = (index: number) => {
+    setMatchForm((prev: any) => ({
+      ...prev,
+      substitution_events: (prev.substitution_events || []).filter((_: any, i: number) => i !== index),
+    }));
+  };
+
   const prepareMatchPayload = (form: any) => {
-    const goal_events = (form.goal_events || []).map((event: any) => ({
-      team: event.team,
-      minute: normalizeMinute(event.minute, 1),
-      is_penalty: event.is_penalty,
-      is_own_goal: event.is_own_goal,
-      ...(event.scorer ? { scorer: { id: parseInt(event.scorer) } } : {})
-    }));
+    const goal_events = (form.goal_events || []).map((event: any) => {
+      const scorerId = toPositiveIntegerOrNull(event.scorer);
 
-    const card_events = (form.card_events || []).map((event: any) => ({
-      team: event.team,
-      minute: normalizeMinute(event.minute, 1),
-      card_type: event.card_type,
-      ...(event.player ? { player: { id: parseInt(event.player) } } : {})
-    }));
+      return {
+        team: event.team,
+        minute: normalizeMinute(event.minute, 1),
+        is_penalty: event.is_penalty,
+        is_own_goal: event.is_own_goal,
+        ...(scorerId ? { scorer: { id: scorerId } } : {})
+      };
+    });
 
-    const substitution_events = (form.substitution_events || []).map((event: any) => ({
-      team: event.team,
-      minute: normalizeMinute(event.minute, 1),
-      second: normalizeSecond(event.second, 0),
-      ...(event.player_off ? { player_off: { id: parseInt(event.player_off) } } : {}),
-      ...(event.player_on ? { player_on: { id: parseInt(event.player_on) } } : {})
-    }));
+    const card_events = (form.card_events || []).map((event: any) => {
+      const playerId = toPositiveIntegerOrNull(event.player);
+
+      return {
+        team: event.team,
+        minute: normalizeMinute(event.minute, 1),
+        card_type: event.card_type,
+        ...(playerId ? { player: { id: playerId } } : {})
+      };
+    });
+
+    const substitution_events = (form.substitution_events || []).map((event: any) => {
+      const playerOffId = toPositiveIntegerOrNull(event.player_off);
+      const playerOnId = toPositiveIntegerOrNull(event.player_on);
+
+      return {
+        team: event.team,
+        minute: normalizeMinute(event.minute, 1),
+        second: normalizeSecond(event.second, 0),
+        ...(playerOffId ? { player_off: { id: playerOffId } } : {}),
+        ...(playerOnId ? { player_on: { id: playerOnId } } : {})
+      };
+    });
 
     const team_a_starting_player_count = normalizeStartingPlayerCount(form.team_a_starting_player_count, 10);
     const team_b_starting_player_count = normalizeStartingPlayerCount(form.team_b_starting_player_count, 10);
@@ -699,6 +777,21 @@ export default function APLAdminPage() {
     };
   };
 
+  const buildMatchUpdateData = useCallback((form: any) => {
+    const formPayload = { ...form };
+    delete formPayload.knockout_winner_team_id;
+    const teamAId = toPositiveIntegerOrNull(form.team_a);
+    const teamBId = toPositiveIntegerOrNull(form.team_b);
+
+    return {
+      ...formPayload,
+      ...prepareMatchPayload(form),
+      ...getDerivedMatchScores(form.goal_events || []),
+      ...(teamAId ? { team_a: { id: teamAId } } : {}),
+      ...(teamBId ? { team_b: { id: teamBId } } : {}),
+    };
+  }, []);
+
   // Match CRUD operations
   const handleCreateMatch = async () => {
     if (!validateTeamSelection()) return;
@@ -708,19 +801,24 @@ export default function APLAdminPage() {
     try {
       const matchFormPayload = { ...matchForm };
       delete matchFormPayload.knockout_winner_team_id;
+      const teamAId = toPositiveIntegerOrNull(matchForm.team_a);
+      const teamBId = toPositiveIntegerOrNull(matchForm.team_b);
+
+      if (!teamAId || !teamBId) {
+        toast.error('Please select valid teams for Team A and Team B');
+        return;
+      }
 
       const response = await fetch('/api/platform/sports/apl/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          data: {
-            ...matchFormPayload,
-            ...prepareMatchPayload(matchForm),
-            ...getDerivedMatchScores(matchForm.goal_events || []),
-            team_a: { id: parseInt(matchForm.team_a) },
-            team_b: { id: parseInt(matchForm.team_b) },
-            ...(matchForm.match_number ? { match_number: parseInt(matchForm.match_number, 10) } : {})
-          }
+          ...matchFormPayload,
+          ...prepareMatchPayload(matchForm),
+          ...getDerivedMatchScores(matchForm.goal_events || []),
+          team_a: { id: teamAId },
+          team_b: { id: teamBId },
+          ...(matchForm.match_number ? { match_number: parseInt(matchForm.match_number, 10) } : {})
         })
       });
 
@@ -745,24 +843,14 @@ export default function APLAdminPage() {
     if (!validateKnockoutWinnerSelection()) return;
 
     try {
-      const matchFormPayload = { ...matchForm };
-      delete matchFormPayload.knockout_winner_team_id;
-
       const response = await fetch(`/api/platform/sports/apl/matches/${editingItem.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: {
-            ...matchFormPayload,
-            ...prepareMatchPayload(matchForm),
-            ...getDerivedMatchScores(matchForm.goal_events || []),
-            team_a: { id: parseInt(matchForm.team_a) },
-            team_b: { id: parseInt(matchForm.team_b) }
-          }
-        })
+        body: JSON.stringify(buildMatchUpdateData(matchForm))
       });
 
       if (response.ok) {
+        lastSavedFormSnapshotRef.current = JSON.stringify(matchForm);
         toast.success("Match updated successfully");
         setMatchDialogOpen(false);
         setEditingItem(null);
@@ -815,6 +903,7 @@ export default function APLAdminPage() {
       card_events: [],
       substitution_events: []
     });
+    lastSavedFormSnapshotRef.current = '';
     resetClock();
   };
 
@@ -866,7 +955,7 @@ export default function APLAdminPage() {
       const teamAStarters = normalizeStarterIds(attrs.team_a_starters);
       const teamBStarters = normalizeStarterIds(attrs.team_b_starters);
 
-      setMatchForm({
+      const nextFormState = {
         team_a: extractRelationId(attrs.team_a),
         team_b: extractRelationId(attrs.team_b),
         team_a_starting_player_count: normalizeStartingPlayerCount(attrs.team_a_starting_player_count, 10),
@@ -884,7 +973,10 @@ export default function APLAdminPage() {
         goal_events: goalEvents,
         card_events: cardEvents,
         substitution_events: substitutionEvents
-      });
+      };
+
+      setMatchForm(nextFormState);
+      lastSavedFormSnapshotRef.current = JSON.stringify(nextFormState);
 
       const maxExistingMinute = getMaxEventMinute({
         goal_events: goalEvents,
@@ -1131,7 +1223,9 @@ export default function APLAdminPage() {
                   </DialogTrigger>
                   <DialogContent className="w-[96vw] max-w-[82rem] max-h-[86vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>{editingItem ? 'Edit Match' : 'Create New Match'}</DialogTitle>
+                      <div className="flex items-center justify-between gap-3">
+                        <DialogTitle>{editingItem ? 'Edit Match' : 'Create New Match'}</DialogTitle>
+                      </div>
                     </DialogHeader>
                     <div className="grid grid-cols-2 gap-4 py-4">
                       <div className="space-y-2">
@@ -1708,14 +1802,7 @@ export default function APLAdminPage() {
 
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold">Substitution Events</h3>
-                          <Button size="sm" variant="outline" onClick={() => setMatchForm({
-                            ...matchForm,
-                            substitution_events: [...(matchForm.substitution_events || []), {
-                              ...createEmptySubstitutionEvent(),
-                              minute: currentSuggestedMinute,
-                              second: currentSuggestedSecond,
-                            }]
-                          })}>
+                          <Button size="sm" variant="outline" onClick={addSubstitutionEvent}>
                             Add Substitution
                           </Button>
                         </div>
@@ -1728,9 +1815,9 @@ export default function APLAdminPage() {
                               <div className="space-y-2">
                                 <Label>Team</Label>
                                 <Select value={event.team} onValueChange={(value) => {
-                                  const nextSubs = [...matchForm.substitution_events];
-                                  nextSubs[idx] = sanitizeEventPlayerFields(nextSubs[idx], value, ['player_off', 'player_on']);
-                                  setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                  updateSubstitutionEvent(idx, (currentEvent) =>
+                                    sanitizeEventPlayerFields(currentEvent, value, ['player_off', 'player_on'])
+                                  );
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue />
@@ -1748,9 +1835,10 @@ export default function APLAdminPage() {
                                   value={event.minute}
                                   min={1}
                                   onChange={(e) => {
-                                    const nextSubs = [...matchForm.substitution_events];
-                                    nextSubs[idx] = { ...nextSubs[idx], minute: e.target.value };
-                                    setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                    updateSubstitutionEvent(idx, (currentEvent) => ({
+                                      ...currentEvent,
+                                      minute: e.target.value,
+                                    }));
                                   }}
                                 />
                                 <Button
@@ -1770,18 +1858,20 @@ export default function APLAdminPage() {
                                   min={0}
                                   max={59}
                                   onChange={(e) => {
-                                    const nextSubs = [...matchForm.substitution_events];
-                                    nextSubs[idx] = { ...nextSubs[idx], second: e.target.value };
-                                    setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                    updateSubstitutionEvent(idx, (currentEvent) => ({
+                                      ...currentEvent,
+                                      second: e.target.value,
+                                    }));
                                   }}
                                 />
                               </div>
                               <div className="space-y-2">
                                 <Label>Player Off</Label>
                                 <Select value={event.player_off} onValueChange={(value) => {
-                                  const nextSubs = [...matchForm.substitution_events];
-                                  nextSubs[idx] = { ...nextSubs[idx], player_off: value };
-                                  setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                  updateSubstitutionEvent(idx, (currentEvent) => ({
+                                    ...currentEvent,
+                                    player_off: value,
+                                  }));
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Off" />
@@ -1798,9 +1888,10 @@ export default function APLAdminPage() {
                               <div className="space-y-2">
                                 <Label>Player On</Label>
                                 <Select value={event.player_on} onValueChange={(value) => {
-                                  const nextSubs = [...matchForm.substitution_events];
-                                  nextSubs[idx] = { ...nextSubs[idx], player_on: value };
-                                  setMatchForm({ ...matchForm, substitution_events: nextSubs });
+                                  updateSubstitutionEvent(idx, (currentEvent) => ({
+                                    ...currentEvent,
+                                    player_on: value,
+                                  }));
                                 }}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="On" />
@@ -1815,10 +1906,7 @@ export default function APLAdminPage() {
                                 </Select>
                               </div>
                               <div className="flex items-end justify-end">
-                                <Button size="sm" variant="ghost" onClick={() => {
-                                  const nextSubs = matchForm.substitution_events.filter((_: any, i: number) => i !== idx);
-                                  setMatchForm({ ...matchForm, substitution_events: nextSubs });
-                                }}>
+                                <Button size="sm" variant="ghost" onClick={() => removeSubstitutionEvent(idx)}>
                                   Remove
                                 </Button>
                               </div>
@@ -1961,7 +2049,7 @@ export default function APLAdminPage() {
                         disabled={hasInvalidTeamSelection || Boolean(starterValidationError)}
                       >
                         <Save className="w-4 h-4 mr-2" />
-                        {editingItem ? 'Update' : 'Create'}
+                        {editingItem ? 'Save Now' : 'Create'}
                       </Button>
                     </div>
                   </DialogContent>
