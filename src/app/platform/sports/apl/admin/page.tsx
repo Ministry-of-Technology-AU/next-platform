@@ -45,6 +45,9 @@ export default function APLAdminPage() {
   const [teams, setTeams] = useState<any[]>([]);
   const [participants, setParticipants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [matchSearch, setMatchSearch] = useState('');
+  const [matchStatusFilter, setMatchStatusFilter] = useState<'all' | 'upcoming' | 'live' | 'completed'>('all');
+  const [matchRoundFilter, setMatchRoundFilter] = useState('all');
 
   // Dialog states
   const [matchDialogOpen, setMatchDialogOpen] = useState(false);
@@ -947,6 +950,50 @@ export default function APLAdminPage() {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
+
+  const availableRounds = useMemo(() => {
+    const rounds = new Set<string>();
+    matches.forEach((match) => {
+      const round = match?.attributes?.round;
+      if (round) rounds.add(round);
+    });
+    return Array.from(rounds).sort();
+  }, [matches]);
+
+  const filteredMatches = useMemo(() => {
+    const query = matchSearch.trim().toLowerCase();
+
+    return matches.filter((match) => {
+      const attrs = match.attributes || {};
+      const teamA = teamMap[attrs.team_a?.data?.id]?.attributes?.name || '';
+      const teamB = teamMap[attrs.team_b?.data?.id]?.attributes?.name || '';
+      const status = (attrs.status || '').toString();
+      const round = (attrs.round || '').toString();
+
+      if (matchStatusFilter !== 'all' && status !== matchStatusFilter) {
+        return false;
+      }
+
+      if (matchRoundFilter !== 'all' && round !== matchRoundFilter) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const searchHaystack = [
+        attrs.match_number?.toString() || '',
+        teamA,
+        teamB,
+        status,
+        round,
+        attrs.start_time || '',
+      ].join(' ').toLowerCase();
+
+      return searchHaystack.includes(query);
+    });
+  }, [matchRoundFilter, matchSearch, matchStatusFilter, matches, teamMap]);
 
   const derivedScores = useMemo(
     () => getDerivedMatchScores(matchForm.goal_events || []),
@@ -1922,6 +1969,60 @@ export default function APLAdminPage() {
               </div>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="match-search">Search Matches</Label>
+                  <Input
+                    id="match-search"
+                    placeholder="Search by match #, team, status, or round"
+                    value={matchSearch}
+                    onChange={(e) => setMatchSearch(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 md:w-48">
+                  <Label htmlFor="match-status-filter">Status</Label>
+                  <Select value={matchStatusFilter} onValueChange={(value: 'all' | 'upcoming' | 'live' | 'completed') => setMatchStatusFilter(value)}>
+                    <SelectTrigger id="match-status-filter">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All statuses</SelectItem>
+                      <SelectItem value="upcoming">Upcoming</SelectItem>
+                      <SelectItem value="live">Live</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 md:w-48">
+                  <Label htmlFor="match-round-filter">Round</Label>
+                  <Select value={matchRoundFilter} onValueChange={setMatchRoundFilter}>
+                    <SelectTrigger id="match-round-filter">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All rounds</SelectItem>
+                      {availableRounds.map((round) => (
+                        <SelectItem key={round} value={round}>
+                          {round.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setMatchSearch('');
+                    setMatchStatusFilter('all');
+                    setMatchRoundFilter('all');
+                  }}
+                >
+                  Reset
+                </Button>
+              </div>
+              <p className="mb-3 text-sm text-muted-foreground">
+                Showing {filteredMatches.length} of {matches.length} matches
+              </p>
               <ScrollArea className="h-[600px]">
                 <Table>
                   <TableHeader>
@@ -1936,7 +2037,7 @@ export default function APLAdminPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {matches.map((match) => {
+                    {filteredMatches.map((match) => {
                       const attrs = match.attributes || {};
                       const teamA = teamMap[attrs.team_a?.data?.id];
                       const teamB = teamMap[attrs.team_b?.data?.id];
@@ -1982,6 +2083,13 @@ export default function APLAdminPage() {
                         </TableRow>
                       );
                     })}
+                    {!filteredMatches.length && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                          No matches found for the current search and filters.
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </ScrollArea>
