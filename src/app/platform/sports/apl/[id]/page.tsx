@@ -65,14 +65,7 @@ export default function MatchPage() {
 
     eventSource.onmessage = (event) => {
       try {
-        const payload = JSON.parse(event.data);
-        if (payload?.model && payload.model !== 'apl-matches') {
-          return;
-        }
-        const payloadId = payload?.entryId ?? payload?.id;
-        if (payloadId !== undefined && String(payloadId) !== String(id)) {
-          return;
-        }
+        JSON.parse(event.data);
         fetchMatchData();
       } catch (e) {
         console.error('[SSE] Parse error:', e);

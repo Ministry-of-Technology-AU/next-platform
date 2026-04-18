@@ -97,10 +97,7 @@ export default function APLAuctionPage() {
 
     eventSource.onmessage = (event) => {
       try {
-        const payload = JSON.parse(event.data);
-        if (payload?.model && !['apl-participants', 'apl-teams'].includes(payload.model)) {
-          return;
-        }
+        JSON.parse(event.data);
         // Re-fetch auction data when any APL entity changes
         fetchAuction();
       } catch (e) {

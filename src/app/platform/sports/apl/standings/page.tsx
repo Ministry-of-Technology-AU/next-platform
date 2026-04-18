@@ -45,10 +45,7 @@ export default function APLStandingsPage() {
     const eventSource = new EventSource('/api/platform/sports/apl/sse');
     eventSource.onmessage = (event) => {
       try {
-        const payload = JSON.parse(event.data);
-        if (payload?.model && payload.model !== 'apl-teams') {
-          return;
-        }
+        JSON.parse(event.data);
         fetchData();
       } catch (e) {
         console.error('[SSE] Parse error:', e);

@@ -161,27 +161,7 @@ export default function APLFootballPage() {
 
     eventSource.onmessage = (event) => {
       try {
-        const payload = JSON.parse(event.data);
-        if (payload?.model && !['apl-matches', 'apl-teams', 'apl-participants'].includes(payload.model)) {
-          return;
-        }
-
-        if (payload?.model === 'apl-matches') {
-          fetchMatches();
-          return;
-        }
-
-        if (payload?.model === 'apl-teams') {
-          fetchTeams();
-          return;
-        }
-
-        if (payload?.model === 'apl-participants') {
-          fetchParticipants();
-          return;
-        }
-
-        // Fallback for payloads without model
+        JSON.parse(event.data);
         fetchData();
       } catch (e) {
         console.error('[SSE] Parse error:', e);

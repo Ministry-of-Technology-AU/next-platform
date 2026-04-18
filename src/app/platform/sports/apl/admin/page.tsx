@@ -115,6 +115,27 @@ export default function APLAdminPage() {
   }, []);
 
   useEffect(() => {
+    const eventSource = new EventSource('/api/platform/sports/apl/sse');
+
+    eventSource.onmessage = (event) => {
+      try {
+        JSON.parse(event.data);
+        fetchData();
+      } catch (error) {
+        console.error('[APL SSE] Parse error:', error);
+      }
+    };
+
+    eventSource.onerror = () => {
+      console.warn('[APL SSE] Connection lost, will auto-reconnect...');
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!clockRunning) return;
 
     const intervalId = window.setInterval(() => {
