@@ -1,34 +1,18 @@
 {
     "version": "1.0.9",
-    "lastUpdated": "2026-04-17",
+    "lastUpdated": "2026-04-18",
     "updates": [
         {
-            "id": "apl-score-tracker-launch",
-            "title": "APL score tracker is now live",
-            "description": "Track live APL scores directly on Platform.",
+            "id": "ashokan-around-launch",
+            "title": "NEW FEATURE: Ashokan Around!",
+            "description": "Find and share accommodation during this internship season! Connect with other Ashokans to find roommates or offer spare rooms.",
+        },
+        {
+            "id": "apl-scorekeeping-launch",
+            "title": "TRACK APL LIVE!",
+            "description": "View live scores and status of the ongoing APL matches as they happen!",
             "type": "new",
             "link": "/platform/sports/apl"
-        },
-        {
-            "id": "apl-auction-tracker-launch",
-            "title": "APL Auction Tracker now live!",
-            "description": "Track APL auction activity and roster updates in one place.",
-            "type": "new",
-            "link": "/platform/sports/apl/auction"
-        },
-        {
-            "id": "when2meet-launch",
-            "title": "When2Meet is here!",
-            "description": "Create a shared calendar to find the best meeting time with your group. Select your available time slots and share the link with participants.",
-            "type": "new",
-            "link": "/platform/when2meet"
-        },
-        {
-            "id": "wordle-friends",
-            "title": "Wordle Friends!",
-            "description": "Invite your friends to Ashoka Wordle! Compare daily scores, streaks, and compete head-to-head. Send invites via email directly from the game.",
-            "type": "new",
-            "link": "/platform/games/ashoka-wordle"
         }
     ]
 }
