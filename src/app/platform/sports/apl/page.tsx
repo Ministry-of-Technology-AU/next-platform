@@ -123,7 +123,7 @@ const INDIVIDUAL_AWARDS = [
   { id: 'golden-glove', title: 'Golden Glove', winner: 'Ashraya Adhikari', team: 'Dolla Demgas' },
   { id: 'golden-boot', title: 'Golden Boot', winner: 'Bhavin Shivaa', team: 'Penguin Express' },
   { id: 'mvp-cis-men', title: 'MVP (Cis Men)', winner: 'Dhruv Achappa', team: 'Bro Code' },
-  { id: 'mvp-non-cis-men', title: 'MVP (Non Cis Men)', winner: 'Priyanshi Singh', team: 'Bro Code' },
+  { id: 'mvp-non-cis-men', title: 'MVP (Non Cis Men)', winner: 'Priyanshi Singh', team: 'Penguin Express' },
 ];
 
 export default function APLFootballPage() {
