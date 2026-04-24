@@ -48,7 +48,11 @@ export default async function FoodOutletsPage() {
 
                     {/* Right Panel - Meal Planner (40%) */}
                     <div className="w-full lg:w-[40%]">
-                        <MealPlanner />
+                        {/* <MealPlanner /> */}
+                        <div className="bg-card rounded-lg border border-border p-8 text-center flex flex-col items-center justify-center h-full min-h-[300px]">
+                            <h3 className="text-xl font-semibold mb-2">Meal Planner</h3>
+                            <p className="text-muted-foreground">Coming Soon!</p>
+                        </div>
                     </div>
                 </div>
             </div>

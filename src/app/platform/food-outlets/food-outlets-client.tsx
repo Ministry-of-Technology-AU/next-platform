@@ -27,6 +27,14 @@ import {
 import { FoodOutlet, FoodItem, FoodType, SearchResult } from "./types";
 import OutletCard from "./_components/outlet-card";
 import OutletItemsModal from "./_components/outlet-items-modal";
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface FoodOutletsClientProps {
     outlets: FoodOutlet[];
@@ -46,8 +54,17 @@ const CATEGORIES = [
     'Beverages',
     'Coffee',
     'Desserts',
-    'Pizza',
-    'Rolls',
+];
+
+const ALL_ALLERGENS = [
+    "Dairy",
+    "Gluten",
+    "Nuts",
+    "Soy",
+    "Eggs",
+    "Fish",
+    "Shellfish",
+    "Sesame"
 ];
 
 export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
@@ -55,6 +72,7 @@ export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
     const [foodTypeFilter, setFoodTypeFilter] = useState<FoodType | 'all'>('all');
     const [categoryFilter, setCategoryFilter] = useState("All");
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 300]);
+    const [allowedAllergens, setAllowedAllergens] = useState<string[]>(ALL_ALLERGENS);
     const [selectedOutlet, setSelectedOutlet] = useState<FoodOutlet | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
@@ -94,18 +112,24 @@ export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
 
     // Filter outlets based on criteria
     const filteredOutlets = useMemo(() => {
+        const allowedValues = allowedAllergens.map(a => a.toLowerCase());
+
         return outlets.filter(outlet => {
             // Check if any items match the filters
             const hasMatchingItems = outlet.items.some(item => {
                 const matchesFoodType = foodTypeFilter === 'all' || item.foodType === foodTypeFilter;
                 const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
                 const matchesPrice = item.price >= priceRange[0] && item.price <= priceRange[1];
-                return matchesFoodType && matchesCategory && matchesPrice;
+
+                const itemAllergens = (item.allergens || "None").split(',').map(a => a.trim().toLowerCase()).filter(a => a !== 'none' && a !== '');
+                const matchesAllergens = itemAllergens.length === 0 || itemAllergens.every(a => allowedValues.includes(a));
+
+                return matchesFoodType && matchesCategory && matchesPrice && matchesAllergens;
             });
 
             return hasMatchingItems;
         });
-    }, [outlets, foodTypeFilter, categoryFilter, priceRange]);
+    }, [outlets, foodTypeFilter, categoryFilter, priceRange, allowedAllergens]);
 
     const handleOutletClick = useCallback((outlet: FoodOutlet) => {
         setSelectedOutlet(outlet);
@@ -125,9 +149,10 @@ export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
         setFoodTypeFilter('all');
         setCategoryFilter('All');
         setPriceRange([0, maxPrice]);
+        setAllowedAllergens(ALL_ALLERGENS);
     };
 
-    const hasActiveFilters = foodTypeFilter !== 'all' || categoryFilter !== 'All' || priceRange[0] > 0 || priceRange[1] < maxPrice;
+    const hasActiveFilters = foodTypeFilter !== 'all' || categoryFilter !== 'All' || priceRange[0] > 0 || priceRange[1] < maxPrice || allowedAllergens.length !== ALL_ALLERGENS.length;
 
     // Shared content as JSX element (NOT a component function — avoids remount on state change)
     const outletsContent = (
@@ -179,7 +204,13 @@ export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
                                             <p className="text-xs text-muted-foreground">at {result.outlet.name}</p>
                                         </div>
                                         <div className="flex items-center gap-2 text-sm">
-                                            <span className="font-medium">₹{result.item?.price}</span>
+                                            <span className="font-medium">{result.item?.isMRP ? `MRP: ₹${result.item?.price}` : `₹${result.item?.price}`}</span>
+                                            {result.item?.allergens && result.item.allergens.toLowerCase().trim() !== 'none' && result.item.allergens.trim() !== '' && (
+                                                <>
+                                                    <span className="text-muted-foreground">•</span>
+                                                    <span className="text-yellow-600 text-xs">Allergens: {result.item.allergens}</span>
+                                                </>
+                                            )}
                                             <span className="text-muted-foreground">•</span>
                                             <span className="text-secondary-dark">★ {result.outlet.rating}</span>
                                         </div>
@@ -247,6 +278,40 @@ export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
                     </PopoverContent>
                 </Popover>
 
+                {/* Allergen Dropdown */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                            Allergens
+                            {allowedAllergens.length !== ALL_ALLERGENS.length && (
+                                <Badge variant="secondary" className="px-1 py-0 h-4 min-w-4 flex items-center justify-center text-[10px] ml-1">
+                                    {allowedAllergens.length}
+                                </Badge>
+                            )}
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>Safe to consume</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {ALL_ALLERGENS.map((allergen) => (
+                            <DropdownMenuCheckboxItem
+                                key={allergen}
+                                checked={allowedAllergens.includes(allergen)}
+                                onCheckedChange={(checked) => {
+                                    setAllowedAllergens((prev) =>
+                                        checked
+                                            ? [...prev, allergen]
+                                            : prev.filter((a) => a !== allergen)
+                                    );
+                                }}
+                            >
+                                {allergen}
+                            </DropdownMenuCheckboxItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
                 {/* Clear Filters */}
                 {hasActiveFilters && (
                     <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
@@ -298,7 +363,7 @@ export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
 
             {/* Mobile: Accordion */}
             <div className="lg:hidden">
-                <Accordion type="single" collapsible defaultValue="">
+                <Accordion type="single" collapsible defaultValue="outlets">
                     <AccordionItem value="outlets" className="border rounded-lg">
                         <AccordionTrigger className="px-4 hover:no-underline">
                             <div className="flex items-center gap-2">
@@ -318,6 +383,7 @@ export default function FoodOutletsClient({ outlets }: FoodOutletsClientProps) {
                 outlet={selectedOutlet}
                 open={modalOpen}
                 onOpenChange={setModalOpen}
+                allowedAllergens={allowedAllergens}
             />
         </>
     );

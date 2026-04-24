@@ -10,10 +10,13 @@ export interface FoodItem {
     category: FoodCategory | string;
     calories: number | null;
     foodType: FoodType;
+    isMRP?: boolean;
+    allergens?: string;
 }
 
 export interface FoodOutlet {
-    id: string;
+    id: string; // The URL slug (outletId)
+    documentId?: string; // The actual strapi ID
     name: string;
     location: string;
     description: string;
