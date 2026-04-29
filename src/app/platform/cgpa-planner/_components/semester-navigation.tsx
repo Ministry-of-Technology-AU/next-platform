@@ -122,13 +122,13 @@ export default function SemesterNavigation({
     };
 
     return (
-        <div className="lg:col-span-1">
-            <Card className="h-fit">
-                <CardHeader className="pb-3">
+        <div className="lg:col-span-1 h-full">
+            <Card className="h-full flex flex-col">
+                <CardHeader className="pb-3 flex-shrink-0">
                     <CardTitle className="text-lg">Semester Navigation</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="space-y-2">
+                <CardContent className="space-y-3 flex-1 overflow-y-auto min-h-0 px-4 pb-4 custom-scrollbar">
+                    <div className="space-y-2 flex-shrink-0">
                         <Button
                             variant="outline"
                             size="lg"
@@ -154,7 +154,7 @@ export default function SemesterNavigation({
                             </span>
                         </Button>
                     </div>
-                    <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+                    <div className="space-y-2">
                         {/* Current Semester Button */}
                         {upcomingSemesters.length > 0 && (
                             <Button
