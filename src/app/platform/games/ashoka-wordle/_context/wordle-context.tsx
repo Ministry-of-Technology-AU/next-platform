@@ -11,6 +11,7 @@ interface WordleContextType {
     keyboardState: KeyboardState;
     wordLength: number;
     maxGuesses: number;
+    aboutWord?: string;
 
     // Actions
     addLetter: (letter: string) => void;
@@ -37,6 +38,7 @@ interface WordleProviderProps {
     isArchive?: boolean; // If true, don't save to today's completion
     currentStreak?: number; // Current streak passed from server
     maxStreak?: number; // Max streak passed from server
+    aboutWord?: string; // Rich text description of the word
     initialProgress?: {
         guesses: string[];
         time: number;
@@ -109,7 +111,7 @@ function updateKeyboardState(
     return updated;
 }
 
-export function WordleProvider({ children, targetWord, isArchive = false, currentStreak: currentStreakProp = 0, maxStreak: maxStreakProp = 0, initialProgress }: WordleProviderProps) {
+export function WordleProvider({ children, targetWord, isArchive = false, currentStreak: currentStreakProp = 0, maxStreak: maxStreakProp = 0, aboutWord, initialProgress }: WordleProviderProps) {
     const wordLength = targetWord.length;
     const MAX_GUESSES = wordLength + 1; // n+1 guesses for an n-letter word
     const normalizedTarget = targetWord.toUpperCase();
@@ -363,6 +365,15 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
     // Handle keyboard input
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore if active element is an input or textarea
+            if (
+                document.activeElement?.tagName === 'INPUT' ||
+                document.activeElement?.tagName === 'TEXTAREA' ||
+                document.activeElement?.tagName === 'SELECT'
+            ) {
+                return;
+            }
+
             if (e.ctrlKey || e.metaKey || e.altKey) return;
 
             if (e.key === 'Enter') {
@@ -385,6 +396,7 @@ export function WordleProvider({ children, targetWord, isArchive = false, curren
         keyboardState,
         wordLength,
         maxGuesses: MAX_GUESSES,
+        aboutWord,
         addLetter,
         deleteLetter,
         submitGuess,

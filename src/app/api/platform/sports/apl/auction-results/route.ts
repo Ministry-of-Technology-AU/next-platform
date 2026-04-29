@@ -1,0 +1,63 @@
+import { NextResponse } from 'next/server';
+import { strapiGet } from '@/lib/apis/strapi';
+
+interface AuctionRecord {
+  serialNo: number;
+  name: string;
+  category: string;
+  section: 'CM' | 'NCM';
+  team: string;
+  price: number;
+  playerImage?: string | null;
+}
+
+function normalizeTier(value: unknown): string {
+  if (value === null || value === undefined) return '4';
+  const raw = String(value).trim().toLowerCase();
+  const digits = raw.replace(/[^0-9]/g, '');
+  if (digits) return digits;
+  return raw || '4';
+}
+
+function normalizePriceToMillions(value: unknown): number {
+  const numeric = Number(value || 0);
+  if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+
+  // Backward compatibility: if value looks like rupees, convert to millions.
+  if (numeric >= 1000) {
+    return Number((numeric / 1_000_000).toFixed(2));
+  }
+
+  return Number(numeric.toFixed(2));
+}
+
+export async function GET() {
+  try {
+    const query = [
+      'populate[team][populate][0]=logo',
+      'populate[user]=profile_url',
+      'filters[sold_at][$notNull]=true',
+      'pagination[limit]=-1',
+      'sort[0]=order:asc',
+      'sort[1]=id:asc',
+    ].join('&');
+
+    const payload = await strapiGet('/apl-participants', query);
+    const rows = (payload?.data || []) as any[];
+
+    const normalized: AuctionRecord[] = rows.map((entry, index) => ({
+      serialNo: index + 1,
+      name: entry.attributes?.name || `Player ${entry.id}`,
+      category: normalizeTier(entry.attributes?.tier),
+      section: entry.attributes?.isCM ? 'CM' : 'NCM',
+      team: entry.attributes?.team?.data?.attributes?.name || 'Unassigned',
+      price: normalizePriceToMillions(entry.attributes?.sold_at),
+      playerImage: entry.attributes?.user?.data?.attributes?.profile_url ?? null,
+    }));
+
+    return NextResponse.json({ data: normalized });
+  } catch (error) {
+    console.error('APL auction results API proxy error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

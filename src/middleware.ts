@@ -20,6 +20,14 @@ export default auth(async function middleware(req) {
     return NextResponse.next()
   }
 
+  // Allow ABA and APL webhooks (called by Strapi) and SSE streams (public real-time endpoint)
+  if (pathname.startsWith('/api/platform/sports/aba/webhook') ||
+      pathname.startsWith('/api/platform/sports/aba/sse') ||
+      pathname.startsWith('/api/platform/sports/apl/webhook') ||
+      pathname.startsWith('/api/platform/sports/apl/sse')) {
+    return NextResponse.next()
+  }
+
   if (pathname.endsWith('jpg') || pathname.endsWith('png') || pathname.endsWith('svg') || pathname.endsWith('ico')) {
     return NextResponse.next()
   }
@@ -59,6 +67,19 @@ export default auth(async function middleware(req) {
     }
 
     console.log(`✅ User ${req.auth.user.email} granted access to HOR dashboard`)
+    return NextResponse.next()
+  }
+
+  // Special access control for APL Admin
+  if (pathname === '/platform/sports/apl/admin') {
+    const userAccess = req.auth.user?.access || []
+
+    if (!userAccess.includes('apl_admin')) {
+      console.log(`❌ User ${req.auth.user.email} denied access to APL Admin`)
+      return NextResponse.redirect(new URL('/unauthorized', req.url))
+    }
+
+    console.log(`✅ User ${req.auth.user.email} granted access to APL Admin`)
     return NextResponse.next()
   }
 

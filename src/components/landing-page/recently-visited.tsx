@@ -52,7 +52,10 @@ import {
   GalleryHorizontalEnd,
   ShoppingBag,
   Puzzle,
-  Route
+  Route,
+  CalendarSearch,
+  Trophy,
+  MapPinned
 } from "lucide-react";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
 
@@ -77,7 +80,10 @@ const iconMap: Record<string, LucideIcon> = {
   GalleryHorizontalEnd,
   ShoppingBag,
   Puzzle,
-  Route
+  Route,
+  CalendarSearch,
+  Trophy,
+  MapPinned
 };
 
 interface RecentlyVisitedProps {
@@ -97,9 +103,9 @@ export default function RecentlyVisited({ className }: RecentlyVisitedProps) {
   // Fallback paths in priority order
   const FALLBACK_PATHS = [
     '/platform/trajectory-planner',
+    '/platform/when2meet',
     '/platform/organisations-catalog',
     '/platform/events-calendar',
-    '/platform/course-reviews'
   ];
 
   // Path redirect exceptions (for routes that don't exist at their base path)

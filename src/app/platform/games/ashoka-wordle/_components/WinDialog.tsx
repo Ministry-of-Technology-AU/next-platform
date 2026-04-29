@@ -15,6 +15,7 @@ import { Trophy, Clock, Target, Archive, Flame } from 'lucide-react';
 import Link from 'next/link';
 import ConfettiEffect from './ConfettiEffect';
 import ShareResultsPopover from './ShareResultsPopover';
+import RichText from './RichText';
 
 function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -23,7 +24,7 @@ function formatTime(seconds: number): string {
 }
 
 export default function WinDialog() {
-    const { gameData, wordLength, maxGuesses, resetGame, todayStats } = useWordle();
+    const { gameData, wordLength, maxGuesses, resetGame, todayStats, aboutWord } = useWordle();
     const [open, setOpen] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
 
@@ -82,6 +83,12 @@ export default function WinDialog() {
                         <p className="text-3xl font-bold tracking-widest text-primary">{targetWord}</p>
                     </div>
 
+                    {aboutWord && (
+                        <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-foreground">
+                            <RichText content={aboutWord} />
+                        </div>
+                    )}
+
                     <DialogFooter className="flex flex-col sm:flex-row gap-2">
                         <ShareResultsPopover
                             guesses={guesses}
@@ -91,10 +98,10 @@ export default function WinDialog() {
                             won={true}
                             streak={streak}
                         />
-                        <Link href="/platform/games/ashoka-wordle/archives" className="flex-1">
+                        <Link href="/platform/games/ashoka-wordle/leaderboards" className="flex-1">
                             <Button variant="animated" className="w-full">
                                 <Archive className="h-4 w-4 mr-2" />
-                                View Archives
+                                View Leaderboard
                             </Button>
                         </Link>
                     </DialogFooter>

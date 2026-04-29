@@ -12,6 +12,7 @@ export default function AshokaWordleLayout({
             <DeveloperCredits
                 developers={[
                     { name: 'Soham Tulsyan', profileUrl: 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/', role: 'Lead Developer' },
+                    { name: 'Vansh Bothra', profileUrl: 'https://www.linkedin.com/in/vansh-bothra-b714bb263/', role: 'Lead Developer' },
                     { name: 'Eeshaja Swami', role: 'UI/UX Designer' }
                 ]}
             />

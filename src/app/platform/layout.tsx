@@ -41,9 +41,9 @@ export default function RootLayout({
         >
           <SidebarProvider defaultOpen={false}>
             <NewToolAlert
-              href="/platform/games/ashoka-wordle"
-              title="Ashoka Wordle"
-              checkSeenKey="ASHOKA_WORDLE_ALERT_SEEN_V1"
+              href="/platform/ashokan-around"
+              title="Ashokan Around"
+              checkSeenKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1"
               blockIfNewVersion={true}
             />
             <WhatsNewModal />

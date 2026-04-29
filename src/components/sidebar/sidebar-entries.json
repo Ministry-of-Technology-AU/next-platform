@@ -60,6 +60,11 @@
           "title": "Organisations Catalogue",
           "icon": "GalleryHorizontalEnd",
           "href": "/organisations-catalog"
+        },
+        {
+          "title": "When2meet",
+          "icon": "CalendarSearch",
+          "href": "/when2meet"
         }
       ]
     },
@@ -90,9 +95,25 @@
       ]
     },
     {
+      "id": "sports",
+      "title": "Sports",
+      "items": [
+        {
+          "title": "Sports",
+          "icon": "Trophy",
+          "href": "/sports"
+        }
+      ]
+    },
+    {
       "id": "my-resources",
       "title": "My Resources",
       "items": [
+        {
+          "title": "Ashokan Around",
+          "icon": "MapPinned",
+          "href": "/ashokan-around"
+        },
         {
           "title": "My Profile",
           "icon": "UserCog",
