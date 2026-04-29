@@ -1,7 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
-import { gradePointsMap, gradeOptions } from "./data";
-import { ParsedCGPAData, ParsedSemester, ParsedCourse, GradeKey, AttemptSource, CourseAttempt } from "./types";
+import { gradePointsMap, gradeOptions } from "@/app/platform/cgpa-planner/data";
+import { ParsedCGPAData, ParsedSemester, GradeKey } from "@/lib/cgpa-types";
 import { saveCGPAData } from "./_components/semester-navigation";
+import { getCourseKey, computeBestCourseSummary } from "@/lib/cgpa-utils";
+import { toast } from "sonner";
 
 export const useCalculations = (initialData?: ParsedCGPAData) => {
     // State management
@@ -37,11 +39,30 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
         totalEarnedCredits: number;
     } | null>(null);
 
+    // Baseline details
+    const [baselineSummary, setBaselineSummary] = useState<{
+        totalGradePoints: number;
+        totalGpaCredits: number;
+        totalEarnedCredits: number;
+    }>({
+        totalGradePoints: 0,
+        totalGpaCredits: 0,
+        totalEarnedCredits: 0
+    });
+
+    // Retake states
+    const [autoDetectedRetakeKeys, setAutoDetectedRetakeKeys] = useState<Set<string>>(new Set());
+    const [userDefinedRetakes, setUserDefinedRetakes] = useState<Record<number, string>>({});
+    const [ignoredRetakeKeys, setIgnoredRetakeKeys] = useState<string[]>([]);
+    const [detachedPastIndices, setDetachedPastIndices] = useState<string[]>([]);
+    const [userDefinedPastRetakes, setUserDefinedPastRetakes] = useState<Record<string, string>>({});
+    const [overwrittenPastIndices, setOverwrittenPastIndices] = useState<Set<string>>(new Set());
+    const [activeRetakePastIndices, setActiveRetakePastIndices] = useState<Set<string>>(new Set());
+
     // Simplified GPA calculator states
     const [desiredCGPA, setDesiredCGPA] = useState<string>('');
     const [remainingCredits, setRemainingCredits] = useState<string>('');
     const [projectedAverage, setProjectedAverage] = useState<string>('');
-    const [pfCredits, setPfCredits] = useState<string>('');
 
     // New calculator states for the two main features
     const [creditsThisSemester, setCreditsThisSemester] = useState<string>('');
@@ -58,135 +79,6 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
 
     // UI state: active tab
     const [activeTab, setActiveTab] = useState<'upcoming' | 'grade-planner' | 'calculator'>('upcoming');
-
-    const getCourseKey = (course: ParsedCourse) => {
-        const rawCode = course.code?.trim();
-        if (rawCode && rawCode !== '--') {
-            return rawCode.toUpperCase();
-        }
-
-        const rawTitle = course.title?.trim();
-        if (rawTitle && rawTitle !== '--') {
-            return rawTitle.toUpperCase();
-        }
-
-        return null;
-    };
-
-    const normalizeGrade = (grade: string | null | undefined): GradeKey | null => {
-        if (!grade) return null;
-        const trimmed = grade.trim();
-        if (!trimmed || trimmed === '--' || trimmed === 'Select') return null;
-        if (Object.prototype.hasOwnProperty.call(gradePointsMap, trimmed)) {
-            return trimmed as GradeKey;
-        }
-        return null;
-    };
-
-    const createAttempt = ({
-        key,
-        grade,
-        creditsRegistered,
-        creditsEarned,
-        gradePointsValue,
-        source,
-    }: {
-        key: string;
-        grade: GradeKey | null;
-        creditsRegistered: number | null | undefined;
-        creditsEarned: number | null | undefined;
-        gradePointsValue?: number | null;
-        source: AttemptSource;
-    }): CourseAttempt | null => {
-        if (!grade) return null;
-
-        const registered = typeof creditsRegistered === 'number' && !Number.isNaN(creditsRegistered) ? creditsRegistered : 0;
-        const earned = typeof creditsEarned === 'number' && !Number.isNaN(creditsEarned) ? creditsEarned : 0;
-        let effectiveCredits = registered > 0 ? registered : earned;
-        let gradePoints = 0;
-        let gpaCredits = 0;
-        let earnedCredits = 0;
-        let ratio: number | null = null;
-
-        if (grade === 'AU') {
-            return { key, gradeLabel: grade, gradePoints, gpaCredits, earnedCredits, ratio, source };
-        }
-
-        if (grade === 'P') {
-            earnedCredits = effectiveCredits;
-            return { key, gradeLabel: grade, gradePoints, gpaCredits, earnedCredits, ratio, source };
-        }
-
-        if (grade === 'F (w P/F)') {
-            earnedCredits = effectiveCredits;
-            return { key, gradeLabel: grade, gradePoints, gpaCredits, earnedCredits, ratio, source };
-        }
-
-        if (grade === 'TP (w credits)') {
-            earnedCredits = Math.max(earned, Math.max(effectiveCredits, 2));
-            return { key, gradeLabel: grade, gradePoints, gpaCredits, earnedCredits, ratio, source };
-        }
-
-        if (grade === 'TP (w/o credits)') {
-            return { key, gradeLabel: grade, gradePoints, gpaCredits, earnedCredits, ratio, source };
-        }
-
-        effectiveCredits = effectiveCredits > 0 ? effectiveCredits : earned;
-        if (effectiveCredits <= 0) {
-            return null;
-        }
-
-        const mapped = gradePointsMap[grade as keyof typeof gradePointsMap];
-        if (typeof mapped === 'number') {
-            gpaCredits = effectiveCredits;
-            gradePoints = mapped * gpaCredits;
-        } else if (typeof gradePointsValue === 'number') {
-            gpaCredits = effectiveCredits;
-            gradePoints = gradePointsValue;
-        }
-
-        earnedCredits = Math.max(earned, effectiveCredits);
-        ratio = gpaCredits > 0 ? gradePoints / gpaCredits : null;
-
-        return { key, gradeLabel: grade, gradePoints, gpaCredits, earnedCredits, ratio, source };
-    };
-
-    const chooseBetterAttempt = (currentBest: CourseAttempt, candidate: CourseAttempt): CourseAttempt => {
-        const bestRatio = currentBest.ratio;
-        const candidateRatio = candidate.ratio;
-
-        if (candidateRatio !== null && bestRatio !== null) {
-            if (candidateRatio !== bestRatio) {
-                return candidateRatio > bestRatio ? candidate : currentBest;
-            }
-
-            if (candidate.gradePoints !== currentBest.gradePoints) {
-                return candidate.gradePoints > currentBest.gradePoints ? candidate : currentBest;
-            }
-
-            return candidate.gpaCredits < currentBest.gpaCredits ? candidate : currentBest;
-        }
-
-        if (candidateRatio !== null && bestRatio === null) {
-            if (candidateRatio <= 0) {
-                return currentBest;
-            }
-            return candidate;
-        }
-
-        if (candidateRatio === null && bestRatio !== null) {
-            if (bestRatio <= 0) {
-                return candidate;
-            }
-            return currentBest;
-        }
-
-        if (candidate.earnedCredits !== currentBest.earnedCredits) {
-            return candidate.earnedCredits > currentBest.earnedCredits ? candidate : currentBest;
-        }
-
-        return currentBest;
-    };
 
     const semesterPartitions = useMemo(() => {
         const upcomingRaw = cgpaData.semesters.filter(sem => sem.semesterCreditsEarned === 0 && sem.gpa === 0);
@@ -206,174 +98,102 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
     const pastSemesters = semesterPartitions.pastUI;
     const currentUpcomingSemester = semesterPartitions.currentUpcoming;
 
-    const computeBestCourseSummary = (includeCurrent: boolean) => {
-        const attempts = new Map<string, CourseAttempt[]>();
+    useEffect(() => {
+        if (cgpaData.semesters.length > 0) return;
 
-        const pushAttempt = (key: string, attempt: CourseAttempt | null) => {
-            if (!attempt) return;
-            if (!attempts.has(key)) {
-                attempts.set(key, [attempt]);
-            } else {
-                attempts.get(key)!.push(attempt);
+        let cancelled = false;
+
+        const hydrateFromBackend = async () => {
+            try {
+                const response = await fetch('/api/platform/cgpa-planner', { cache: 'no-store' });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                if (cancelled) return;
+
+                if (result?.success && result?.data?.semesters?.length > 0) {
+                    setCgpaData(result.data as ParsedCGPAData);
+                    setIsFormView(false);
+                }
+            } catch (error) {
+                if (!cancelled) {
+                    console.error('Failed to hydrate CGPA data from backend:', error);
+                }
             }
         };
 
-        rawPastSemesters.forEach((semester) => {
-            semester.courses.forEach((course) => {
-                const key = getCourseKey(course);
-                if (!key) return;
-                const normalizedGrade = normalizeGrade(course.grade);
-                if (!normalizedGrade) return;
-                const attempt = createAttempt({
-                    key,
-                    grade: normalizedGrade,
-                    creditsRegistered: course.creditsRegistered,
-                    creditsEarned: course.creditsEarned,
-                    gradePointsValue: course.gradePoints,
-                    source: 'past',
+        const onFocus = () => {
+            void hydrateFromBackend();
+        };
+
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                void hydrateFromBackend();
+            }
+        };
+
+        void hydrateFromBackend();
+        window.addEventListener('focus', onFocus);
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+            cancelled = true;
+            window.removeEventListener('focus', onFocus);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+    }, [cgpaData.semesters.length]);
+
+    // Fetch baseline stats from backend when cgpaData changes
+    useEffect(() => {
+        const calculateStats = () => {
+            if (!cgpaData || cgpaData.semesters.length === 0) return;
+            try {
+                const summary = computeBestCourseSummary(
+                    rawPastSemesters,
+                    null,
+                    {},
+                    {},
+                    [],
+                    []
+                );
+
+                setBaselineSummary({
+                    totalGradePoints: summary.totalGradePoints,
+                    totalGpaCredits: summary.totalGpaCredits,
+                    totalEarnedCredits: summary.totalEarnedCredits
                 });
-                pushAttempt(key, attempt);
-            });
-        });
-
-        if (includeCurrent && currentUpcomingSemester) {
-            currentUpcomingSemester.courses.forEach((course, index) => {
-                const key = getCourseKey(course);
-                if (!key) return;
-                const selectedGrade = normalizeGrade(currentSemesterGrades[index]);
-                if (!selectedGrade) return;
-                const attempt = createAttempt({
-                    key,
-                    grade: selectedGrade,
-                    creditsRegistered: course.creditsRegistered,
-                    creditsEarned: null,
-                    source: 'current',
-                });
-                pushAttempt(key, attempt);
-            });
-        }
-
-        let totalGradePoints = 0;
-        let totalGpaCredits = 0;
-        let totalEarnedCredits = 0;
-        const retakeKeys = new Set<string>();
-
-        attempts.forEach((courseAttempts, key) => {
-            if (courseAttempts.length > 1) {
-                retakeKeys.add(key);
+            } catch (err) {
+                console.error("Failed to calculate baseline", err);
             }
-
-            const bestAttempt = courseAttempts.reduce<CourseAttempt | null>((best, candidate) => {
-                if (!candidate) return best;
-                if (!best) return candidate;
-                return chooseBetterAttempt(best, candidate);
-            }, null);
-
-            if (!bestAttempt) return;
-
-            totalGradePoints += bestAttempt.gradePoints;
-            totalGpaCredits += bestAttempt.gpaCredits;
-            totalEarnedCredits += bestAttempt.earnedCredits;
-        });
-
-        return {
-            totalGradePoints,
-            totalGpaCredits,
-            totalEarnedCredits,
-            retakeKeys,
         };
-    };
+        calculateStats();
+    }, [cgpaData, rawPastSemesters]);
 
-    const baselineSummary = computeBestCourseSummary(false);
+    // Fetch retake status from backend when inputs change
+    useEffect(() => {
+        const calculateRetakes = () => {
+            if (!cgpaData || cgpaData.semesters.length === 0) return;
+            try {
+                const summary = computeBestCourseSummary(
+                    rawPastSemesters,
+                    currentUpcomingSemester,
+                    currentSemesterGrades,
+                    userDefinedRetakes,
+                    ignoredRetakeKeys,
+                    detachedPastIndices,
+                    userDefinedPastRetakes
+                );
 
-    const autoDetectedRetakeKeys = useMemo(() => {
-        const seen = new Set<string>();
-        const retakes = new Set<string>();
-
-        rawPastSemesters.forEach((semester) => {
-            semester.courses.forEach((course) => {
-                const key = getCourseKey(course);
-                if (key) {
-                    seen.add(key);
-                }
-            });
-        });
-
-        if (currentUpcomingSemester) {
-            currentUpcomingSemester.courses.forEach((course) => {
-                const key = getCourseKey(course);
-                if (key && seen.has(key)) {
-                    retakes.add(key);
-                }
-            });
-        }
-
-        return retakes;
-    }, [rawPastSemesters, currentUpcomingSemester]);
-
-    const parseGradeData = (text: string): ParsedCGPAData => {
-        const lines = text.split('\n').map((line) => line.trim());
-        const data: ParsedCGPAData = {
-            degreeCGPA: 0,
-            majorCGPA: 0,
-            totalCredits: 0,
-            semesters: []
-        };
-
-        let currentSemester: ParsedSemester | null = null;
-        let courseSection = false;
-
-        for (const line of lines) {
-            if (line.includes('Degree/Diploma CGPA')) {
-                const parts = line.match(/Degree\/Diploma CGPA: (\d+\.\d+).*CGPA for Major: (\d+\.\d+).*Total counted credits: (\d+)/);
-                if (parts) {
-                    data.degreeCGPA = parseFloat(parts[1]);
-                    data.majorCGPA = parseFloat(parts[2]);
-                    data.totalCredits = parseInt(parts[3], 10);
-                }
-            } else if (line.startsWith('Monsoon') || line.startsWith('Spring') || line.startsWith('Summer')) {
-                if (currentSemester) {
-                    data.semesters.push(currentSemester);
-                }
-                currentSemester = {
-                    semester: line,
-                    courses: [],
-                    gpa: 0,
-                    semesterCreditsEarned: 0,
-                    cgpa: 0
-                };
-                courseSection = true;
-            } else if (line.includes('GPA') && line.includes('Semester Credits Earned') && line.includes('CGPA')) {
-                const gpaMatch = line.match(/GPA:\s*(\d+\.\d+)/);
-                const creditsMatch = line.match(/Semester Credits Earned:\s*(\d+)/);
-                const cgpaMatch = line.match(/CGPA:\s*(\d+\.\d+)/);
-
-                if (currentSemester) {
-                    if (gpaMatch) currentSemester.gpa = parseFloat(gpaMatch[1]);
-                    if (creditsMatch) currentSemester.semesterCreditsEarned = parseInt(creditsMatch[1], 10);
-                    if (cgpaMatch) currentSemester.cgpa = parseFloat(cgpaMatch[1]);
-                }
-            } else if (courseSection && line.match(/^\d+/) && !line.includes('systems.support')) {
-                const [_, code, title, creditsRegistered, grade, creditsEarned, gradePoints] = line.split(/\t+/);
-                if (currentSemester) {
-                    currentSemester.courses.push({
-                        code,
-                        title,
-                        creditsRegistered: parseFloat(creditsRegistered) || null,
-                        grade: grade !== '--' ? grade : null,
-                        creditsEarned: parseFloat(creditsEarned) || null,
-                        gradePoints: parseFloat(gradePoints) || null,
-                    });
-                }
+                setAutoDetectedRetakeKeys(new Set(summary.autoDetectedRetakeKeys));
+                setOverwrittenPastIndices(new Set(summary.overwrittenPastIndices));
+                setActiveRetakePastIndices(new Set(summary.activeRetakePastIndices));
+            } catch (err) {
+                console.error("Failed to calculate retakes", err);
             }
-        }
+        };
+        calculateRetakes();
+    }, [cgpaData, rawPastSemesters, currentUpcomingSemester, currentSemesterGrades, userDefinedRetakes, ignoredRetakeKeys, detachedPastIndices]);
 
-        if (currentSemester) {
-            data.semesters.push(currentSemester);
-        }
-
-        return data;
-    };
 
     const handleCalculate = async () => {
         if (!gradeInput.trim()) {
@@ -381,20 +201,24 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
             return;
         }
 
-        const parsedData = parseGradeData(gradeInput);
-        setCgpaData(parsedData);
-        setIsFormView(false);
-
-        // Post to Strapi
         try {
-            const result = await saveCGPAData(parsedData);
-            if (!result.success) {
-                console.error('Failed to save CGPA data:', result.error);
-                alert('Failed to save CGPA data.');
+            const saveRes = await fetch('/api/platform/cgpa-planner', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: gradeInput })
+            });
+
+            const saveData = await saveRes.json();
+            if (saveData.success && saveData.data) {
+                setCgpaData(saveData.data);
+                setIsFormView(false);
+            } else {
+                console.error(saveData.error);
+                alert('Failed to parse or save CGPA data.');
             }
         } catch (error) {
             console.error('Error posting CGPA data:', error);
-            alert('Error posting CGPA data.');
+            alert('Error processing CGPA data.');
         }
     };
 
@@ -413,70 +237,71 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
             return;
         }
 
-        let totalGradePoints = 0;
-        let totalCredits = 0;
-        let creditsEarned = 0;
-        let hasAllGrades = true;
+        try {
+            const summary = computeBestCourseSummary(
+                rawPastSemesters,
+                currentUpcomingSemester,
+                currentSemesterGrades,
+                userDefinedRetakes,
+                ignoredRetakeKeys,
+                detachedPastIndices,
+                userDefinedPastRetakes
+            );
 
-        currentUpcomingSemester.courses.forEach((course, index) => {
-            const selectedGrade = currentSemesterGrades[index] as GradeKey;
-            if (course.code && (!selectedGrade || selectedGrade === 'Select')) {
-                hasAllGrades = false;
-                return;
-            }
+            // Keep local calculations purely for displaying the current semester GPA safely on frontend
+            let totalCurrentGradePoints = 0;
+            let totalCurrentCredits = 0;
+            let creditsEarned = 0;
 
-            if (!selectedGrade || selectedGrade === 'Select') {
-                return;
-            }
+            currentUpcomingSemester.courses.forEach((course, index) => {
+                const selectedGrade = currentSemesterGrades[index] as GradeKey;
+                if (!selectedGrade || selectedGrade === 'Select') return;
 
-            const credits = course.creditsRegistered || 0;
+                const credits = course.creditsRegistered || 0;
 
-            if (selectedGrade === 'AU') {
-                return;
-            }
+                if (selectedGrade === 'AU' || selectedGrade === 'TP (w/o credits)') {
+                    return;
+                }
+                if (selectedGrade === 'F (w P/F)' || selectedGrade === 'P') {
+                    if (selectedGrade === 'P') creditsEarned += credits;
+                    return;
+                }
+                if (selectedGrade === 'TP (w credits)') {
+                    creditsEarned += 2;
+                    return;
+                }
 
-            if (selectedGrade === 'F (w P/F)') {
-                creditsEarned += credits;
-                return;
-            }
+                const gradePoints = gradePointsMap[selectedGrade as keyof typeof gradePointsMap] ?? 0;
+                totalCurrentGradePoints += gradePoints * credits;
+                totalCurrentCredits += credits;
+                if (selectedGrade.startsWith('F')) {
+                    // Normally F does not give earned credits unless TP
+                } else {
+                    creditsEarned += credits;
+                }
+            });
 
-            if (selectedGrade === 'P') {
-                creditsEarned += credits;
-                return;
-            }
+            const currentSemesterGPA = totalCurrentCredits > 0 ? totalCurrentGradePoints / totalCurrentCredits : 0;
+            const newCGPA = summary.totalGpaCredits > 0 ? summary.totalGradePoints / summary.totalGpaCredits : 0;
 
-            if (selectedGrade === 'TP (w credits)') {
-                creditsEarned += 2;
-                return;
-            }
+            setCalculatedCGPA({
+                semesterGPA: currentSemesterGPA.toFixed(2),
+                newCGPA: newCGPA.toFixed(2),
+                creditsEarned,
+                totalGpaCredits: summary.totalGpaCredits,
+                totalGradePoints: summary.totalGradePoints,
+                totalEarnedCredits: summary.totalEarnedCredits,
+            });
 
-            if (selectedGrade === 'TP (w/o credits)') {
-                return;
-            }
+            setAutoDetectedRetakeKeys(new Set(summary.autoDetectedRetakeKeys || []));
+            setOverwrittenPastIndices(new Set(summary.overwrittenPastIndices || []));
+            setActiveRetakePastIndices(new Set(summary.activeRetakePastIndices || []));
 
-            const gradePoints = gradePointsMap[selectedGrade as keyof typeof gradePointsMap] ?? 0;
-            totalGradePoints += gradePoints * credits;
-            totalCredits += credits;
-            creditsEarned += credits;
-        });
-
-        if (!hasAllGrades) {
-            alert('Please select grades for all courses before calculating.');
-            return;
+            toast.success('CGPA calculated successfully!', { duration: 3000 });
+        } catch (error) {
+            console.error("Calculation fetch failed", error);
+            alert("Error reaching calculation server");
         }
-
-        const currentSemesterGPA = totalCredits > 0 ? totalGradePoints / totalCredits : 0;
-        const summary = computeBestCourseSummary(true);
-        const newCGPA = summary.totalGpaCredits > 0 ? summary.totalGradePoints / summary.totalGpaCredits : 0;
-
-        setCalculatedCGPA({
-            semesterGPA: currentSemesterGPA.toFixed(2),
-            newCGPA: newCGPA.toFixed(2),
-            creditsEarned,
-            totalGpaCredits: summary.totalGpaCredits,
-            totalGradePoints: summary.totalGradePoints,
-            totalEarnedCredits: summary.totalEarnedCredits,
-        });
     };
 
     // Get current credits and grade points
@@ -603,11 +428,11 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
     };
 
     const calculateCreditsNeeded = () => {
-    const currentCGPA = getCurrentCGPA();
-    const currentCredits = getCurrentCredits();
-    const currentGradePoints = getCurrentGradePoints();
-    const target = parseFloat(raiseTargetCGPA);
-    const maintain = parseFloat(maintainedAverageCGPA);
+        const currentCGPA = getCurrentCGPA();
+        const currentCredits = getCurrentCredits();
+        const currentGradePoints = getCurrentGradePoints();
+        const target = parseFloat(raiseTargetCGPA);
+        const maintain = parseFloat(maintainedAverageCGPA);
 
         if (!raiseTargetCGPA.trim() || !maintainedAverageCGPA.trim()) {
             setRequiredCreditsToRaise('');
@@ -751,8 +576,6 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
         setRemainingCredits,
         projectedAverage,
         setProjectedAverage,
-        pfCredits,
-        setPfCredits,
         creditsThisSemester,
         setCreditsThisSemester,
         targetCGPA,
@@ -786,28 +609,26 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
         currentUpcomingSemester,
         baselineSummary,
         autoDetectedRetakeKeys,
+        userDefinedRetakes,
+        setUserDefinedRetakes,
+        ignoredRetakeKeys,
+        setIgnoredRetakeKeys,
+        detachedPastIndices,
+        setDetachedPastIndices,
+        overwrittenPastIndices,
+        activeRetakePastIndices,
+        userDefinedPastRetakes,
+        setUserDefinedPastRetakes,
         displaySemester,
         isCurrentSemester,
 
         // Functions
         getCourseKey,
-        normalizeGrade,
-        createAttempt,
-        chooseBetterAttempt,
-        computeBestCourseSummary,
-        parseGradeData,
         handleCalculate,
         handleGradeChange,
         calculateNewCGPA,
         getCurrentCredits,
-        getCurrentGradePoints,
         getCurrentCGPA,
-        round2,
-        fmt2,
-        calculateRequiredAverage,
-        calculateProjectedCGPA,
-        calculateCreditsNeeded,
-        handleCalculatorSave,
         resetActiveTab,
     };
 };

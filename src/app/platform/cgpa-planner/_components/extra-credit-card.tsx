@@ -2,14 +2,17 @@ import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExtraCreditCardProps } from "../types";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { computeRow, getLetterFromPercentage, LETTERS, parseNum } from "../data";
 import { Star } from "lucide-react";
+import { Course, ExtraCreditCardProps } from "@/lib/cgpa-types";
 
 export const ExtraCreditCard = memo(function ExtraCreditCard({
   course,
   updateExtraCreditField,
   onExtraLetterChange,
+  onRemoveExtraCredit,
 }: ExtraCreditCardProps) {
   if (!course.showExtraCredit) return null;
   const ec = course.extraCredit!;
