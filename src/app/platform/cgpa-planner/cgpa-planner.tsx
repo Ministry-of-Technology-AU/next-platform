@@ -110,38 +110,41 @@ export default function CGPAPlanner({ data }: { data?: ParsedCGPAData | null }) 
                 {/* Main Tabs */}
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'upcoming' | 'grade-planner' | 'calculator')} className="w-full">
                     {/* Added mb-4 to add space between the tabs list and content */}
-                    <TabsList className="grid w-full grid-cols-3 mb-4 h-12 gap-1 rounded-lg border border-primary/30">
+                    <TabsList className="grid w-full grid-cols-3 mb-4 h-12 gap-1 rounded-lg bg-primary-extralight dark:bg-primary-extradark/30">
                         <TabsTrigger
                             className="px-4 py-2 text-sm font-medium transition-colors 
                  data-[state=active]:bg-primary data-[state=active]:text-white
-                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary
+                 data-[state=inactive]:bg-primary-extralight/10 data-[state=inactive]:text-white
                  hover:bg-primary/20"
                             value="upcoming"
                         >
-                            <BookOpen className="h-4 w-4 mr-2" />
-                            Upcoming Semester
+                            <BookOpen className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span className="hidden sm:inline">Upcoming Semester</span>
+                            <span className="sm:hidden">Upcoming</span>
                         </TabsTrigger>
 
                         <TabsTrigger
                             className="px-4 py-2 text-sm font-medium transition-colors 
                  data-[state=active]:bg-primary data-[state=active]:text-white
-                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary
+                 data-[state=inactive]:bg-primary-extralight/10 data-[state=inactive]:text-white
                  hover:bg-primary/20"
                             value="grade-planner"
                         >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Grade Planner
+                            <Upload className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span className="hidden sm:inline">Grade Planner</span>
+                            <span className="sm:hidden">Planner</span>
                         </TabsTrigger>
 
                         <TabsTrigger
                             className="px-4 py-2 text-sm font-medium transition-colors 
                  data-[state=active]:bg-primary data-[state=active]:text-white
-                 data-[state=inactive]:bg-primary/10 data-[state=inactive]:text-primary
+                 data-[state=inactive]:bg-primary-extralight/10 data-[state=inactive]:text-white
                  hover:bg-primary/20"
                             value="calculator"
                         >
-                            <Target className="h-4 w-4 mr-2" />
-                            Raise GPA Calculator
+                            <Target className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span className="hidden sm:inline">Raise GPA Calculator</span>
+                            <span className="sm:hidden">Calculator</span>
                         </TabsTrigger>
                     </TabsList>
 
@@ -149,7 +152,17 @@ export default function CGPAPlanner({ data }: { data?: ParsedCGPAData | null }) 
                         {/* Upcoming Semester Tab */}
                         <TabsContent value="upcoming" className="space-y-6">
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                                {/* Left Column - Main Table */}
+                                {/* Left Column - Semester Navigation */}
+                                <SemesterNavigation
+                                    resetActiveTab={resetActiveTab}
+                                    setIsFormView={setIsFormView}
+                                    upcomingSemesters={upcomingSemesters}
+                                    pastSemesters={pastSemesters}
+                                    selectedSemester={selectedSemester}
+                                    setSelectedSemester={setSelectedSemester}
+                                />
+
+                                {/* Right Column - Main Table */}
                                 <div className="lg:col-span-3">
                                     {displaySemester ? (
                                         <Card>
@@ -157,31 +170,31 @@ export default function CGPAPlanner({ data }: { data?: ParsedCGPAData | null }) 
                                                 <div className="w-full overflow-x-auto">
                                                     <div className="min-w-[600px] md:min-w-[800px] border border-border rounded-lg overflow-hidden">
                                                         {/* Header */}
-                                                        <div className="grid border-b border-border" style={{ gridTemplateColumns: isCurrentSemester ? '40px 100px 1fr 120px 100px' : '40px 100px 1fr 120px 100px 100px 100px' }}>
-                                                            <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-border text-xs md:text-sm flex items-center justify-center">
+                                                        <div className="grid border-b border-white/20" style={{ gridTemplateColumns: isCurrentSemester ? '40px 100px 1fr 120px 100px' : '40px 100px 1fr 120px 100px 100px 100px' }}>
+                                                            <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-white/20 text-xs md:text-sm flex items-center justify-center">
                                                                 <EllipsisVertical className="h-4 w-4 opacity-50" />
                                                             </div>
-                                                            <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-border text-xs md:text-sm">
+                                                            <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-white/20 text-xs md:text-sm flex items-center justify-center">
                                                                 Code
                                                             </div>
-                                                            <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-border text-xs md:text-sm">
+                                                            <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-white/20 text-xs md:text-sm flex items-center justify-center">
                                                                 Title
                                                             </div>
-                                                            <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-border text-xs md:text-sm">
+                                                            <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-white/20 text-xs md:text-sm flex items-center justify-center">
                                                                 <span className="hidden sm:inline">Credits Registered</span>
                                                                 <span className="sm:hidden">Credits</span>
                                                             </div>
-                                                            <div className={`font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground text-xs md:text-sm ${!isCurrentSemester ? 'border-r border-border' : ''}`}>
+                                                            <div className={`font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground text-xs md:text-sm flex items-center justify-center ${!isCurrentSemester ? 'border-r border-white/20' : ''}`}>
                                                                 Grade
                                                             </div>
                                                             {!isCurrentSemester && (
-                                                                <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-border text-xs md:text-sm">
+                                                                <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground border-r border-white/20 text-xs md:text-sm flex items-center justify-center">
                                                                     <span className="hidden sm:inline">Credits Earned</span>
                                                                     <span className="sm:hidden">Earned</span>
                                                                 </div>
                                                             )}
                                                             {!isCurrentSemester && (
-                                                                <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground text-xs md:text-sm">
+                                                                <div className="font-bold text-center p-2 md:p-4 bg-primary text-primary-foreground text-xs md:text-sm flex items-center justify-center">
                                                                     <span className="hidden sm:inline">Grade Points</span>
                                                                     <span className="sm:hidden">Points</span>
                                                                 </div>
@@ -189,8 +202,8 @@ export default function CGPAPlanner({ data }: { data?: ParsedCGPAData | null }) 
                                                         </div>
 
                                                         {/* Semester Title Row */}
-                                                        <div className="grid border-b border-border" style={{ gridTemplateColumns: isCurrentSemester ? '40px 100px 1fr 120px 100px' : '40px 100px 1fr 120px 100px 100px 100px' }}>
-                                                            <div className="col-span-full p-2 md:p-4 bg-blue-dark text-white font-semibold text-center text-xs md:text-sm">
+                                                        <div className="grid border-b border-white/20" style={{ gridTemplateColumns: isCurrentSemester ? '40px 100px 1fr 120px 100px' : '40px 100px 1fr 120px 100px 100px 100px' }}>
+                                                            <div className="col-span-full p-2 md:p-4 bg-blue-dark text-white font-semibold text-center text-xs md:text-sm flex items-center justify-center">
                                                                 {displaySemester.semester}
                                                             </div>
                                                         </div>
@@ -267,7 +280,7 @@ export default function CGPAPlanner({ data }: { data?: ParsedCGPAData | null }) 
                                                                                 </PopoverContent>
                                                                             </Popover>
                                                                         </div>
-                                                                        <div className={`p-2 md:p-3 border-r border-border text-center text-xs md:text-sm font-medium text-blue-700 flex items-center justify-center ${isOverwritten ? 'opacity-40' : ''}`}>
+                                                                        <div className={`p-2 md:p-3 border-r border-border text-center text-xs md:text-sm font-medium text-blue-light flex items-center justify-center ${isOverwritten ? 'opacity-40' : ''}`}>
                                                                             {course.code}
                                                                         </div>
                                                                         <div className="p-2 md:p-3 border-r border-border text-xs md:text-sm">
@@ -359,7 +372,7 @@ export default function CGPAPlanner({ data }: { data?: ParsedCGPAData | null }) 
                                                         <div className="flex flex-col gap-4">
                                                             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                                                                 {/* Metrics container (auto width) */}
-                                                                <div className="bg-slate-50/50 border border-primary/20 rounded-lg px-4 py-3 inline-flex items-center gap-6">
+                                                                <div className="dark:bg-blue-extradark/30 border border-primary/20 rounded-lg px-4 py-3 inline-flex items-center gap-6">
                                                                     <div>
                                                                         <div className="text-xs font-medium text-muted-foreground tracking-wide uppercase">Sem GPA</div>
                                                                         <div className="text-xl font-bold text-primary tabular-nums">{calculatedCGPA ? calculatedCGPA.semesterGPA : '--'}</div>
@@ -399,16 +412,6 @@ export default function CGPAPlanner({ data }: { data?: ParsedCGPAData | null }) 
                                         </Alert>
                                     )}
                                 </div>
-
-                                {/* Right Column - Semester Navigation */}
-                                <SemesterNavigation
-                                    resetActiveTab={resetActiveTab}
-                                    setIsFormView={setIsFormView}
-                                    upcomingSemesters={upcomingSemesters}
-                                    pastSemesters={pastSemesters}
-                                    selectedSemester={selectedSemester}
-                                    setSelectedSemester={setSelectedSemester}
-                                />
                             </div>
                         </TabsContent>
 
