@@ -1,50 +1,50 @@
-import { GradeComponent, Course } from "./types";
+import { GradeComponent, Course } from "@/lib/cgpa-types";
 
 export const LETTERS = [
   "A", "A-", "B+", "B", "B-",
   "C+", "C", "C-", "D+", "D", "D-", "F",
 ];
 
-    export const gradeOptions = [
-        { value: "Select", label: "Select" },
-        { value: "A", label: "A" },
-        { value: "A-", label: "A-" },
-        { value: "B+", label: "B+" },
-        { value: "B", label: "B" },
-        { value: "B-", label: "B-" },
-        { value: "C+", label: "C+" },
-        { value: "C", label: "C" },
-        { value: "C-", label: "C-" },
-        { value: "D+", label: "D+" },
-        { value: "D", label: "D" },
-        { value: "D-", label: "D-" },
-        { value: "P", label: "P" },
-        { value: "F (w P/F)", label: "F (w P/F)" },
-        { value: "F (w/o P/F)", label: "F (w/o P/F)" },
-        { value: "AU", label: "AU" },
-        { value: "TP (w credits)", label: "TP (w credits)" },
-        { value: "TP (w/o credits)", label: "TP (w/o credits)" }
-    ];
+export const gradeOptions = [
+  { value: "Select", label: "Select" },
+  { value: "A", label: "A" },
+  { value: "A-", label: "A-" },
+  { value: "B+", label: "B+" },
+  { value: "B", label: "B" },
+  { value: "B-", label: "B-" },
+  { value: "C+", label: "C+" },
+  { value: "C", label: "C" },
+  { value: "C-", label: "C-" },
+  { value: "D+", label: "D+" },
+  { value: "D", label: "D" },
+  { value: "D-", label: "D-" },
+  { value: "P", label: "P" },
+  { value: "F (w P/F)", label: "F (w P/F)" },
+  { value: "F (w/o P/F)", label: "F (w/o P/F)" },
+  { value: "AU", label: "AU" },
+  { value: "TP (w credits)", label: "TP (w credits)" },
+  { value: "TP (w/o credits)", label: "TP (w/o credits)" }
+];
 
 export const gradePointsMap = {
-        'A': 4.0,
-        'A-': 3.7,
-        'B+': 3.3,
-        'B': 3.0,
-        'B-': 2.7,
-        'C+': 2.3,
-        'C': 2.0,
-        'C-': 1.7,
-        'D+': 1.3,
-        'D': 1.0,
-        'D-': 0.7,
-        'F (w P/F)': 0.0,
-        'TP (w credits)': 0.0,
-        'TP (w/o credits)': 0.0,
-        'P': 0.0,
-        'AU': 0.0,
-        'F (w/o P/F)': 0.0
-    };
+  'A': 4.0,
+  'A-': 3.7,
+  'B+': 3.3,
+  'B': 3.0,
+  'B-': 2.7,
+  'C+': 2.3,
+  'C': 2.0,
+  'C-': 1.7,
+  'D+': 1.3,
+  'D': 1.0,
+  'D-': 0.7,
+  'F (w P/F)': 0.0,
+  'TP (w credits)': 0.0,
+  'TP (w/o credits)': 0.0,
+  'P': 0.0,
+  'AU': 0.0,
+  'F (w/o P/F)': 0.0
+};
 
 export const letterRanges = [
   { letter: "A", min: 89.5, max: 100 },

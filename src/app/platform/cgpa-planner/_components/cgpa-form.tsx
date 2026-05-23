@@ -5,26 +5,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calculator } from "lucide-react";
-import { PFCreditsComponent } from "./pf-credits";
 
 interface CGPAFormProps {
     gradeInput: string;
     setGradeInput: React.Dispatch<React.SetStateAction<string>>;
-    pfCredits: string;
-    setPfCredits: React.Dispatch<React.SetStateAction<string>>;
     handleCalculate: () => void;
 }
 
 /**
  * CGPA Form Component
- * Allows users to input their grades and PF credits to calculate CGPA
+ * Allows users to input their grades to calculate CGPA
  */
-export default function CGPAForm({ 
-    gradeInput, 
-    setGradeInput, 
-    pfCredits, 
-    setPfCredits, 
-    handleCalculate 
+export default function CGPAForm({
+    gradeInput,
+    setGradeInput,
+    handleCalculate
 }: CGPAFormProps) {
     const isDisabled = !gradeInput.trim();
 
@@ -44,14 +39,6 @@ export default function CGPAForm({
                             placeholder="Go to the Grades & Evaluations' page on your AMS → Ctrl+A → Ctrl+C → navigate back to this page → Ctrl+V in this box. On Macs, use Cmd instead of Ctrl."
                             rows={10}
                             className="text-sm font-mono resize-y"
-                        />
-                    </div>
-
-                    {/* PF Credits Section */}
-                    <div className="space-y-2">
-                        <PFCreditsComponent
-                            pfCredits={pfCredits}
-                            setPfCredits={setPfCredits}
                         />
                     </div>
 
