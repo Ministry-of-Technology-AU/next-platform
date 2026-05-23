@@ -157,11 +157,11 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
                     if (i < parsed.semesters.length) {
                         newSemesters.push({
                             ...parsed.semesters[i],
-                            id: `semester-${i + 1}`,
+                            id: `semester-${uuidv4()}`,
                         })
                     } else {
                         newSemesters.push({
-                            id: `semester-${i + 1}`,
+                            id: `semester-${uuidv4()}`,
                             name: `Semester ${i + 1}`,
                             courses: [],
                         })
@@ -310,9 +310,17 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
 
     const addSemester = () => {
         setState((prev) => {
-            const newSemesterNumber = prev.semesters.length + 1
+            let maxNum = 0
+            prev.semesters.forEach(s => {
+                const match = s.name.match(/Semester (\d+)/i)
+                if (match) {
+                    maxNum = Math.max(maxNum, parseInt(match[1]))
+                }
+            })
+            const newSemesterNumber = maxNum > 0 ? maxNum + 1 : prev.semesters.length + 1
+
             const newSemester: Semester = {
-                id: `semester-${newSemesterNumber}`,
+                id: `semester-${uuidv4()}`,
                 name: `Semester ${newSemesterNumber}`,
                 courses: [],
             }

@@ -150,17 +150,25 @@ export function parseGradeDataForPlanner(text: string): ParsedCGPADataForPlanner
     for (const line of lines) {
         // Detect semester header (e.g., "Monsoon 2022", "Spring 2023", "Summer 2024")
         if (line.match(/^(Monsoon|Spring|Summer)\s+\d{4}/)) {
+            const parsedSemesterName = line.split('\t')[0].trim()
+            
+            // If the semester name is the same as current, it's just a page break in AMS.
+            // Don't create a new semester, just continue accumulating courses.
+            if (currentSemesterName === parsedSemesterName) {
+                continue
+            }
+
             // Save previous semester if exists
             if (currentSemesterName && currentCourses.length > 0) {
                 result.semesters.push({
-                    id: `semester-${semesterIndex + 1}`,
+                    id: `semester-${uuidv4()}`,
                     name: currentSemesterName,
                     courses: currentCourses,
                 })
                 semesterIndex++
             }
 
-            currentSemesterName = line.split('\t')[0].trim() // Get just the semester name
+            currentSemesterName = parsedSemesterName
             currentCourses = []
             continue
         }
@@ -198,7 +206,7 @@ export function parseGradeDataForPlanner(text: string): ParsedCGPADataForPlanner
     // Don't forget last semester
     if (currentSemesterName && currentCourses.length > 0) {
         result.semesters.push({
-            id: `semester-${semesterIndex + 1}`,
+            id: `semester-${uuidv4()}`,
             name: currentSemesterName,
             courses: currentCourses,
         })
