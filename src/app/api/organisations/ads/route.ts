@@ -10,7 +10,6 @@ import { getUserIdByEmail, getOrganisationIdByUserId } from '@/lib/userid';
  */
 export async function GET() {
     try {
-        // Get current user session
         const session = await auth();
         const email = session?.user?.email;
 
@@ -20,9 +19,7 @@ export async function GET() {
                 { status: 401 }
             );
         }
-        console.log("Email: ", email);
 
-        // Get Strapi user ID from email (backend only - secure)
         const userId = await getUserIdByEmail(email);
 
         if (!userId) {
@@ -31,19 +28,15 @@ export async function GET() {
                 { status: 404 }
             );
         }
-        else console.log("User ID: ", userId)
 
-        // Get organisation ID from user ID
         const organisationId = await getOrganisationIdByUserId(userId);
 
         if (!organisationId) {
-            // User not in an organisation - return empty array
             return NextResponse.json({
                 success: true,
                 data: []
             });
         }
-        else console.log("Organisation ID: ", organisationId)
 
         // Fetch ads belonging to this organisation
         const response = await strapiGet('/advertisements', {
@@ -54,15 +47,11 @@ export async function GET() {
                     }
                 }
             },
-            sort: 'order:asc',
+            sort: 'createdAt:desc',
             publicationState: 'preview' // Get both draft and published
         });
 
-        console.log('[GET ADS] Raw Strapi response:', JSON.stringify(response, null, 2));
-
         const ads = response?.data || [];
-
-        console.log(`[GET ADS] Found ${ads.length} ad(s) for organisation ${organisationId}`);
 
         return NextResponse.json({
             success: true,

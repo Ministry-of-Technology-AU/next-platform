@@ -3,7 +3,6 @@ import PageTitle from '@/components/page-title';
 import DeveloperCredits from '@/components/developer-credits';
 import { Megaphone } from 'lucide-react';
 import { NewToolBanner } from '@/components/new-tool-banner';
-import { OrientationDialog } from '@/components/orientation-dialog';
 
 export default function TrajectoryPlannerLayout({
     children,
@@ -31,7 +30,6 @@ export default function TrajectoryPlannerLayout({
                     {children}
 
                     <DeveloperCredits developers={developers} />
-                    <OrientationDialog />
                 </div>
             </div>
         </>

@@ -551,13 +551,55 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter(
       (file) =>
         file.type.startsWith("image/") && file.size <= maxSize * 1024 * 1024
     );
-    onChange?.(validFiles);
+
+    if (validFiles.length < files.length) {
+      toast.error(`Some files exceeded the maximum size of ${maxSize}MB and were removed.`);
+    }
+
+    // Convert to WebP client-side
+    const processFiles = await Promise.all(
+      validFiles.map((file) => {
+        return new Promise<File>((resolve) => {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          img.onload = () => {
+            URL.revokeObjectURL(url);
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return resolve(file); // Fallback
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) return resolve(file); // Fallback
+                const newFile = new File(
+                  [blob],
+                  file.name.replace(/\.[^/.]+$/, "") + ".webp",
+                  { type: "image/webp" }
+                );
+                resolve(newFile);
+              },
+              "image/webp",
+              0.85
+            );
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
+            resolve(file); // Fallback
+          };
+          img.src = url;
+        });
+      })
+    );
+
+    onChange?.(processFiles);
   };
 
   const removeFile = (index: number) => {
@@ -693,6 +735,7 @@ interface InstructionsFieldProps {
   body: string | string[];
   className?: string;
   description?: string;
+  defaultOpen?: boolean;
 }
 
 export function InstructionsField({
@@ -701,6 +744,7 @@ export function InstructionsField({
   body,
   className = "",
   description,
+  defaultOpen = false,
 }: InstructionsFieldProps) {
   const bodyContent = Array.isArray(body) ? body : [body];
 
@@ -709,7 +753,7 @@ export function InstructionsField({
       {description && (
         <p className="text-sm text-muted-foreground">{description}</p>
       )}
-      <Disclosure className="flex-1 rounded-md border bg-primary-extralight/20 dark:bg-primary-dark/30 border-gray-200 dark:border-gray-700 p-3 min-w-0">
+      <Disclosure open={defaultOpen} className="flex-1 rounded-md border bg-primary-extralight/20 dark:bg-primary-dark/30 border-gray-200 dark:border-gray-700 p-3 min-w-0">
         <DisclosureTrigger>
           <Button
             variant="ghost"

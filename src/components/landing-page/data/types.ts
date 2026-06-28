@@ -10,6 +10,11 @@ export type BannerButton = React.ComponentProps<typeof Button> & {
   style?: React.CSSProperties; // Detailed inline styling support
 };
 
+export interface TextStyle {
+  color?: string;
+  fontWeight?: string;
+}
+
 export interface Advertisement {
   id: number;
   attributes: {
@@ -18,7 +23,13 @@ export interface Advertisement {
     description: string;
     gradient: string;
     order: number;
-    banner_url?: string; // The Google Drive embed link
+    banner_url?: string;
     buttons?: any; // JSON type in Strapi
+    start_date?: string;
+    end_date?: string;
+    title_style?: TextStyle;
+    subtitle_style?: TextStyle;
+    description_style?: TextStyle;
+    publishedAt?: string | null;
   }
 }

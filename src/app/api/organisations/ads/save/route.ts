@@ -6,7 +6,6 @@ import { getUserIdByEmail, getOrganisationIdByUserId } from '@/lib/userid';
 
 export async function POST(request: Request) {
     try {
-        // Get current user session
         const session = await auth();
         const email = session?.user?.email;
 
@@ -17,29 +16,23 @@ export async function POST(request: Request) {
             );
         }
 
-        // Get Strapi user ID from email
         const userId = await getUserIdByEmail(email);
 
         if (!userId) {
-            console.error('No Strapi user found for email:', email);
             return NextResponse.json(
                 { success: false, error: 'User not found in system' },
                 { status: 404 }
             );
         }
-        console.log("User ID: ", userId)
 
-        // Get organisation ID from user ID
         const organisationId = await getOrganisationIdByUserId(userId);
 
         if (!organisationId) {
-            console.error('No organisation found for user:', userId);
             return NextResponse.json(
                 { success: false, error: 'You must be part of an organisation to create ads' },
                 { status: 403 }
             );
         }
-        console.log("Organisation ID: ", organisationId)
 
         const formData = await request.formData();
 
@@ -51,7 +44,11 @@ export async function POST(request: Request) {
         const buttons = formData.get('buttons') as string;
         const order = formData.get('order') as string;
         const imageFile = formData.get('image') as File | null;
-
+        const startDate = formData.get('start_date') as string | null;
+        const endDate = formData.get('end_date') as string | null;
+        const titleStyle = formData.get('title_style') as string | null;
+        const subtitleStyle = formData.get('subtitle_style') as string | null;
+        const descriptionStyle = formData.get('description_style') as string | null;
 
         // If image is provided, upload to Cloudinary
         let bannerUrl = formData.get('banner_url') as string | null;
@@ -85,11 +82,19 @@ export async function POST(request: Request) {
             try {
                 parsedButtons = JSON.parse(buttons);
             } catch (e) {
-                console.error('Failed to parse buttons:', e);
+                // Invalid JSON, ignore
             }
         }
 
-        const adData = {
+        // Parse style JSONs
+        let parsedTitleStyle = null;
+        let parsedSubtitleStyle = null;
+        let parsedDescriptionStyle = null;
+        try { if (titleStyle) parsedTitleStyle = JSON.parse(titleStyle); } catch (e) { /* ignore */ }
+        try { if (subtitleStyle) parsedSubtitleStyle = JSON.parse(subtitleStyle); } catch (e) { /* ignore */ }
+        try { if (descriptionStyle) parsedDescriptionStyle = JSON.parse(descriptionStyle); } catch (e) { /* ignore */ }
+
+        const adData: Record<string, any> = {
             data: {
                 title: title || '',
                 subtitle: subtitle || '',
@@ -98,40 +103,29 @@ export async function POST(request: Request) {
                 buttons: parsedButtons,
                 order: parseInt(order) || 0,
                 banner_url: bannerUrl,
-                organisation: organisationId, // Link to organisation
+                organisation: organisationId,
                 publishedAt: null, // Keep as draft (unpublished)
+                start_date: startDate || null,
+                end_date: endDate || null,
+                title_style: parsedTitleStyle,
+                subtitle_style: parsedSubtitleStyle,
+                description_style: parsedDescriptionStyle,
             }
         };
 
-        // Determine if ID is a real Strapi ID or a temporary frontend ID
-        // Real Strapi IDs are typically small integers (1, 2, 3, ...)
-        // Frontend temporary IDs are Date.now() timestamps (1769668801472...)
         const numericId = id ? parseInt(id) : NaN;
         const isRealStrapiId = id &&
             id !== 'undefined' &&
             !isNaN(numericId) &&
             numericId > 0 &&
-            numericId < 10000; // Threshold to detect temp IDs
-
-        console.log('[SAVE AD] ID validation:', {
-            rawId: id,
-            numericId,
-            isRealStrapiId,
-            operation: isRealStrapiId ? 'UPDATE' : 'CREATE'
-        });
+            numericId < 10000;
 
         let response;
         if (isRealStrapiId) {
-            // Update existing ad (keep as draft)
-            console.log(`[SAVE AD] Updating existing ad with ID: ${id}`);
             response = await strapiPut(`/advertisements/${id}`, adData);
         } else {
-            // Create new ad (as draft)
-            console.log('[SAVE AD] Creating new ad');
             response = await strapiPost('/advertisements', adData);
         }
-
-        console.log('[SAVE AD] Success:', response.data);
 
         return NextResponse.json({
             success: true,

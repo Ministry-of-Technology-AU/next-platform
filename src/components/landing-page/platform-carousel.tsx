@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { banners } from './data/platform-data';
-import { ButtonVariant } from './data/types';
+import { ButtonVariant, TextStyle } from './data/types';
 import Image from 'next/image';
 import { getOptimizedImageUrl } from '@/lib/apis/cloudinary-url';
 
@@ -58,6 +59,7 @@ export default function PlatformCarousel({
   manualSlide,
   onSlideChange
 }: PlatformCarouselProps) {
+  const router = useRouter();
   const [internalSlide, setInternalSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(autoPlay);
 
@@ -89,14 +91,16 @@ export default function PlatformCarousel({
       alt: ad.attributes.title,
       gradient: ad.attributes.gradient || "",
       buttons: ad.attributes.buttons || [],
+      title_style: ad.attributes.title_style,
+      subtitle_style: ad.attributes.subtitle_style,
+      description_style: ad.attributes.description_style,
     };
   });
 
-  // const allBanners = [...adBanners, ...banners];
   const allBanners = adBanners.length > 0 ? [...adBanners] : [...banners];
 
   useEffect(() => {
-    // Sync internal state if manualSlide changes (optional, but good for switching modes)
+    // Sync internal state if manualSlide changes
     if (manualSlide !== undefined) {
       setInternalSlide(manualSlide);
     }
@@ -143,6 +147,42 @@ export default function PlatformCarousel({
     goToSlide(prev);
   };
 
+  /**
+   * Smart link handler:
+   * - Full URLs (http:// or https://) → open in new tab
+   * - Paths starting with / → internal navigation, prepend /platform if needed
+   * - Bare paths (e.g. "sports") → prepend /platform/
+   */
+  const handleButtonUrl = (url: string) => {
+    if (!url || url === '#' || url === 'https://' || url === 'http://') return;
+
+    // External: full URL → open in new tab
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      window.open(url, '_blank');
+      return;
+    }
+
+    // Internal path
+    let internalPath = url;
+    if (!internalPath.startsWith('/')) {
+      internalPath = `/${internalPath}`;
+    }
+    // Prepend /platform if the path doesn't already start with it
+    if (!internalPath.startsWith('/platform')) {
+      internalPath = `/platform${internalPath}`;
+    }
+    router.push(internalPath);
+  };
+
+  /** Build inline style from TextStyle object */
+  const textStyleToCSS = (ts?: TextStyle): React.CSSProperties => {
+    if (!ts) return {};
+    const s: React.CSSProperties = {};
+    if (ts.color) s.color = ts.color;
+    if (ts.fontWeight) s.fontWeight = ts.fontWeight as any;
+    return s;
+  };
+
   return (
     <div className={`relative w-full max-w-4xl aspect-[16/7] sm:aspect-[16/7] md:aspect-[16/7] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ${className}`}>
       {/* Carousel Images */}
@@ -170,22 +210,31 @@ export default function PlatformCarousel({
               {/* Content Overlay */}
               <div className="absolute inset-0 flex items-center justify-start text-left text-white px-8 py-3 sm:px-14 sm:py-6 md:px-16 md:py-8">
                 <div className="sm:max-w-lg max-w-xs">
-                  <div className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${index === currentSlide
-                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
-                    : 'opacity-0 translate-y-4'
-                    }`}>
+                  <div
+                    className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${index === currentSlide
+                      ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                      : 'opacity-0 translate-y-4'
+                    }`}
+                    style={textStyleToCSS((banner as any).subtitle_style)}
+                  >
                     {banner.subtitle}
                   </div>
-                  <h1 className={`!text-sm sm:!text-2xl lg:!text-4xl font-extrabold mb-2 sm:mb-4 transition-all duration-1000 delay-150 !text-left ${index === currentSlide
-                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
-                    : 'opacity-0 translate-y-4'
-                    }`}>
+                  <h1
+                    className={`!text-sm sm:!text-2xl lg:!text-4xl font-extrabold mb-2 sm:mb-4 transition-all duration-1000 delay-150 !text-left ${index === currentSlide
+                      ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                      : 'opacity-0 translate-y-4'
+                    }`}
+                    style={textStyleToCSS((banner as any).title_style)}
+                  >
                     {banner.title}
                   </h1>
-                  <p className={`sm:text-sm md:text-base text-[10px] mb-3 sm:mb-6 opacity-90 transition-all duration-1000 delay-300 ${index === currentSlide
-                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
-                    : 'opacity-0 translate-y-4'
-                    }`}>
+                  <p
+                    className={`sm:text-sm md:text-base text-[10px] mb-3 sm:mb-6 opacity-90 transition-all duration-1000 delay-300 ${index === currentSlide
+                      ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                      : 'opacity-0 translate-y-4'
+                    }`}
+                    style={textStyleToCSS((banner as any).description_style)}
+                  >
                     {banner.description}
                   </p>
                   {Array.isArray(banner.buttons) && banner.buttons.length > 0 && (
@@ -221,20 +270,7 @@ export default function PlatformCarousel({
                         const finalClassName = `text-xs sm:text-sm ${filteredClasses.join(" ")}`;
 
                         const handleClick = url
-                          ? () => {
-                            // Validate URL before opening
-                            if (!url || url === '#' || url === 'https://' || url === 'http://') {
-                              return; // Don't open invalid URLs
-                            }
-
-                            // Ensure URL is absolute
-                            let absoluteUrl = url;
-                            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                              absoluteUrl = `https://${url}`;
-                            }
-
-                            window.open(absoluteUrl, '_blank');
-                          }
+                          ? () => handleButtonUrl(url)
                           : otherProps.onClick;
 
                         const hoverBgColor = btnStyle?.['--hover-bg'];

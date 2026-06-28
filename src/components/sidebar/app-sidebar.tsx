@@ -41,7 +41,9 @@ import {
   Route,
   ArrowDownRight,
   CalendarSearch,
-  Megaphone
+  Megaphone,
+  Trophy,
+  MapPinned
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -70,7 +72,9 @@ const iconMap = {
   Route,
   ArrowDownRight,
   CalendarSearch,
-  Megaphone
+  Megaphone,
+  Trophy,
+  MapPinned
 };
 
 interface SidebarItem {

@@ -7,7 +7,6 @@ import { getUserIdByEmail, getOrganisationIdByUserId } from '@/lib/userid';
 
 export async function POST(request: Request) {
     try {
-        // Get current user session
         const session = await auth();
         const email = session?.user?.email;
 
@@ -18,7 +17,6 @@ export async function POST(request: Request) {
             );
         }
 
-        // Get Strapi user ID from email
         const userId = await getUserIdByEmail(email);
 
         if (!userId) {
@@ -27,9 +25,7 @@ export async function POST(request: Request) {
                 { status: 404 }
             );
         }
-        else console.log(userId)
 
-        // Get organisation ID from user ID
         const organisationId = await getOrganisationIdByUserId(userId);
 
         if (!organisationId) {
@@ -38,11 +34,9 @@ export async function POST(request: Request) {
                 { status: 403 }
             );
         }
-        else console.log(organisationId)
 
         const formData = await request.formData();
 
-        // Extract form fields
         const id = formData.get('id') as string | null;
         const title = formData.get('title') as string;
         const subtitle = formData.get('subtitle') as string;
@@ -51,6 +45,11 @@ export async function POST(request: Request) {
         const buttons = formData.get('buttons') as string;
         const order = formData.get('order') as string;
         const imageFile = formData.get('image') as File | null;
+        const startDate = formData.get('start_date') as string | null;
+        const endDate = formData.get('end_date') as string | null;
+        const titleStyle = formData.get('title_style') as string | null;
+        const subtitleStyle = formData.get('subtitle_style') as string | null;
+        const descriptionStyle = formData.get('description_style') as string | null;
 
         // If image is provided, upload to Cloudinary
         let bannerUrl = formData.get('banner_url') as string | null;
@@ -70,7 +69,6 @@ export async function POST(request: Request) {
             }
         }
 
-        // Validate banner URL exists
         if (!bannerUrl) {
             return NextResponse.json(
                 { success: false, error: 'Banner image is required' },
@@ -78,18 +76,24 @@ export async function POST(request: Request) {
             );
         }
 
-        // Parse buttons JSON
         let parsedButtons = [];
         if (buttons) {
             try {
                 parsedButtons = JSON.parse(buttons);
             } catch (e) {
-                console.error('Failed to parse buttons:', e);
+                // Invalid JSON, ignore
             }
         }
 
-        // Prepare data for Strapi
-        const adData = {
+        // Parse style JSONs
+        let parsedTitleStyle = null;
+        let parsedSubtitleStyle = null;
+        let parsedDescriptionStyle = null;
+        try { if (titleStyle) parsedTitleStyle = JSON.parse(titleStyle); } catch (e) { /* ignore */ }
+        try { if (subtitleStyle) parsedSubtitleStyle = JSON.parse(subtitleStyle); } catch (e) { /* ignore */ }
+        try { if (descriptionStyle) parsedDescriptionStyle = JSON.parse(descriptionStyle); } catch (e) { /* ignore */ }
+
+        const adData: Record<string, any> = {
             data: {
                 title: title || '',
                 subtitle: subtitle || '',
@@ -98,47 +102,35 @@ export async function POST(request: Request) {
                 buttons: parsedButtons,
                 order: parseInt(order) || 0,
                 banner_url: bannerUrl,
-                organisation: organisationId, // Link to organisation
-                publishedAt: null, // Keep as draft (unpublished) - admin must manually publish
+                organisation: organisationId,
+                publishedAt: null, // Keep as draft - admin must manually publish
+                start_date: startDate || null,
+                end_date: endDate || null,
+                title_style: parsedTitleStyle,
+                subtitle_style: parsedSubtitleStyle,
+                description_style: parsedDescriptionStyle,
             }
         };
 
-        // Determine if ID is a real Strapi ID or a temporary frontend ID
-        // Real Strapi IDs are typically small integers (1, 2, 3, ...)
-        // Frontend temporary IDs are Date.now() timestamps or 0 for new ads
         const numericId = id ? parseInt(id) : NaN;
         const isRealStrapiId = id &&
             id !== 'null' &&
             id !== 'undefined' &&
             !isNaN(numericId) &&
             numericId > 0 &&
-            numericId < 10000; // Threshold to detect temp IDs
-
-        console.log('[SUBMIT AD] ID validation:', {
-            rawId: id,
-            numericId,
-            isRealStrapiId,
-            operation: isRealStrapiId ? 'UPDATE' : 'CREATE'
-        });
+            numericId < 10000;
 
         let response;
         if (isRealStrapiId) {
-            // Update existing ad (keep as draft)
-            console.log(`[SUBMIT AD] Updating existing ad with ID: ${id}`);
             response = await strapiPut(`/advertisements/${id}`, adData);
         } else {
-            // Create new ad (as draft)
-            console.log('[SUBMIT AD] Creating new ad');
             response = await strapiPost('/advertisements', adData);
         }
 
-        console.log('[SUBMIT AD] Success:', response.data);
-
-        // Use session for email (already fetched above)
+        // Build email
         const senderName = session?.user?.name?.toString().trim() || 'Anonymous';
         const senderEmail = session?.user?.email?.toString().trim() || '';
 
-        // Helper to escape HTML
         const escapeHtml = (str: string) =>
             str
                 .replace(/&/g, '&amp;')
@@ -147,12 +139,16 @@ export async function POST(request: Request) {
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
 
-        // Format button details for email
         const buttonDetails = parsedButtons.map((btn: any, idx: number) =>
             `<li><strong>Button ${idx + 1}:</strong> "${escapeHtml(btn.children || '')}" → <a href="${escapeHtml(btn.url || '')}">${escapeHtml(btn.url || '')}</a> (Variant: ${escapeHtml(btn.variant || 'default')})</li>`
         ).join('');
 
-        // Create email content
+        const formatDate = (d: string | null) => {
+            if (!d) return 'Not set';
+            try { return new Date(d).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'long', year: 'numeric' }); }
+            catch { return d; }
+        };
+
         const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
@@ -169,19 +165,31 @@ export async function POST(request: Request) {
                 <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
                     <tr style="background: #f9fafb;">
                         <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold; width: 150px;">Title</td>
-                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(title)}</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(title || '')}</td>
                     </tr>
                     <tr>
                         <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Subtitle</td>
-                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(subtitle)}</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(subtitle || '')}</td>
                     </tr>
                     <tr style="background: #f9fafb;">
                         <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Description</td>
-                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(description)}</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(description || '')}</td>
                     </tr>
                     <tr>
                         <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Order</td>
-                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(order)}</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(order || '0')}</td>
+                    </tr>
+                    <tr style="background: #f9fafb;">
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Start Date</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${formatDate(startDate)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">End Date</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${formatDate(endDate)}</td>
+                    </tr>
+                    <tr style="background: #f9fafb;">
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Gradient</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">${escapeHtml(gradient || 'None')}</td>
                     </tr>
                 </table>
 
@@ -215,10 +223,13 @@ Submitted by: ${senderName} <${senderEmail || 'Not provided'}>
 Submission Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
 
 === Ad Details ===
-Title: ${title}
-Subtitle: ${subtitle}
-Description: ${description}
-Order: ${order}
+Title: ${title || ''}
+Subtitle: ${subtitle || ''}
+Description: ${description || ''}
+Order: ${order || '0'}
+Start Date: ${formatDate(startDate)}
+End Date: ${formatDate(endDate)}
+Gradient: ${gradient || 'None'}
 
 ${parsedButtons.length > 0 ? `=== Call-to-Action Buttons ===\n${parsedButtons.map((btn: any, idx: number) =>
             `Button ${idx + 1}: "${btn.children || ''}" → ${btn.url || ''} (Variant: ${btn.variant || 'default'})`
@@ -231,7 +242,6 @@ View at: ${bannerUrl}
 This ad has been saved as a draft. You can review and publish it from the Strapi admin panel.
         `;
 
-        // Send email to TECHMAIL_ID
         const recipientEmail = process.env.TECHMAIL_ID;
         if (!recipientEmail) {
             console.warn('TECHMAIL_ID not configured, skipping email notification');
