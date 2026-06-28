@@ -13,8 +13,9 @@ export default function TrajectoryPlannerLayout({
     children: React.ReactNode;
 }) {
     const developers = [
-        { name: "Soham Tulsyan" },
-        { name: "Vansh Bothra" }
+        { name: "Soham Tulsyan", role: "Development" },
+        { name: "Vansh Bothra", role: "Development" },
+        { name: "Aryan Nath", role: "Ideation" }
     ];
 
     return (

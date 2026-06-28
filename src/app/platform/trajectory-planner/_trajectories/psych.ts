@@ -82,7 +82,7 @@ export const psychTemplates: DegreeTemplate[] = [
         name: "Psychology (4 years)",
         batch: "2024",
         policyDocPath: "/policy_docs/PSY_Curriculum.pdf",
-        requiredCredits: { major: 72, minor: 0, fc: 36, cc: 4, openCredits: 46, total: 160 },
+        requiredCredits: { major: 72, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 46, total: 160 },
         defaultCourses: [
             { name: "Introduction to Psychology", credits: 4, deptCode: "PSY", type: "Major", isInSemester: false },
             { name: "Statistics and Research Methods I", credits: 4, deptCode: "PSY", type: "Major", isInSemester: false },
@@ -100,7 +100,7 @@ export const psychTemplates: DegreeTemplate[] = [
         name: "Psychology with Research (4 years)",
         batch: "2024",
         policyDocPath: "/policy_docs/PSY_Curriculum.pdf",
-        requiredCredits: { major: 84, minor: 0, fc: 36, cc: 4, openCredits: 34, total: 160 },
+        requiredCredits: { major: 84, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 34, total: 160 },
         defaultCourses: [
             { name: "Introduction to Psychology", credits: 4, deptCode: "PSY", type: "Major", isInSemester: false },
             { name: "Statistics and Research Methods I", credits: 4, deptCode: "PSY", type: "Major", isInSemester: false },

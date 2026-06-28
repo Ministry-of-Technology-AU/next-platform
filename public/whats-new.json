@@ -1,27 +1,18 @@
 {
-    "version": "1.0.0",
-    "lastUpdated": "2025-01-10",
+    "version": "1.0.9",
+    "lastUpdated": "2026-04-18",
     "updates": [
         {
-            "id": "trajectory-planner-launch",
-            "title": "Trajectory Planner",
-            "description": "Plan your entire degree journey! Drag-and-drop courses into semesters, track credits, and visualize your graduation path.",
+            "id": "ashokan-around-launch",
+            "title": "NEW FEATURE: Ashokan Around!",
+            "description": "Find and share accommodation during this internship season! Connect with other Ashokans to find roommates or offer spare rooms.",
+        },
+        {
+            "id": "apl-scorekeeping-launch",
+            "title": "TRACK APL LIVE!",
+            "description": "View live scores and status of the ongoing APL matches as they happen!",
             "type": "new",
-            "link": "/platform/trajectory-planner"
-        },
-        {
-            "id": "inductions-open",
-            "title": "Members Inductions for the Product Marketing team are open!",
-            "description": "Member inductions for the marketing team are now open for the Ministry of Technology!",
-            "type": "inductions",
-            "link": "https://forms.gle/vmQu8BtpSwbcam1U7"
-        },
-        {
-            "id": "inductions-open",
-            "title": "Deputy HOD Inductions for the Events team are open!",
-            "description": "Deputy HOD inductions for the events team are now open for the Ministry of Technology!",
-            "type": "inductions",
-            "link": "https://forms.gle/haZ5pzDX56MNxuah7"
+            "link": "/platform/sports/apl"
         }
     ]
 }

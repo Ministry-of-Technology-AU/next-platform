@@ -30,15 +30,20 @@ type EventsCalendarProps = {
   organizations: Organization[];
 };
 
-export default function EventsCalendar({ 
-  events, 
-  initialPreferences, 
+export default function EventsCalendar({
+  events,
+  initialPreferences,
   apiEndpoint = "/api/platform/events/preferences",
-  organizations 
+  organizations
 }: EventsCalendarProps) {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    // Create a date object that matches IST wall-clock time
+    const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    return new Date(istString);
+  });
   const [currentView, setCurrentView] = useState<CalendarView>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -52,13 +57,18 @@ export default function EventsCalendar({
 
   // Handle client-side only rendering
   useEffect(() => {
+    // Re-calculate IST date on mount to ensure consistency
+    const now = new Date();
+    const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    setSelectedDate(new Date(istString));
+
     setMounted(true);
-    
+
     // Set default view based on screen size after component mounts
     if (mounted && !isMobile) {
       setCurrentView("month");
     }
-    
+
     // Reset orientation dialog state when component unmounts
     return () => {
       setShowOrientation(false);
@@ -107,29 +117,29 @@ export default function EventsCalendar({
 
   const filteredEvents = useMemo(() => {
     console.log('Filtering events, count before filter:', events.length);
-    
+
     // Make a copy to avoid mutation issues
     let filtered = [...events];
-    
+
     // Filter by search query if there is one
     if (searchQuery) {
       filtered = filtered.filter(
         (event) =>
           event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (event.organizingBody && 
+          (event.organizingBody &&
             event.organizingBody.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (event.venue && 
+          (event.venue &&
             event.venue.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
-    
+
     // Apply preference filters only if usePreferencesFilter is enabled
     if (usePreferencesFilter) {
       // Filter by selected categories
       filtered = filtered.filter((event) =>
         preferences.selectedCategories.includes(event.category)
       );
-      
+
       // Filter by selected organizations if we have organizations and selections
       if (organizations.length > 0 && preferences.selectedOrganizations.length > 0) {
         filtered = filtered.filter((event) => {
@@ -138,14 +148,14 @@ export default function EventsCalendar({
           return preferences.selectedOrganizations.some(orgId => {
             // Direct ID match
             if (event.organization === orgId) return true;
-            
+
             // Match by name through organizations list
             const org = organizations.find(o => o.id === orgId);
-            if (org && (event.organizingBody === org.name || 
-                         event.organizingBody.toLowerCase() === org.name.toLowerCase())) {
+            if (org && (event.organizingBody === org.name ||
+              event.organizingBody.toLowerCase() === org.name.toLowerCase())) {
               return true;
             }
-            
+
             // Try matching the normalized organizingBody with organization ID
             const normalizedOrgName = event.organizingBody.toLowerCase().replace(/\s+/g, '-');
             return normalizedOrgName === orgId;
@@ -153,7 +163,7 @@ export default function EventsCalendar({
         });
       }
     }
-    
+
     console.log('Events after filtering:', filtered.length);
     return filtered;
   }, [searchQuery, preferences, events, usePreferencesFilter]);
@@ -184,7 +194,9 @@ export default function EventsCalendar({
   };
 
   const goToToday = () => {
-    setSelectedDate(new Date());
+    const now = new Date();
+    const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    setSelectedDate(new Date(istString));
   };
 
   const getNavigationLabel = () => {
@@ -231,7 +243,7 @@ export default function EventsCalendar({
       // Reset the orientation dialog flag for other views
       setShowOrientation(false);
     }
-    
+
     setCurrentView(view);
   };
 
@@ -262,9 +274,9 @@ export default function EventsCalendar({
         {/* Header with integrated controls for larger screens */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 
-          <PageTitle text="Events Calendar" icon={Calendar} subheading="Discover events happening around campus"/>
-          
-          
+          <PageTitle text="Events Calendar" icon={Calendar} subheading="Discover events happening around campus" />
+
+
           {/* Controls - moved to header row on larger screens */}
           <div className="flex items-center gap-2 mt-4 sm:mt-0">
             <TourStep
@@ -320,7 +332,7 @@ export default function EventsCalendar({
               </Button>
               <Button
                 variant={
-                  selectedDate.toDateString() === new Date().toDateString()
+                  selectedDate.toDateString() === new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })).toDateString()
                     ? "default"
                     : "outline"
                 }
@@ -373,7 +385,7 @@ export default function EventsCalendar({
             onOpenChange={setShowEventDialog}
           />
         )}
-        
+
         {/* Preferences Sidebar */}
         <PreferencesSidebar
           open={showPreferences}
@@ -385,7 +397,7 @@ export default function EventsCalendar({
           apiEndpoint={apiEndpoint}
           organizations={organizations}
         />
-        
+
         {/* Orientation Dialog - shown when needed */}
         {showOrientation && <OrientationDialog />}
       </div>

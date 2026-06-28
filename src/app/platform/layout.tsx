@@ -42,9 +42,9 @@ export default function RootLayout({
         >
           <SidebarProvider defaultOpen={false}>
             <NewToolAlert
-              href="/platform/trajectory-planner"
-              title="Trajectory Planner"
-              checkSeenKey="TRAJECTORY_PLANNER_TOUR_SEEN_V1"
+              href="/platform/ashokan-around"
+              title="Ashokan Around"
+              checkSeenKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1"
               blockIfNewVersion={true}
             />
             <WhatsNewModal />

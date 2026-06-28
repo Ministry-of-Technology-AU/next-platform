@@ -120,8 +120,8 @@ const TourOverlay: React.FC = () => {
   const padding = 8;
 
   return (
-    <div className="fixed inset-0 z-[10000] pointer-events-auto">
-      <div className="fixed inset-0 bg-black/30 z-[10001] backdrop-blur-sm pointer-events-auto" />
+    <div className="fixed inset-0 z-10000 pointer-events-auto">
+      <div className="fixed inset-0 bg-black/30 z-10001 backdrop-blur-sm pointer-events-auto" />
       <div
         className="absolute rounded-xl pointer-events-none"
         style={{
@@ -333,7 +333,7 @@ const GlobalTourPopover: React.FC = () => {
   return (
     <div
       ref={popoverRef}
-      className="fixed z-[10003] w-80"
+      className="fixed z-10003 w-80"
       style={{
         top: `${popoverPosition.top}px`,
         left: `${popoverPosition.left}px`,
@@ -603,7 +603,8 @@ export const TourStep: React.FC<{
   position?: "top" | "bottom" | "left" | "right";
   onOpen?: () => void; // New prop for step-specific open actions
   children: ReactNode;
-}> = ({ children, id, title, content, order, position, onOpen }) => {
+  className?: string;
+}> = ({ children, id, title, content, order, position, onOpen, className }) => {
   const { registerStep, unregisterStep, isActive, currentStepId } = useTour();
   const elementRef = useRef<HTMLDivElement>(null);
 
@@ -633,7 +634,7 @@ export const TourStep: React.FC<{
       ref={elementRef}
       data-tour-step={id}
       data-tour-config={JSON.stringify({ id, title, content, order, position })}
-      className={isCurrentStep ? "relative z-[10002]" : "relative"}
+      className={`${isCurrentStep ? "relative z-10002" : "relative"} ${className || ""}`}
     >
       {children}
     </div>

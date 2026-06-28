@@ -1,6 +1,6 @@
 export type Credits = 2 | 4 | 8 | 12
-export type CourseType = "FC" | "CC" | "Major" | "Minor" | "Open"
-export type DepartmentCode = "CS" | "ENT" | "ECO" | "MATH" | "PHY" | "PHIL" | "ENG" | "HIST" | "BIO" | "CHM" | "POL" | "PSY" | "HUM" | "CW" | "YIF" | "" // empty string for no dept
+export type CourseType = "FC" | "CC" | "Major" | "Minor" | "Open" | "CT"
+export type DepartmentCode = "CS" | "ENT" | "ECO" | "MATH" | "PHY" | "PHI" | "ENG" | "HIS" | "BIO" | "CHM" | "POL" | "PSY" | "HUM" | "CW" | "YIF" | "MS" | "PA" | "AST" | "" // empty string for no dept
 export type Grade = 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C+' | 'C' | 'C-' | 'D+' | 'D' | 'D-' | 'F' | 'P' | 'TP' | null
 
 export interface Course {
@@ -34,6 +34,7 @@ export interface DegreeTemplate {
         minor: number
         fc: number
         cc: number
+        concentration: number
         openCredits: number
         total: number
     }

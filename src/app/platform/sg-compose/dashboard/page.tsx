@@ -199,7 +199,7 @@ export default function DashboardPage() {
             data={emails}
             searchKey="subject"
             filterColumns={["category", "sender"]}
-            initialSorting={[{ id: "id", desc: false }]}
+            initialSorting={[{ id: "createdAt", desc: true }]}
           />
         )}
       </div>

@@ -4,7 +4,7 @@ import { strapiGet } from "@/lib/apis/strapi";
 export async function GET() {
   try {
     const filters: any = {
-      year: { $in: [2024, 2025] }
+      year: { $in: [2024, 2025, 2026] }
     };
 
     // add pagination of 2000 items
@@ -15,7 +15,7 @@ export async function GET() {
 
     const data = await strapiGet("/courses", {
       fields: ["courseCode", "courseTitle", "semester", "year"],
-      populate: ["faculties", "course_reviews", "reviews"],      
+      populate: ["faculties", "course_reviews", "reviews"],
       filters: filters,
       sort: ["year:desc"],
       pagination: pagination

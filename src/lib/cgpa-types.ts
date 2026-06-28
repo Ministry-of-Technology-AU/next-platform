@@ -1,4 +1,4 @@
-import { gradePointsMap } from "./data";
+import { gradePointsMap } from "@/app/platform/cgpa-planner/data";
 
 export type GradeComponent = {
   id: string;
@@ -17,42 +17,50 @@ export type Course = {
   showExtraCredit: boolean;
 };
 
+export type Semester = {
+  id: string;
+  name: string;
+  courses: Course[];
+};
+
 export type ParsedCourse = {
-    code?: string | null;
-    title?: string | null;
-    creditsRegistered?: number | null;
-    grade?: string | null;
-    creditsEarned?: number | null;
-    gradePoints?: number | null;
+  code?: string | null;
+  title?: string | null;
+  creditsRegistered?: number | null;
+  grade?: string | null;
+  creditsEarned?: number | null;
+  gradePoints?: number | null;
 };
 
 export type ParsedSemester = {
-    semester: string;
-    courses: ParsedCourse[];
-    gpa: number;
-    semesterCreditsEarned: number;
-    cgpa: number;
+  semester: string;
+  courses: ParsedCourse[];
+  gpa: number;
+  semesterCreditsEarned: number;
+  cgpa: number;
 };
 
 export type GradeKey = keyof typeof gradePointsMap | 'Select';
 
-   export type AttemptSource = 'past' | 'current';
+export type AttemptSource = 'past' | 'current';
 
 export type CourseAttempt = {
-        key: string;
-        gradeLabel: GradeKey;
-        gradePoints: number;
-        gpaCredits: number;
-        earnedCredits: number;
-        ratio: number | null;
-        source: AttemptSource;
-    };
+  key: string;
+  gradeLabel: GradeKey;
+  gradePoints: number;
+  gpaCredits: number;
+  earnedCredits: number;
+  ratio: number | null;
+  source: AttemptSource;
+  sIdx: number | null;
+  cIdx: number | null;
+};
 
 export type ParsedCGPAData = {
-    degreeCGPA: number;
-    majorCGPA: number;
-    totalCredits: number;
-    semesters: ParsedSemester[];
+  degreeCGPA: number;
+  majorCGPA: number;
+  totalCredits: number;
+  semesters: ParsedSemester[];
 };
 
 export type ComponentRowViewProps = {
@@ -67,6 +75,7 @@ export type ExtraCreditCardProps = {
   course: Course;
   updateExtraCreditField: (courseId: string, key: keyof GradeComponent, value: string) => void;
   onExtraLetterChange: (courseId: string, letter: string) => void;
+  onRemoveExtraCredit: (courseId: string) => void;
 };
 
 

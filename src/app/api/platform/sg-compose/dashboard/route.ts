@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
         
         // Build query parameters
         const queryParams: any = {
+            sort: ['createdAt:desc'],
             populate: {
                 sender: {
                     fields: ['id', 'email', 'username']
@@ -22,12 +23,15 @@ export async function GET(request: NextRequest) {
                 status: {
                     $eq: 'pending'
                 }
+            },
+            pagination: {
+                pageSize: 100 // Increase default limit to show more entries
             }
         };
         
         // Add pagination if provided
         if (searchParams.get('page')) {
-            queryParams.pagination = { page: parseInt(searchParams.get('page')!) };
+            queryParams.pagination = { ...queryParams.pagination, page: parseInt(searchParams.get('page')!) };
         }
         if (searchParams.get('pageSize')) {
             queryParams.pagination = { ...queryParams.pagination, pageSize: parseInt(searchParams.get('pageSize')!) };

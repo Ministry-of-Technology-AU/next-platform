@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="documentation/logo.png" width="200" height="200" />
+  <img src="documentation/media/logo.png" width="200" height="200" />
 </p>
 
 # Ashoka University Student Platform
@@ -75,6 +75,12 @@ A Student Engagement Platform developed by the Ministry of Technology.
 **Backend/Services:** NextAuth, Google APIs, Axios, Nodemailer
 
 **Utilities:** date-fns, Sonner, Vaul, cmdk
+
+## More Information
+
+For information on deploying to server, [click here](documentation/INSTRUCTIONS.md)
+
+For detailed information on the platform's features, [click here](documentation/OVERVIEW.md)
 
 
 ## Feedback & Support

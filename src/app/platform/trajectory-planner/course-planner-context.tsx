@@ -36,7 +36,7 @@ interface CoursePlannerContextType {
     getSemesterCredits: (semesterId: string) => number
     getSemesterGPA: (semesterId: string) => number | null
     getCGPA: () => number | null
-    getCreditsByType: () => { major: number; minor: number; fc: number; cc: number; openCredits: number; total: number }
+    getCreditsByType: () => { major: number; minor: number; fc: number; cc: number; concentration: number; openCredits: number; total: number }
     exportState: () => string
     importState: (jsonString: string) => void
 }
@@ -157,11 +157,11 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
                     if (i < parsed.semesters.length) {
                         newSemesters.push({
                             ...parsed.semesters[i],
-                            id: `semester-${i + 1}`,
+                            id: `semester-${uuidv4()}`,
                         })
                     } else {
                         newSemesters.push({
-                            id: `semester-${i + 1}`,
+                            id: `semester-${uuidv4()}`,
                             name: `Semester ${i + 1}`,
                             courses: [],
                         })
@@ -310,9 +310,17 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
 
     const addSemester = () => {
         setState((prev) => {
-            const newSemesterNumber = prev.semesters.length + 1
+            let maxNum = 0
+            prev.semesters.forEach(s => {
+                const match = s.name.match(/Semester (\d+)/i)
+                if (match) {
+                    maxNum = Math.max(maxNum, parseInt(match[1]))
+                }
+            })
+            const newSemesterNumber = maxNum > 0 ? maxNum + 1 : prev.semesters.length + 1
+
             const newSemester: Semester = {
-                id: `semester-${newSemesterNumber}`,
+                id: `semester-${uuidv4()}`,
                 name: `Semester ${newSemesterNumber}`,
                 courses: [],
             }
@@ -383,8 +391,8 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
         return totalCredits > 0 ? totalGradePoints / totalCredits : null
     }
 
-    const getCreditsByType = (): { major: number; minor: number; fc: number; cc: number; openCredits: number; total: number } => {
-        const credits = { major: 0, minor: 0, fc: 0, cc: 0, openCredits: 0, total: 0 }
+    const getCreditsByType = (): { major: number; minor: number; fc: number; cc: number; concentration: number; openCredits: number; total: number } => {
+        const credits = { major: 0, minor: 0, fc: 0, cc: 0, concentration: 0, openCredits: 0, total: 0 }
 
         for (const semester of state.semesters) {
             for (const course of semester.courses) {
@@ -406,6 +414,9 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
                         break
                     case "CC":
                         credits.cc += course.credits
+                        break
+                    case "CT":
+                        credits.concentration += course.credits
                         break
                     case "Open":
                         credits.openCredits += course.credits

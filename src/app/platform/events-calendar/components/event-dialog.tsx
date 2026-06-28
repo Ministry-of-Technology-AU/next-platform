@@ -31,6 +31,7 @@ export function EventDialog({ event, open, onOpenChange }: EventDialogProps) {
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: "Asia/Kolkata",
     });
   };
 

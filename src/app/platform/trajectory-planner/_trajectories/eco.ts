@@ -5,7 +5,6 @@ export const ecoTrajectories: IdealTrajectory[] = [
     {
         templateId: "eco-4yr",
         notes: "** 4-year BA Economics. 12 required courses + 8 ECO electives.",
-        policyDocPath: "https://docs.google.com/document/d/1nQyvU2Q-mbm0cPj2wXkLK0LXapjV2cSF8vAUaOk2E8A/edit?usp=drive_link",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [] },
             {
@@ -41,7 +40,6 @@ export const ecoTrajectories: IdealTrajectory[] = [
     {
         templateId: "eco-fin-4yr",
         notes: "** 4-year BSc Economics & Finance. 12 required ECO courses + 8 ECO/FIN electives (at least 4 FIN).",
-        policyDocPath: "https://docs.google.com/document/d/1zWgF0YTm-eP2MlqMCRPrTotQydMq_w-Ua4TMrK_mr0I/edit?usp=drive_link",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [] },
             {
@@ -77,7 +75,6 @@ export const ecoTrajectories: IdealTrajectory[] = [
     {
         templateId: "eco-pub-4yr",
         notes: "** 4-year BA Economics & Public Policy. 12 required ECO courses + 8 ECO/PUB electives (at least 4 PUB).",
-        policyDocPath: "https://docs.google.com/document/d/1-EwOTuVPMqBrVTnXNNrvZZaX3so-MzMZWzRu4TQ3rHM/edit?usp=drive_link",
         semesters: [
             { semester: 1, name: "1st Semester", courses: [] },
             {
@@ -117,7 +114,8 @@ export const ecoTemplates: DegreeTemplate[] = [
         id: "eco-4yr",
         name: "Economics (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 38, total: 160 },
+        policyDocPath: "https://docs.google.com/document/d/1nQyvU2Q-mbm0cPj2wXkLK0LXapjV2cSF8vAUaOk2E8A/edit?usp=drive_link",
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             // Required Courses (48 credits - 12 courses)
             { name: "Introduction to Economics", credits: 4, deptCode: "ECO", type: "Major", isInSemester: false },
@@ -138,7 +136,8 @@ export const ecoTemplates: DegreeTemplate[] = [
         id: "eco-fin-4yr",
         name: "Economics & Finance (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 38, total: 160 },
+        policyDocPath: "https://docs.google.com/document/d/1zWgF0YTm-eP2MlqMCRPrTotQydMq_w-Ua4TMrK_mr0I/edit?usp=drive_link",
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             // Required ECO Courses (48 credits - 12 courses)
             { name: "Introduction to Economics", credits: 4, deptCode: "ECO", type: "Major", isInSemester: false },
@@ -160,7 +159,8 @@ export const ecoTemplates: DegreeTemplate[] = [
         id: "eco-pub-4yr",
         name: "Economics & Public Policy (4 years)",
         batch: "2024",
-        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, openCredits: 38, total: 160 },
+        policyDocPath: "https://docs.google.com/document/d/1-EwOTuVPMqBrVTnXNNrvZZaX3so-MzMZWzRu4TQ3rHM/edit?usp=drive_link",
+        requiredCredits: { major: 80, minor: 0, fc: 36, cc: 4, concentration: 0, openCredits: 38, total: 160 },
         defaultCourses: [
             // Required ECO Courses (48 credits - 12 courses)
             { name: "Introduction to Economics", credits: 4, deptCode: "ECO", type: "Major", isInSemester: false },

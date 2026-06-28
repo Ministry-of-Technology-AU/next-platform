@@ -90,6 +90,8 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                 return "bg-blue/15 text-blue-dark border-blue/20"
             case "Open":
                 return "bg-gray/15 text-gray-dark border-gray/20"
+            case "CT":
+                return "bg-purple/15 text-purple-dark border-purple/20"
             default:
                 return "bg-gray/15 text-gray-dark border-gray/20"
         }
@@ -128,7 +130,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                             size="icon"
                                             className={cn(
                                                 "h-5 w-5 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10",
-                                                isEditMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                                isEditMode ? "opacity-100" : "opacity-80 group-hover:opacity-100"
                                             )}
                                             onClick={() => setIsEditMode(!isEditMode)}
                                             title={isEditMode ? "Save changes" : "Edit course"}
@@ -140,7 +142,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                            className="h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10"
                                             onClick={() => {
                                                 const fromSemester = state.semesters.find(s => s.courses.some(c => c.id === course.id))
                                                 if (fromSemester) {
@@ -155,7 +157,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            className="h-5 w-5 opacity-20 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
                                             onClick={() => removeCourse(course.id)}
                                             title="Delete course"
                                         >
@@ -235,13 +237,16 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     <SelectItem value="ECO">ECO</SelectItem>
                                     <SelectItem value="MATH">MATH</SelectItem>
                                     <SelectItem value="PHY">PHY</SelectItem>
-                                    <SelectItem value="CHEM">CHEM</SelectItem>
+                                    <SelectItem value="CHM">CHM</SelectItem>
                                     <SelectItem value="BIO">BIO</SelectItem>
                                     <SelectItem value="PSY">PSY</SelectItem>
-                                    <SelectItem value="PHIL">PHIL</SelectItem>
+                                    <SelectItem value="PHI">PHI</SelectItem>
                                     <SelectItem value="ENG">ENG</SelectItem>
-                                    <SelectItem value="HIST">HIST</SelectItem>
+                                    <SelectItem value="HIS">HIS</SelectItem>
                                     <SelectItem value="POL">POL</SelectItem>
+                                    <SelectItem value="MS">MS</SelectItem>
+                                    <SelectItem value="PA">PA</SelectItem>
+                                    <SelectItem value="AST">AST</SelectItem>
                                     <SelectItem value="YIF">YIF</SelectItem>
                                     <SelectItem value="HUM">HUM</SelectItem>
                                     <SelectItem value="CW">CW</SelectItem>
@@ -257,6 +262,7 @@ export function CourseCard({ course, isDragging }: CourseCardProps) {
                                     <SelectItem value="CC">CC</SelectItem>
                                     <SelectItem value="Major">Major</SelectItem>
                                     <SelectItem value="Minor">Minor</SelectItem>
+                                    <SelectItem value="CT">Concentration</SelectItem>
                                     <SelectItem value="Open">Open</SelectItem>
                                 </SelectContent>
                             </Select>

@@ -9,6 +9,24 @@ const ORGANIZATION_EMAILS = [
   // Add more organization emails as needed
 ]
 
+// Department Representative emails for trajectory planner management
+const REP_EMAILS = [
+  "cs.rep@ashoka.edu.in",
+  // "vansh.bothra_ug25@ashoka.edu.in",
+  "physics.rep@ashoka.edu.in",
+  "math.rep@ashoka.edu.in",
+  "biology_ugrep@ashoka.edu.in",
+  "econreps@ashoka.edu.in",
+  "english.rep@ashoka.edu.in",
+  "history.rep@ashoka.edu.in",
+  "psy.rep@ashoka.edu.in",
+  "socanth.rep@ashoka.edu.in",
+  "polsci.rep@ashoka.edu.in",
+  "chem.rep@ashoka.edu.in",
+  "philosophy.rep@ashoka.edu.in",
+  "soham.tulsyan_ug2023@ashoka.edu.in",
+]
+
 /**
  * Creates a user in Strapi if they don't already exist.
  * Called once during sign-in, not on every request.
@@ -115,6 +133,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Initial sign in
       if (user) {
         const email = user.email!;
+        const aplAdminEmails = (process.env.APL_ADMIN_EMAILS || '').split(',').map(email => email.trim());
 
         // Determine user role based on email patterns
         // if (ORGANIZATION_EMAILS.includes(email)) {
@@ -140,12 +159,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } else if (process.env.HOR_MEMBERS?.split(',').includes(email)) {
           token.role = 'hor_member';
           token.access = ['platform'];
-        } else if (email.includes('_ug') || email.includes('_asp') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.includes('_ma')) {
+        } else if (REP_EMAILS.includes(email)) {
+          token.role = 'rep';
+          token.access = ['platform', 'rep_dashboard'];
+        } else if (email.includes('_ug') || email.includes('_asp') || email.includes('_vsp') || email.includes('_yif') || email.includes('_phd') || email.includes('_msc') || email.includes('_ma')) {
           token.role = 'student';
           token.access = ['platform'];
         } else {
           token.role = 'user';
           token.access = ['none']; // Default access
+        }
+
+        if (aplAdminEmails.includes(email)) {
+          const currentAccess = Array.isArray(token.access) ? token.access : [];
+          if (!currentAccess.includes('apl_admin')) {
+            token.access = [...currentAccess, 'apl_admin'];
+          }
         }
 
         token.email = email;

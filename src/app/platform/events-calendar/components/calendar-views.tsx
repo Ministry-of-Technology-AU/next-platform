@@ -19,6 +19,7 @@ export function MonthView({
   onEventClick,
   categoryColors,
 }: CalendarViewsProps) {
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   const startOfMonth = new Date(
     selectedDate.getFullYear(),
     selectedDate.getMonth(),
@@ -66,7 +67,7 @@ export function MonthView({
         {days.map((day, index) => {
           const dayEvents = getEventsForDate(day);
           const isCurrentMonth = day.getMonth() === selectedDate.getMonth();
-          const isToday = day.toDateString() === new Date().toDateString();
+          const isToday = day.toDateString() === today.toDateString();
 
           return (
             <div
@@ -185,6 +186,7 @@ export function WeekView({
   onEventClick,
   categoryColors,
 }: CalendarViewsProps) {
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   const startOfWeek = new Date(selectedDate);
   startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
 
@@ -207,7 +209,7 @@ export function WeekView({
       {/* Header row */}
       <div className="grid grid-cols-7 bg-muted/50">
         {weekDays.map((day) => {
-          const isToday = day.toDateString() === new Date().toDateString();
+          const isToday = day.toDateString() === today.toDateString();
           return (
             <div
               key={day.toISOString()}
@@ -229,7 +231,7 @@ export function WeekView({
       <div className="grid grid-cols-7">
         {weekDays.map((day) => {
           const dayEvents = getEventsForDate(day);
-          const isToday = day.toDateString() === new Date().toDateString();
+          const isToday = day.toDateString() === today.toDateString();
 
           return (
             <div
@@ -275,7 +277,7 @@ export function TodayView({
   onEventClick,
   categoryColors,
 }: CalendarViewsProps) {
-  const today = new Date();
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   const todayEvents = events.filter((event) => {
     const eventDate = new Date(event.date);
     return eventDate.toDateString() === today.toDateString();
