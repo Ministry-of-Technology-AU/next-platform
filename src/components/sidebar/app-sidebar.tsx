@@ -201,19 +201,12 @@ export function AppSidebar() {
                           className="flex items-center w-full"
                           onClick={handleLinkClick}
                         >
-                          <div className={cn(
-                            "relative transition-all duration-500",
-                            (item.href === '/sports' || item.href === '/ashokan-around') && !isActive && "drop-shadow-[0_0_8px_rgba(var(--secondary),0.6)] animate-pulse"
-                          )}>
-                            <IconComponent className={cn(
-                              "size-4 group-data-[state=collapsed]:mx-auto shrink-0",
-                              (item.href === '/sports' || item.href === '/ashokan-around') && !isActive && "dark:text-secondary text-primary-light"
-                            )} />
+                          <div className="relative transition-all duration-500">
+                            <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto shrink-0" />
                           </div>
                           <span className={cn(
                             "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",
-                            hideLabels && "w-0 opacity-0 ml-0",
-                            (item.href === '/sports' || item.href === '/ashokan-around') && !isActive && "text-secondary font-semibold"
+                            hideLabels && "w-0 opacity-0 ml-0"
                           )}>
                             {item.title}
                           </span>

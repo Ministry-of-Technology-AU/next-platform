@@ -33,13 +33,13 @@ function getUserFilePaths(hashedEmail: string) {
 // Function to convert survey data to CSV format
 function convertSurveyToCSV(data: CASHSurveyData, includeTimestamp = true): string {
   const rows: string[] = [];
-  
+
   // Add header with timestamp if requested
-  const headers = includeTimestamp 
+  const headers = includeTimestamp
     ? ["Timestamp", "Section", "Question", "Answer"]
     : ["Section", "Question", "Answer"];
   rows.push(headers.map(h => `"${h}"`).join(","));
-  
+
   // Flatten the nested survey data
   Object.entries(data).forEach(([sectionKey, sectionData]) => {
     Object.entries(sectionData).forEach(([questionKey, answer]) => {
@@ -47,16 +47,16 @@ function convertSurveyToCSV(data: CASHSurveyData, includeTimestamp = true): stri
       const sectionName = sectionKey
         .replace(/([A-Z])/g, " $1")
         .replace(/^section /, "Section ");
-      
+
       // Format the question key to be more readable (e.g., "jokesSexualAcquaintances" -> "Jokes Sexual Acquaintances")
       const questionName = questionKey
         .replace(/([A-Z])/g, " $1")
         .charAt(0)
         .toUpperCase() + questionKey
-        .replace(/([A-Z])/g, " $1")
-        .slice(1)
-        .toLowerCase();
-      
+          .replace(/([A-Z])/g, " $1")
+          .slice(1)
+          .toLowerCase();
+
       // Format the answer
       let formattedAnswer = "";
       if (Array.isArray(answer)) {
@@ -68,21 +68,21 @@ function convertSurveyToCSV(data: CASHSurveyData, includeTimestamp = true): stri
       } else {
         formattedAnswer = "";
       }
-      
+
       // Escape CSV special characters
       const escapedAnswer = formattedAnswer.includes(",") || formattedAnswer.includes('"') || formattedAnswer.includes("\n")
         ? `"${formattedAnswer.replace(/"/g, '""')}"`
         : formattedAnswer;
-      
+
       const timestamp = new Date().toISOString();
       const row = includeTimestamp
         ? [`"${timestamp}"`, `"${sectionName}"`, `"${questionName}"`, escapedAnswer]
         : [`"${sectionName}"`, `"${questionName}"`, escapedAnswer];
-      
+
       rows.push(row.join(","));
     });
   });
-  
+
   return rows.join("\n");
 }
 
@@ -103,12 +103,12 @@ function readJsonSubmissions(filePath: string): Array<{ data: CASHSurveyData; ti
 export async function POST(request: NextRequest) {
   try {
     ensureSurveysDir();
-    
+
     const body: CASHSurveyData = await request.json();
 
     // Get user session
     const session = await auth();
-    
+
     if (!session?.user?.email) {
       return NextResponse.json(
         {
@@ -152,16 +152,9 @@ export async function POST(request: NextRequest) {
 
     // Generate CSV row(s) for the current submission
     const csvData = convertSurveyToCSV(body, true);
-    
+
     // Write CSV file (first submission)
     fs.writeFileSync(csvPath, csvData, "utf-8");
-
-    // Log the survey data
-    console.log("=== CASH Survey Submission ===");
-    console.log(`User Email (hashed): ${hashedEmail}`);
-    console.log(`Timestamp: ${timestamp}`);
-    console.log(`First submission received`);
-    console.log("=============================");
 
     // Return success response
     return NextResponse.json(
@@ -189,7 +182,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.email) {
       return NextResponse.json(
         {
