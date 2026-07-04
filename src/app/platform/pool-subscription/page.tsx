@@ -15,7 +15,7 @@ async function existSubscriptionPool() {
         const userId = await getUserIdByEmail(session?.user?.email || '');
 
         if (!userId) {
-            console.log("User not found, cannot check for existing subscription");
+            platform.log("User not found, cannot check for existing subscription");
             return null;
         }
 
@@ -43,7 +43,7 @@ async function existSubscriptionPool() {
         });
 
         const userSubscription = userSubscriptionResponse?.data?.[0] || null;
-        console.log("User's subscription from Strapi:", userSubscription);
+        platform.log("User's subscription from Strapi:", userSubscription);
 
         return {
             success: true,
@@ -57,7 +57,7 @@ async function existSubscriptionPool() {
 
 export default async function PoolSubscription() {
     const existingRequest = await existSubscriptionPool();
-    console.log("Existing Subscription Pool:", existingRequest);
+    platform.log("Existing Subscription Pool:", existingRequest);
 
     // Check if user has existing subscription (query already filters for status='open')
     const hasActiveSubscription = existingRequest?.success && existingRequest?.userSubscription;

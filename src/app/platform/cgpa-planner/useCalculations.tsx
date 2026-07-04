@@ -520,7 +520,7 @@ export const useCalculations = (initialData?: ParsedCGPAData) => {
             remainingCredits: parseFloat(remainingCredits) || 0,
             projectedAverage: parseFloat(projectedAverage) || 0
         };
-        console.log('Calculator data to save:', calculatorData);
+        platform.log('Calculator data to save:', calculatorData);
         // TODO: Send to backend
     };
 

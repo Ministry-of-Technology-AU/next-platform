@@ -5,7 +5,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  console.log('Course ID from params:', id);
+  platform.log('Course ID from params:', id);
 
   if (!id) {
     return Response.json({ error: "Course ID is required" }, { status: 400 });
@@ -30,14 +30,14 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    console.log('Submitting review for course ID:', id);
+    platform.log('Submitting review for course ID:', id);
 
     if (!id) {
       return Response.json({ error: "Course ID is required" }, { status: 400 });
     }
 
     const json = await request.json();
-    console.log("Received review data:", json);
+    platform.log("Received review data:", json);
 
     // Validate required fields
     if (!json.data || !json.data.course) {
@@ -57,14 +57,14 @@ export async function POST(
     }
 
     // Forward the request to Strapi
-    console.log("Sending review to Strapi...");
+    platform.log("Sending review to Strapi...");
     const response = await strapiPost("/reviews", json);
-    console.log("Strapi response:", response);
+    platform.log("Strapi response:", response);
 
     return Response.json({ success: true, data: response });
   } catch (error) {
     console.error("Error submitting review:", error);
-    
+
     // More detailed error handling
     if (error instanceof Error) {
       return Response.json(
@@ -72,7 +72,7 @@ export async function POST(
         { status: 500 }
       );
     }
-    
+
     return Response.json(
       { success: false, error: "Unknown error occurred" },
       { status: 500 }

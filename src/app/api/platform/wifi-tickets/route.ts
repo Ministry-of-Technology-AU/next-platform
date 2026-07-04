@@ -19,42 +19,42 @@ function createTicketId(prefix: string, length: number): string {
 function writeToFile(filePath: string, data: any): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
-      console.log('📁 Writing to file:', filePath);
-      console.log('📦 Data to write:', JSON.stringify(data, null, 2));
-      
+      platform.log('📁 Writing to file:', filePath);
+      platform.log('📦 Data to write:', JSON.stringify(data, null, 2));
+
       const dir = path.dirname(filePath);
-      console.log('📂 Directory:', dir);
-      
+      platform.log('📂 Directory:', dir);
+
       if (!fs.existsSync(dir)) {
-        console.log('📁 Creating directory:', dir);
+        platform.log('📁 Creating directory:', dir);
         fs.mkdirSync(dir, { recursive: true });
       }
-      
+
       let existingData = [];
       if (fs.existsSync(filePath)) {
         try {
           const fileContent = fs.readFileSync(filePath, 'utf8');
           existingData = JSON.parse(fileContent);
-          console.log('📖 Existing data loaded, entries:', existingData.length);
+          platform.log('📖 Existing data loaded, entries:', existingData.length);
         } catch (error) {
           console.warn('⚠️ Could not parse existing file, starting fresh:', error);
           existingData = [];
         }
       } else {
-        console.log('📄 File does not exist, creating new one');
+        platform.log('📄 File does not exist, creating new one');
       }
-      
+
       existingData.push(data);
-      console.log('📝 Total entries after adding new:', existingData.length);
-      
+      platform.log('📝 Total entries after adding new:', existingData.length);
+
       const jsonString = JSON.stringify(existingData, null, 2);
-      
+
       fs.writeFile(filePath, jsonString, (err) => {
         if (err) {
           console.error('❌ File write error:', err);
           reject(err);
         } else {
-          console.log('✅ File written successfully');
+          platform.log('✅ File written successfully');
           resolve();
         }
       });
@@ -72,22 +72,22 @@ export async function GET(request: NextRequest) {
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-    
+
     const { user } = authResult;
-    
+
     // Get user data from Strapi
     const userData = await strapiGet('/users', {
       filters: {
         email: { $eqi: user.email }
       }
     });
-    
+
     const strapiUser = userData[0];
-    
+
     return NextResponse.json({
       phone: strapiUser?.phone || ''
     });
-    
+
   } catch (error) {
     console.error('Error fetching user data:', error);
     return NextResponse.json(
@@ -104,10 +104,10 @@ export async function POST(request: NextRequest) {
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-    
+
     const { user } = authResult;
     const formData = await request.json();
-    
+
     // Update user phone number in Strapi
     if (formData.phone) {
       try {
@@ -116,27 +116,27 @@ export async function POST(request: NextRequest) {
             email: { $eqi: user.email }
           }
         });
-        
+
         if (userData && userData[0]) {
           const strapiUser = userData[0];
           strapiUser.phone = formData.phone;
-          
+
           await strapiPut(`/users/${strapiUser.id}`, strapiUser);
-          console.log('✅ Phone number updated in Strapi:', formData.phone);
+          platform.log('✅ Phone number updated in Strapi:', formData.phone);
         }
       } catch (strapiError) {
         console.error('❌ Error updating phone in Strapi:', strapiError);
         // Continue with ticket creation even if phone update fails
       }
     }
-    
+
     // Generate ticket ID
     const ticketId = createTicketId("WIFI", 8);
     const isOnAshokaWifi = formData.wifiStatus === "onWifi";
-    
+
     // Ensure we have a timestamp
     const timestamp = formData.submissionTimestamp || new Date().toISOString();
-    
+
     // Create WiFi ticket object with all fields properly mapped
     const wifiTicket = {
       ticketId: ticketId,
@@ -152,20 +152,20 @@ export async function POST(request: NextRequest) {
       // Add raw form data for debugging
       rawFormData: formData
     };
-    
-    console.log('📝 WiFi Ticket Object:');
-    console.log(JSON.stringify(wifiTicket, null, 2));
-    
+
+    platform.log('📝 WiFi Ticket Object:');
+    platform.log(JSON.stringify(wifiTicket, null, 2));
+
     // Write to file (you may want to configure this path)
     const wifiTicketFile = path.join(process.cwd(), 'data', 'wifi-tickets.json');
     try {
       await writeToFile(wifiTicketFile, wifiTicket);
-      console.log('✅ WiFi ticket saved to file:', wifiTicketFile);
+      platform.log('✅ WiFi ticket saved to file:', wifiTicketFile);
     } catch (fileError) {
       console.error('❌ Error saving to file:', fileError);
       // Continue with email sending even if file save fails
     }
-    
+
     // Send email notification
     const emailHtml = `
       <!DOCTYPE html>
@@ -183,8 +183,8 @@ export async function POST(request: NextRequest) {
       <body>
           <div class="container">
               <h2>New WiFi Issue Ticket</h2>
-              ${!isOnAshokaWifi ? 
-                  '<p class="warning">Note: User was not able to submit this page through Ashoka Wifi, as it was not working for them.</p>' : ''}
+              ${!isOnAshokaWifi ?
+        '<p class="warning">Note: User was not able to submit this page through Ashoka Wifi, as it was not working for them.</p>' : ''}
               <table>
                   <tr>
                       <th>Ticket ID</th>
@@ -232,13 +232,13 @@ export async function POST(request: NextRequest) {
       </body>
       </html>
     `;
-    
+
     try {
-      console.log('📧 Sending email notification...');
-      console.log('To:', process.env.WIFI_SUPPORT);
-      console.log('CC:', user.email);
-      console.log('Subject:', `WiFi Issue Ticket #${ticketId} - ${wifiTicket.complaintType}`);
-      
+      platform.log('📧 Sending email notification...');
+      platform.log('To:', process.env.WIFI_SUPPORT);
+      platform.log('CC:', user.email);
+      platform.log('Subject:', `WiFi Issue Ticket #${ticketId} - ${wifiTicket.complaintType}`);
+
       await sendMail({
         from: `WiFi Tickets <${process.env.TECHMAIL_ID}>`,
         to: process.env.WIFI_SUPPORT!,
@@ -246,25 +246,25 @@ export async function POST(request: NextRequest) {
         subject: `WiFi Issue Ticket #${ticketId} - ${wifiTicket.complaintType}`,
         html: emailHtml
       });
-      
-      console.log('✅ Email sent successfully');
+
+      platform.log('✅ Email sent successfully');
     } catch (emailError) {
       console.error('❌ Error sending email:', emailError);
       // Continue and return success even if email fails
     }
-    
+
     return NextResponse.json({
       success: true,
       message: "WiFi ticket submitted successfully! You will receive a confirmation email shortly.",
       ticketId: ticketId
     });
-    
+
   } catch (error) {
     console.error('Error processing WiFi ticket:', error);
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Failed to submit WiFi ticket. Please try again.' 
+        error: 'Failed to submit WiFi ticket. Please try again.'
       },
       { status: 500 }
     );

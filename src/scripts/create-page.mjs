@@ -118,9 +118,9 @@ export default function ${toComponentName(route)}Page() {
 
   await fs.writeFile(sidebarTsxPath, sidebarCode);
 
-  console.log(`✅ Created page at app/${route}/page.tsx`);
-  console.log(`✅ Added to category "${category}" in sidebar-entries.json`);
-  console.log(`✅ Updated app-sidebar.tsx with ${icon}`);
+  platform.log(`✅ Created page at app/${route}/page.tsx`);
+  platform.log(`✅ Added to category "${category}" in sidebar-entries.json`);
+  platform.log(`✅ Updated app-sidebar.tsx with ${icon}`);
 }
 
 // helpers

@@ -22,9 +22,9 @@ export default auth(async function middleware(req) {
 
   // Allow ABA and APL webhooks (called by Strapi) and SSE streams (public real-time endpoint)
   if (pathname.startsWith('/api/platform/sports/aba/webhook') ||
-      pathname.startsWith('/api/platform/sports/aba/sse') ||
-      pathname.startsWith('/api/platform/sports/apl/webhook') ||
-      pathname.startsWith('/api/platform/sports/apl/sse')) {
+    pathname.startsWith('/api/platform/sports/aba/sse') ||
+    pathname.startsWith('/api/platform/sports/apl/webhook') ||
+    pathname.startsWith('/api/platform/sports/apl/sse')) {
     return NextResponse.next()
   }
 
@@ -46,7 +46,7 @@ export default auth(async function middleware(req) {
 
   // Check if user is authenticated
   if (!req.auth?.user) {
-    console.log('❌ User not authenticated, redirecting to signin from:', pathname)
+    platform.log('❌ User not authenticated, redirecting to signin from:', pathname)
 
     // Create a login page URL with return URL as parameter
     const loginUrl = new URL('/login', req.url)
@@ -62,11 +62,11 @@ export default auth(async function middleware(req) {
     const horMembers = (process.env.HOR_MEMBERS || '').split(',').map(email => email.trim())
 
     if (!horMembers.includes(req.auth.user.email)) {
-      console.log(`❌ User ${req.auth.user.email} denied access to HOR dashboard`)
+      platform.log(`❌ User ${req.auth.user.email} denied access to HOR dashboard`)
       return NextResponse.redirect(new URL('/unauthorized', req.url))
     }
 
-    console.log(`✅ User ${req.auth.user.email} granted access to HOR dashboard`)
+    platform.log(`✅ User ${req.auth.user.email} granted access to HOR dashboard`)
     return NextResponse.next()
   }
 
@@ -75,11 +75,11 @@ export default auth(async function middleware(req) {
     const userAccess = req.auth.user?.access || []
 
     if (!userAccess.includes('apl_admin')) {
-      console.log(`❌ User ${req.auth.user.email} denied access to APL Admin`)
+      platform.log(`❌ User ${req.auth.user.email} denied access to APL Admin`)
       return NextResponse.redirect(new URL('/unauthorized', req.url))
     }
 
-    console.log(`✅ User ${req.auth.user.email} granted access to APL Admin`)
+    platform.log(`✅ User ${req.auth.user.email} granted access to APL Admin`)
     return NextResponse.next()
   }
 
@@ -88,11 +88,11 @@ export default auth(async function middleware(req) {
     const userAccess = req.auth.user?.access || []
 
     if (!userAccess.includes('rep_dashboard')) {
-      console.log(`❌ User ${req.auth.user.email} denied access to Rep Dashboard`)
+      platform.log(`❌ User ${req.auth.user.email} denied access to Rep Dashboard`)
       return NextResponse.redirect(new URL('/unauthorized', req.url))
     }
 
-    console.log(`✅ User ${req.auth.user.email} granted access to Rep Dashboard`)
+    platform.log(`✅ User ${req.auth.user.email} granted access to Rep Dashboard`)
     return NextResponse.next()
   }
 

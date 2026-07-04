@@ -51,19 +51,19 @@ interface FiltersSidebarProps {
 
 export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, isIconOnly = false }: FiltersSidebarProps) {
   const { categoryColors, setCategoryColors } = useCategoryColors();
-  
+
   const [checklistItems, setChecklistItems] = React.useState<ChecklistItem[]>([]);
   const [checklistLoading, setChecklistLoading] = React.useState(true);
-  
+
   const [organizations, setOrganizations] = React.useState<Organization[]>([]);
   const [organizationsLoading, setOrganizationsLoading] = React.useState(true);
-  
+
   const [preferences, setPreferences] = React.useState<FilterPreferences>({
     selectedOrganizations: [],
     selectedCategories: ['clubs', 'societies', 'departments', 'ministries', 'others'],
     categoryColors: categoryColors,
   });
-  
+
   const [searchTerms, setSearchTerms] = React.useState<Record<string, string>>({});
   const [mounted, setMounted] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -92,7 +92,7 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
     fetchOrganizations();
   }, []);
 
-    // Fetch user preferences on mount
+  // Fetch user preferences on mount
   React.useEffect(() => {
     const fetchPreferences = async () => {
       try {
@@ -106,7 +106,7 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
             };
             setPreferences(newPreferences);
             setCategoryColors(data.preferences.categoryColors || categoryColors);
-            
+
             // Notify parent component of initial preferences load
             if (onPreferencesChange) {
               onPreferencesChange(newPreferences);
@@ -134,7 +134,7 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
           credentials: 'include', // forward cookies if on server
         });
         const data = await response.json();
-        console.log('Checklist raw response:', data); // LOG FOR DEBUG
+        platform.log('Checklist raw response:', data); // LOG FOR DEBUG
         if (data?.success && Array.isArray(data.checklist)) {
           const items = data.checklist.map((item: OrgsChecklistItem) => ({
             id: item.name.toLowerCase().replace(/\s+/g, '-'),
@@ -173,7 +173,7 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
           };
           setPreferences(newPreferences);
           setCategoryColors(prefsData.preferences.categoryColors || preferences.categoryColors);
-          
+
           // Notify parent component of preferences change
           if (onPreferencesChange) {
             onPreferencesChange(newPreferences);
@@ -197,7 +197,7 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
 
   const getFilteredOrganizations = (category: string) => {
     const searchTerm = searchTerms[category] || '';
-    
+
     return organizations
       .filter((org) => {
         const orgType = org.type.toLowerCase();
@@ -228,10 +228,10 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
   const handleCategoryToggle = (category: string) => {
     const isCurrentlySelected = preferences.selectedCategories.includes(category);
     let newSelected: string[];
-    
+
     if (isCurrentlySelected) {
       newSelected = preferences.selectedCategories.filter(cat => cat !== category);
-      
+
       // Make sure we have at least one category selected
       if (newSelected.length === 0) {
         newSelected = [category];
@@ -280,10 +280,10 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
         throw new Error(`Failed to save preferences: ${response.statusText}`);
       }
       const data = await response.json();
-      
+
       // Reload preferences after saving to ensure we have the latest data
       await reloadPreferences();
-      
+
       toast.success('Preferences saved successfully!');
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -300,11 +300,10 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
       <SheetTrigger asChild>
         <Button
           variant="outline"
-          className={`relative h-12 gap-2 rounded-full border-neutral-300 hover:bg-neutral-100 transition-all ${
-            isIconOnly 
-              ? 'w-12 p-0 flex items-center justify-center' 
+          className={`relative h-12 gap-2 rounded-full border-neutral-300 hover:bg-neutral-100 transition-all ${isIconOnly
+              ? 'w-12 p-0 flex items-center justify-center'
               : 'px-6'
-          }`}
+            }`}
         >
           <Filter className="h-5 w-5 flex-shrink-0" />
           {!isIconOnly && (
@@ -410,7 +409,7 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
                                   backgroundColor: color,
                                   borderColor:
                                     preferences.categoryColors[category] ===
-                                    color
+                                      color
                                       ? '#000'
                                       : '#d1d5db',
                                 }}

@@ -23,7 +23,7 @@ export default async function Home() {
   const adverts = data?.adverts?.data;
   const recentlyVisited = data?.recentlyVisited;
 
-  console.log(adverts);
+  platform.log(adverts);
   return (
 
     <div className="min-h-screen bg-background flex flex-col">

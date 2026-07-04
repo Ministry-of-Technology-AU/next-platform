@@ -14,14 +14,14 @@ export default function DashboardPage() {
   const fetchEmails = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/platform/sg-compose/dashboard', {        
+      const response = await fetch('/api/platform/sg-compose/dashboard', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
       const result = await response.json();
-      
+
       if (result.success) {
         const mappedEmails = result.data.map((mail: any) => mapToDashboardEmail(mail));
         setEmails(mappedEmails);
@@ -67,7 +67,7 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           emailId,
-          action: 'approve',          
+          action: 'approve',
         })
       });
 
@@ -77,7 +77,7 @@ export default function DashboardPage() {
         // Remove the approved email from the list
         setEmails(prev => prev.filter(email => email.id !== emailId));
         // You could also show a success toast here
-        console.log('Email approved successfully');
+        platform.log('Email approved successfully');
       } else {
         alert(`Error approving email: ${result.error}`);
       }
@@ -96,7 +96,7 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           emailId,
-          action: 'reject',          
+          action: 'reject',
           rejectReason: rejectReason || 'No reason provided'
         })
       });
@@ -107,7 +107,7 @@ export default function DashboardPage() {
         // Remove the rejected email from the list
         setEmails(prev => prev.filter(email => email.id !== emailId));
         // You could also show a success toast here
-        console.log('Email rejected successfully');
+        platform.log('Email rejected successfully');
       } else {
         alert(`Error rejecting email: ${result.error}`);
       }
@@ -154,11 +154,11 @@ export default function DashboardPage() {
               <AlertCircle className="h-16 w-16 text-red-400" />
               <h3 className="text-xl font-semibold text-red-600">Error Loading Emails</h3>
               <p className="text-red-500 max-w-md">{error}</p>
-              <button 
+              <button
                 onClick={() => {
                   setError(null);
                   fetchEmails();
-                }} 
+                }}
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
                 Retry

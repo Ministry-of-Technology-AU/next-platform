@@ -91,7 +91,7 @@ export default function PoolSubscriptionForm() {
         end: formattedEndDate
       }
 
-      console.log("Form data to be submitted:", subscriptionData)
+      platform.log("Form data to be submitted:", subscriptionData)
 
       // Call API endpoint
       const response = await fetch('/api/platform/pool-subscription', {

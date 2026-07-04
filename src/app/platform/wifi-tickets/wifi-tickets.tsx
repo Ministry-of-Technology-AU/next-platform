@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { FormContainer, PhoneInput, TextInput, SingleSelect, SubmitButton} from "@/components/form";
+import { FormContainer, PhoneInput, TextInput, SingleSelect, SubmitButton } from "@/components/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import SpeedTest from "./_components/speedtest";
 import { Drawer } from "@/components/ui/drawer";
 import { toast } from "sonner";
 
-export default function WifiTickets1(){
+export default function WifiTickets1() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [onAshokaWifi, setOnAshokaWifi] = useState("");
   const wifiOptions = [
@@ -70,7 +70,7 @@ export default function WifiTickets1(){
         console.error('Error loading user data:', error);
       }
     };
-    
+
     loadUserData();
   }, []);
 
@@ -86,7 +86,7 @@ export default function WifiTickets1(){
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!phoneNumber || phoneNumber.length !== 10) {
       toast.error("Validation Error", {
@@ -94,16 +94,16 @@ export default function WifiTickets1(){
       });
       return;
     }
-    
+
     if (!onAshokaWifi || !complaintType || !location || !roomFloor || !additionalDetails) {
       toast.error("Validation Error", {
         description: "Please fill in all required fields"
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const formData = {
         phone: phoneNumber,
@@ -115,8 +115,8 @@ export default function WifiTickets1(){
         message: additionalDetails,
         submissionTimestamp: new Date().toISOString(),
       };
-      
-      console.log('Submitting form data:', formData);
+
+      platform.log('Submitting form data:', formData);
 
       const response = await fetch('/api/platform/wifi-tickets', {
         method: 'POST',
@@ -127,7 +127,7 @@ export default function WifiTickets1(){
       });
 
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         toast.success("WiFi Ticket Submitted Successfully!", {
           description: `Your ticket has been created with ID: ${result.ticketId}. You will receive a confirmation email shortly.`
@@ -198,7 +198,7 @@ export default function WifiTickets1(){
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <SpeedTest onClose={handleSpeedTestComplete} />
       </Drawer>
-      
+
       <PhoneInput
         title="Contact Number"
         description="Provide a valid 10-digit mobile number for communication regarding your request."
@@ -241,8 +241,8 @@ export default function WifiTickets1(){
         value={additionalDetails}
         onChange={setAdditionalDetails}
       />
-      
-      <SubmitButton text="Submit Ticket" isLoading={isSubmitting} onClick={() => handleSubmit({} as React.FormEvent)}/>
+
+      <SubmitButton text="Submit Ticket" isLoading={isSubmitting} onClick={() => handleSubmit({} as React.FormEvent)} />
     </FormContainer>
   );
 }

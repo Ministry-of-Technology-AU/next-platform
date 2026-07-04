@@ -73,7 +73,7 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
             // If we have initialData from server, use it
             if (initialData) {
                 setState(initialData);
-                console.log("Loaded trajectory from Strapi (server-side)");
+                platform.log("Loaded trajectory from Strapi (server-side)");
                 setIsInitialized(true);
             } else {
                 // Fall back to localStorage
@@ -81,7 +81,7 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
                 if (savedState) {
                     try {
                         setState(JSON.parse(savedState));
-                        console.log("Loaded trajectory from localStorage");
+                        platform.log("Loaded trajectory from localStorage");
                     } catch (e) {
                         console.error("[v0] Failed to parse saved state", e);
                     }

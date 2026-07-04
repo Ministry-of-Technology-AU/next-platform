@@ -111,12 +111,12 @@ export default function EventsCalendar({
 
   // Log events for debugging
   useEffect(() => {
-    console.log('Events received by EventsCalendar:', events);
-    console.log('Organizations received by EventsCalendar:', organizations);
+    platform.log('Events received by EventsCalendar:', events);
+    platform.log('Organizations received by EventsCalendar:', organizations);
   }, [events, organizations]);
 
   const filteredEvents = useMemo(() => {
-    console.log('Filtering events, count before filter:', events.length);
+    platform.log('Filtering events, count before filter:', events.length);
 
     // Make a copy to avoid mutation issues
     let filtered = [...events];
@@ -164,7 +164,7 @@ export default function EventsCalendar({
       }
     }
 
-    console.log('Events after filtering:', filtered.length);
+    platform.log('Events after filtering:', filtered.length);
     return filtered;
   }, [searchQuery, preferences, events, usePreferencesFilter]);
 

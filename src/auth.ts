@@ -78,9 +78,9 @@ async function createUserInStrapiIfNotExists(user: { email: string; name?: strin
         batch: batch
       }
 
-      console.log('Creating new user in Strapi:', userEmail)
+      platform.log('Creating new user in Strapi:', userEmail)
       await strapiPost('/users', userData)
-      console.log('Successfully created user in Strapi:', userEmail)
+      platform.log('Successfully created user in Strapi:', userEmail)
     }
   } catch (error) {
     // Log error but don't block sign-in - user can still use the app
@@ -114,7 +114,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user }: any) {
       // Only allow @ashoka.edu.in emails
       if (!user.email?.endsWith('@ashoka.edu.in')) {
-        console.log(`Rejected sign-in attempt from: ${user.email}`);
+        platform.log(`Rejected sign-in attempt from: ${user.email}`);
         return false;
       }
 
@@ -125,7 +125,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         image: user.image
       });
 
-      console.log(`Successful sign-in: ${user.email}`);
+      platform.log(`Successful sign-in: ${user.email}`);
       return true;
     },
 
@@ -181,7 +181,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.name = user.name;
         token.picture = user.image;
 
-        console.log(`JWT created for ${email} with role: ${token.role}`);
+        platform.log(`JWT created for ${email} with role: ${token.role}`);
       }
 
       return token;
@@ -207,10 +207,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   events: {
     async signIn(message: any) {
-      console.log('Sign in event:', message.user?.email);
+      platform.log('Sign in event:', message.user?.email);
     },
     async signOut(message: any) {
-      console.log('Sign out event:', message.token?.email);
+      platform.log('Sign out event:', message.token?.email);
     }
   }
 })
