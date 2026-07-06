@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   Star,
   ClipboardPenLine,
   CalendarSync,
@@ -23,7 +23,7 @@ const popularTools = [
   },
   {
     id: 2,
-    title: "Semester Planner", 
+    title: "Semester Planner",
     description: "Plan your academic semester",
     icon: CalendarSync,
     href: "/platform/semester-planner",
@@ -56,18 +56,18 @@ export default function PopularToolsGrid() {
           Use our most popular tools!
         </h2>
       </div>
-      
+
       {/* Responsive Grid - 2 cols on mobile/tablet, 4 cols on desktop */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {popularTools.map((tool) => {
           const Icon = tool.icon;
           return (
-            <Card 
-              key={tool.id} 
+            <Card
+              key={tool.id}
               className="group h-40 sm:h-48 lg:h-56 border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-card"
             >
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="w-full h-full p-0 bg-transparent hover:bg-transparent"
                 asChild
               >
@@ -77,7 +77,7 @@ export default function PopularToolsGrid() {
                     <div className="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 flex items-center justify-center">
                       <Icon className={`size-6 sm:size-8 ${tool.color}`} />
                     </div>
-                    
+
                     {/* Content */}
                     <div className="text-center">
                       <h3 className="sm:!text-xl !text-sm font-medium mb-1 sm:mb-2 group-hover:text-primary dark:group-hover:text-secondary transition-colors">

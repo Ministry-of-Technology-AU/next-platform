@@ -1,182 +1,191 @@
 ---
-name: Ministry of Technology Brandbook
+name: Next Platform
 colors:
-  surface: '#141312'
-  surface-dim: '#141312'
-  surface-bright: '#3b3937'
-  surface-container-lowest: '#0f0e0d'
-  surface-container-low: '#1d1b1a'
-  surface-container: '#211f1e'
-  surface-container-high: '#2b2a28'
-  surface-container-highest: '#363433'
-  on-surface: '#e6e1df'
-  on-surface-variant: '#ddc0bb'
-  inverse-surface: '#e6e1df'
-  inverse-on-surface: '#32302e'
-  outline: '#a58b86'
-  outline-variant: '#57423e'
-  surface-tint: '#ffb4a7'
-  primary: '#ffb4a7'
-  on-primary: '#630d05'
-  primary-container: '#87281b'
-  on-primary-container: '#ffa090'
-  inverse-primary: '#a33c2d'
-  secondary: '#f0bf68'
-  on-secondary: '#422d00'
-  secondary-container: '#795501'
-  on-secondary-container: '#ffcd74'
-  tertiary: '#a7c8ff'
-  on-tertiary: '#003060'
-  tertiary-container: '#00498c'
-  on-tertiary-container: '#8ebaff'
-  error: '#ffb4ab'
-  on-error: '#690005'
-  error-container: '#93000a'
-  on-error-container: '#ffdad6'
-  primary-fixed: '#ffdad4'
-  primary-fixed-dim: '#ffb4a7'
-  on-primary-fixed: '#400100'
-  on-primary-fixed-variant: '#832519'
-  secondary-fixed: '#ffdea9'
-  secondary-fixed-dim: '#f0bf68'
-  on-secondary-fixed: '#271900'
-  on-secondary-fixed-variant: '#5e4200'
-  tertiary-fixed: '#d5e3ff'
-  tertiary-fixed-dim: '#a7c8ff'
-  on-tertiary-fixed: '#001b3b'
-  on-tertiary-fixed-variant: '#004788'
-  background: '#141312'
-  on-background: '#e6e1df'
-  surface-variant: '#363433'
+  surface: '#f7f4f2'
+  surface-dim: '#e9e1dd'
+  surface-bright: '#ffffff'
+  surface-container-lowest: '#ffffff'
+  surface-container-low: '#fbf8f6'
+  surface-container: '#f7f4f2'
+  surface-container-high: '#f2f1ee'
+  surface-container-highest: '#e6e3e1'
+  on-surface: '#1c1917'
+  on-surface-variant: '#57504c'
+  inverse-surface: '#171717'
+  inverse-on-surface: '#f7f4f2'
+  outline: '#bfbcba'
+  outline-variant: '#e0e0e0'
+  surface-tint: '#87281b'
+  primary: '#87281b'
+  on-primary: '#fff8f0'
+  primary-container: '#9b4e43'
+  on-primary-container: '#ffffff'
+  inverse-primary: '#c89188'
+  secondary: '#ffcd74'
+  on-secondary: '#3a3a3a'
+  secondary-container: '#ffe7a9'
+  on-secondary-container: '#3a3a3a'
+  tertiary: '#0267c1'
+  on-tertiary: '#ffffff'
+  tertiary-container: '#5197d6'
+  on-tertiary-container: '#ffffff'
+  error: '#c0392b'
+  on-error: '#ffffff'
+  error-container: '#ffdad6'
+  on-error-container: '#93000a'
+  background: '#f7f4f2'
+  on-background: '#1c1917'
+  surface-variant: '#f2f1ee'
+  crimson-deep: '#60150a'
+  bg-light-cream: '#f7f4f2'
+  bg-light-surface: '#f2f1ee'
+  bg-dark-charcoal: '#171717'
+  bg-dark-surface: '#0f0f11'
+  text-muted: '#767371'
+  text-dark-soft: '#fff8f0'
 typography:
-  display-lg:
+  headline-xl:
     fontFamily: Nunito
     fontSize: 36px
     fontWeight: '700'
-    lineHeight: 44px
-    letterSpacing: -0.01em
+    lineHeight: '1.2'
+    letterSpacing: -0.02em
+  headline-xl-mobile:
+    fontFamily: Nunito
+    fontSize: 30px
+    fontWeight: '700'
+    lineHeight: '1.2'
+  headline-lg:
+    fontFamily: Nunito
+    fontSize: 30px
+    fontWeight: '700'
+    lineHeight: '1.3'
   headline-md:
     fontFamily: Nunito
     fontSize: 24px
     fontWeight: '700'
-    lineHeight: 32px
-    letterSpacing: '0'
-  body-base:
+    lineHeight: '1.3'
+  body-lg:
+    fontFamily: Nunito Sans
+    fontSize: 18px
+    fontWeight: '400'
+    lineHeight: '1.6'
+  body-md:
     fontFamily: Nunito Sans
     fontSize: 16px
     fontWeight: '400'
-    lineHeight: 24px
-    letterSpacing: '0'
-  body-bold:
+    lineHeight: '1.5'
+  label-md:
     fontFamily: Nunito Sans
-    fontSize: 16px
-    fontWeight: '700'
-    lineHeight: 24px
-    letterSpacing: '0'
-  label-caps:
-    fontFamily: Nunito Sans
-    fontSize: 12px
-    fontWeight: '700'
-    lineHeight: 16px
-    letterSpacing: 0.05em
+    fontSize: 14px
+    fontWeight: '600'
+    lineHeight: '1.4'
+    letterSpacing: 0.01em
 rounded:
-  sm: 0.25rem
-  DEFAULT: 0.5rem
-  md: 0.75rem
-  lg: 1rem
-  xl: 1.5rem
+  sm: 0.475rem
+  DEFAULT: 0.725rem
+  md: 0.725rem
+  lg: 0.725rem
+  xl: 1.225rem
   full: 9999px
 spacing:
-  unit: 4px
-  xs: 4px
-  sm: 8px
-  md: 16px
-  lg: 24px
-  xl: 32px
-  gutter: 16px
-  margin-mobile: 8px
-  margin-desktop: 32px
-  max-width: 1280px
+  container-padding: 1.5rem
+  gutter: 1.5rem
+  focus-ring: 3px
+  transition-speed: 0.4s
 ---
 
-## Brand & Style
+# Design System: Next Platform
 
-This design system establishes an atmosphere of **enduring authority and civic responsibility**, blending the stability of historic government institutions with high-tech administrative capability. The brand personality is grounded, intellectual, and highly dependable.
+## 1. Visual Theme & Atmosphere
+The Next Platform utilizes a "Modern Academic" atmosphere, balancing sophisticated scholarly tradition with cutting-edge digital utility. It leans heavily into a crisp, spacious layout punctuated by rich crimson brand elements and high-quality micro-interactions. The interface uses subtle depth through soft, expansive shadows (`shadow-lg`) and custom CSS animations (like aurora backgrounds and animated inner-shadow buttons).
 
-The visual style is a sophisticated mix of **Corporate Modern** and **Tactile Heritage**. In its dark mode configuration, the system shifts from a "paper-like" feel to a "command center" aesthetic, evoking the trust of established institutions operating with modern efficiency. By utilizing a palette reminiscent of historic masonry and gold-embossed charters, the UI maintains its prestigious identity while optimizing for high-fidelity administrative focus.
+The experience is designed to feel tactile, premium, and deliberate. Transitions between light and dark modes are handled via a smooth 0.9s ease curve, ensuring the shift feels fluid rather than abrupt. Dark mode shifts the environment to Rich Charcoal with Deep Space Black containers to create a sense of recessed depth, maintaining a high-contrast yet comfortable reading experience.
 
-Key visual pillars:
-- **Heritage Foundation:** Use of deep terracotta and ochre gold to signify prestige and permanence against a deep, scholarly dark backdrop.
-- **Administrative Precision:** Clear hierarchy, centered headings for formal symmetry, and structured data grids.
-- **Tactile Responsiveness:** Subtle micro-interactions and sliding transitions that give digital actions a physical weight.
+## 2. Color Palette & Roles
 
-## Colors
+### Primary Foundation
+* **Background (Light):** Cream White (`#f7f4f2`) - Provides a warm, paper-like feel that reduces eye strain compared to pure white.
+* **Surface/Card (Light):** Extra Light Gray (`#f2f1ee`) - Used for cards and containers to create subtle tonal layering against the background.
+* **Background (Dark):** Rich Charcoal (`#171717`) - The primary canvas in dark mode.
+* **Surface/Card (Dark):** Deep Space Black (`#0f0f11`) - Used for cards to create recessed depth in dark mode.
 
-The palette balances rich, heritage-inspired hues with modern utility colors, optimized for a professional **dark mode** environment.
+### Accent & Interactive (Ashoka Colors)
+* **Crimson Red (`#87281b`):** The primary brand color. Reserved strictly for primary call-to-action buttons, active navigation states, and prominent highlights.
+* **Deep Crimson (`#60150a`):** Used exclusively for hover states, button active depth, and strong gradients.
+* **Golden Yellow (`#ffcd74`):** Secondary accent color used sparingly for warnings or secondary interactive highlights.
 
-- **Primary (Deep Terracotta):** Used for main brand accents, primary actions, and critical focus states. It represents official authority and remains the anchor of the visual identity.
-- **Secondary (Warm Ochre Gold):** Reserved for excellence markers, active engagement highlights, and prestigious achievement badges. It provides a warm, high-contrast glow against dark surfaces.
-- **Tertiary (Official Cobalt):** Used for informative links and system notifications, providing a clear functional contrast to the heritage reds.
-- **Neutral (Stone & Charcoal):** Pure black is avoided. Instead, we use deep charcoal tones for the primary background canvas to reduce visual fatigue and maintain the "Tactile Heritage" feel.
-- **Functional States:** **Sage Pine Green** (#519872) is used for success and validated entries, maintaining a muted, professional tone.
+### Typography & Text Hierarchy
+* **Primary Text (Light):** Off-Black (`#1c1917`) - Ensures maximum readability without the harshness of pure black `#000`.
+* **Secondary Text (Light):** Muted Gray (`#767371`) - Used for descriptions, timestamps, and subtle UI borders.
+* **Primary Text (Dark):** Soft White (`#fff8f0`) - Provides high contrast against charcoal backgrounds.
 
-## Typography
+### Functional States
+* **Success / Green:** `#519872` (Light) to `#2b6948` (Dark)
+* **Info / Blue:** `#0267c1` (Light) to `#154a7b` (Dark)
+* **Error / Destructive:** `#c0392b`
 
-The typography system pairs a rounded, welcoming heading typeface with a clean, high-legibility body typeface designed for dense administrative data.
+## 3. Typography Rules
 
-- **Headings (Nunito):** Used to provide a friendly yet authoritative face. By default, major headings (H1-H3) should be **centered** to create a symmetric, formal layout.
-- **Body (Nunito Sans):** Selected for its exceptional x-height, ensuring clarity in long-form reports and complex data grids. Body text should be **left-aligned** for optimal readability.
-- **Scaling:** On mobile devices, `display-lg` should scale down to `30px` to maintain visual balance within the smaller viewport.
+### Hierarchy & Weights
+The system utilizes a dual-font approach:
+* **Headings (`Nunito`):** All headlines (`h1` through `h6`) are bold (`font-bold`, 700 weight) and center-aligned by default. They establish a clear, authoritative editorial structure. `h1` starts at `text-4xl`, scaling down proportionally.
+* **Body & Labels (`Nunito Sans`):** Body text is left-aligned, optimized for long-form legibility and information-dense environments like forms or data grids. It uses a regular weight (400) with a relaxed `1.5` to `1.75` line height.
 
-## Layout & Spacing
+### Spacing Principles
+* Letter spacing is slightly tightened on extra-large headings (`-0.02em`) for a more cohesive headline block.
+* Label text incorporates a slight tracking increase (`0.01em`) to maintain legibility at smaller sizes.
 
-This design system utilizes a **fixed-fluid hybrid grid** centered on a maximum canvas width of 1280px. This prevents visual stretching on ultra-wide displays while maintaining a structured administrative feel.
-
-- **Layout Model:** A 12-column grid system is used for desktop layouts. Content is bound within a central container with responsive horizontal padding.
-- **Breakpoints:**
-    - **Mobile (< 640px):** 8px margins (`margin-mobile`), 16px gutters. Minimalist padding to maximize touch targets.
-    - **Tablet (640px - 1024px):** 16px to 24px margins, 24px gutters.
-    - **Desktop (> 1024px):** 32px margins (`margin-desktop`), 32px gaps for an open, airy canvas.
-- **Rhythm:** A 4px baseline unit governs all spacing. Vertical rhythm between sections should be strictly maintained using standardized separators with 24px-32px of vertical clearance.
-
-## Elevation & Depth
-
-Visual hierarchy is achieved through a combination of **Tonal Layers** and **Ambient Shadows** that emulate physical stacks of paper and official folders, adapted for a dark environment.
-
-- **Surface Tiers:** The background uses the deep charcoal base. Cards and containers use a slightly brighter or more vibrant dark surface to create "lift" and distinguish between content hierarchies.
-- **Shadow Character:** In dark mode, we rely more on tonal shifts (using brighter surface containers) than heavy shadows. However, a diffused, low-opacity ambient shadow is used to separate primary modules from the canvas clearly.
-- **Borders:** Every container must have a subtle, low-contrast outline in a muted stone gray to define the boundaries of administrative data without creating visual noise.
-- **Interaction Depth:** Hover states on interactive elements should use a slight vertical lift (upward translation) or a tonal shift (brightening) rather than an increase in shadow spread, maintaining a formal institutional aesthetic.
-
-## Shapes
-
-The shape language is **Rounded** and structured. We use significant consistent rounding to balance the serious nature of government data with a modern, accessible interface.
-
-- **Base Radius (0.5rem):** Used for standard inputs, small buttons, and checkboxes.
-- **Large Radius (1rem):** Used for secondary buttons and navigation elements.
-- **Extra Large (1.5rem):** The standard for cards and main dashboard widgets, reinforcing the "modular" bento-box feel.
-- **Pill-shaped:** Reserved exclusively for status tags (chips) and the global search trigger to make them instantly distinguishable from actionable buttons.
-
-## Components
+## 4. Component Stylings
 
 ### Buttons
-- **Primary:** Deep Terracotta background with white text. Feature a "sliding fill" hover animation where a darker burgundy fills the button from the bottom. Rounded at 0.5rem.
-- **Secondary:** Warm Ochre Gold with dark text. Uses a 1rem radius to distinguish it as a specialized action.
-- **Outline:** Thin light-gray border with a transparent background, lifting slightly on hover.
+* **Shape:** Subtly rounded corners (`rounded-md`, ~0.725rem default) matching the global `--radius` variable.
+* **Padding:** Standardized at `px-4 py-2`.
+* **Primary Interaction (`.button-animated`):** Primary buttons use a solid Crimson Red background with an inner shadow trick. On hover, the text turns white and an inner shadow fills the button from the bottom with Deep Crimson (`#60150a`). Active states slightly scale down (`scale(0.95)`).
+* **Focus:** Accessible 3px thick focus rings (`outline-ring/50`) applied globally.
 
-### Cards
-- **Structure:** 1.5rem rounded corners, stone-grey border, and a subtle tonal shift for depth.
-- **Header:** Should feature a bold Nunito heading with a standard 1.5rem (24px) padding.
+### Cards & Containers
+* **Shape:** Generously rounded (`rounded-xl`, ~1.225rem) to soften the UI.
+* **Elevation:** Light mode cards drop onto the background with a soft, expansive shadow (`shadow-lg`). They feature a subtle 1px border (`border-border`).
+* **Padding:** Spacious internal padding, typically `p-6` or `1.5rem`.
+
+### Scrollbars
+* Custom thin scrollbars are applied globally across all browsers.
+* **Thumb:** Pill-shaped, using Muted Gray (`#9ca3af` light, `#4b5563` dark) that slightly darkens on hover.
+* **Track:** Fully transparent.
 
 ### Inputs & Forms
-- **Fields:** 0.5rem rounded corners with a "Stone Gray" border.
-- **Focus State:** Transitions to a thick, 3px outer ring in a semi-transparent primary red to ensure accessibility without using high-vibrancy blues.
-- **Toggles:** Custom wide pill switches that transition from a muted moon aesthetic (off) to a terracotta sun aesthetic (on).
+* **Styling:** Standard `rounded-md` radius with a 1px muted border (`border-border`). The background remains transparent to adapt to the container's surface color.
+* **Interactions:** Number inputs hide their default spin buttons for a cleaner look. Focus states share the global accessible ring styling.
 
-### Navigation
-- **App Sidebar:** Uses a refined deep charcoal background. Features a delayed collapse-on-idle timer (2.5s) to maximize space for data-heavy workflows.
-- **Search:** A global "Command+K" search trigger should be visible in the top bar at all times, styled as a pill-shaped input.
+## 5. Layout Principles
 
-### Specialized Components
-- **Bento Grid:** Used for dashboard stats to create varied visual interest using multi-column and multi-row spans.
-- **Separators:** Use a hairline width in Stone Gray with generous vertical margins to divide major content domains.
+### Grid & Structure
+* The layout is strictly responsive, following a mobile-first approach.
+* **Max Width:** Containers are typically capped at `max-w-7xl` to prevent unreadable line lengths on ultra-wide displays.
+* **Fluid Grids:** Heavy use of CSS grids that collapse. E.g., `grid-cols-1` on mobile, `sm:grid-cols-2` on tablet, and `lg:grid-cols-4` for desktop data display.
+
+### Whitespace Strategy
+* **Rhythm:** The core spacing unit is `1.5rem` (24px). This dictates the internal padding of cards and the margins between major layout sections (`gap-6`, `mb-8`).
+* **Page Padding:** Outer page padding scales from `px-2 py-2` on mobile to `px-8 py-8` on large screens.
+
+### Responsive Behavior & Touch
+* The system is fully responsive. Mobile layouts stack vertically (e.g., Recently Visited stacks above the Platform Carousel), while desktop layouts use side-by-side flex/grid distributions (e.g., 25% / 75% splits).
+* Touch targets (buttons, inputs) are kept large to adhere to accessibility standards.
+
+## 6. Design System Notes for Stitch Generation
+
+### Language to Use
+When prompting Stitch, use terms like: "modern academic," "spacious fluid grid," "clean utilitarian," "subtle drop shadows," "tactile micro-interactions," and "crimson accents." Avoid asking for heavy gradients or stark black/white contrasts.
+
+### Color References
+* Primary Accent: `Crimson Red (#87281b)`
+* Light Mode Background: `Cream White (#f7f4f2)`
+* Light Mode Card: `Extra Light Gray (#f2f1ee)`
+* Dark Mode Background: `Rich Charcoal (#171717)`
+* Dark Mode Card: `Deep Space Black (#0f0f11)`
+
+### Component Prompts
+* **Cards:** "A rounded-xl card with a shadow-lg and a 1px subtle border on an Extra Light Gray background, generous p-6 padding."
+* **Grids:** "A 4-column responsive grid with a 1.5rem gap, stacking to 1 column on mobile."
+* **Typography:** "Center-aligned bold Nunito for the section heading, left-aligned regular Nunito Sans for the body text inside the cards."
