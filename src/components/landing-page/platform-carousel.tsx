@@ -1,27 +1,144 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { banners } from './data/platform-data';
-import { ButtonVariant } from './data/types';
+import { ButtonVariant, TextStyle } from './data/types';
 import Image from 'next/image';
+import { getOptimizedImageUrl } from '@/lib/apis/cloudinary-url';
 
 import { Advertisement } from './data/types';
+
+// Hoverable Button Component for custom hover colors
+const HoverableButton = React.forwardRef<HTMLButtonElement, any>(
+  ({ hoverBgColor, style, onMouseEnter, onMouseLeave, ...props }, ref) => {
+    const [isHovered, setIsHovered] = useState(false);
+
+    const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+      setIsHovered(true);
+      onMouseEnter?.(e);
+    };
+
+    const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+      setIsHovered(false);
+      onMouseLeave?.(e);
+    };
+
+    const dynamicStyle = { ...style };
+    if (isHovered && hoverBgColor) {
+      dynamicStyle.backgroundColor = hoverBgColor;
+    }
+
+    return (
+      <Button
+        ref={ref}
+        {...props}
+        style={dynamicStyle}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      />
+    );
+  }
+);
+HoverableButton.displayName = "HoverableButton";
+
+function parseGradientToCSS(gradient: string): string {
+  if (!gradient) return 'transparent';
+
+  const defaults = {
+      from: '#000000', fromOpacity: 0.8,
+      via: '', viaOpacity: 0,
+      to: '#000000', toOpacity: 0,
+      direction: 'to-r'
+  };
+
+  // Extract direction
+  const dirMatch = gradient.match(/\b(to-[a-z]{1,2})\b/);
+  if (dirMatch) defaults.direction = dirMatch[1];
+
+  // Extract from color
+  const fromMatch = gradient.match(/from-(\[#[A-Fa-f0-9]+\]|black|white|transparent)(?:\/(\d+))?/);
+  if (fromMatch) {
+      defaults.from = fromMatch[1] === 'black' ? '#000000' : fromMatch[1] === 'white' ? '#ffffff' : fromMatch[1] === 'transparent' ? '#000000' : fromMatch[1].replace('[', '').replace(']', '');
+      defaults.fromOpacity = fromMatch[1] === 'transparent' ? 0 : (fromMatch[2] ? parseInt(fromMatch[2]) / 100 : 1);
+  }
+
+  // Extract via color
+  const viaMatch = gradient.match(/via-(\[#[A-Fa-f0-9]+\]|black|white|transparent)(?:\/(\d+))?/);
+  if (viaMatch) {
+      defaults.via = viaMatch[1] === 'black' ? '#000000' : viaMatch[1] === 'white' ? '#ffffff' : viaMatch[1] === 'transparent' ? '#000000' : viaMatch[1].replace('[', '').replace(']', '');
+      defaults.viaOpacity = viaMatch[1] === 'transparent' ? 0 : (viaMatch[2] ? parseInt(viaMatch[2]) / 100 : 1);
+  }
+
+  // Extract to color
+  const toMatch = gradient.match(/to-(\[#[A-Fa-f0-9]+\]|black|white|transparent)(?:\/(\d+))?/);
+  if (toMatch && !toMatch[1].match(/^[a-z]{1,2}$/)) {
+      defaults.to = toMatch[1] === 'black' ? '#000000' : toMatch[1] === 'white' ? '#ffffff' : toMatch[1] === 'transparent' ? '#000000' : toMatch[1].replace('[', '').replace(']', '');
+      defaults.toOpacity = toMatch[1] === 'transparent' ? 0 : (toMatch[2] ? parseInt(toMatch[2]) / 100 : 1);
+  }
+
+  const toRGBA = (hex: string, opacity: number) => {
+      if (!hex.startsWith('#') || hex.length !== 7) {
+          return `rgba(0,0,0,${opacity})`;
+      }
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r},${g},${b},${opacity})`;
+  };
+
+  const directionToCSS: Record<string, string> = {
+      'to-r': 'to right', 'to-l': 'to left', 'to-t': 'to top', 'to-b': 'to bottom',
+      'to-br': 'to bottom right', 'to-bl': 'to bottom left', 'to-tr': 'to top right', 'to-tl': 'to top left',
+  };
+
+  const stops = defaults.viaOpacity > 0
+      ? `${toRGBA(defaults.from, defaults.fromOpacity)}, ${toRGBA(defaults.via, defaults.viaOpacity)}, ${toRGBA(defaults.to, defaults.toOpacity)}`
+      : `${toRGBA(defaults.from, defaults.fromOpacity)}, ${toRGBA(defaults.to, defaults.toOpacity)}`;
+
+  return `linear-gradient(${directionToCSS[defaults.direction] || 'to right'}, ${stops})`;
+}
 
 interface PlatformCarouselProps {
   className?: string;
   adverts?: Advertisement[];
+  autoPlay?: boolean;
+  manualSlide?: number;
+  onSlideChange?: (index: number) => void;
 }
 
-export default function PlatformCarousel({ className, adverts = [] }: PlatformCarouselProps) {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+export default function PlatformCarousel({
+  className,
+  adverts = [],
+  autoPlay = true,
+  manualSlide,
+  onSlideChange
+}: PlatformCarouselProps) {
+  const router = useRouter();
+  const [internalSlide, setInternalSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(autoPlay);
+
+  // Use manualSlide if provided, otherwise internal state
+  const currentSlide = manualSlide !== undefined ? manualSlide : internalSlide;
 
   // Merge ads with static banners
   // First, map ads to banner format
   const adBanners = adverts.map(ad => {
-    const bannerImage = ad.attributes.banner_url || '/yyh4iiocug5dnctfkd5t.webp'; // Fallback image
+    let bannerImage = ad.attributes.banner_url || '/yyh4iiocug5dnctfkd5t.webp'; // Fallback image
+
+    // Apply Cloudinary optimizations if it's a Cloudinary URL
+    if (bannerImage.includes('cloudinary.com')) {
+      bannerImage = getOptimizedImageUrl(bannerImage, {
+        width: 1600,
+        height: 700,
+        quality: 'auto:good',
+        format: 'auto',
+        crop: 'fill'
+      });
+    }
+
     return {
       id: `ad-${ad.id}`,
       title: ad.attributes.title,
@@ -31,38 +148,96 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
       alt: ad.attributes.title,
       gradient: ad.attributes.gradient || "",
       buttons: ad.attributes.buttons || [],
+      title_style: ad.attributes.title_style,
+      subtitle_style: ad.attributes.subtitle_style,
+      description_style: ad.attributes.description_style,
     };
   });
 
-  // const allBanners = [...adBanners, ...banners];
   const allBanners = adBanners.length > 0 ? [...adBanners] : [...banners];
+
+  useEffect(() => {
+    // Sync internal state if manualSlide changes
+    if (manualSlide !== undefined) {
+      setInternalSlide(manualSlide);
+    }
+  }, [manualSlide]);
+
+  useEffect(() => {
+    setIsAutoPlaying(autoPlay);
+  }, [autoPlay]);
 
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % allBanners.length);
+      const next = (currentSlide + 1) % allBanners.length;
+      if (manualSlide === undefined) {
+        setInternalSlide(next);
+      }
+      onSlideChange?.(next);
     }, 3500);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, allBanners.length]);
+  }, [isAutoPlaying, allBanners.length, currentSlide, manualSlide, onSlideChange]);
 
   const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    if (manualSlide === undefined) {
+      setInternalSlide(index);
+    }
+    onSlideChange?.(index);
+
+    // Only pause autoplay if we are in internal mode and autoplay was initially on
+    if (autoPlay && manualSlide === undefined) {
+      setIsAutoPlaying(false);
+      setTimeout(() => setIsAutoPlaying(true), 10000);
+    }
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % allBanners.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    const next = (currentSlide + 1) % allBanners.length;
+    goToSlide(next);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + allBanners.length) % allBanners.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    const prev = (currentSlide - 1 + allBanners.length) % allBanners.length;
+    goToSlide(prev);
+  };
+
+  /**
+   * Smart link handler:
+   * - Full URLs (http:// or https://) → open in new tab
+   * - Paths starting with / → internal navigation, prepend /platform if needed
+   * - Bare paths (e.g. "sports") → prepend /platform/
+   */
+  const handleButtonUrl = (url: string) => {
+    if (!url || url === '#' || url === 'https://' || url === 'http://') return;
+
+    // External: full URL → open in new tab
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      window.open(url, '_blank');
+      return;
+    }
+
+    // Internal path
+    let internalPath = url;
+    if (!internalPath.startsWith('/')) {
+      internalPath = `/${internalPath}`;
+    }
+    // Prepend /platform if the path doesn't already start with it
+    if (!internalPath.startsWith('/platform')) {
+      internalPath = `/platform${internalPath}`;
+    }
+    router.push(internalPath);
+  };
+
+  /** Build inline style from TextStyle object */
+  const textStyleToCSS = (ts?: TextStyle): React.CSSProperties => {
+    if (!ts) return {};
+    const s: React.CSSProperties = {};
+    if (ts.color) s.color = ts.color;
+    if (ts.fontWeight) s.fontWeight = ts.fontWeight as any;
+    return s;
   };
 
   return (
@@ -87,27 +262,41 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 75vw, 1200px"
                 priority={index === 0}
               />
-              <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
+              {banner.gradient && (
+                <div 
+                  className="absolute inset-0" 
+                  style={{ background: parseGradientToCSS(banner.gradient) }} 
+                />
+              )}
 
-              {/* Content Overlay */}w
+              {/* Content Overlay */}
               <div className="absolute inset-0 flex items-center justify-start text-left text-white px-8 py-3 sm:px-14 sm:py-6 md:px-16 md:py-8">
                 <div className="sm:max-w-lg max-w-xs">
-                  <div className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${index === currentSlide
-                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
-                    : 'opacity-0 translate-y-4'
-                    }`}>
+                  <div
+                    className={`sm:text-sm text-[10px] font-bold mb-1 sm:mb-2 transition-all duration-1000 ${index === currentSlide
+                      ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                      : 'opacity-0 translate-y-4'
+                    }`}
+                    style={textStyleToCSS((banner as any).subtitle_style)}
+                  >
                     {banner.subtitle}
                   </div>
-                  <h1 className={`!text-sm sm:!text-2xl lg:!text-4xl font-extrabold mb-2 sm:mb-4 transition-all duration-1000 delay-150 !text-left ${index === currentSlide
-                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
-                    : 'opacity-0 translate-y-4'
-                    }`}>
+                  <h1
+                    className={`!text-sm sm:!text-2xl lg:!text-4xl font-extrabold mb-2 sm:mb-4 transition-all duration-1000 delay-150 !text-left ${index === currentSlide
+                      ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                      : 'opacity-0 translate-y-4'
+                    }`}
+                    style={textStyleToCSS((banner as any).title_style)}
+                  >
                     {banner.title}
                   </h1>
-                  <p className={`sm:text-sm md:text-base text-[10px] mb-3 sm:mb-6 opacity-90 transition-all duration-1000 delay-300 ${index === currentSlide
-                    ? 'animate-in fade-in-0 slide-in-from-bottom-4'
-                    : 'opacity-0 translate-y-4'
-                    }`}>
+                  <p
+                    className={`sm:text-sm md:text-base text-[10px] mb-3 sm:mb-6 opacity-90 transition-all duration-1000 delay-300 ${index === currentSlide
+                      ? 'animate-in fade-in-0 slide-in-from-bottom-4'
+                      : 'opacity-0 translate-y-4'
+                    }`}
+                    style={textStyleToCSS((banner as any).description_style)}
+                  >
                     {banner.description}
                   </p>
                   {Array.isArray(banner.buttons) && banner.buttons.length > 0 && (
@@ -143,20 +332,23 @@ export default function PlatformCarousel({ className, adverts = [] }: PlatformCa
                         const finalClassName = `text-xs sm:text-sm ${filteredClasses.join(" ")}`;
 
                         const handleClick = url
-                          ? () => window.open(url, '_blank')
+                          ? () => handleButtonUrl(url)
                           : otherProps.onClick;
 
+                        const hoverBgColor = btnStyle?.['--hover-bg'];
+
                         return (
-                          <Button
+                          <HoverableButton
                             key={i}
                             {...otherProps}
                             onClick={handleClick}
+                            hoverBgColor={hoverBgColor}
                             style={finalStyle}
                             variant={otherProps.variant as ButtonVariant}
                             className={finalClassName}
                           >
                             {otherProps.children}
-                          </Button>
+                          </HoverableButton>
                         );
                       })}
                     </div>

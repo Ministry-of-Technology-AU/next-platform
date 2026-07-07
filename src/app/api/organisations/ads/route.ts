@@ -1,0 +1,72 @@
+import { NextResponse } from 'next/server';
+import { strapiGet } from '@/lib/apis/strapi';
+import { auth } from '@/auth';
+import { getUserIdByEmail, getOrganisationIdByUserId } from '@/lib/userid';
+
+/**
+ * GET /api/organisations/ads
+ * Fetch all ads belonging to the current user's organisation
+ * This is a secure backend route - user ID cannot be spoofed
+ */
+export async function GET() {
+    try {
+        const session = await auth();
+        const email = session?.user?.email;
+
+        if (!email) {
+            return NextResponse.json(
+                { success: false, error: 'User not authenticated', data: [] },
+                { status: 401 }
+            );
+        }
+
+        const userId = await getUserIdByEmail(email);
+
+        if (!userId) {
+            return NextResponse.json(
+                { success: false, error: 'User not found in system', data: [] },
+                { status: 404 }
+            );
+        }
+
+        const organisationId = await getOrganisationIdByUserId(userId);
+
+        if (!organisationId) {
+            return NextResponse.json({
+                success: true,
+                data: []
+            });
+        }
+
+        // Fetch ads belonging to this organisation
+        const response = await strapiGet('/advertisements', {
+            filters: {
+                organisation: {
+                    id: {
+                        $eq: organisationId
+                    }
+                }
+            },
+            sort: 'createdAt:desc',
+            publicationState: 'preview' // Get both draft and published
+        });
+
+        const ads = response?.data || [];
+
+        return NextResponse.json({
+            success: true,
+            data: ads
+        });
+
+    } catch (error) {
+        console.error('Failed to fetch organisation ads:', error);
+        return NextResponse.json(
+            {
+                success: false,
+                error: 'Failed to fetch ads',
+                data: []
+            },
+            { status: 500 }
+        );
+    }
+}
