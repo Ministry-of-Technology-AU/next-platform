@@ -45,7 +45,7 @@ const HoverableButton = React.forwardRef<HTMLButtonElement, any>(
 HoverableButton.displayName = "HoverableButton";
 
 function parseGradientToCSS(gradient: string): string {
-  if (!gradient) return 'transparent';
+  if (!gradient || gradient.toLowerCase() === 'none') return 'transparent';
 
   const defaults = {
       from: '#000000', fromOpacity: 0.8,
@@ -262,7 +262,7 @@ export default function PlatformCarousel({
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 75vw, 1200px"
                 priority={index === 0}
               />
-              {banner.gradient && (
+              {banner.gradient && banner.gradient.toLowerCase() !== 'none' && (
                 <div 
                   className="absolute inset-0" 
                   style={{ background: parseGradientToCSS(banner.gradient) }} 
