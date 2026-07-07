@@ -39,6 +39,7 @@ export async function uploadImageToCloudinary(
             resource_type: 'image',
             // Optimization settings
             quality: 'auto:good',
+            format: 'webp',
             fetch_format: 'auto',
             // Generate responsive breakpoints for better performance
             responsive_breakpoints: {

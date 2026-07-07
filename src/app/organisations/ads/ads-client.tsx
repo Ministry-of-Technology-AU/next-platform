@@ -160,19 +160,34 @@ function parseGradientString(gradient: string): {
     return defaults;
 }
 
+const getVariantDefaults = (variant: string) => {
+    switch (variant) {
+        case "outline":
+            return { bg: "#ffffff", text: "#000000", border: "#cccccc" };
+        case "secondary":
+            return { bg: "#f3f4f6", text: "#1f2937", border: "#e5e7eb" };
+        case "ghost":
+        case "animatedGhost":
+        case "link":
+            return { bg: "#ffffff", text: "#000000", border: "" };
+        default: // default, animated
+            return { bg: "#1f2937", text: "#ffffff", border: "#1f2937" };
+    }
+};
+
 const extractBgColor = (className: string = ""): string => {
     const match = className.match(/bg-\[#([A-Fa-f0-9]+)\]/);
-    return match ? `#${match[1]}` : "#ffffff";
+    return match ? `#${match[1]}` : "";
 };
 
 const extractTextColor = (className: string = ""): string => {
     const match = className.match(/text-\[#([A-Fa-f0-9]+)\]/);
-    return match ? `#${match[1]}` : "#000000";
+    return match ? `#${match[1]}` : "";
 };
 
 const extractBorderColor = (className: string = ""): string => {
     const match = className.match(/border-\[#([A-Fa-f0-9]+)\]/);
-    return match ? `#${match[1]}` : "#000000";
+    return match ? `#${match[1]}` : "";
 };
 
 const extractHoverBgColor = (style: any): string => {
@@ -668,7 +683,7 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || 'Failed to submit ad');
 
-            toast.success("Ad submitted successfully! Email notification sent.");
+            toast.success("Ad request submitted. Your request will soon be evaluated by Techmin, and you will hear back soon!");
 
             if (result.data) {
                 const newAds = [...ads];
@@ -694,6 +709,16 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
         const btn = currentButtons[btnIndex];
         const variant = btn.variant || "default";
 
+        // Extract current colors (which are either hex strings or empty)
+        const currentBgColor = extractBgColor(btn.className);
+        const currentTextColor = extractTextColor(btn.className);
+        const currentBorderColor = extractBorderColor(btn.className);
+
+        // Keep existing colors if they are not explicitly updated
+        const targetBgColor = updates.bgColor !== undefined ? updates.bgColor : currentBgColor;
+        const targetTextColor = updates.textColor !== undefined ? updates.textColor : currentTextColor;
+        const targetBorderColor = updates.borderColor !== undefined ? updates.borderColor : currentBorderColor;
+
         let className = (btn.className || "")
             .replace(/bg-\[#[A-Fa-f0-9]+\]/g, "")
             .replace(/text-\[#[A-Fa-f0-9]+\]/g, "")
@@ -702,19 +727,21 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
             .trim();
 
         if (variant === "outline") {
-            if (updates.borderColor) className += ` border border-[${updates.borderColor}]`;
-            if (updates.textColor) className += ` text-[${updates.textColor}]`;
+            if (targetBorderColor) className += ` border border-[${targetBorderColor}]`;
+            if (targetTextColor) className += ` text-[${targetTextColor}]`;
         } else if (variant === "ghost" || variant === "animatedGhost" || variant === "link") {
-            if (updates.textColor) className += ` text-[${updates.textColor}]`;
+            if (targetTextColor) className += ` text-[${targetTextColor}]`;
         } else {
-            if (updates.bgColor) className += ` bg-[${updates.bgColor}]`;
-            if (updates.textColor) className += ` text-[${updates.textColor}]`;
-            if (updates.borderColor) className += ` border border-[${updates.borderColor}]`;
+            if (targetBgColor) className += ` bg-[${targetBgColor}]`;
+            if (targetTextColor) className += ` text-[${targetTextColor}]`;
+            if (targetBorderColor) className += ` border border-[${targetBorderColor}]`;
         }
 
         className = className.trim();
         const newStyle = { ...btn.style };
-        if (updates.hoverBgColor) newStyle['--hover-bg'] = updates.hoverBgColor;
+        if (updates.hoverBgColor !== undefined) {
+            newStyle['--hover-bg'] = updates.hoverBgColor;
+        }
 
         updateButton(btnIndex, { className, style: newStyle });
     };
@@ -747,7 +774,7 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
                         body={[
                             "Recommended image dimensions: 1600x700 pixels (16:9 aspect ratio)",
                             "Supported formats: JPG, PNG, WebP",
-                            "Maximum file size: 5MB",
+                            "Maximum file size: 10MB",
                             "Ensure text overlays are readable - test with the gradient overlay",
                             "High contrast images work best with text overlays",
                             "Use the text style buttons (🎨) next to title/subtitle/description to change colours and weight",
@@ -845,9 +872,10 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
                         {/* ── Buttons ── */}
                         {currentAd.attributes.buttons?.map((btn: BannerButton, idx: number) => {
                             const variant = btn.variant || "default";
-                            const bgColor = extractBgColor(btn.className);
-                            const textColor = extractTextColor(btn.className);
-                            const borderColor = extractBorderColor(btn.className);
+                            const variantDefaults = getVariantDefaults(variant);
+                            const bgColor = extractBgColor(btn.className) || variantDefaults.bg;
+                            const textColor = extractTextColor(btn.className) || variantDefaults.text;
+                            const borderColor = extractBorderColor(btn.className) || variantDefaults.border;
                             const hoverBgColor = extractHoverBgColor(btn.style);
 
                             const showBgColor = variant !== "outline" && variant !== "ghost" && variant !== "animatedGhost" && variant !== "link";

@@ -44,6 +44,63 @@ const HoverableButton = React.forwardRef<HTMLButtonElement, any>(
 );
 HoverableButton.displayName = "HoverableButton";
 
+function parseGradientToCSS(gradient: string): string {
+  if (!gradient) return 'transparent';
+
+  const defaults = {
+      from: '#000000', fromOpacity: 0.8,
+      via: '', viaOpacity: 0,
+      to: '#000000', toOpacity: 0,
+      direction: 'to-r'
+  };
+
+  // Extract direction
+  const dirMatch = gradient.match(/\b(to-[a-z]{1,2})\b/);
+  if (dirMatch) defaults.direction = dirMatch[1];
+
+  // Extract from color
+  const fromMatch = gradient.match(/from-(\[#[A-Fa-f0-9]+\]|black|white|transparent)(?:\/(\d+))?/);
+  if (fromMatch) {
+      defaults.from = fromMatch[1] === 'black' ? '#000000' : fromMatch[1] === 'white' ? '#ffffff' : fromMatch[1] === 'transparent' ? '#000000' : fromMatch[1].replace('[', '').replace(']', '');
+      defaults.fromOpacity = fromMatch[1] === 'transparent' ? 0 : (fromMatch[2] ? parseInt(fromMatch[2]) / 100 : 1);
+  }
+
+  // Extract via color
+  const viaMatch = gradient.match(/via-(\[#[A-Fa-f0-9]+\]|black|white|transparent)(?:\/(\d+))?/);
+  if (viaMatch) {
+      defaults.via = viaMatch[1] === 'black' ? '#000000' : viaMatch[1] === 'white' ? '#ffffff' : viaMatch[1] === 'transparent' ? '#000000' : viaMatch[1].replace('[', '').replace(']', '');
+      defaults.viaOpacity = viaMatch[1] === 'transparent' ? 0 : (viaMatch[2] ? parseInt(viaMatch[2]) / 100 : 1);
+  }
+
+  // Extract to color
+  const toMatch = gradient.match(/to-(\[#[A-Fa-f0-9]+\]|black|white|transparent)(?:\/(\d+))?/);
+  if (toMatch && !toMatch[1].match(/^[a-z]{1,2}$/)) {
+      defaults.to = toMatch[1] === 'black' ? '#000000' : toMatch[1] === 'white' ? '#ffffff' : toMatch[1] === 'transparent' ? '#000000' : toMatch[1].replace('[', '').replace(']', '');
+      defaults.toOpacity = toMatch[1] === 'transparent' ? 0 : (toMatch[2] ? parseInt(toMatch[2]) / 100 : 1);
+  }
+
+  const toRGBA = (hex: string, opacity: number) => {
+      if (!hex.startsWith('#') || hex.length !== 7) {
+          return `rgba(0,0,0,${opacity})`;
+      }
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r},${g},${b},${opacity})`;
+  };
+
+  const directionToCSS: Record<string, string> = {
+      'to-r': 'to right', 'to-l': 'to left', 'to-t': 'to top', 'to-b': 'to bottom',
+      'to-br': 'to bottom right', 'to-bl': 'to bottom left', 'to-tr': 'to top right', 'to-tl': 'to top left',
+  };
+
+  const stops = defaults.viaOpacity > 0
+      ? `${toRGBA(defaults.from, defaults.fromOpacity)}, ${toRGBA(defaults.via, defaults.viaOpacity)}, ${toRGBA(defaults.to, defaults.toOpacity)}`
+      : `${toRGBA(defaults.from, defaults.fromOpacity)}, ${toRGBA(defaults.to, defaults.toOpacity)}`;
+
+  return `linear-gradient(${directionToCSS[defaults.direction] || 'to right'}, ${stops})`;
+}
+
 interface PlatformCarouselProps {
   className?: string;
   adverts?: Advertisement[];
@@ -205,7 +262,12 @@ export default function PlatformCarousel({
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 75vw, 1200px"
                 priority={index === 0}
               />
-              <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
+              {banner.gradient && (
+                <div 
+                  className="absolute inset-0" 
+                  style={{ background: parseGradientToCSS(banner.gradient) }} 
+                />
+              )}
 
               {/* Content Overlay */}
               <div className="absolute inset-0 flex items-center justify-start text-left text-white px-8 py-3 sm:px-14 sm:py-6 md:px-16 md:py-8">

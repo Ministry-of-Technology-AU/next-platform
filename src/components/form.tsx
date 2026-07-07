@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -545,7 +546,7 @@ export function ImageUpload({
   isRequired = false,
   errorMessage,
   multiple = false,
-  maxSize = 5,
+  maxSize = 10,
   value = [],
   onChange,
 }: ImageUploadProps) {
