@@ -1,41 +1,25 @@
-import OrganisationProfileClient from "./OrganisationProfileClient";
-import DeveloperCredits from "@/components/developer-credits";
+import { cookies } from "next/headers";
 import Image from "next/image";
 import PageTitle from "@/components/page-title";
 import { Button } from "@/components/ui/button";
 import { Hammer } from "lucide-react";
 import Link from "next/link";
-import { auth } from "@/auth";
-import { getUserIdByEmail } from "@/lib/userid";
-import { strapiGet } from "@/lib/apis/strapi";
+
 
 async function getData() {
-  const session = await auth();
-  const email = session?.user?.email;
+  const cookieStore = await cookies();
 
-  if (email) {
-    const userId = await getUserIdByEmail(email);
-    if (!userId) return { organisation: null, users: [] };
-
-    const user = await strapiGet(`users/${userId}`, {
-      populate: {
-        organisations: {
-          populate: {
-            circle1_humans: true,
-            circle2_humans: true,
-            members: true,
-          },
-        },
-      },
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/organisations/profile`, {
+      cache: 'no-store',
+      headers: { 'Cookie': cookieStore.toString() },
     });
-
-    const organisation = user?.organisations?.[0] || null;
-
-    const users = await strapiGet("users", {
-      pagination: { pageSize: 500 },
-    });
-
-    return { organisation, users };
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+  } catch (error) {
+    console.error("Failed to fetch profile data:", error);
   }
   return { organisation: null, users: [] };
 }
