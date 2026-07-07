@@ -13,6 +13,11 @@
                     "title": "Advertisements",
                     "icon": "Megaphone",
                     "href": "/ads"
+                },
+                {
+                    "title": "Inductions",
+                    "icon": "Newspaper",
+                    "href": "/inductions"
                 }
             ]
         },

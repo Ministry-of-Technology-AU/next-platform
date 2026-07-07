@@ -43,7 +43,8 @@ import {
   CalendarSearch,
   Megaphone,
   Trophy,
-  MapPinned
+  MapPinned,
+  Newspaper
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -74,7 +75,8 @@ const iconMap = {
   CalendarSearch,
   Megaphone,
   Trophy,
-  MapPinned
+  MapPinned,
+  Newspaper
 };
 
 interface SidebarItem {

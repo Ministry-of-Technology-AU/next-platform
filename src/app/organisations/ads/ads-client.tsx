@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PlatformCarousel from "@/components/landing-page/platform-carousel";
 import { Advertisement, ButtonVariant, BannerButton, TextStyle } from "@/components/landing-page/data/types";
 import {
@@ -465,6 +465,10 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showGradient, setShowGradient] = useState(false);
+
+    useEffect(() => {
+        localStorage.setItem("ADS_TOUR_SEEN_V1", "true");
+    }, []);
 
     // ─── Ad CRUD helpers ─────────────────────────────────────
     const updateCurrentAd = (updates: Partial<Advertisement['attributes']>) => {
