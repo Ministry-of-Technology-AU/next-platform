@@ -227,7 +227,11 @@ export function AppSidebar({
                           onClick={handleLinkClick}
                         >
                           <div className="relative transition-all duration-500">
-                            <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0" />
+                            {IconComponent ? (
+                              <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0" />
+                            ) : (
+                              <div className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0 rounded-full bg-muted-foreground/35 animate-pulse" />
+                            )}
                           </div>
                           <span className={cn(
                             "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",

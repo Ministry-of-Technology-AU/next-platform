@@ -13,6 +13,7 @@ import {
   CheckboxComponent,
   RichTextInput,
   DateTimePicker,
+  ImageUpload,
 } from "@/components/form";
 import { toast } from "sonner";
 
@@ -150,21 +151,7 @@ export default function OrganisationProfileClient({
               />
             )}
 
-            {/* ✏️ Banner Edit Button */}
-            <label className="absolute top-4 right-4 text-white bg-black/40 hover:bg-black/60 px-3 py-1.5 rounded-full text-sm cursor-pointer z-10 transition">
-              ✎
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    setBannerSrc(URL.createObjectURL(e.target.files[0]));
-                    setBannerFile(e.target.files[0]);
-                  }
-                }}
-                className="hidden"
-              />
-            </label>
+            {/* ✏️ Banner Edit Button removed in favor of ImageUpload component */}
 
             {/* PROFILE IMAGE OVERLAP */}
             <div className="absolute left-1/2 -bottom-14 -translate-x-1/2 z-20">
@@ -213,6 +200,21 @@ export default function OrganisationProfileClient({
         <CardHeader />
         <CardContent>
           <FormContainer onSubmit={handleSubmit} className="space-y-6">
+
+            <ImageUpload
+              title="Banner Image"
+              description="Upload a banner image. Guidelines: try to keep it not too busy, keep it vibrant, and make it such that even if cropped it works well (try to avoid people, go for patterns more)."
+              onChange={(files) => {
+                if (files && files.length > 0) {
+                  const file = files[0];
+                  setBannerFile(file);
+                  setBannerSrc(URL.createObjectURL(file));
+                } else {
+                  setBannerFile(null);
+                  setBannerSrc(organisation?.banner_url || null);
+                }
+              }}
+            />
 
             <SingleSelect
               title="Type"
