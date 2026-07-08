@@ -22,10 +22,8 @@ import Image from "next/image";
 
 export default function OrganisationProfileClient({
   organisation,
-  users,
 }: {
   organisation: any;
-  users: any[];
 }) {
 
   // ================= STATE (Initialized from server props) =================
@@ -85,6 +83,35 @@ export default function OrganisationProfileClient({
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const initialUserOptions = React.useMemo(() => {
+    const map = new Map<string, { id: string; label: string }>();
+    const addUsers = (usersList?: any[]) => {
+      if (usersList && Array.isArray(usersList)) {
+        usersList.forEach(u => map.set(String(u.id), { id: String(u.id), label: u.username }));
+      }
+    };
+    addUsers(organisation?.circle1_humans);
+    addUsers(organisation?.circle2_humans);
+    addUsers(organisation?.members);
+    return Array.from(map.values());
+  }, [organisation]);
+
+  const searchUsers = React.useCallback(async (query: string) => {
+    if (!query) return [];
+    try {
+      const res = await fetch(`/api/platform/users/search?q=${encodeURIComponent(query)}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return (data.users || []).map((u: any) => ({
+        id: String(u.id),
+        label: u.username
+      }));
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }, []);
 
   // ================= UPDATE =================
 
@@ -249,27 +276,30 @@ export default function OrganisationProfileClient({
             <div className="space-y-2">
               <MultiUserCombobox
                 label="Circle 1"
-                options={users?.map((user) => ({ id: String(user.id), label: user.username })) || []}
+                initialOptions={initialUserOptions}
                 value={circle1}
                 onChange={(newCircle1) => setCircle1(newCircle1)}
+                onSearch={searchUsers}
               />
             </div>
             {/* Circle 2 */}
             <div className="space-y-2">
               <MultiUserCombobox
                 label="Circle 2"
-                options={users?.map((user) => ({ id: String(user.id), label: user.username })) || []}
+                initialOptions={initialUserOptions}
                 value={circle2}
                 onChange={(newCircle2) => setCircle2(newCircle2)}
+                onSearch={searchUsers}
               />
             </div>
             {/* Members */}
             <div className="space-y-2">
               <MultiUserCombobox
                 label="Members"
-                options={users?.map((user) => ({ id: String(user.id), label: user.username })) || []}
+                initialOptions={initialUserOptions}
                 value={membersDrop}
                 onChange={(newMembersDrop) => setMembersDrop(newMembersDrop)}
+                onSearch={searchUsers}
               />
             </div>
 

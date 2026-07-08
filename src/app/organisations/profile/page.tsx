@@ -1,12 +1,6 @@
 import { cookies } from "next/headers";
 import OrganisationProfileClient from "./OrganisationProfileClient";
 import DeveloperCredits from "@/components/developer-credits";
-import Image from "next/image";
-import PageTitle from "@/components/page-title";
-import { Button } from "@/components/ui/button";
-import { Hammer } from "lucide-react";
-import Link from "next/link";
-
 
 async function getData() {
   const cookieStore = await cookies();
@@ -24,13 +18,10 @@ export default async function OrganisationProfilePage() {
 
   const data = await getData();
   const organisation = data?.organisation;
-  const users = data?.users;
-
   return (
     <>
       <OrganisationProfileClient
         organisation={organisation}
-        users={users}
       />
       <DeveloperCredits developers={[{ name: "Aditya Kanodia", role: "Lead Developer" }, { name: "Soham Tulsyan", role: "Assistant Developer" }]} />
     </>

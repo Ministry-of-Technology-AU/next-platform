@@ -34,12 +34,7 @@ export async function GET() {
 
         const organisation = user?.organisations?.[0] || null;
 
-        // 3️⃣ Fetch all students
-        const users = await strapiGet("users", {
-            pagination: { pageSize: 500 },
-        });
-
-        return new Response(JSON.stringify({ organisation, users }), { status: 200 });
+        return new Response(JSON.stringify({ organisation }), { status: 200 });
     }
     else return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 }
