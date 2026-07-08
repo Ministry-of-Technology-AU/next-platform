@@ -1,9 +1,7 @@
 "use client";
 import PageTitle from "@/components/page-title";
-import { Button } from "@/components/ui/button";
 import { Hammer } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 export default function InductionsPage() {
     return (
@@ -18,13 +16,7 @@ export default function InductionsPage() {
             />
             <div className="flex flex-col items-center">
 
-                <p className="text-center">You're probably here looking for the platform.</p>
-                <Button
-                    onClick={() => (window.location.href = "/platform")}
-                    className="mt-4 text-sm sm:text-base px-4 sm:px-6"
-                >
-                    Here&apos;s a button to get you there!
-                </Button>
+                <p className="text-center">We're cooking up something you're gonna absolutely love. Stay tuned to find out!</p>
             </div>
             <p className="text-center pt-10 text-muted-foreground">We're revamping the SG Website too! Stay tuned!</p>
 

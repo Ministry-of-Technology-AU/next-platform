@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 
 /**
  * Server component that fetches ads via API route
- * All user → organisation lookups happen in the API route (backend only)
  */
 export default async function AdsManagementPage() {
     let existingAds: Advertisement[] = [];
@@ -15,7 +14,7 @@ export default async function AdsManagementPage() {
         const cookieHeader = cookieStore.toString();
 
         // Call the API route server-side with cookies
-        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         const response = await fetch(`${baseUrl}/api/organisations/ads`, {
             cache: 'no-store', // Always get fresh data
             headers: {
@@ -23,19 +22,18 @@ export default async function AdsManagementPage() {
             }
         });
 
-        if (!response.ok) {
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                existingAds = result.data;
+            }
+        } else {
             console.error('API returned error:', response.status, response.statusText);
             return <AdsManagementClient initialAds={[]} />;
         }
-
-        const result = await response.json();
-
-        if (result.success && result.data) {
-            existingAds = result.data;
-        }
     } catch (error) {
         console.error('Failed to fetch ads:', error);
-        // Continue with empty array - client will show mock template
     }
 
     return <AdsManagementClient initialAds={existingAds} />;

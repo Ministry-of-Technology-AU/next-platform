@@ -522,7 +522,7 @@ export default function AdsManagementClient({ initialAds }: AdsManagementClientP
                 subtitle: "",
                 description: "",
                 banner_url: "",
-                gradient: "from-black/80 to-r to-transparent",
+                gradient: "",
                 buttons: [],
                 start_date: new Date().toISOString().split('T')[0],
                 title_style: { color: "#ffffff", fontWeight: "800" },

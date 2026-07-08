@@ -96,7 +96,9 @@ export async function GET() {
         
         // Get banner image with fallback
         let bannerUrl = DEFAULT_BANNER;
-        if (attrs.banner?.data) {
+        if (attrs.banner_url) {
+          bannerUrl = attrs.banner_url;
+        } else if (attrs.banner?.data) {
           const bannerData = Array.isArray(attrs.banner.data) 
             ? attrs.banner.data[0] 
             : attrs.banner.data;
