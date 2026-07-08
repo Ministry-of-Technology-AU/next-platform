@@ -25,7 +25,7 @@ export async function sendMailSG(params: MailParams): Promise<void> {
             secure: true,
             auth: {
                 user: process.env.SGMAIL_ID,
-                pass: process.env.SGMAIL_PWD,
+                pass: process.env.SGMAIL_PWD ? process.env.SGMAIL_PWD.replace(/\s+/g, '') : '',
             },
         });
 
@@ -60,7 +60,7 @@ export async function sendMail(params: MailParams): Promise<void> {
             secure: true,
             auth: {
                 user: process.env.TECHMAIL_ID,
-                pass: process.env.TECHMAIL_PWD,
+                pass: process.env.TECHMAIL_PWD ? process.env.TECHMAIL_PWD.replace(/\s+/g, '') : '',
             },
         });
 
