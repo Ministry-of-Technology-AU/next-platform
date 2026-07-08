@@ -1,11 +1,6 @@
 import { cookies } from "next/headers";
 import OrganisationProfileClient from "./OrganisationProfileClient";
 import DeveloperCredits from "@/components/developer-credits";
-import Image from "next/image";
-import PageTitle from "@/components/page-title";
-import { Button } from "@/components/ui/button";
-import { Hammer } from "lucide-react";
-import Link from "next/link";
 
 async function getData() {
   const cookieStore = await cookies();
