@@ -22,6 +22,7 @@ export default async function AdsManagementPage() {
             }
         });
 
+
         if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
@@ -29,6 +30,7 @@ export default async function AdsManagementPage() {
             }
         } else {
             console.error('API returned error:', response.status, response.statusText);
+            return <AdsManagementClient initialAds={[]} />;
         }
     } catch (error) {
         console.error('Failed to fetch ads:', error);
