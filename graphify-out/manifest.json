@@ -1,0 +1,2007 @@
+{
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/.vscode/settings.json": {
+    "mtime": 1776186619.2293348,
+    "ast_hash": "48afb7a10f8778e31b401ef39e0938ba",
+    "semantic_hash": "48afb7a10f8778e31b401ef39e0938ba"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/.vscode/tasks.json": {
+    "mtime": 1782642686.617085,
+    "ast_hash": "16bd9b4b15bc748763e56c31e55a5203",
+    "semantic_hash": "16bd9b4b15bc748763e56c31e55a5203"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/components.json": {
+    "mtime": 1782642686.6178558,
+    "ast_hash": "004db424cc6777114e04e39297381bf6",
+    "semantic_hash": "004db424cc6777114e04e39297381bf6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/eslint.config.mjs": {
+    "mtime": 1776186619.2821095,
+    "ast_hash": "20abb2dbaeb161ecf3fa6114853449ff",
+    "semantic_hash": "20abb2dbaeb161ecf3fa6114853449ff"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/next.config.ts": {
+    "mtime": 1783169083.4617772,
+    "ast_hash": "f679c03220c8f6e56484d91807f67a79",
+    "semantic_hash": "f679c03220c8f6e56484d91807f67a79"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/package.json": {
+    "mtime": 1783167331.5561273,
+    "ast_hash": "85cec7e74d2a15eadca7ec0091d520e0",
+    "semantic_hash": "85cec7e74d2a15eadca7ec0091d520e0"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/postcss.config.mjs": {
+    "mtime": 1762958131.92375,
+    "ast_hash": "675899342e765a4d16acd75a53389101",
+    "semantic_hash": "675899342e765a4d16acd75a53389101"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/whats-new.json": {
+    "mtime": 1783167331.5565944,
+    "ast_hash": "3caadaa17e8c67a9c491a8789c5e08aa",
+    "semantic_hash": "3caadaa17e8c67a9c491a8789c5e08aa"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/auth/[...nextauth]/route.ts": {
+    "mtime": 1776186619.3195868,
+    "ast_hash": "baf4c3cf46f92af6d30582f425b3a93f",
+    "semantic_hash": "baf4c3cf46f92af6d30582f425b3a93f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/calendar/callback/route.ts": {
+    "mtime": 1782642686.6484132,
+    "ast_hash": "7aeace0d95b401e3a7f90684c53ae729",
+    "semantic_hash": "7aeace0d95b401e3a7f90684c53ae729"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/organisations/route.ts": {
+    "mtime": 1783169289.440974,
+    "ast_hash": "1597ac1c8fe0e19641e5df4f4050cde9",
+    "semantic_hash": "1597ac1c8fe0e19641e5df4f4050cde9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/ashokan-around/route.ts": {
+    "mtime": 1782642686.6487615,
+    "ast_hash": "2bb13d921bc9d16e642b8e84c3cc0eb0",
+    "semantic_hash": "2bb13d921bc9d16e642b8e84c3cc0eb0"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/borrow-assets/[id]/route.ts": {
+    "mtime": 1776186619.3212972,
+    "ast_hash": "be734d5adfe35baed5003484924edb87",
+    "semantic_hash": "be734d5adfe35baed5003484924edb87"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/borrow-assets/route.ts": {
+    "mtime": 1776186619.321432,
+    "ast_hash": "38ce027340ef5efbd2c635462bc247a9",
+    "semantic_hash": "38ce027340ef5efbd2c635462bc247a9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/cash-survey/route.ts": {
+    "mtime": 1783169289.441123,
+    "ast_hash": "a445fa7333dc5b073e32a4bfcd07f790",
+    "semantic_hash": "a445fa7333dc5b073e32a4bfcd07f790"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/cgpa-planner/parse/route.ts": {
+    "mtime": 1782642686.6490095,
+    "ast_hash": "98a2816286996e9b16f955176d496aab",
+    "semantic_hash": "98a2816286996e9b16f955176d496aab"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/cgpa-planner/route.ts": {
+    "mtime": 1782642686.6491582,
+    "ast_hash": "a212519817096be16b5ae414c8a75c70",
+    "semantic_hash": "a212519817096be16b5ae414c8a75c70"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/courses/[id]/route.ts": {
+    "mtime": 1783169289.4412458,
+    "ast_hash": "6d69a836cbc783233f3433419a10b309",
+    "semantic_hash": "6d69a836cbc783233f3433419a10b309"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/courses/route.ts": {
+    "mtime": 1782642686.6496239,
+    "ast_hash": "4d07d21abe716faf34a76434c7743c38",
+    "semantic_hash": "4d07d21abe716faf34a76434c7743c38"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/events/[id]/route.ts": {
+    "mtime": 1776186619.3222377,
+    "ast_hash": "b7fb314f35948dc3a08dbd8be81c2e22",
+    "semantic_hash": "b7fb314f35948dc3a08dbd8be81c2e22"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/events/preferences/route.ts": {
+    "mtime": 1783169289.4413686,
+    "ast_hash": "4e6ad70dd0ed39947e8b6d9552949583",
+    "semantic_hash": "4e6ad70dd0ed39947e8b6d9552949583"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/events/route.ts": {
+    "mtime": 1783169289.441477,
+    "ast_hash": "285018c91d5731d4d1a077d8525cb633",
+    "semantic_hash": "285018c91d5731d4d1a077d8525cb633"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/feedback/route.ts": {
+    "mtime": 1776186619.3225603,
+    "ast_hash": "ea74c028353c6bfa1d336aafec78337c",
+    "semantic_hash": "ea74c028353c6bfa1d336aafec78337c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/games/wordle/archive/route.ts": {
+    "mtime": 1782642686.6502824,
+    "ast_hash": "8dfc1763942ec01234d15b1b23ff524c",
+    "semantic_hash": "8dfc1763942ec01234d15b1b23ff524c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/games/wordle/friends/accept/route.ts": {
+    "mtime": 1782642686.6504965,
+    "ast_hash": "42ab35fe0dd8cd98edee468230da8c5b",
+    "semantic_hash": "42ab35fe0dd8cd98edee468230da8c5b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/games/wordle/friends/route.ts": {
+    "mtime": 1782642686.650629,
+    "ast_hash": "d56da4888536a57164046e671d866827",
+    "semantic_hash": "d56da4888536a57164046e671d866827"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/games/wordle/friends/scores/route.ts": {
+    "mtime": 1782642686.650737,
+    "ast_hash": "5bd5360cfa62a1cb66e09012d3df68cb",
+    "semantic_hash": "5bd5360cfa62a1cb66e09012d3df68cb"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/games/wordle/leaderboard/route.ts": {
+    "mtime": 1782642686.651461,
+    "ast_hash": "7d505dcab2ac5d16d94930e712da4fb6",
+    "semantic_hash": "7d505dcab2ac5d16d94930e712da4fb6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/games/wordle/route.ts": {
+    "mtime": 1782642686.6516457,
+    "ast_hash": "f74b8062585f374a332bcfaab1ded79c",
+    "semantic_hash": "f74b8062585f374a332bcfaab1ded79c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/landing-page/metrics/route.ts": {
+    "mtime": 1783169289.4416058,
+    "ast_hash": "1968bd1fda201c360e6ee87ecd69f6eb",
+    "semantic_hash": "1968bd1fda201c360e6ee87ecd69f6eb"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/landing-page/route.ts": {
+    "mtime": 1783167331.5569642,
+    "ast_hash": "f1f0930c4654e719483c180dce9264b6",
+    "semantic_hash": "f1f0930c4654e719483c180dce9264b6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/organisations-catalogue/checklist/route.ts": {
+    "mtime": 1776186619.3253856,
+    "ast_hash": "2016eb4a84057492dc83c4fe5345065d",
+    "semantic_hash": "2016eb4a84057492dc83c4fe5345065d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/organisations-catalogue/preferences/route.ts": {
+    "mtime": 1776186619.3255162,
+    "ast_hash": "1bb3afe811afdc9854f57658c17ad681",
+    "semantic_hash": "1bb3afe811afdc9854f57658c17ad681"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/organisations-catalogue/route.ts": {
+    "mtime": 1783169289.441741,
+    "ast_hash": "2026831e92c9e5f667290cf940a9a771",
+    "semantic_hash": "2026831e92c9e5f667290cf940a9a771"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/organisations-catalogue/track/[id]/route.ts": {
+    "mtime": 1776186619.3257608,
+    "ast_hash": "8ec94d940ca6f5aba966f7b7aafcd5e3",
+    "semantic_hash": "8ec94d940ca6f5aba966f7b7aafcd5e3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/pool-cab/route.ts": {
+    "mtime": 1783169289.4421484,
+    "ast_hash": "58e6e737071837f937d361cf87c3035f",
+    "semantic_hash": "58e6e737071837f937d361cf87c3035f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/pool-subscription/route.ts": {
+    "mtime": 1783169289.4426622,
+    "ast_hash": "d97a958f7bd3e81f2174b104b9e8343a",
+    "semantic_hash": "d97a958f7bd3e81f2174b104b9e8343a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/profile/route.ts": {
+    "mtime": 1783169289.442801,
+    "ast_hash": "160e41b89af15d7bdb1072a25cda239e",
+    "semantic_hash": "160e41b89af15d7bdb1072a25cda239e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/rep/dept-info/route.ts": {
+    "mtime": 1782642686.6523376,
+    "ast_hash": "3179852a937e7b922d47f9adc1aae737",
+    "semantic_hash": "3179852a937e7b922d47f9adc1aae737"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/rti/route.ts": {
+    "mtime": 1776186619.3273973,
+    "ast_hash": "2eb209bbe7329505e065f7dcf362b2d6",
+    "semantic_hash": "2eb209bbe7329505e065f7dcf362b2d6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/semester-planner/calendar/route.ts": {
+    "mtime": 1783169289.4431157,
+    "ast_hash": "7db93c7d3ea372a10c05b175dd9aecad",
+    "semantic_hash": "7db93c7d3ea372a10c05b175dd9aecad"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/semester-planner/drafts/route.ts": {
+    "mtime": 1776186619.3280387,
+    "ast_hash": "1c9e4d7c825a01d29bf86a6af4b9ce5a",
+    "semantic_hash": "1c9e4d7c825a01d29bf86a6af4b9ce5a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/semester-planner/route.ts": {
+    "mtime": 1783169289.4434974,
+    "ast_hash": "3b5386a4ba69112583720bb474b41ca1",
+    "semantic_hash": "3b5386a4ba69112583720bb474b41ca1"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sg-compose/dashboard/route.ts": {
+    "mtime": 1782642686.6535156,
+    "ast_hash": "edf63ceb38358ad8790816aa31ae855b",
+    "semantic_hash": "edf63ceb38358ad8790816aa31ae855b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sg-compose/new/route.ts": {
+    "mtime": 1783169289.4438496,
+    "ast_hash": "77a90219f31d28cba8571d4e9a12e208",
+    "semantic_hash": "77a90219f31d28cba8571d4e9a12e208"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sg-compose/outbox/route.ts": {
+    "mtime": 1776186619.3292472,
+    "ast_hash": "d0007146aeed95f638f8a47af1628bbf",
+    "semantic_hash": "d0007146aeed95f638f8a47af1628bbf"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/fantasy/route.ts": {
+    "mtime": 1782642686.6538765,
+    "ast_hash": "8b754b22c35e305924d5460d52110a32",
+    "semantic_hash": "8b754b22c35e305924d5460d52110a32"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/matches/[id]/route.ts": {
+    "mtime": 1782642686.6540308,
+    "ast_hash": "4b0352fe4d180926c4d15551f7fdeb2c",
+    "semantic_hash": "4b0352fe4d180926c4d15551f7fdeb2c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/matches/route.ts": {
+    "mtime": 1782642686.654226,
+    "ast_hash": "ffa1fc360af46dc4b32326e83f0b5732",
+    "semantic_hash": "ffa1fc360af46dc4b32326e83f0b5732"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/participants/[id]/route.ts": {
+    "mtime": 1782642686.6543725,
+    "ast_hash": "6c04ce5c90ab8a398280ec96e8870a48",
+    "semantic_hash": "6c04ce5c90ab8a398280ec96e8870a48"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/participants/route.ts": {
+    "mtime": 1782642686.654439,
+    "ast_hash": "16ae7eae1dcbb1b3b6be2877803425d7",
+    "semantic_hash": "16ae7eae1dcbb1b3b6be2877803425d7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/sse/route.ts": {
+    "mtime": 1782642686.654542,
+    "ast_hash": "c6f2bf2f5af1650972e31aa15f848ae2",
+    "semantic_hash": "c6f2bf2f5af1650972e31aa15f848ae2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/teams/[id]/route.ts": {
+    "mtime": 1782642686.6546776,
+    "ast_hash": "b8107f6f78d16dc9456eb9b8fc4597e6",
+    "semantic_hash": "b8107f6f78d16dc9456eb9b8fc4597e6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/teams/route.ts": {
+    "mtime": 1782642686.654733,
+    "ast_hash": "5625a08e85a25ff307e94ce440d3c309",
+    "semantic_hash": "5625a08e85a25ff307e94ce440d3c309"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/aba/webhook/route.ts": {
+    "mtime": 1783169289.4440472,
+    "ast_hash": "090039c222608b0f60cc9dddc6665da2",
+    "semantic_hash": "090039c222608b0f60cc9dddc6665da2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/apl/auction-results/route.ts": {
+    "mtime": 1782642686.6549633,
+    "ast_hash": "f7ca3cca0fee7e51c027de3c93a83dec",
+    "semantic_hash": "f7ca3cca0fee7e51c027de3c93a83dec"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/apl/matches/[id]/route.ts": {
+    "mtime": 1782642686.6551864,
+    "ast_hash": "b8acedb9222608bc287fa509035d974f",
+    "semantic_hash": "b8acedb9222608bc287fa509035d974f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/apl/matches/route.ts": {
+    "mtime": 1782642686.6554081,
+    "ast_hash": "507f00372cc6e0b8c9d6db383584fb26",
+    "semantic_hash": "507f00372cc6e0b8c9d6db383584fb26"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/apl/participants/route.ts": {
+    "mtime": 1782642686.6555228,
+    "ast_hash": "fb0fe77a774bf450de023d8518ccd21d",
+    "semantic_hash": "fb0fe77a774bf450de023d8518ccd21d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/apl/sse/route.ts": {
+    "mtime": 1782642686.655633,
+    "ast_hash": "511548a529a01f90e16f0e9898e000c4",
+    "semantic_hash": "511548a529a01f90e16f0e9898e000c4"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/apl/teams/route.ts": {
+    "mtime": 1782642686.655747,
+    "ast_hash": "091f7050fe699ed2a4a51f6a21a37240",
+    "semantic_hash": "091f7050fe699ed2a4a51f6a21a37240"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/sports/apl/webhook/route.ts": {
+    "mtime": 1783169289.444243,
+    "ast_hash": "4378898f8fe49695284f2a15237ba43b",
+    "semantic_hash": "4378898f8fe49695284f2a15237ba43b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/trajectory-planner/route.ts": {
+    "mtime": 1776186619.3331285,
+    "ast_hash": "f7c64cd0723bb20d4e724203d3fd7d53",
+    "semantic_hash": "f7c64cd0723bb20d4e724203d3fd7d53"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/trajectory-planner/shared/route.ts": {
+    "mtime": 1782642686.656526,
+    "ast_hash": "f69b610095effc4de2cb0a6c162bb761",
+    "semantic_hash": "f69b610095effc4de2cb0a6c162bb761"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/trajectory-planner/templates/route.ts": {
+    "mtime": 1782642686.656675,
+    "ast_hash": "3c871cedfe25348ea05d2e02d8f2bca4",
+    "semantic_hash": "3c871cedfe25348ea05d2e02d8f2bca4"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/users/check-or-create/route.ts": {
+    "mtime": 1783169289.4443731,
+    "ast_hash": "c70b8aaae65c380c0247b2af7824dfe4",
+    "semantic_hash": "c70b8aaae65c380c0247b2af7824dfe4"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/when2meet/[uid]/route.ts": {
+    "mtime": 1782642686.6570516,
+    "ast_hash": "f6ee5ce711bdaadcac1542231ff33234",
+    "semantic_hash": "f6ee5ce711bdaadcac1542231ff33234"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/when2meet/route.ts": {
+    "mtime": 1782642686.657393,
+    "ast_hash": "a9c201b5fae7fc992b3b2b95c30995be",
+    "semantic_hash": "a9c201b5fae7fc992b3b2b95c30995be"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/api/platform/wifi-tickets/route.ts": {
+    "mtime": 1783169289.4445946,
+    "ast_hash": "14aa01b395c785dc7075857df131fd21",
+    "semantic_hash": "14aa01b395c785dc7075857df131fd21"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/layout.tsx": {
+    "mtime": 1783169289.4461994,
+    "ast_hash": "179622e98da718b619286303ceff290d",
+    "semantic_hash": "179622e98da718b619286303ceff290d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/login/page.tsx": {
+    "mtime": 1776186619.335502,
+    "ast_hash": "cd740ba38fbbdcaed25433b5af9dfe20",
+    "semantic_hash": "cd740ba38fbbdcaed25433b5af9dfe20"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/not-found.tsx": {
+    "mtime": 1776186619.3357608,
+    "ast_hash": "9877487564115e5f9b8023f0c65b1779",
+    "semantic_hash": "9877487564115e5f9b8023f0c65b1779"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/page.tsx": {
+    "mtime": 1776186619.3362513,
+    "ast_hash": "3d6865ac3b1ce4e688e9ed8734aa60cc",
+    "semantic_hash": "3d6865ac3b1ce4e688e9ed8734aa60cc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/ashokan-around/ActiveAccommodationRequest.tsx": {
+    "mtime": 1782642686.6580296,
+    "ast_hash": "42d03f8f794a6756e43832ff23a50c33",
+    "semantic_hash": "42d03f8f794a6756e43832ff23a50c33"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/ashokan-around/_components/ashokan-around-form.tsx": {
+    "mtime": 1782642686.658409,
+    "ast_hash": "612ec86ebd73379b1612a397ec0a63a2",
+    "semantic_hash": "612ec86ebd73379b1612a397ec0a63a2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/ashokan-around/_components/tour-manager.tsx": {
+    "mtime": 1782642686.658653,
+    "ast_hash": "597d7700411913f3885f979c3b9a999f",
+    "semantic_hash": "597d7700411913f3885f979c3b9a999f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/ashokan-around/layout.tsx": {
+    "mtime": 1782642686.6588645,
+    "ast_hash": "0a6e7a38f3f0020a6e26385a3ddf07f6",
+    "semantic_hash": "0a6e7a38f3f0020a6e26385a3ddf07f6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/ashokan-around/page.tsx": {
+    "mtime": 1782642686.659057,
+    "ast_hash": "96fe6608df7a65d2ff347e453873bcb7",
+    "semantic_hash": "96fe6608df7a65d2ff347e453873bcb7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/ashokan-around/results/page.tsx": {
+    "mtime": 1782642686.6594923,
+    "ast_hash": "a64116580e350393b3003698d00e68e7",
+    "semantic_hash": "a64116580e350393b3003698d00e68e7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/ashokan-around/types.ts": {
+    "mtime": 1782642686.6598468,
+    "ast_hash": "34589f157b1e89c1bd1bd16b6b87601c",
+    "semantic_hash": "34589f157b1e89c1bd1bd16b6b87601c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/borrow-assets/_components/AssetDialog.tsx": {
+    "mtime": 1776186619.3398883,
+    "ast_hash": "4776eb11d4170782e67541038183927e",
+    "semantic_hash": "4776eb11d4170782e67541038183927e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/borrow-assets/_components/asset-card.tsx": {
+    "mtime": 1776186619.339995,
+    "ast_hash": "107e42427d061bd35efb191cf193a82a",
+    "semantic_hash": "107e42427d061bd35efb191cf193a82a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/borrow-assets/_components/asset-dialog.tsx": {
+    "mtime": 1776186619.3400905,
+    "ast_hash": "91a81da207194dd7a233d5e630120568",
+    "semantic_hash": "91a81da207194dd7a233d5e630120568"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/borrow-assets/_components/asset-grid.tsx": {
+    "mtime": 1776186619.3401866,
+    "ast_hash": "9a21b3577553f9d0067844c3d439ad53",
+    "semantic_hash": "9a21b3577553f9d0067844c3d439ad53"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/borrow-assets/_components/filter-bar.tsx": {
+    "mtime": 1776186619.3402739,
+    "ast_hash": "374bea12e3fb57e97fbd9a9d54006a30",
+    "semantic_hash": "374bea12e3fb57e97fbd9a9d54006a30"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/borrow-assets/client.tsx": {
+    "mtime": 1776186619.3403757,
+    "ast_hash": "6e529c0ec9d55499d88444e33da931fc",
+    "semantic_hash": "6e529c0ec9d55499d88444e33da931fc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/borrow-assets/page.tsx": {
+    "mtime": 1776186619.340672,
+    "ast_hash": "097ee2a176f15b1e6020ee5a29e19271",
+    "semantic_hash": "097ee2a176f15b1e6020ee5a29e19271"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/borrow-assets/types.ts": {
+    "mtime": 1776186619.3407655,
+    "ast_hash": "c5823460fd22de1113e44e8fde7b32ac",
+    "semantic_hash": "c5823460fd22de1113e44e8fde7b32ac"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-1a.tsx": {
+    "mtime": 1776186619.341492,
+    "ast_hash": "09f6677ede78a3f5014f5865f0a660ac",
+    "semantic_hash": "09f6677ede78a3f5014f5865f0a660ac"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-1b.tsx": {
+    "mtime": 1776186619.3415964,
+    "ast_hash": "886470ca8ae32b8adac62264f443d4b2",
+    "semantic_hash": "886470ca8ae32b8adac62264f443d4b2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-2.tsx": {
+    "mtime": 1776186619.341757,
+    "ast_hash": "e03ba0ec5b858dc7abd5b869b695ce57",
+    "semantic_hash": "e03ba0ec5b858dc7abd5b869b695ce57"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-3.tsx": {
+    "mtime": 1776186619.3419201,
+    "ast_hash": "695940a8c3adcc17823c8774d0e6c4ea",
+    "semantic_hash": "695940a8c3adcc17823c8774d0e6c4ea"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-4.tsx": {
+    "mtime": 1776186619.342042,
+    "ast_hash": "4b75296cff4f8795aa4e183c4fe7e6c8",
+    "semantic_hash": "4b75296cff4f8795aa4e183c4fe7e6c8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-5.tsx": {
+    "mtime": 1776186619.342128,
+    "ast_hash": "a2f77370cd7532c0aea5dc780846ff21",
+    "semantic_hash": "a2f77370cd7532c0aea5dc780846ff21"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-6.tsx": {
+    "mtime": 1776186619.3422375,
+    "ast_hash": "1a40221a2c7e94211a8a9ab4367dcd35",
+    "semantic_hash": "1a40221a2c7e94211a8a9ab4367dcd35"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-7.tsx": {
+    "mtime": 1776186619.3423393,
+    "ast_hash": "2c5dcf8badc8b67ec33f408a706dcfbf",
+    "semantic_hash": "2c5dcf8badc8b67ec33f408a706dcfbf"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/_components/section-8.tsx": {
+    "mtime": 1776186619.3424392,
+    "ast_hash": "05f9024a985f2428d8a795ecde4e4259",
+    "semantic_hash": "05f9024a985f2428d8a795ecde4e4259"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/page.tsx": {
+    "mtime": 1776186619.342569,
+    "ast_hash": "9ed3b8dfaa262c3310e5a5280d20423a",
+    "semantic_hash": "9ed3b8dfaa262c3310e5a5280d20423a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/thank-you/page.tsx": {
+    "mtime": 1776186619.3427248,
+    "ast_hash": "9681dd754b4f975d228c0a51873dac0f",
+    "semantic_hash": "9681dd754b4f975d228c0a51873dac0f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/types.ts": {
+    "mtime": 1776186619.342834,
+    "ast_hash": "2103b33bc20dda6dea1668e891ab2733",
+    "semantic_hash": "2103b33bc20dda6dea1668e891ab2733"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/validation-config.ts": {
+    "mtime": 1776186619.3429203,
+    "ast_hash": "72cdbb2d112bd282704cfb32f26030ff",
+    "semantic_hash": "72cdbb2d112bd282704cfb32f26030ff"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/validation-utils.ts": {
+    "mtime": 1776186619.343001,
+    "ast_hash": "b7912660ddec6109af8c4ac67f75dd72",
+    "semantic_hash": "b7912660ddec6109af8c4ac67f75dd72"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/cgpa-form.tsx": {
+    "mtime": 1782642686.6603038,
+    "ast_hash": "089e5249423ba0b7f0bbcaaa309e769d",
+    "semantic_hash": "089e5249423ba0b7f0bbcaaa309e769d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/cgpa-overview.tsx": {
+    "mtime": 1776186619.3434653,
+    "ast_hash": "0c36862ccf5870f24fa2f4d93e079069",
+    "semantic_hash": "0c36862ccf5870f24fa2f4d93e079069"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/component-row-view.tsx": {
+    "mtime": 1782642686.6605809,
+    "ast_hash": "679b240d01aee67f14ef2307e5f0057c",
+    "semantic_hash": "679b240d01aee67f14ef2307e5f0057c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/extra-credit-card.tsx": {
+    "mtime": 1782642686.6608384,
+    "ast_hash": "a4841c9ff14e534edf1a267f26fa8e65",
+    "semantic_hash": "a4841c9ff14e534edf1a267f26fa8e65"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/grade-planner.tsx": {
+    "mtime": 1782642686.6617076,
+    "ast_hash": "f455c6d6571f878aad0bab5eca675e0f",
+    "semantic_hash": "f455c6d6571f878aad0bab5eca675e0f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/header-row.tsx": {
+    "mtime": 1776186619.34386,
+    "ast_hash": "94219a85ebb2c2382345ff098ef9edd1",
+    "semantic_hash": "94219a85ebb2c2382345ff098ef9edd1"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/pf-credits.tsx": {
+    "mtime": 1776186619.3439372,
+    "ast_hash": "84b7ab9f927fe0a8588d79c3f8ec3a59",
+    "semantic_hash": "84b7ab9f927fe0a8588d79c3f8ec3a59"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/pf-form.tsx": {
+    "mtime": 1776186619.3441725,
+    "ast_hash": "7fda96c134c1e3b25f89c55bc0ef4a07",
+    "semantic_hash": "7fda96c134c1e3b25f89c55bc0ef4a07"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/_components/semester-navigation.tsx": {
+    "mtime": 1783169289.4465418,
+    "ast_hash": "af41997b3ee306b3d999dab5775aa751",
+    "semantic_hash": "af41997b3ee306b3d999dab5775aa751"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/cgpa-planner.tsx": {
+    "mtime": 1782642686.6624126,
+    "ast_hash": "a6659da3b5dbe278f0dd8bdf7a29ca2f",
+    "semantic_hash": "a6659da3b5dbe278f0dd8bdf7a29ca2f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/data.ts": {
+    "mtime": 1782642686.6626167,
+    "ast_hash": "8d7e4d94f34b2e3b2a387aa2f0606a1a",
+    "semantic_hash": "8d7e4d94f34b2e3b2a387aa2f0606a1a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/layout.tsx": {
+    "mtime": 1782642686.662831,
+    "ast_hash": "bf50f115d61e1e543c9b4b934c8e8446",
+    "semantic_hash": "bf50f115d61e1e543c9b4b934c8e8446"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/page.tsx": {
+    "mtime": 1783169289.4468546,
+    "ast_hash": "5c87a03d50ded0fc1651e2e0cfe1e2c8",
+    "semantic_hash": "5c87a03d50ded0fc1651e2e0cfe1e2c8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cgpa-planner/useCalculations.tsx": {
+    "mtime": 1783169289.4472837,
+    "ast_hash": "4dd5376aa33fb90ab9b410f0ce1adc68",
+    "semantic_hash": "4dd5376aa33fb90ab9b410f0ce1adc68"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/course-reviews/_components/course-dialog.tsx": {
+    "mtime": 1776186619.3453171,
+    "ast_hash": "ef5cf755a074ac3023366e2c5e3d41a9",
+    "semantic_hash": "ef5cf755a074ac3023366e2c5e3d41a9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/course-reviews/_components/table.tsx": {
+    "mtime": 1776186619.3457665,
+    "ast_hash": "7604ead9e9083b172316e7f59ec0bd77",
+    "semantic_hash": "7604ead9e9083b172316e7f59ec0bd77"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/course-reviews/add/[id]/page.tsx": {
+    "mtime": 1783169289.4477181,
+    "ast_hash": "ae02563305998994fc44adb17e522846",
+    "semantic_hash": "ae02563305998994fc44adb17e522846"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/course-reviews/course-reviews-client.tsx": {
+    "mtime": 1776186619.346483,
+    "ast_hash": "4f2315330d0acb7b15657fb11d6e0386",
+    "semantic_hash": "4f2315330d0acb7b15657fb11d6e0386"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/course-reviews/data.ts": {
+    "mtime": 1776186619.3466105,
+    "ast_hash": "3d72ec0045060aa4926ff265c2f9cc84",
+    "semantic_hash": "3d72ec0045060aa4926ff265c2f9cc84"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/course-reviews/layout.tsx": {
+    "mtime": 1776186619.3471172,
+    "ast_hash": "39dad4833e76ed45aa4672b22d5ce8c7",
+    "semantic_hash": "39dad4833e76ed45aa4672b22d5ce8c7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/course-reviews/page.tsx": {
+    "mtime": 1776186619.3473842,
+    "ast_hash": "86ba8740e8a6bf94e5f33e4ed0750dc7",
+    "semantic_hash": "86ba8740e8a6bf94e5f33e4ed0750dc7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/course-reviews/types.ts": {
+    "mtime": 1776186619.347639,
+    "ast_hash": "a87b1515d9f2017c11769e79645193b4",
+    "semantic_hash": "a87b1515d9f2017c11769e79645193b4"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/events-calendar/components/animated-search.tsx": {
+    "mtime": 1776186619.3478718,
+    "ast_hash": "a966231b60d98e2e3e4d4425cbd0828b",
+    "semantic_hash": "a966231b60d98e2e3e4d4425cbd0828b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/events-calendar/components/calendar-views.tsx": {
+    "mtime": 1782642686.6640387,
+    "ast_hash": "5991105da3c8f57efcf9fb3cc0346bf5",
+    "semantic_hash": "5991105da3c8f57efcf9fb3cc0346bf5"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/events-calendar/components/event-dialog.tsx": {
+    "mtime": 1782642686.6643176,
+    "ast_hash": "a4b31d2bef4421214cc3484fe9c22521",
+    "semantic_hash": "a4b31d2bef4421214cc3484fe9c22521"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/events-calendar/components/preference-sidebar.tsx": {
+    "mtime": 1782642686.664679,
+    "ast_hash": "b8d7895c60ebb6b1b8c669d5ae2f2041",
+    "semantic_hash": "b8d7895c60ebb6b1b8c669d5ae2f2041"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/events-calendar/data/calendar-data.ts": {
+    "mtime": 1776186619.3493445,
+    "ast_hash": "bc0b082669b7f8edcf441fa594c11d35",
+    "semantic_hash": "bc0b082669b7f8edcf441fa594c11d35"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/events-calendar/events-calendar.tsx": {
+    "mtime": 1783169289.4480546,
+    "ast_hash": "e3d0b7f83b1f0386cbc5345edf688fad",
+    "semantic_hash": "e3d0b7f83b1f0386cbc5345edf688fad"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/events-calendar/page.tsx": {
+    "mtime": 1783169289.4484415,
+    "ast_hash": "7c0783a01cab85750875f13c6f1b9c3e",
+    "semantic_hash": "7c0783a01cab85750875f13c6f1b9c3e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/events-calendar/types/calendar.ts": {
+    "mtime": 1776186619.350076,
+    "ast_hash": "67929928f8743817dad9321b129d9025",
+    "semantic_hash": "67929928f8743817dad9321b129d9025"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/_components/GameCard.tsx": {
+    "mtime": 1776186619.3502505,
+    "ast_hash": "2070358b3bd406ac793e4b5953d0c23c",
+    "semantic_hash": "2070358b3bd406ac793e4b5953d0c23c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/AcceptInviteHandler.tsx": {
+    "mtime": 1782642686.6657917,
+    "ast_hash": "8c04397859d0e69099d1ca73fd257f9b",
+    "semantic_hash": "8c04397859d0e69099d1ca73fd257f9b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/AlreadyPlayedBanner.tsx": {
+    "mtime": 1782642686.6660151,
+    "ast_hash": "47e50c7817e62c05f84547b57410f2b7",
+    "semantic_hash": "47e50c7817e62c05f84547b57410f2b7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/ConfettiEffect.tsx": {
+    "mtime": 1782642686.6663043,
+    "ast_hash": "eeba3c7ca97601e93b9aeb5b52836530",
+    "semantic_hash": "eeba3c7ca97601e93b9aeb5b52836530"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/FriendsPanel.tsx": {
+    "mtime": 1782642686.6664147,
+    "ast_hash": "e003ece231940b6588af535d425bce0b",
+    "semantic_hash": "e003ece231940b6588af535d425bce0b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/GameBoard.tsx": {
+    "mtime": 1782642686.6668234,
+    "ast_hash": "d5b7a5bf38a52f642ecdb0dac6a2bfba",
+    "semantic_hash": "d5b7a5bf38a52f642ecdb0dac6a2bfba"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/GameTimer.tsx": {
+    "mtime": 1782642686.6670926,
+    "ast_hash": "1c9e53798e0125d952a6ce5085533550",
+    "semantic_hash": "1c9e53798e0125d952a6ce5085533550"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/InviteFriendDialog.tsx": {
+    "mtime": 1782642686.6671739,
+    "ast_hash": "eb34495ebc4c063474fbf5a0578db47c",
+    "semantic_hash": "eb34495ebc4c063474fbf5a0578db47c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/Keyboard.tsx": {
+    "mtime": 1782642686.6677995,
+    "ast_hash": "0bb4008a8d2abf28ee26ffa3ffdb599f",
+    "semantic_hash": "0bb4008a8d2abf28ee26ffa3ffdb599f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/LoseDialog.tsx": {
+    "mtime": 1782642686.6678839,
+    "ast_hash": "fa735dc85c630886f7963211bc9e0ed3",
+    "semantic_hash": "fa735dc85c630886f7963211bc9e0ed3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/RichText.tsx": {
+    "mtime": 1782642686.6679518,
+    "ast_hash": "dbfbe32701eca6793c1aa26e3799e7e5",
+    "semantic_hash": "dbfbe32701eca6793c1aa26e3799e7e5"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/ShareResultsPopover.tsx": {
+    "mtime": 1782642686.6683533,
+    "ast_hash": "94d777dad4b1f600e83b130e6191dcad",
+    "semantic_hash": "94d777dad4b1f600e83b130e6191dcad"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/WinDialog.tsx": {
+    "mtime": 1782642686.6684873,
+    "ast_hash": "75f03ad4b16dd69d84d7f7141c7ac34b",
+    "semantic_hash": "75f03ad4b16dd69d84d7f7141c7ac34b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/WordleGameClient.tsx": {
+    "mtime": 1782642686.6685615,
+    "ast_hash": "2ad3d4a4aeab042c6c8c1bf29dc5f746",
+    "semantic_hash": "2ad3d4a4aeab042c6c8c1bf29dc5f746"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_components/WordleHeader.tsx": {
+    "mtime": 1782642686.668747,
+    "ast_hash": "3b2565b505d0d6b5454013c9e8c043c3",
+    "semantic_hash": "3b2565b505d0d6b5454013c9e8c043c3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_context/wordle-context.tsx": {
+    "mtime": 1782642686.6689095,
+    "ast_hash": "f501b3d50a029c50d9776d859afd11c2",
+    "semantic_hash": "f501b3d50a029c50d9776d859afd11c2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/_utils/dictionary.ts": {
+    "mtime": 1782642686.669184,
+    "ast_hash": "95bac9fcb5ea03eb61c44da18fba7076",
+    "semantic_hash": "95bac9fcb5ea03eb61c44da18fba7076"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/archives/[date]/page.tsx": {
+    "mtime": 1782642686.6697364,
+    "ast_hash": "b51544f032309a220e4af24c7be97dc2",
+    "semantic_hash": "b51544f032309a220e4af24c7be97dc2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/archives/page.tsx": {
+    "mtime": 1782642686.6700404,
+    "ast_hash": "4ce3724bb962d3521a7c0853e4d07eb7",
+    "semantic_hash": "4ce3724bb962d3521a7c0853e4d07eb7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/layout.tsx": {
+    "mtime": 1782642686.6701307,
+    "ast_hash": "cb9b471ae4b2efb49e3c489eb83b9b9f",
+    "semantic_hash": "cb9b471ae4b2efb49e3c489eb83b9b9f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/leaderboards/page.tsx": {
+    "mtime": 1782642686.670457,
+    "ast_hash": "cf4f9bad5967d6200e95d42076cb1222",
+    "semantic_hash": "cf4f9bad5967d6200e95d42076cb1222"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/page.tsx": {
+    "mtime": 1782642686.670594,
+    "ast_hash": "d618db35ff763ba48b0a797b76a0729c",
+    "semantic_hash": "d618db35ff763ba48b0a797b76a0729c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/ashoka-wordle/types.ts": {
+    "mtime": 1782642686.670802,
+    "ast_hash": "8c96003bbd7d3aed6d3f6b937df45eee",
+    "semantic_hash": "8c96003bbd7d3aed6d3f6b937df45eee"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/games/page.tsx": {
+    "mtime": 1782642686.6711204,
+    "ast_hash": "2632ae3f47b3fe135ad8bce159e54e3b",
+    "semantic_hash": "2632ae3f47b3fe135ad8bce159e54e3b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/layout.tsx": {
+    "mtime": 1783167331.5573294,
+    "ast_hash": "659b4d05a26356a4860776da3cdcd11a",
+    "semantic_hash": "659b4d05a26356a4860776da3cdcd11a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/loading.tsx": {
+    "mtime": 1776186619.356617,
+    "ast_hash": "c6127f7b8e79bd422392603e5033e6ea",
+    "semantic_hash": "c6127f7b8e79bd422392603e5033e6ea"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/_components/category-colors-context.tsx": {
+    "mtime": 1776186619.3567832,
+    "ast_hash": "ae1681eae0377a7a1c7403703c281a4c",
+    "semantic_hash": "ae1681eae0377a7a1c7403703c281a4c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/_components/checklist-progress.tsx": {
+    "mtime": 1776186619.3568642,
+    "ast_hash": "e90b85ba8c11a0120ccc34c18de7166e",
+    "semantic_hash": "e90b85ba8c11a0120ccc34c18de7166e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/_components/filter-sidebar.tsx": {
+    "mtime": 1783169289.4486232,
+    "ast_hash": "d5abaee9b3c20b5a0042998fd8db50ff",
+    "semantic_hash": "d5abaee9b3c20b5a0042998fd8db50ff"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/_components/organisation-card.tsx": {
+    "mtime": 1776186619.3570623,
+    "ast_hash": "bd2670df290184d60f860e9fe420ae18",
+    "semantic_hash": "bd2670df290184d60f860e9fe420ae18"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/_components/organisation-filter.tsx": {
+    "mtime": 1776186619.3571486,
+    "ast_hash": "e23fd64d9b5ca866f9d3f3d67d3699f7",
+    "semantic_hash": "e23fd64d9b5ca866f9d3f3d67d3699f7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/_components/search-bar.tsx": {
+    "mtime": 1776186619.35722,
+    "ast_hash": "21a3d9118f59f32da2d1d3a02a82b294",
+    "semantic_hash": "21a3d9118f59f32da2d1d3a02a82b294"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/client.tsx": {
+    "mtime": 1776186619.3573093,
+    "ast_hash": "8d6ba1c4e039fb5dcaad3c0e9aad3bca",
+    "semantic_hash": "8d6ba1c4e039fb5dcaad3c0e9aad3bca"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/data.ts": {
+    "mtime": 1776186619.357376,
+    "ast_hash": "a04f3c527181769a9a86be28510fed85",
+    "semantic_hash": "a04f3c527181769a9a86be28510fed85"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/page.tsx": {
+    "mtime": 1776186619.3574553,
+    "ast_hash": "8ae60466e63c9794801f97a278f92782",
+    "semantic_hash": "8ae60466e63c9794801f97a278f92782"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/organisations-catalog/types.ts": {
+    "mtime": 1776186619.3575256,
+    "ast_hash": "f3de7d54c0c51b30e22c734e4464f342",
+    "semantic_hash": "f3de7d54c0c51b30e22c734e4464f342"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/page.tsx": {
+    "mtime": 1783169289.4489753,
+    "ast_hash": "1754f6bcd7695c91e272dc611c1113ce",
+    "semantic_hash": "1754f6bcd7695c91e272dc611c1113ce"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/pool-cab/ActivePoolRequest.tsx": {
+    "mtime": 1776186619.3580985,
+    "ast_hash": "1f434c5e39d8d63f167278ebfa088f02",
+    "semantic_hash": "1f434c5e39d8d63f167278ebfa088f02"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/pool-cab/PoolCabForm.tsx": {
+    "mtime": 1783169289.4491262,
+    "ast_hash": "3ab3f0cc362de1e9fd1d454b7a585ac0",
+    "semantic_hash": "3ab3f0cc362de1e9fd1d454b7a585ac0"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/pool-cab/page.tsx": {
+    "mtime": 1783169289.4494257,
+    "ast_hash": "812eb53d56b3321921d610da567cf34a",
+    "semantic_hash": "812eb53d56b3321921d610da567cf34a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/pool-cab/results/page.tsx": {
+    "mtime": 1776186619.3584268,
+    "ast_hash": "34da4a4b31c4f8393ce2c3856aeb9bbf",
+    "semantic_hash": "34da4a4b31c4f8393ce2c3856aeb9bbf"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/pool-subscription/ActivePoolSubscription.tsx": {
+    "mtime": 1776186619.358609,
+    "ast_hash": "9c85a40fe3172744e701aaed83e42d35",
+    "semantic_hash": "9c85a40fe3172744e701aaed83e42d35"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/pool-subscription/PoolSubscriptionForm.tsx": {
+    "mtime": 1783169289.449574,
+    "ast_hash": "e02f54016cc71f9931c904e33ecc5b81",
+    "semantic_hash": "e02f54016cc71f9931c904e33ecc5b81"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/pool-subscription/page.tsx": {
+    "mtime": 1783169289.4497309,
+    "ast_hash": "1cfe5c86b5a7edd8205e56186c919c89",
+    "semantic_hash": "1cfe5c86b5a7edd8205e56186c919c89"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/pool-subscription/results/page.tsx": {
+    "mtime": 1776186619.3588781,
+    "ast_hash": "320c825c932340218f81d0ffc244facd",
+    "semantic_hash": "320c825c932340218f81d0ffc244facd"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/profile/page.tsx": {
+    "mtime": 1783169289.4499228,
+    "ast_hash": "441b63de2665047a8e27df0c83b18147",
+    "semantic_hash": "441b63de2665047a8e27df0c83b18147"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/profile/types.ts": {
+    "mtime": 1776186619.359548,
+    "ast_hash": "b6dc90a0fa9a741fdd09b2392787fbc1",
+    "semantic_hash": "b6dc90a0fa9a741fdd09b2392787fbc1"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/rep-dashboard/_components/course-list-editor.tsx": {
+    "mtime": 1782642686.6716704,
+    "ast_hash": "17e24d9f9f8f37952cfde8845a29de62",
+    "semantic_hash": "17e24d9f9f8f37952cfde8845a29de62"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/rep-dashboard/_components/credit-requirements-editor.tsx": {
+    "mtime": 1782642686.6717355,
+    "ast_hash": "e4291db573a8a7e5c1e89c63221f0a63",
+    "semantic_hash": "e4291db573a8a7e5c1e89c63221f0a63"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/rep-dashboard/_components/trajectory-editor.tsx": {
+    "mtime": 1782642686.6719577,
+    "ast_hash": "3f53039ca89edfd8752986df4090ce0a",
+    "semantic_hash": "3f53039ca89edfd8752986df4090ce0a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/rep-dashboard/page.tsx": {
+    "mtime": 1782642686.6722028,
+    "ast_hash": "6bdf69adc7635156d43bf2b6a9a2d6ac",
+    "semantic_hash": "6bdf69adc7635156d43bf2b6a9a2d6ac"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/components/course-selection.tsx": {
+    "mtime": 1776186619.3606362,
+    "ast_hash": "54969e4f45ae973d3cf073f470cb6de2",
+    "semantic_hash": "54969e4f45ae973d3cf073f470cb6de2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/components/draft-tabs.tsx": {
+    "mtime": 1782642686.6726582,
+    "ast_hash": "f9438d43d63442214d86ed43342dd1cc",
+    "semantic_hash": "f9438d43d63442214d86ed43342dd1cc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/components/timetable-grid.tsx": {
+    "mtime": 1782642686.6730545,
+    "ast_hash": "344d493021fb965ee76e75987517a46b",
+    "semantic_hash": "344d493021fb965ee76e75987517a46b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/constants.ts": {
+    "mtime": 1776186619.361401,
+    "ast_hash": "ce7d169f401538b2dab2f0adcee8906a",
+    "semantic_hash": "ce7d169f401538b2dab2f0adcee8906a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/holidays.ts": {
+    "mtime": 1782642686.673428,
+    "ast_hash": "58a0fbb480c2fa681476dabf15d8d919",
+    "semantic_hash": "58a0fbb480c2fa681476dabf15d8d919"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/layout.tsx": {
+    "mtime": 1782642686.6738658,
+    "ast_hash": "7139558084f6a1c22b2ff77d77aed0a3",
+    "semantic_hash": "7139558084f6a1c22b2ff77d77aed0a3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/page.tsx": {
+    "mtime": 1776186619.3620312,
+    "ast_hash": "6fca29624b7e38011084e641e6026ebf",
+    "semantic_hash": "6fca29624b7e38011084e641e6026ebf"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/semester-planner.tsx": {
+    "mtime": 1782642686.674251,
+    "ast_hash": "955ed521f52d57aee84c6d5eed9f0185",
+    "semantic_hash": "955ed521f52d57aee84c6d5eed9f0185"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/types.ts": {
+    "mtime": 1776186619.3627534,
+    "ast_hash": "bdcbe853c8624f83e97105260c302cf6",
+    "semantic_hash": "bdcbe853c8624f83e97105260c302cf6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/semester-planner/utils.ts": {
+    "mtime": 1776186619.3632498,
+    "ast_hash": "7bfe845583763a0f5e414b5f8c1b3352",
+    "semantic_hash": "7bfe845583763a0f5e414b5f8c1b3352"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/NewMailDialog.tsx": {
+    "mtime": 1776186619.3634071,
+    "ast_hash": "09a359a45342910064f774957d6c34f6",
+    "semantic_hash": "09a359a45342910064f774957d6c34f6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/NewMailForm.tsx": {
+    "mtime": 1783167331.5575514,
+    "ast_hash": "fea242de3760e4c51f9fe1ab10696bd7",
+    "semantic_hash": "fea242de3760e4c51f9fe1ab10696bd7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/dashboard/columns.tsx": {
+    "mtime": 1776186619.363713,
+    "ast_hash": "6e8409a0030d0acaadea57eda5b77dd6",
+    "semantic_hash": "6e8409a0030d0acaadea57eda5b77dd6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/dashboard/page.tsx": {
+    "mtime": 1783169289.4502544,
+    "ast_hash": "6f975497ec668c37069ac5f805194a96",
+    "semantic_hash": "6f975497ec668c37069ac5f805194a96"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/layout.tsx": {
+    "mtime": 1776186619.3639164,
+    "ast_hash": "1680c52e5d0c8867d3400ca927cd73ad",
+    "semantic_hash": "1680c52e5d0c8867d3400ca927cd73ad"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/new/page.tsx": {
+    "mtime": 1783169289.450402,
+    "ast_hash": "f976dc7a7417f455df9910ceac4f2cbd",
+    "semantic_hash": "f976dc7a7417f455df9910ceac4f2cbd"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/outbox/OutboxTable.tsx": {
+    "mtime": 1776186619.3651094,
+    "ast_hash": "9ebb48ebe72f4adcbc495c3798ecd599",
+    "semantic_hash": "9ebb48ebe72f4adcbc495c3798ecd599"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/outbox/columns.tsx": {
+    "mtime": 1776186619.365348,
+    "ast_hash": "b6303f4a950a9f1d90fd2695ca347bf7",
+    "semantic_hash": "b6303f4a950a9f1d90fd2695ca347bf7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-compose/outbox/page.tsx": {
+    "mtime": 1776186619.365679,
+    "ast_hash": "cbdaaa314ef39e37d5125e6a2b389e5a",
+    "semantic_hash": "cbdaaa314ef39e37d5125e6a2b389e5a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-rti/RTIForm.tsx": {
+    "mtime": 1776186619.3660686,
+    "ast_hash": "670db8427436bf56a9ec7e4c3eb923ac",
+    "semantic_hash": "670db8427436bf56a9ec7e4c3eb923ac"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sg-rti/page.tsx": {
+    "mtime": 1776186619.3663762,
+    "ast_hash": "d75b278488f68e5b9b7ee4f9af882adf",
+    "semantic_hash": "d75b278488f68e5b9b7ee4f9af882adf"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/aba/[id]/page.tsx": {
+    "mtime": 1782642686.674961,
+    "ast_hash": "9b14f8f01f51d48966cce947de965b37",
+    "semantic_hash": "9b14f8f01f51d48966cce947de965b37"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/aba/admin/[id]/page.tsx": {
+    "mtime": 1782642686.675427,
+    "ast_hash": "6efb41d258cb277a973b52826c48dc76",
+    "semantic_hash": "6efb41d258cb277a973b52826c48dc76"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/aba/admin/page.tsx": {
+    "mtime": 1782642686.675573,
+    "ast_hash": "86cf582a3452ccbe42a3a6419aec3e0f",
+    "semantic_hash": "86cf582a3452ccbe42a3a6419aec3e0f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/aba/fantasy/page.tsx": {
+    "mtime": 1782642686.6760204,
+    "ast_hash": "176d33982aecf56c6ec2d96f002e9c96",
+    "semantic_hash": "176d33982aecf56c6ec2d96f002e9c96"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/aba/layout.tsx": {
+    "mtime": 1782642686.6761012,
+    "ast_hash": "eb65dfb3aab002bb3f77278b27aabae9",
+    "semantic_hash": "eb65dfb3aab002bb3f77278b27aabae9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/aba/page.tsx": {
+    "mtime": 1783169289.450747,
+    "ast_hash": "4eec9bd8de3f43d494e0c27c0ba77a80",
+    "semantic_hash": "4eec9bd8de3f43d494e0c27c0ba77a80"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/[id]/page.tsx": {
+    "mtime": 1782642686.6767716,
+    "ast_hash": "a2b4734ff45dc1b6c040b564d2cdacd8",
+    "semantic_hash": "a2b4734ff45dc1b6c040b564d2cdacd8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/admin/page.tsx": {
+    "mtime": 1782642686.677152,
+    "ast_hash": "8f505a26bfa1a402e05e92aa538a00d1",
+    "semantic_hash": "8f505a26bfa1a402e05e92aa538a00d1"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/auction/page.tsx": {
+    "mtime": 1782642686.6775405,
+    "ast_hash": "c03fb45cd5bf522b2ca437a99875cbda",
+    "semantic_hash": "c03fb45cd5bf522b2ca437a99875cbda"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/knockout/page.tsx": {
+    "mtime": 1782642686.6776974,
+    "ast_hash": "ff0ccb23e1ad15a0f072f1564c46dfe6",
+    "semantic_hash": "ff0ccb23e1ad15a0f072f1564c46dfe6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/layout.tsx": {
+    "mtime": 1782642686.677773,
+    "ast_hash": "cc1c51dbc5f4162e80428ee257c3ecbc",
+    "semantic_hash": "cc1c51dbc5f4162e80428ee257c3ecbc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/matches/page.tsx": {
+    "mtime": 1782642686.677943,
+    "ast_hash": "8c8e38cdca6b158b58196c6d03178ba0",
+    "semantic_hash": "8c8e38cdca6b158b58196c6d03178ba0"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/page.tsx": {
+    "mtime": 1782642686.6780987,
+    "ast_hash": "107b0e1bea54f3c3f4aed915eef5fcc5",
+    "semantic_hash": "107b0e1bea54f3c3f4aed915eef5fcc5"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/players/page.tsx": {
+    "mtime": 1782642686.6782885,
+    "ast_hash": "fcffebcbbce6683f834fed1d2a828bcc",
+    "semantic_hash": "fcffebcbbce6683f834fed1d2a828bcc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/roster/page.tsx": {
+    "mtime": 1782642686.6784532,
+    "ast_hash": "920266acfa00167e6a3975c01915fcba",
+    "semantic_hash": "920266acfa00167e6a3975c01915fcba"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/apl/standings/page.tsx": {
+    "mtime": 1782642686.6786897,
+    "ast_hash": "29767c8f1978abc6b85bac38f0faa0cd",
+    "semantic_hash": "29767c8f1978abc6b85bac38f0faa0cd"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/sports/page.tsx": {
+    "mtime": 1782642686.678774,
+    "ast_hash": "e1a4218bb442340815a05476fa71a7da",
+    "semantic_hash": "e1a4218bb442340815a05476fa71a7da"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_components/available-courses-tray.tsx": {
+    "mtime": 1776186619.3691247,
+    "ast_hash": "3eb1f62a9bef1b224a069b39e5f5a44e",
+    "semantic_hash": "3eb1f62a9bef1b224a069b39e5f5a44e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_components/course-card.tsx": {
+    "mtime": 1782642686.6792269,
+    "ast_hash": "04ef4784b3b4e9ffeecc17c07b2dc4b2",
+    "semantic_hash": "04ef4784b3b4e9ffeecc17c07b2dc4b2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_components/course-planner-board.tsx": {
+    "mtime": 1782642686.6795805,
+    "ast_hash": "e7e9edb4631feb498dc5c06607ef35a9",
+    "semantic_hash": "e7e9edb4631feb498dc5c06607ef35a9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_components/semester-column.tsx": {
+    "mtime": 1776186619.3701563,
+    "ast_hash": "8bd063ba3175608721deacae19591339",
+    "semantic_hash": "8bd063ba3175608721deacae19591339"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_components/share-trajectory-dialog.tsx": {
+    "mtime": 1782642686.6799185,
+    "ast_hash": "a386b9098e37cc0f396818d6e5dc87fb",
+    "semantic_hash": "a386b9098e37cc0f396818d6e5dc87fb"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_components/summary-and-template-table.tsx": {
+    "mtime": 1782642686.68027,
+    "ast_hash": "f931f7c2d20d286ec355596bfcede006",
+    "semantic_hash": "f931f7c2d20d286ec355596bfcede006"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_components/tour-manager.tsx": {
+    "mtime": 1776186619.3708723,
+    "ast_hash": "c0405706c1fb44162222b6f6dac1ddd9",
+    "semantic_hash": "c0405706c1fb44162222b6f6dac1ddd9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_components/trajectory-repository-dialog.tsx": {
+    "mtime": 1782642686.6806657,
+    "ast_hash": "d5d4e1525e611815cb529edbb6316e27",
+    "semantic_hash": "d5d4e1525e611815cb529edbb6316e27"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_trajectories/bio.ts": {
+    "mtime": 1782642686.6809814,
+    "ast_hash": "54fa266064ba3f9020a4fe7281116834",
+    "semantic_hash": "54fa266064ba3f9020a4fe7281116834"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_trajectories/chem.ts": {
+    "mtime": 1782642686.6812017,
+    "ast_hash": "fb934d08cb05d357cc2daa7f04374f8b",
+    "semantic_hash": "fb934d08cb05d357cc2daa7f04374f8b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_trajectories/cs.ts": {
+    "mtime": 1782642686.6816187,
+    "ast_hash": "90102d4b36f779b67a6757631b25f3a1",
+    "semantic_hash": "90102d4b36f779b67a6757631b25f3a1"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_trajectories/eco.ts": {
+    "mtime": 1782642686.6819978,
+    "ast_hash": "549cb8d32f0c7bf4a153b8881b0e0c4e",
+    "semantic_hash": "549cb8d32f0c7bf4a153b8881b0e0c4e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_trajectories/index.ts": {
+    "mtime": 1776186619.3727293,
+    "ast_hash": "70534883a4622c0bec04b7736d10652b",
+    "semantic_hash": "70534883a4622c0bec04b7736d10652b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_trajectories/psych.ts": {
+    "mtime": 1782642686.6826358,
+    "ast_hash": "4127a07cef3846873001e07b81ce4e89",
+    "semantic_hash": "4127a07cef3846873001e07b81ce4e89"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/_trajectories/shared.ts": {
+    "mtime": 1776186619.3730292,
+    "ast_hash": "8d5b070b418c1a5de74ffc1f60d06be7",
+    "semantic_hash": "8d5b070b418c1a5de74ffc1f60d06be7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/course-planner-context.tsx": {
+    "mtime": 1783169289.451104,
+    "ast_hash": "e22b0b2ca3c65132409a0c2e90e0c439",
+    "semantic_hash": "e22b0b2ca3c65132409a0c2e90e0c439"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/layout.tsx": {
+    "mtime": 1782642686.6832342,
+    "ast_hash": "f5f91811dec7a3ea966bb4dbc8212da7",
+    "semantic_hash": "f5f91811dec7a3ea966bb4dbc8212da7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/page.tsx": {
+    "mtime": 1782642686.6836128,
+    "ast_hash": "151088633f700477743c3044692c936c",
+    "semantic_hash": "151088633f700477743c3044692c936c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/parse-cgpa-data.ts": {
+    "mtime": 1782642686.6840644,
+    "ast_hash": "bad9c89eaf869d2aa57c0a27f3df07dd",
+    "semantic_hash": "bad9c89eaf869d2aa57c0a27f3df07dd"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/templates.ts": {
+    "mtime": 1782642686.6841614,
+    "ast_hash": "2f639f6bf4a32253c47c19e9f79dff06",
+    "semantic_hash": "2f639f6bf4a32253c47c19e9f79dff06"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/trajectory-planner/types.ts": {
+    "mtime": 1782642686.684491,
+    "ast_hash": "df97319f5b2843bddcb678f67b0f7c84",
+    "semantic_hash": "df97319f5b2843bddcb678f67b0f7c84"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/when2meet/[uid]/page.tsx": {
+    "mtime": 1783169289.4515367,
+    "ast_hash": "5e481bc46c97a2ba569af99fc224dd1d",
+    "semantic_hash": "5e481bc46c97a2ba569af99fc224dd1d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/when2meet/_components/tour-manager.tsx": {
+    "mtime": 1782642686.6850214,
+    "ast_hash": "86ce2b28130693ffe7114cb3bffd966d",
+    "semantic_hash": "86ce2b28130693ffe7114cb3bffd966d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/when2meet/components/TimeSlotPage.tsx": {
+    "mtime": 1783169289.4517694,
+    "ast_hash": "55b6171f8569b4e98e026f88626b2ac2",
+    "semantic_hash": "55b6171f8569b4e98e026f88626b2ac2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/when2meet/layout.tsx": {
+    "mtime": 1782642686.6853092,
+    "ast_hash": "f48d83a1d7331f22b74e5e530cbb56bf",
+    "semantic_hash": "f48d83a1d7331f22b74e5e530cbb56bf"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/when2meet/page.tsx": {
+    "mtime": 1783169289.4519298,
+    "ast_hash": "86ecea0676313455a8f35c98ffcb578f",
+    "semantic_hash": "86ecea0676313455a8f35c98ffcb578f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/when2meet/types.ts": {
+    "mtime": 1782642686.6861117,
+    "ast_hash": "7f7ca3a74a720f5e81574b79ae0c1a19",
+    "semantic_hash": "7f7ca3a74a720f5e81574b79ae0c1a19"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/wifi-tickets/_components/speedtest.tsx": {
+    "mtime": 1776186619.3759327,
+    "ast_hash": "795a2cdf6ae8087ba36f159bffb99bc0",
+    "semantic_hash": "795a2cdf6ae8087ba36f159bffb99bc0"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/wifi-tickets/page.tsx": {
+    "mtime": 1776186619.3760188,
+    "ast_hash": "67ef6525fa90ccb2ade73626d3688d7b",
+    "semantic_hash": "67ef6525fa90ccb2ade73626d3688d7b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/wifi-tickets/wifi-tickets.tsx": {
+    "mtime": 1783169289.4522164,
+    "ast_hash": "e64c4d2d7dd3d54b900574e0a8b61d9f",
+    "semantic_hash": "e64c4d2d7dd3d54b900574e0a8b61d9f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/unauthorized/page.tsx": {
+    "mtime": 1776186619.3766193,
+    "ast_hash": "8c29277578d04329aac3048caa0ac0e8",
+    "semantic_hash": "8c29277578d04329aac3048caa0ac0e8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/auth.ts": {
+    "mtime": 1783169289.4523566,
+    "ast_hash": "64622e1a5ed02ed6ec78cdca34671f97",
+    "semantic_hash": "64622e1a5ed02ed6ec78cdca34671f97"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/apl/knockout-bracket-tree.tsx": {
+    "mtime": 1782642686.6866028,
+    "ast_hash": "3b48cd8947470b09853791ea80fbb724",
+    "semantic_hash": "3b48cd8947470b09853791ea80fbb724"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/client-only.tsx": {
+    "mtime": 1776186619.3773038,
+    "ast_hash": "54ac46de99d18fc7a74d6cd9700f1092",
+    "semantic_hash": "54ac46de99d18fc7a74d6cd9700f1092"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/data-table/data-table.tsx": {
+    "mtime": 1776186619.3777244,
+    "ast_hash": "a68a06d03a7f6424369a5825d207939c",
+    "semantic_hash": "a68a06d03a7f6424369a5825d207939c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/developer-credits.tsx": {
+    "mtime": 1782642686.6870515,
+    "ast_hash": "3d93dbc8715f215aa5447910d75de1a8",
+    "semantic_hash": "3d93dbc8715f215aa5447910d75de1a8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/dismiss-new-tool-alert.tsx": {
+    "mtime": 1782642686.687284,
+    "ast_hash": "209236a23caac17bc159b5298be37b25",
+    "semantic_hash": "209236a23caac17bc159b5298be37b25"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/editor.tsx": {
+    "mtime": 1776186619.3783715,
+    "ast_hash": "6da3296172e56cdf181776ba564b8534",
+    "semantic_hash": "6da3296172e56cdf181776ba564b8534"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/expandable-text.tsx": {
+    "mtime": 1776186619.3784466,
+    "ast_hash": "5e3b8d552ec48188f609e6ba77b6a1e3",
+    "semantic_hash": "5e3b8d552ec48188f609e6ba77b6a1e3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/form.tsx": {
+    "mtime": 1783167331.5579834,
+    "ast_hash": "ff71ee15877e6b0fa836cb4ce51fbdad",
+    "semantic_hash": "ff71ee15877e6b0fa836cb4ce51fbdad"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/guided-tour.tsx": {
+    "mtime": 1782642686.6874177,
+    "ast_hash": "5a0eb1960578ae60582d1ffce087e83c",
+    "semantic_hash": "5a0eb1960578ae60582d1ffce087e83c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/landing-page/dashboard-stats.tsx": {
+    "mtime": 1776186619.3791041,
+    "ast_hash": "14b6136eb58f3a593eaf43afad9364a5",
+    "semantic_hash": "14b6136eb58f3a593eaf43afad9364a5"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/landing-page/data/entries.ts": {
+    "mtime": 1776186619.379225,
+    "ast_hash": "61ee6374a36431f04589ea87b0acf2b8",
+    "semantic_hash": "61ee6374a36431f04589ea87b0acf2b8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/landing-page/data/platform-data.ts": {
+    "mtime": 1776429198.7322905,
+    "ast_hash": "cae7924e5531af6cc0545d625e3a18fd",
+    "semantic_hash": "cae7924e5531af6cc0545d625e3a18fd"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/landing-page/data/types.ts": {
+    "mtime": 1783167331.5584536,
+    "ast_hash": "94c359969845c6793240eb4ba38979a8",
+    "semantic_hash": "94c359969845c6793240eb4ba38979a8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/landing-page/platform-carousel.tsx": {
+    "mtime": 1783167331.5587313,
+    "ast_hash": "7b86f4aacf40cec0135691eefd7ddf80",
+    "semantic_hash": "7b86f4aacf40cec0135691eefd7ddf80"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/landing-page/popular-tools-grid.tsx": {
+    "mtime": 1776186619.3801682,
+    "ast_hash": "f1f8bb103aafe22f3f6fa5b4c647e7f4",
+    "semantic_hash": "f1f8bb103aafe22f3f6fa5b4c647e7f4"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/landing-page/recent-page-tracker.tsx": {
+    "mtime": 1776186619.3808634,
+    "ast_hash": "2390f5b43e0c965cbf6abd0ddd64ded9",
+    "semantic_hash": "2390f5b43e0c965cbf6abd0ddd64ded9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/landing-page/recently-visited.tsx": {
+    "mtime": 1782642686.6881156,
+    "ast_hash": "d77ad9ef26d20ecb88ab027f3bdb80c9",
+    "semantic_hash": "d77ad9ef26d20ecb88ab027f3bdb80c9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/navbar/FeedbackDialog.tsx": {
+    "mtime": 1776186619.3811123,
+    "ast_hash": "4f77266d1d36dfa0884f92705e3222e8",
+    "semantic_hash": "4f77266d1d36dfa0884f92705e3222e8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/navbar/navbar.tsx": {
+    "mtime": 1776186619.3813863,
+    "ast_hash": "d7ac60b06d0ce8a681a41146bff6479d",
+    "semantic_hash": "d7ac60b06d0ce8a681a41146bff6479d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/new-tool-alert.tsx": {
+    "mtime": 1782642686.6883454,
+    "ast_hash": "08ad59542d5c827746659d4e65973577",
+    "semantic_hash": "08ad59542d5c827746659d4e65973577"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/new-tool-banner.tsx": {
+    "mtime": 1782642686.6885586,
+    "ast_hash": "a0ce8a056b039e64a6fecffab3192897",
+    "semantic_hash": "a0ce8a056b039e64a6fecffab3192897"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/orientation-dialog.tsx": {
+    "mtime": 1776186619.3819225,
+    "ast_hash": "6be39f35afb57cf0946a8125c1cb8c78",
+    "semantic_hash": "6be39f35afb57cf0946a8125c1cb8c78"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/page-title.tsx": {
+    "mtime": 1776186619.3821359,
+    "ast_hash": "61c03595ed3d206df59931883e36b37b",
+    "semantic_hash": "61c03595ed3d206df59931883e36b37b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/providers/session-provider.tsx": {
+    "mtime": 1776186619.382265,
+    "ast_hash": "d58569c46f8e9d5f5ab1a317572a4f09",
+    "semantic_hash": "d58569c46f8e9d5f5ab1a317572a4f09"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/providers/theme-provider.tsx": {
+    "mtime": 1776186619.3823466,
+    "ast_hash": "cd31b858207b6ea6ae8c756cc2c2b332",
+    "semantic_hash": "cd31b858207b6ea6ae8c756cc2c2b332"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/sidebar/app-sidebar.tsx": {
+    "mtime": 1783169289.4527402,
+    "ast_hash": "b09377c839cb745f462be4011ac0b023",
+    "semantic_hash": "b09377c839cb745f462be4011ac0b023"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/sidebar/sidebar-entries.json": {
+    "mtime": 1782642686.689265,
+    "ast_hash": "5acbf2ad4266ef03f217531d94fc640d",
+    "semantic_hash": "5acbf2ad4266ef03f217531d94fc640d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/sign-out-button.tsx": {
+    "mtime": 1776186619.3830688,
+    "ast_hash": "ea08ab3f71a5163f6740213e01e756fa",
+    "semantic_hash": "ea08ab3f71a5163f6740213e01e756fa"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/accordion.tsx": {
+    "mtime": 1776186619.3831973,
+    "ast_hash": "6f5ac2a39c951069d52ef56e1375d70a",
+    "semantic_hash": "6f5ac2a39c951069d52ef56e1375d70a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/alert.tsx": {
+    "mtime": 1776186619.38328,
+    "ast_hash": "8e59179ed2f0f6e33320d0081b9782fa",
+    "semantic_hash": "8e59179ed2f0f6e33320d0081b9782fa"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/avatar.tsx": {
+    "mtime": 1776186619.383368,
+    "ast_hash": "19bc4411b724fb504c65550b61a453b1",
+    "semantic_hash": "19bc4411b724fb504c65550b61a453b1"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/badge.tsx": {
+    "mtime": 1776186619.3834434,
+    "ast_hash": "59aababadabfb3db83d0a76f1efba8c0",
+    "semantic_hash": "59aababadabfb3db83d0a76f1efba8c0"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/bento-grid.tsx": {
+    "mtime": 1776186619.3835292,
+    "ast_hash": "30d98acd884c8ffb75af0f7ee3c75aec",
+    "semantic_hash": "30d98acd884c8ffb75af0f7ee3c75aec"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/button-group.tsx": {
+    "mtime": 1776186619.383813,
+    "ast_hash": "73a99a33fdbb8cf7742f0aad44829e25",
+    "semantic_hash": "73a99a33fdbb8cf7742f0aad44829e25"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/button.tsx": {
+    "mtime": 1776186619.384078,
+    "ast_hash": "ac405f1de064a56f49b8fd24eb571f96",
+    "semantic_hash": "ac405f1de064a56f49b8fd24eb571f96"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/calendar.tsx": {
+    "mtime": 1776186619.3841722,
+    "ast_hash": "92c5e0827022c5fc482a151e58467cee",
+    "semantic_hash": "92c5e0827022c5fc482a151e58467cee"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/card.tsx": {
+    "mtime": 1776186619.3842666,
+    "ast_hash": "86d83bdd3d7ae9a701b97f0fa3c2a2ba",
+    "semantic_hash": "86d83bdd3d7ae9a701b97f0fa3c2a2ba"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/checkbox.tsx": {
+    "mtime": 1776186619.3844848,
+    "ast_hash": "be6936aeec24f3ba612789bffa0b5db8",
+    "semantic_hash": "be6936aeec24f3ba612789bffa0b5db8"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/collapsible.tsx": {
+    "mtime": 1776186619.3847306,
+    "ast_hash": "3280feca735918afc1e61fa59ba6e3f3",
+    "semantic_hash": "3280feca735918afc1e61fa59ba6e3f3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/command.tsx": {
+    "mtime": 1776186619.3848157,
+    "ast_hash": "eb858ac54d164c6985fbc900e6924725",
+    "semantic_hash": "eb858ac54d164c6985fbc900e6924725"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/dialog.tsx": {
+    "mtime": 1776186619.384898,
+    "ast_hash": "bd352bb1408dcfe1efb7b721eeff0eda",
+    "semantic_hash": "bd352bb1408dcfe1efb7b721eeff0eda"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/disclosure.tsx": {
+    "mtime": 1776186619.384994,
+    "ast_hash": "7550573dff9e56eaa6a356b73c0bcee2",
+    "semantic_hash": "7550573dff9e56eaa6a356b73c0bcee2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/drawer.tsx": {
+    "mtime": 1776186619.3850815,
+    "ast_hash": "d2f77e51ad7cefcf112c855235a172dc",
+    "semantic_hash": "d2f77e51ad7cefcf112c855235a172dc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/dropdown-menu.tsx": {
+    "mtime": 1776186619.38535,
+    "ast_hash": "037b3cf7c13e69d876dc525d329aa804",
+    "semantic_hash": "037b3cf7c13e69d876dc525d329aa804"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/input.tsx": {
+    "mtime": 1776429198.7329724,
+    "ast_hash": "a754957612da2692cf2e034631952b1b",
+    "semantic_hash": "a754957612da2692cf2e034631952b1b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/label.tsx": {
+    "mtime": 1776186619.3855054,
+    "ast_hash": "7a788d22bfdaa016436d82d77e57e048",
+    "semantic_hash": "7a788d22bfdaa016436d82d77e57e048"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/morphing-dialog.tsx": {
+    "mtime": 1776186619.3856466,
+    "ast_hash": "f29ea86f6cab38f511114289226e194f",
+    "semantic_hash": "f29ea86f6cab38f511114289226e194f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/multi-select.tsx": {
+    "mtime": 1776186619.3857508,
+    "ast_hash": "a4b58123d9d5205573de4d87b89cb1e5",
+    "semantic_hash": "a4b58123d9d5205573de4d87b89cb1e5"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/popover.tsx": {
+    "mtime": 1776186619.3858454,
+    "ast_hash": "d7255316c532c766cee7792d775e4d0f",
+    "semantic_hash": "d7255316c532c766cee7792d775e4d0f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/progress.tsx": {
+    "mtime": 1776186619.3859231,
+    "ast_hash": "d0578ee4fb52d86376172c83fb67a9ba",
+    "semantic_hash": "d0578ee4fb52d86376172c83fb67a9ba"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/rich-text-editor.tsx": {
+    "mtime": 1776186619.386013,
+    "ast_hash": "af9dd420a08acd45c32fa34c08a0e98b",
+    "semantic_hash": "af9dd420a08acd45c32fa34c08a0e98b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/scroll-area.tsx": {
+    "mtime": 1776186619.3860955,
+    "ast_hash": "360243727fcdcb4d509af4516aaa9d0d",
+    "semantic_hash": "360243727fcdcb4d509af4516aaa9d0d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/select.tsx": {
+    "mtime": 1776429198.733145,
+    "ast_hash": "7ba76f4019191ed4340d8b71903d1cea",
+    "semantic_hash": "7ba76f4019191ed4340d8b71903d1cea"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/separator.tsx": {
+    "mtime": 1776186619.3862686,
+    "ast_hash": "07b35dc35f811b26a1ee3982582ba9fb",
+    "semantic_hash": "07b35dc35f811b26a1ee3982582ba9fb"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/accordion-11/index.tsx": {
+    "mtime": 1776186619.3864608,
+    "ast_hash": "ce4df0ddc7180590ec36ba795cd0fe42",
+    "semantic_hash": "ce4df0ddc7180590ec36ba795cd0fe42"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/announcement/index.tsx": {
+    "mtime": 1776186619.3869195,
+    "ast_hash": "c4600b2637821e65ecb250c135f32856",
+    "semantic_hash": "c4600b2637821e65ecb250c135f32856"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/aurora-background/index.tsx": {
+    "mtime": 1776186619.387054,
+    "ast_hash": "3d973e7bf6d558e72c35b2e5e1ea4a2a",
+    "semantic_hash": "3d973e7bf6d558e72c35b2e5e1ea4a2a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/banner/index.tsx": {
+    "mtime": 1776186619.3876941,
+    "ast_hash": "db1398b7616be5799db0a0050836072d",
+    "semantic_hash": "db1398b7616be5799db0a0050836072d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/combobox/index.tsx": {
+    "mtime": 1783167331.5596445,
+    "ast_hash": "9fac7f3f0ebcf06f01a5c4258694b09a",
+    "semantic_hash": "9fac7f3f0ebcf06f01a5c4258694b09a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/copy-button/index.tsx": {
+    "mtime": 1776186619.388114,
+    "ast_hash": "b18d7f689dddc2ce12330c9fb05ba8e4",
+    "semantic_hash": "b18d7f689dddc2ce12330c9fb05ba8e4"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/flickering-grid/index.tsx": {
+    "mtime": 1776186619.3882506,
+    "ast_hash": "c4c588753202a8d25fb6371a03b72d8e",
+    "semantic_hash": "c4c588753202a8d25fb6371a03b72d8e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/interactive-grid-pattern/index.tsx": {
+    "mtime": 1776186619.388404,
+    "ast_hash": "46af89a85651969f7dabba5472674d7c",
+    "semantic_hash": "46af89a85651969f7dabba5472674d7c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/minimal-tiptap/index.tsx": {
+    "mtime": 1776186619.3886967,
+    "ast_hash": "cb28bccc7706e2cdff47e91a62a1500b",
+    "semantic_hash": "cb28bccc7706e2cdff47e91a62a1500b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/motion-highlight/index.tsx": {
+    "mtime": 1776186619.3888862,
+    "ast_hash": "381313b1ddc6b601e3cc6b61e6032476",
+    "semantic_hash": "381313b1ddc6b601e3cc6b61e6032476"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/tabs/index.tsx": {
+    "mtime": 1776186619.3892531,
+    "ast_hash": "9770d912b3202eb9ab28f6bcfd80a329",
+    "semantic_hash": "9770d912b3202eb9ab28f6bcfd80a329"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/typing-text/index.tsx": {
+    "mtime": 1776186619.3896005,
+    "ast_hash": "121d0d677c6255cc3b353070b4693dac",
+    "semantic_hash": "121d0d677c6255cc3b353070b4693dac"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/shadcn-io/writing-text/index.tsx": {
+    "mtime": 1776186619.3897758,
+    "ast_hash": "6345f64dd5b297dff2fefdae23c4a4bd",
+    "semantic_hash": "6345f64dd5b297dff2fefdae23c4a4bd"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/sheet.tsx": {
+    "mtime": 1776186619.3898675,
+    "ast_hash": "638d6ec8d932fb7adbcd6f58ad1d8475",
+    "semantic_hash": "638d6ec8d932fb7adbcd6f58ad1d8475"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/sidebar.tsx": {
+    "mtime": 1776186619.3901784,
+    "ast_hash": "ca00c26645f36e8b02e88fd5dd272f02",
+    "semantic_hash": "ca00c26645f36e8b02e88fd5dd272f02"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/skeleton.tsx": {
+    "mtime": 1776186619.390286,
+    "ast_hash": "ee5017bac14efeda715feaceb488382a",
+    "semantic_hash": "ee5017bac14efeda715feaceb488382a"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/sonner.tsx": {
+    "mtime": 1776186619.3904047,
+    "ast_hash": "6ea1f5a74a5c8a3463d405fcd3099771",
+    "semantic_hash": "6ea1f5a74a5c8a3463d405fcd3099771"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/spinner.tsx": {
+    "mtime": 1776186619.3907175,
+    "ast_hash": "28b695734ef3b6840b47d713ae3d31ce",
+    "semantic_hash": "28b695734ef3b6840b47d713ae3d31ce"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/star-rating.tsx": {
+    "mtime": 1776186619.3908787,
+    "ast_hash": "d20f82d822aec4fde27a5aa4e64f1bdd",
+    "semantic_hash": "d20f82d822aec4fde27a5aa4e64f1bdd"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/table.tsx": {
+    "mtime": 1776186619.3909848,
+    "ast_hash": "ba2f673dcee3bb59701dd2b2b55e2b32",
+    "semantic_hash": "ba2f673dcee3bb59701dd2b2b55e2b32"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/tabs.tsx": {
+    "mtime": 1776186619.3910747,
+    "ast_hash": "65854b541abbc3c9f39cb075d4cb43ca",
+    "semantic_hash": "65854b541abbc3c9f39cb075d4cb43ca"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/textarea.tsx": {
+    "mtime": 1776186619.391179,
+    "ast_hash": "3b357aaee95444d95c7bc92db24a70db",
+    "semantic_hash": "3b357aaee95444d95c7bc92db24a70db"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/theme-toggle.tsx": {
+    "mtime": 1776186619.3912802,
+    "ast_hash": "bc974998feb301f228ef2ef33825dc1e",
+    "semantic_hash": "bc974998feb301f228ef2ef33825dc1e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/toggle-group.tsx": {
+    "mtime": 1776186619.3913853,
+    "ast_hash": "a68b5be2c6b0ce6526a95d195b448810",
+    "semantic_hash": "a68b5be2c6b0ce6526a95d195b448810"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/toggle.tsx": {
+    "mtime": 1776186619.391475,
+    "ast_hash": "df65c0dfce4225ad57a1901b01580f54",
+    "semantic_hash": "df65c0dfce4225ad57a1901b01580f54"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/ui/tooltip.tsx": {
+    "mtime": 1776186619.3915553,
+    "ast_hash": "b13fc27000eea713df4b24fff72d4864",
+    "semantic_hash": "b13fc27000eea713df4b24fff72d4864"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/components/whats-new-modal.tsx": {
+    "mtime": 1782642686.6896427,
+    "ast_hash": "df844dcf04f953933294b5ca854f52dc",
+    "semantic_hash": "df844dcf04f953933294b5ca854f52dc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/data/data.ts": {
+    "mtime": 1776186619.391985,
+    "ast_hash": "f2faae9fd87eb642adf654d16c14f55d",
+    "semantic_hash": "f2faae9fd87eb642adf654d16c14f55d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/data/timetable-planner.json": {
+    "mtime": 1782571949.6723542,
+    "ast_hash": "88579b375b67f01b60818979e94a841e",
+    "semantic_hash": "88579b375b67f01b60818979e94a841e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/hooks/use-mobile.ts": {
+    "mtime": 1776186619.3969758,
+    "ast_hash": "209b5193af16624cdd89d3591480dd48",
+    "semantic_hash": "209b5193af16624cdd89d3591480dd48"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/hooks/use-theme.ts": {
+    "mtime": 1776186619.397067,
+    "ast_hash": "716d07328b3535f0d4c624c9761601c9",
+    "semantic_hash": "716d07328b3535f0d4c624c9761601c9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/hooks/useClickOutside.tsx": {
+    "mtime": 1776186619.397143,
+    "ast_hash": "7107bd7daa94c70787d6d3c2e2ed75f9",
+    "semantic_hash": "7107bd7daa94c70787d6d3c2e2ed75f9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/hooks/useIsMac.ts": {
+    "mtime": 1776186619.3972132,
+    "ast_hash": "83ad888918d11e8753b9b05787d9713d",
+    "semantic_hash": "83ad888918d11e8753b9b05787d9713d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/hooks/usePreventScroll.tsx": {
+    "mtime": 1776186619.3973424,
+    "ast_hash": "6c18e87f0076cec1eae62750bc144dfb",
+    "semantic_hash": "6c18e87f0076cec1eae62750bc144dfb"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/apis.ts": {
+    "mtime": 1776186619.397477,
+    "ast_hash": "e79586683455a20f7d419c3b550e6185",
+    "semantic_hash": "e79586683455a20f7d419c3b550e6185"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/apis/calendar.ts": {
+    "mtime": 1783169289.4530103,
+    "ast_hash": "76a656e82e114bfa2e73dfb8f0a03024",
+    "semantic_hash": "76a656e82e114bfa2e73dfb8f0a03024"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/apis/drive.ts": {
+    "mtime": 1783169289.4531825,
+    "ast_hash": "4b3d171a3f00f30510cb3391d307ec25",
+    "semantic_hash": "4b3d171a3f00f30510cb3391d307ec25"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/apis/mail.ts": {
+    "mtime": 1776186619.3981407,
+    "ast_hash": "ea99dae57f4eb3b4abbfe6e94f39dd7b",
+    "semantic_hash": "ea99dae57f4eb3b4abbfe6e94f39dd7b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/apis/sheets.ts": {
+    "mtime": 1776186619.3981776,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/apis/strapi.ts": {
+    "mtime": 1783167331.559908,
+    "ast_hash": "ce8b7ab0318ec2b464d3fa789f3b4711",
+    "semantic_hash": "ce8b7ab0318ec2b464d3fa789f3b4711"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/apl-knockout.ts": {
+    "mtime": 1782642686.6898801,
+    "ast_hash": "cb422994e32ec9702b0e4e91dba96ff7",
+    "semantic_hash": "cb422994e32ec9702b0e4e91dba96ff7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/apl-substitution-compliance.ts": {
+    "mtime": 1782642686.6900005,
+    "ast_hash": "3e5f6a8ee0143551957b88663b77c8da",
+    "semantic_hash": "3e5f6a8ee0143551957b88663b77c8da"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/auth.ts": {
+    "mtime": 1782642662.3116627,
+    "ast_hash": "beae16c2783be935b81d1f9ac8996844",
+    "semantic_hash": "beae16c2783be935b81d1f9ac8996844"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/cgpa-types.ts": {
+    "mtime": 1782642686.6901615,
+    "ast_hash": "79ecc1c3ff2cf827bd0feec2e0651d19",
+    "semantic_hash": "79ecc1c3ff2cf827bd0feec2e0651d19"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/cgpa-utils.ts": {
+    "mtime": 1782642686.6903954,
+    "ast_hash": "f9901fb7fd5540a40f5b328b6f1e7cb2",
+    "semantic_hash": "f9901fb7fd5540a40f5b328b6f1e7cb2"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/constants/dept-rep-map.ts": {
+    "mtime": 1782642686.6913044,
+    "ast_hash": "a202c3f4ddeee8f42cbed122f4ce98e7",
+    "semantic_hash": "a202c3f4ddeee8f42cbed122f4ce98e7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/date-utils.ts": {
+    "mtime": 1782642686.691565,
+    "ast_hash": "275a03c0e526544d604a5c7423c3491b",
+    "semantic_hash": "275a03c0e526544d604a5c7423c3491b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/sse/apl-emitter.ts": {
+    "mtime": 1782642686.6916718,
+    "ast_hash": "6f9eb9e984d6e9f236da1a37f12b6a36",
+    "semantic_hash": "6f9eb9e984d6e9f236da1a37f12b6a36"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/sse/apl-events.ts": {
+    "mtime": 1782642686.691737,
+    "ast_hash": "0ce3755841f53f2f0372c4650a943bea",
+    "semantic_hash": "0ce3755841f53f2f0372c4650a943bea"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/sse/event-emitter.ts": {
+    "mtime": 1782642686.691908,
+    "ast_hash": "d4ea87605c00c131e4b743396bb482c6",
+    "semantic_hash": "d4ea87605c00c131e4b743396bb482c6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/userid.ts": {
+    "mtime": 1783167331.5601852,
+    "ast_hash": "1688fba7fe675f04d4bfdc4f4a2bd7fc",
+    "semantic_hash": "1688fba7fe675f04d4bfdc4f4a2bd7fc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/lib/utils.ts": {
+    "mtime": 1782642686.6919994,
+    "ast_hash": "70fe2d2c71669d6492ccc05a2ea42959",
+    "semantic_hash": "70fe2d2c71669d6492ccc05a2ea42959"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/middleware.ts": {
+    "mtime": 1783169289.4533057,
+    "ast_hash": "cf1434aba662eb2e00c76aeadf5356fe",
+    "semantic_hash": "cf1434aba662eb2e00c76aeadf5356fe"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/scripts/create-page.mjs": {
+    "mtime": 1783169289.4534316,
+    "ast_hash": "88d32a788bad8bd098c3213a04fb4982",
+    "semantic_hash": "88d32a788bad8bd098c3213a04fb4982"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/types/auth.d.ts": {
+    "mtime": 1776186619.3996768,
+    "ast_hash": "287d0a11a624a9b2f54a26a80a1c1759",
+    "semantic_hash": "287d0a11a624a9b2f54a26a80a1c1759"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/tailwind.config.ts": {
+    "mtime": 1776186619.3997078,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/tsconfig.json": {
+    "mtime": 1776186619.400606,
+    "ast_hash": "0cf97a81150d3b8904f285780896980d",
+    "semantic_hash": "0cf97a81150d3b8904f285780896980d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/DESIGN.md": {
+    "mtime": 1782642686.617366,
+    "ast_hash": "d704a908abe6ea0bd5bf66010e8f2c6d",
+    "semantic_hash": "d704a908abe6ea0bd5bf66010e8f2c6d"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/README.md": {
+    "mtime": 1782642686.6176133,
+    "ast_hash": "dd978cf2e4aa08f9a0ffb4474ecdc3bf",
+    "semantic_hash": "dd978cf2e4aa08f9a0ffb4474ecdc3bf"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/STRAPI_API_GUIDE.md": {
+    "mtime": 1776186619.2299378,
+    "ast_hash": "74c0f39ddccf3902d98f89ef89024b16",
+    "semantic_hash": "74c0f39ddccf3902d98f89ef89024b16"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/INSTRUCTIONS.md": {
+    "mtime": 1776186619.230866,
+    "ast_hash": "52e9438a52cafa9783939ceaf9901bf3",
+    "semantic_hash": "52e9438a52cafa9783939ceaf9901bf3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/OVERVIEW.md": {
+    "mtime": 1782642686.6180954,
+    "ast_hash": "28d5ff44aafe83e57cfdd17e00b9b3a6",
+    "semantic_hash": "28d5ff44aafe83e57cfdd17e00b9b3a6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/README-old.md": {
+    "mtime": 1776186619.2313085,
+    "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
+    "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/image.html": {
+    "mtime": 1782642686.6374688,
+    "ast_hash": "96ffd5239343b10e05f02bdeaec02b6b",
+    "semantic_hash": "96ffd5239343b10e05f02bdeaec02b6b"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/platform/cash-survey/CASH Survey - Restructured Questions.md": {
+    "mtime": 1776186619.3411584,
+    "ast_hash": "a247ac9b00e1814f6c6c976e23e3806c",
+    "semantic_hash": "a247ac9b00e1814f6c6c976e23e3806c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/policy_docs/CS_Major_Curriculum.pdf": {
+    "mtime": 1776186619.3174489,
+    "ast_hash": "ee0e24c6f1730af355a00a1137ee6fb7",
+    "semantic_hash": "ee0e24c6f1730af355a00a1137ee6fb7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/media/insights.gif": {
+    "mtime": 1776186619.249727,
+    "ast_hash": "98362a98ce4770247a20dbae737b9e84",
+    "semantic_hash": "98362a98ce4770247a20dbae737b9e84"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/media/logo.png": {
+    "mtime": 1776186619.2504296,
+    "ast_hash": "1b969e19e84e49279508888d07147fc6",
+    "semantic_hash": "1b969e19e84e49279508888d07147fc6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/screenshots/cgpa-planner.png": {
+    "mtime": 1782642686.6192734,
+    "ast_hash": "21a12f1580c04a7afb436187e221fda3",
+    "semantic_hash": "21a12f1580c04a7afb436187e221fda3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/screenshots/dashboard.png": {
+    "mtime": 1776186619.2575648,
+    "ast_hash": "82edfb7a0d9949e5d60481bf7cdbb4f9",
+    "semantic_hash": "82edfb7a0d9949e5d60481bf7cdbb4f9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/screenshots/orgs-catalogue.png": {
+    "mtime": 1782642686.6305587,
+    "ast_hash": "ff9cc5a9566af4f05ec4617d4e04b7c0",
+    "semantic_hash": "ff9cc5a9566af4f05ec4617d4e04b7c0"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/screenshots/profile.png": {
+    "mtime": 1776186619.2754786,
+    "ast_hash": "65f52eb0f3ac3874ed446665c775fde9",
+    "semantic_hash": "65f52eb0f3ac3874ed446665c775fde9"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/screenshots/sem-planner.png": {
+    "mtime": 1782642686.6331086,
+    "ast_hash": "f0f89d27c16dc39e29204dea9b2011f7",
+    "semantic_hash": "f0f89d27c16dc39e29204dea9b2011f7"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/screenshots/sg-compose.png": {
+    "mtime": 1782642686.634771,
+    "ast_hash": "b8a0d0e5bc942e06e232e9280c730cba",
+    "semantic_hash": "b8a0d0e5bc942e06e232e9280c730cba"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/documentation/screenshots/wifi-tickets.png": {
+    "mtime": 1782642686.6361575,
+    "ast_hash": "edf76fea989fc31537f6206e0af6664f",
+    "semantic_hash": "edf76fea989fc31537f6206e0af6664f"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/Crossword.png": {
+    "mtime": 1776186619.2870746,
+    "ast_hash": "21c6ed810e604623802c9ea2b6583fb6",
+    "semantic_hash": "21c6ed810e604623802c9ea2b6583fb6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/Neev-Banner.webp": {
+    "mtime": 1776186619.2880175,
+    "ast_hash": "f3b10115542809877ea1755c568a2774",
+    "semantic_hash": "f3b10115542809877ea1755c568a2774"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/ashoka-wordle.png": {
+    "mtime": 1776186619.288202,
+    "ast_hash": "1e0d1ae429f7d7c57479102a8cd2eac1",
+    "semantic_hash": "1e0d1ae429f7d7c57479102a8cd2eac1"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/file.svg": {
+    "mtime": 1762958131.9243982,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/globe.svg": {
+    "mtime": 1762958131.9244814,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/logo.png": {
+    "mtime": 1783169289.4407957,
+    "ast_hash": "1b969e19e84e49279508888d07147fc6",
+    "semantic_hash": "1b969e19e84e49279508888d07147fc6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/logo_dark.png": {
+    "mtime": 1776186619.2884736,
+    "ast_hash": "93f66378a956ebc6fedeca5eb98ff2a6",
+    "semantic_hash": "93f66378a956ebc6fedeca5eb98ff2a6"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/mascot-construction.png": {
+    "mtime": 1776186619.2907848,
+    "ast_hash": "e222c6cd500e5ec4a60080990ee8f890",
+    "semantic_hash": "e222c6cd500e5ec4a60080990ee8f890"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/mascot-football-happy.png": {
+    "mtime": 1782642686.6470442,
+    "ast_hash": "01005d323fcd9438d25dc40cd0fe5cee",
+    "semantic_hash": "01005d323fcd9438d25dc40cd0fe5cee"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/mascot-not-found.png": {
+    "mtime": 1776186619.300971,
+    "ast_hash": "29ee5516a6b7585bccdcb0cef10a02fa",
+    "semantic_hash": "29ee5516a6b7585bccdcb0cef10a02fa"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/mascot.png": {
+    "mtime": 1776186619.3041184,
+    "ast_hash": "7073a5427b01fabaa019ccedf92e871c",
+    "semantic_hash": "7073a5427b01fabaa019ccedf92e871c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/next.svg": {
+    "mtime": 1762958131.928409,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/orgs_catalogue_default.png": {
+    "mtime": 1776186619.3151805,
+    "ast_hash": "f93f7b290721793300dfa2ae0f1e3734",
+    "semantic_hash": "f93f7b290721793300dfa2ae0f1e3734"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/vercel.svg": {
+    "mtime": 1762958131.9357235,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/window.svg": {
+    "mtime": 1762958131.9358037,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/xvs8kyobnxkrgzgeym5o.webp": {
+    "mtime": 1776186619.3188882,
+    "ast_hash": "12d038d52303bd720edafd2e8a7343cc",
+    "semantic_hash": "12d038d52303bd720edafd2e8a7343cc"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/yyh4iiocug5dnctfkd5t.webp": {
+    "mtime": 1776186619.3190463,
+    "ast_hash": "00423f521d80a6fc8f3adba6d3605c2c",
+    "semantic_hash": "00423f521d80a6fc8f3adba6d3605c2c"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/public/z6ggcs3unvoquykoyupo.webp": {
+    "mtime": 1776186619.319289,
+    "ast_hash": "e1cadb314ec6e52c2d7eadf55cdbcb80",
+    "semantic_hash": "e1cadb314ec6e52c2d7eadf55cdbcb80"
+  },
+  "/Users/sohamtulsyan/Documents/FestsandClubs/Tech Min/Codebases/next-platform/src/app/icon.png": {
+    "mtime": 1783169289.4458892,
+    "ast_hash": "46585e5fc723bdf7dbbeb9a871153066",
+    "semantic_hash": "46585e5fc723bdf7dbbeb9a871153066"
+  }
+}

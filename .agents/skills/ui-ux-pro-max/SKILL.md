@@ -413,6 +413,29 @@ If not, use the Master rules exclusively.
 Now, generate the code...
 ```
 
+### Step 2c: Design Dials (optional)
+
+Three optional 1-10 sliders that tune `--design-system` output without changing your query. Add any combination of them to the same command:
+
+```bash
+python3 skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --variance <1-10> --motion <1-10> --density <1-10>
+```
+
+| Dial | Low (1-3) | Mid (4-7) | High (8-10) |
+|------|-----------|-----------|-------------|
+| `--variance` | Centered / minimal (biases toward Minimalism-style categories) | Balanced / modern | Bold / asymmetric (biases toward Brutalism, Bento Grids) |
+| `--motion` | Subtle micro-interactions | Standard scroll/stagger motion | Complex choreography (pin, Flip, SplitText) |
+| `--density` | Spacious (24-96px spacing scale) | Standard (16-64px, current default) | Dense/dashboard (8-32px spacing scale) |
+
+- `--motion` attaches a ready-to-use GSAP snippet (with framework notes, Do/Don't, and performance notes) pulled from `--domain gsap`, matched to the resolved tier (Subtle/Standard/Complex).
+- `--density` overrides the `--space-*` CSS variable table in the ASCII/markdown/MASTER.md output — use it for dashboards (high) vs. marketing pages (low) without hand-editing tokens.
+- Leaving a dial unset keeps that part of the output exactly as it was before (no behavior change).
+
+**Example:**
+```bash
+python3 skills/ui-ux-pro-max/scripts/search.py "internal analytics dashboard" --design-system --variance 8 --motion 7 --density 8 -p "Ops Console"
+```
+
 ### Step 3: Supplement with Detailed Searches (as needed)
 
 After getting the design system, use domain searches to get additional details:
@@ -463,6 +486,7 @@ python3 skills/ui-ux-pro-max/scripts/search.py "<keyword>" --stack <your-stack>
 | `landing` | Page structure, CTA strategies | hero, hero-centric, testimonial, pricing, social-proof |
 | `chart` | Chart types, library recommendations | trend, comparison, timeline, funnel, pie |
 | `ux` | Best practices, anti-patterns | animation, accessibility, z-index, loading |
+| `gsap` | GSAP animation skeletons by intensity tier | scroll reveal, stagger, magnetic cursor, page transition |
 | `google-fonts` | Individual Google Fonts lookup | sans serif, monospace, japanese, variable font, popular |
 | `react` | React/Next.js performance | waterfall, bundle, suspense, memo, rerender, cache |
 | `web` | App interface guidelines (iOS/Android/React Native) | accessibilityLabel, touch targets, safe areas, Dynamic Type |

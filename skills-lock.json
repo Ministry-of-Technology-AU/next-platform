@@ -1,17 +1,71 @@
 {
   "version": 1,
   "skills": {
+    "brainstorming": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/brainstorming/SKILL.md",
+      "computedHash": "253570c46990ea018dd4520dba80cd77c35f9e5a8654057da1812face7be30cd"
+    },
+    "design-motion-principles": {
+      "source": "kylezantos/design-engineer-auditor-package",
+      "sourceType": "github",
+      "skillPath": "skills/design-motion-principles/SKILL.md",
+      "computedHash": "6410c1844f511249f11f38d30d217cfecf7f595f45a868d74284b6380bab47d7"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "781bd6d3f9b19f8c9af6b53d8d0e4876d0183841b565db34ca7092ffa412d111"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "4eabc66183767153e404b39d1b839b1c37f2d82d86f0a0d7e880a579d8d62336"
     },
+    "handoff": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/productivity/handoff/SKILL.md",
+      "computedHash": "5d0f81e38abe6b984e1feaa731927de5291d040982106ac513cf54ec240e00ec"
+    },
+    "hyperframes": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes/SKILL.md",
+      "computedHash": "6cff4ef2b582b81b340704b2849833c1856a89103c7611630c772aa29feebc6a"
+    },
+    "nextjs-app-router-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/frontend-mobile-development/skills/nextjs-app-router-patterns/SKILL.md",
+      "computedHash": "b4fea42eecf1f803155ef7fa133d5286ee8f2dbba3e616954e9e43c6f0ffc144"
+    },
+    "remotion-best-practices": {
+      "source": "remotion-dev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/remotion/SKILL.md",
+      "computedHash": "14e4caa85e5c91d629e53397f94c9e8bb81460e93cafa31b278d14f5e9f640b7"
+    },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "sourceType": "github",
       "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
-      "computedHash": "c0e71f1ea9d80c74f710960c2b4d9ab0f8a6d14c331f8d361df2c28d1879846e"
+      "computedHash": "b0f78bc58cc5a3ac68afdf6f2de214e147b09a3f8686447cb3804a921fa198c2"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "computedHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474"
+    },
+    "web-haptics": {
+      "source": "lochie/web-haptics",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "951e72beb4da0d70ed690623992c229b8db637da14a25bfb6cee13f9a425c12a"
     }
   }
 }
