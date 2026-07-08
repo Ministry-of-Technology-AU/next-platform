@@ -350,6 +350,7 @@ export type MorphingDialogImageProps = {
   alt: string;
   className?: string;
   style?: React.CSSProperties;
+  onError?: React.ReactEventHandler<HTMLImageElement>;
 };
 
 function MorphingDialogImage({
@@ -357,6 +358,7 @@ function MorphingDialogImage({
   alt,
   className,
   style,
+  onError,
 }: MorphingDialogImageProps) {
   const { uniqueId } = useMorphingDialog();
 
@@ -367,6 +369,7 @@ function MorphingDialogImage({
       className={cn(className)}
       layoutId={`dialog-img-${uniqueId}`}
       style={style}
+      onError={onError}
     />
   );
 }
