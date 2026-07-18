@@ -24,6 +24,7 @@ export async function GET() {
             populate: {
                 organisations: {
                     populate: {
+                        profile: true,
                         circle1_humans: true,
                         circle2_humans: true,
                         members: true,
@@ -33,6 +34,9 @@ export async function GET() {
         });
 
         const organisation = user?.organisations?.[0] || null;
+        if (organisation) {
+            organisation.logo_url = organisation.profile?.profile_url || user?.profile_url || null;
+        }
 
         return new Response(JSON.stringify({ organisation }), { status: 200 });
     }

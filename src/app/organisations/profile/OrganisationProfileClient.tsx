@@ -26,6 +26,8 @@ export default function OrganisationProfileClient({
   organisation: any;
 }) {
 
+  const { data: session } = useSession();
+
   // ================= STATE (Initialized from server props) =================
 
   const [organisationId] = useState<number | null>(organisation?.id || null);
@@ -37,7 +39,52 @@ export default function OrganisationProfileClient({
   );
   const [bannerFile, setBannerFile] = useState<File | null>(null);
 
-  const [clubImage, setClubImage] = useState<string | null>(null);
+  const [clubImage, setClubImage] = useState<string | null>(
+    organisation?.logo_url || organisation?.profile?.profile_url || null
+  );
+  const [imageError, setImageError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  React.useEffect(() => {
+    if (!clubImage && session?.user?.image) {
+      setClubImage(session.user.image);
+    }
+  }, [session, clubImage]);
+
+  const handleImageError = async () => {
+    if (retryCount < 3) {
+      setRetryCount(prev => prev + 1);
+      if (clubImage) {
+        const separator = clubImage.includes("?") ? "&" : "?";
+        setClubImage(`${clubImage}${separator}retry=${Date.now()}`);
+      }
+    } else if (retryCount === 3) {
+      setRetryCount(prev => prev + 1);
+      try {
+        const res = await fetch("/api/organisations/profile");
+        if (res.ok) {
+          const data = await res.json();
+          const freshLogo = data?.organisation?.logo_url || data?.organisation?.profile?.profile_url;
+          if (freshLogo && freshLogo !== clubImage) {
+            setClubImage(freshLogo);
+            setImageError(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to refetch logo URL:", err);
+      }
+
+      if (session?.user?.image && session.user.image !== clubImage) {
+        setClubImage(session.user.image);
+        setImageError(false);
+      } else {
+        setImageError(true);
+      }
+    } else {
+      setImageError(true);
+    }
+  };
 
   const [orgName, setOrgName] = useState(organisation?.name || "");
   const [type, setType] = useState(organisation?.type || "");
@@ -184,11 +231,13 @@ export default function OrganisationProfileClient({
             <div className="absolute left-1/2 -bottom-14 -translate-x-1/2 z-20">
               <div className="w-28 h-28 rounded-full overflow-hidden shadow-xl bg-white dark:bg-neutral-800 flex items-center justify-center relative">
 
-                {clubImage ? (
+                {clubImage && !imageError ? (
                   <img
                     src={clubImage}
                     alt="Club Logo"
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                    onError={handleImageError}
                   />
                 ) : (
                   <div className="text-sm text-gray-500">No Image</div>
