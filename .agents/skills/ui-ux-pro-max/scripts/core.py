@@ -55,6 +55,11 @@ CSV_CONFIG = {
         "search_cols": ["Category", "Icon Name", "Keywords", "Best For"],
         "output_cols": ["Category", "Icon Name", "Keywords", "Library", "Import Code", "Usage", "Best For", "Style"]
     },
+    "gsap": {
+        "file": "motion.csv",
+        "search_cols": ["Category", "Intensity Tier", "Keywords", "Trigger"],
+        "output_cols": ["Category", "Intensity Tier", "Trigger", "Duration", "Easing", "GSAP Snippet", "Framework Notes", "Do", "Don't", "Performance Notes"]
+    },
     "react": {
         "file": "react-performance.csv",
         "search_cols": ["Category", "Issue", "Keywords", "Description"],
@@ -89,6 +94,12 @@ STACK_CONFIG = {
     "threejs":          {"file": "stacks/threejs.csv"},
     "angular":          {"file": "stacks/angular.csv"},
     "laravel":          {"file": "stacks/laravel.csv"},
+    "javafx":           {"file": "stacks/javafx.csv"},
+    "wpf":              {"file": "stacks/wpf.csv"},
+    "winui":            {"file": "stacks/winui.csv"},
+    "avalonia":         {"file": "stacks/avalonia.csv"},
+    "uno":              {"file": "stacks/uno.csv"},
+    "uwp":              {"file": "stacks/uwp.csv"},
 }
 
 # Common columns for all stacks
@@ -209,6 +220,7 @@ def detect_domain(query):
         "typography": ["font pairing", "typography pairing", "heading font", "body font"],
         "google-fonts": ["google font", "font family", "font weight", "font style", "variable font", "noto", "font for", "find font", "font subset", "font language", "monospace font", "serif font", "sans serif font", "display font", "handwriting font", "font", "typography", "serif", "sans"],
         "icons": ["icon", "icons", "lucide", "heroicons", "symbol", "glyph", "pictogram", "svg icon"],
+        "gsap": ["gsap", "quickto", "scrolltrigger", "stagger", "magnetic cursor", "parallax", "page transition", "scroll reveal", "scroll-triggered", "scrollytelling", "flip plugin", "splittext", "shimmer", "skeleton loader"],
         "react": ["react", "next.js", "nextjs", "suspense", "memo", "usecallback", "useeffect", "rerender", "bundle", "waterfall", "barrel", "dynamic import", "rsc", "server component"],
         "web": ["aria", "focus", "outline", "semantic", "virtualize", "autocomplete", "form", "input type", "preconnect"]
     }

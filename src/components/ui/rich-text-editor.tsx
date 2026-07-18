@@ -122,7 +122,7 @@ export function RichTextEditor({
   }, [value])
 
   return (
-    <div className={cn("border rounded-md overflow-hidden", className)}>
+    <div className={cn("relative border rounded-md overflow-hidden", className)}>
       {/* Toolbar */}
       <div className="border-b bg-muted/20 p-2">
         <div className="flex items-center gap-1 flex-wrap">
