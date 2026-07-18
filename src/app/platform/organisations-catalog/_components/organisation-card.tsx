@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Megaphone, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube, ChevronDown, X } from 'lucide-react';
+import { Megaphone, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube, ChevronDown, X, Bell, BellRing, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   MorphingDialog,
@@ -29,13 +29,42 @@ import { useCategoryColors } from './category-colors-context';
 import { Disclosure, DisclosureTrigger, DisclosureContent } from '@/components/ui/disclosure';
 interface OrganizationCardProps {
   organization: Organization;
+  isTracking?: boolean;
+  trackLoading?: boolean;
+  onTrack?: (orgId: string) => void;
+  onUntrack?: (orgId: string) => void;
 }
+
+const sanitizeHtml = (html: string) => {
+  if (!html) return '';
+  return html
+    .replace(/style\s*=\s*(['"])(.*?)\1/gi, (match, quote, styleContent) => {
+      const cleanStyles = styleContent
+        .split(';')
+        .map((s: string) => s.trim())
+        .filter((s: string) => {
+          const lower = s.toLowerCase();
+          return (
+            !lower.startsWith('font-family') &&
+            !lower.startsWith('color') &&
+            !lower.startsWith('background-color') &&
+            !lower.includes('font-family') &&
+            !lower.includes('color')
+          );
+        })
+        .join('; ');
+      return cleanStyles ? `style=${quote}${cleanStyles}${quote}` : '';
+    })
+    .replace(/\s*(color|face|bgcolor)\s*=\s*(['"])(.*?)\2/gi, '')
+    .replace(/<font[^>]*>/gi, '')
+    .replace(/<\/font>/gi, '');
+};
 
 const RichTextRenderer: React.FC<{ html: string }> = ({ html }) => {
   return (
     <div 
-      className="prose prose-sm dark:prose-invert max-w-none text-neutral-700 dark:text-neutral-300"
-      dangerouslySetInnerHTML={{ __html: html }}
+      className="prose prose-sm dark:prose-invert max-w-none text-black dark:text-white font-nunito"
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
     />
   );
 };
@@ -86,7 +115,7 @@ const MemberTag: React.FC<MemberTagProps> = ({ username, email }) => {
   );
 };
 
-export function OrganizationCard({ organization }: OrganizationCardProps) {
+export function OrganizationCard({ organization, isTracking = false, trackLoading = false, onTrack, onUntrack }: OrganizationCardProps) {
   const { categoryColors } = useCategoryColors();
   const [isHovered, setIsHovered] = React.useState(false);
   const [bannerSrc, setBannerSrc] = React.useState(organization.bannerUrl);
@@ -96,7 +125,17 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
     setBannerSrc(organization.bannerUrl);
     setLogoError(false);
   }, [organization.bannerUrl, organization.logoUrl]);
-  // const [isTrackingInductions, setIsTrackingInductions] = React.useState(false);
+
+  const handleTrackToggle = React.useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (trackLoading) return;
+    if (isTracking) {
+      onUntrack?.(organization.id);
+    } else {
+      onTrack?.(organization.id);
+    }
+  }, [isTracking, trackLoading, onTrack, onUntrack, organization.id]);
 
   const truncateDescription = (text: string, maxLength: number = 80) => {
     if (text.length <= maxLength) return text;
@@ -164,6 +203,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
             src={logoUrl} 
             alt={organization.name}
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
             onError={() => setLogoError(true)}
           />
         ) : (
@@ -181,15 +221,16 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
         duration: 0.25,
       }}
     >
-      <MorphingDialogTrigger
-        className="group relative flex flex-col overflow-hidden border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-lg"
-        style={{ borderRadius: '24px' }}
-      >
-        <div
-          className="relative"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+      <div className="group relative">
+        <MorphingDialogTrigger
+          className="relative flex flex-col overflow-hidden border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-lg w-full h-full text-left"
+          style={{ borderRadius: '24px' }}
         >
+          <div
+            className="relative w-full"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
           <MorphingDialogImage
             src={bannerSrc}
             alt={organization.name}
@@ -202,42 +243,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
             <LogoCircle size="small" />
           </div>
 
-          {organization.inductionsOpen && (
-            <div className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-red-900 shadow-md">
-              <Megaphone className="h-5 w-5 text-white" />
-            </div>
-          )}
 
-          {/** Tracking button temporarily hidden */}
-          {/**
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsTrackingInductions(!isTrackingInductions);
-            }}
-            className={`absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full shadow-md transition-all ${
-              isTrackingInductions 
-                ? 'bg-amber-500 hover:bg-amber-600' 
-                : 'bg-red-900/80 hover:bg-red-900'
-            }`}
-            title={isTrackingInductions ? 'Stop tracking inductions' : 'Track inductions'}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsTrackingInductions(!isTrackingInductions);
-              }
-            }}
-          >
-            {isTrackingInductions ? (
-              <BellRing className="h-4 w-4 text-white" />
-            ) : (
-              <Bell className="h-4 w-4 text-white" />
-            )}
-          </div>
-          */}
 
           <div
             className={cn(
@@ -278,8 +284,32 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
               </div>
             )}
             </div>
-        </div>
-      </MorphingDialogTrigger>
+          </div>
+        </MorphingDialogTrigger>
+
+        {/* Tracking button absolutely positioned over the card, outside the Trigger */}
+        {organization.inductionsOpen && (
+          <button
+            onClick={handleTrackToggle}
+            disabled={trackLoading}
+            className={`absolute left-4 top-4 z-20 flex items-center justify-center rounded-full shadow-md cursor-pointer transition-all ${
+              isTracking
+                ? 'h-10 w-10 bg-amber-500 hover:bg-amber-600'
+                : 'h-10 w-10 bg-red-900 hover:bg-red-800'
+            } ${trackLoading ? 'opacity-80 cursor-wait' : ''}`}
+            title={isTracking ? 'Stop tracking inductions' : 'Track inductions'}
+            aria-label={isTracking ? 'Stop tracking inductions' : 'Track inductions'}
+          >
+            {trackLoading ? (
+              <Loader2 className="h-5 w-5 text-white animate-spin" />
+            ) : isTracking ? (
+              <BellRing className="h-5 w-5 text-white" />
+            ) : (
+              <Megaphone className="h-5 w-5 text-white" />
+            )}
+          </button>
+        )}
+      </div>
 
       <MorphingDialogContainer>
         <MorphingDialogContent
@@ -306,7 +336,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                 <X className="h-6 w-6" />
               </MorphingDialogClose>
 
-              <div className="absolute left-6 top-6 z-20 flex items-center gap-3">
+              <div className="absolute left-6 top-6 z-30 flex items-center gap-3">
                 {organization.inductionsOpen && (
                   <div className="flex items-center gap-2 rounded-full bg-red-900 px-4 py-2 shadow-lg">
                     <Megaphone className="h-5 w-5 text-white" />
@@ -315,29 +345,28 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
                     </span>
                   </div>
                 )}
-                {/** Tracking button temporarily hidden */}
-                {/**
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsTrackingInductions(!isTrackingInductions);
-                  }}
-                  className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-lg transition-all ${
-                    isTrackingInductions 
-                      ? 'bg-amber-500 hover:bg-amber-600' 
-                      : 'bg-red-900/90 hover:bg-red-900'
-                  }`}
-                >
-                  {isTrackingInductions ? (
-                    <BellRing className="h-5 w-5 text-white" />
-                  ) : (
-                    <Bell className="h-5 w-5 text-white" />
-                  )}
-                  <span className="text-sm font-semibold text-white">
-                    {isTrackingInductions ? 'Tracking' : 'Track Inductions'}
-                  </span>
-                </button>
-                */}
+                {organization.inductionsOpen && (
+                  <button
+                    onClick={handleTrackToggle}
+                    disabled={trackLoading}
+                    className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-lg transition-all ${
+                      isTracking 
+                        ? 'bg-amber-500 hover:bg-amber-600' 
+                        : 'bg-red-900/90 hover:bg-red-900'
+                    } ${trackLoading ? 'opacity-60 cursor-wait' : ''}`}
+                  >
+                    {trackLoading ? (
+                      <Loader2 className="h-5 w-5 text-white animate-spin" />
+                    ) : isTracking ? (
+                      <BellRing className="h-5 w-5 text-white" />
+                    ) : (
+                      <Bell className="h-5 w-5 text-white" />
+                    )}
+                    <span className="text-sm font-semibold text-white">
+                      {trackLoading ? 'Updating...' : isTracking ? 'Tracking' : 'Track Inductions'}
+                    </span>
+                  </button>
+                )}
               </div>
 
               {/* Banner content split into 30/70 columns with vertical divider */}

@@ -29,12 +29,12 @@ export interface GoogleEvent {
   location?: string;
   description?: string;
   start: {
-    dateTime: string;
+    dateTime?: string;
     timeZone?: string;
     date?: string;
   };
   end: {
-    dateTime: string;
+    dateTime?: string;
     timeZone?: string;
     date?: string;
   };

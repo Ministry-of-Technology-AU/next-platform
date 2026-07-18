@@ -5,6 +5,11 @@ import { getUserIdByEmail } from '@/lib/userid';
 
 const DEFAULT_BANNER = '/orgs_catalogue_default.png';
 
+// In-memory cache for organisations data (60s TTL)
+let cachedOrgsData: any = null;
+let cacheTimestamp = 0;
+const CACHE_TTL = 60_000; // 60 seconds
+
 export async function GET() {
   try {
     // Check authentication
@@ -21,47 +26,59 @@ export async function GET() {
     // Get the user's Strapi ID
     const userId = await getUserIdByEmail(userEmail);
     
-    // Fetch organizations data from Strapi
+    // Check in-memory cache first
+    const now = Date.now();
     let organisationsReq;
-    
-    try {
-      organisationsReq = await strapiGet('/organisations', {
-        populate: {
-          profile: {
-            fields: ['id', 'username', 'email', 'profile_url']
+
+    if (cachedOrgsData && (now - cacheTimestamp) < CACHE_TTL) {
+      console.log('Using cached organisations data (age:', Math.round((now - cacheTimestamp) / 1000), 's)');
+      organisationsReq = cachedOrgsData;
+    } else {
+      // Fetch fresh from Strapi
+      try {
+        organisationsReq = await strapiGet('/organisations', {
+          populate: {
+            profile: {
+              fields: ['id', 'username', 'email', 'profile_url']
+            },
+            circle1_humans: {
+              fields: ['id', 'username', 'email']
+            },
+            circle2_humans: {
+              fields: ['id', 'username', 'email']
+            },
+            members: {
+              fields: ['id', 'username', 'email']
+            },
+            interested_applicants: {
+              fields: ['id', 'username', 'email']
+            },
+            banner: {
+              fields: ['url']
+            }
           },
-          circle1_humans: {
-            fields: ['id', 'username', 'email']
-          },
-          circle2_humans: {
-            fields: ['id', 'username', 'email']
-          },
-          members: {
-            fields: ['id', 'username', 'email']
-          },
-          interested_applicants: {
-            fields: ['id', 'username', 'email']
-          },
-          banner: {
-            fields: ['url']
+          pagination: {
+            pageSize: 1000
           }
-        },
-        pagination: {
-          pageSize: 1000
-        }
-      });
-    } catch (strapiError) {
-      console.error('Strapi API error:', strapiError);
-      // Return empty data if Strapi endpoint doesn't exist or has issues
-      return NextResponse.json({
-        success: true,
-        data: {
-          organisations: [],
-          types: [],
-          userEmail,
-          userId
-        }
-      });
+        });
+
+        // Update cache
+        cachedOrgsData = organisationsReq;
+        cacheTimestamp = now;
+        console.log('Fetched fresh organisations data from Strapi and cached');
+      } catch (strapiError) {
+        console.error('Strapi API error:', strapiError);
+        // Return empty data if Strapi endpoint doesn't exist or has issues
+        return NextResponse.json({
+          success: true,
+          data: {
+            organisations: [],
+            types: [],
+            userEmail,
+            userId
+          }
+        });
+      }
     }
 
     // Handle different possible response structures from Strapi
@@ -174,7 +191,7 @@ export async function GET() {
     // Get unique types for filtering
     const types = [...new Set(organisations.map((org: any) => org.type))];
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         organisations,
@@ -183,6 +200,11 @@ export async function GET() {
         userId
       }
     });
+
+    // Add cache headers for downstream caching
+    response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+
+    return response;
 
   } catch (error) {
     console.error('Error fetching organisations:', error);

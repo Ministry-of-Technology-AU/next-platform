@@ -47,18 +47,27 @@ interface FiltersSidebarProps {
   onFilterChange: (filters: Set<OrganizationType>) => void;
   onPreferencesChange?: (preferences: FilterPreferences) => void;
   isIconOnly?: boolean;
+  checklistItems: ChecklistItem[];
+  checklistLoading: boolean;
+  setChecklistItems: React.Dispatch<React.SetStateAction<ChecklistItem[]>>;
+  organizations: Organization[];
+  initialPreferences?: FilterPreferences;
 }
 
-export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, isIconOnly = false }: FiltersSidebarProps) {
+export function FiltersSidebar({
+  filters,
+  onFilterChange,
+  onPreferencesChange,
+  isIconOnly = false,
+  checklistItems,
+  checklistLoading,
+  setChecklistItems,
+  organizations,
+  initialPreferences
+}: FiltersSidebarProps) {
   const { categoryColors, setCategoryColors } = useCategoryColors();
   
-  const [checklistItems, setChecklistItems] = React.useState<ChecklistItem[]>([]);
-  const [checklistLoading, setChecklistLoading] = React.useState(true);
-  
-  const [organizations, setOrganizations] = React.useState<Organization[]>([]);
-  const [organizationsLoading, setOrganizationsLoading] = React.useState(true);
-  
-  const [preferences, setPreferences] = React.useState<FilterPreferences>({
+  const [preferences, setPreferences] = React.useState<FilterPreferences>(initialPreferences || {
     selectedOrganizations: [],
     selectedCategories: ['clubs', 'societies', 'departments', 'ministries', 'others'],
     categoryColors: categoryColors,
@@ -70,91 +79,15 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
 
   const categories = ['clubs', 'societies', 'departments', 'ministries', 'others'] as const;
 
-  // Fetch organizations
+  // Initialize categoryColors context on mount if we have initial preferences
   React.useEffect(() => {
-    const fetchOrganizations = async () => {
-      try {
-        setOrganizationsLoading(true);
-        const response = await fetch('/api/platform/organisations-catalogue');
-        if (!response.ok) throw new Error('Failed to fetch organizations');
-        const data = await response.json();
-        // Handle nested structure from API
-        const orgs = data.data?.organisations || data.organisations || data.data || [];
-        setOrganizations(orgs);
-      } catch (error) {
-        console.error('Error fetching organizations:', error);
-        setOrganizations([]);
-      } finally {
-        setOrganizationsLoading(false);
-      }
-    };
-
-    fetchOrganizations();
-  }, []);
-
-    // Fetch user preferences on mount
-  React.useEffect(() => {
-    const fetchPreferences = async () => {
-      try {
-        const response = await fetch('/api/platform/organisations-catalogue/preferences');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.preferences) {
-            const newPreferences = {
-              ...data.preferences,
-              categoryColors: data.preferences.categoryColors || categoryColors,
-            };
-            setPreferences(newPreferences);
-            setCategoryColors(data.preferences.categoryColors || categoryColors);
-            
-            // Notify parent component of initial preferences load
-            if (onPreferencesChange) {
-              onPreferencesChange(newPreferences);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching preferences:', error);
-      }
-    };
-
-    fetchPreferences();
-    // Only run once on mount 
+    if (initialPreferences?.categoryColors) {
+      setCategoryColors(initialPreferences.categoryColors);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Replace session API with a fetch to Strapi user profile, using a dedicated endpoint
-  React.useEffect(() => {
-    const fetchChecklist = async () => {
-      try {
-        setChecklistLoading(true);
-        // Get checklist by calling dedicated organisations-catalogue/user-checklist endpoint
-        // Expect a JSON object with a `checklist` array field from the Strapi user object
-        const response = await fetch('/api/platform/organisations-catalogue/checklist', {
-          credentials: 'include', // forward cookies if on server
-        });
-        const data = await response.json();
-        console.log('Checklist raw response:', data); // LOG FOR DEBUG
-        if (data?.success && Array.isArray(data.checklist)) {
-          const items = data.checklist.map((item: OrgsChecklistItem) => ({
-            id: item.name.toLowerCase().replace(/\s+/g, '-'),
-            label: item.name,
-            deadline: item.deadline,
-            completed: item.isDone,
-          }));
-          setChecklistItems(items);
-        } else {
-          setChecklistItems([]);
-        }
-      } catch (error) {
-        console.error('Error fetching checklist from Strapi user:', error);
-        setChecklistItems([]);
-      } finally {
-        setChecklistLoading(false);
-      }
-    };
-    fetchChecklist();
-  }, []);
+
 
   React.useEffect(() => {
     setMounted(true);
@@ -350,13 +283,6 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
           {/* Categories and Organizations - Updated Section */}
           <div>
             <h3 className="font-medium mb-3">Categories and Organizations</h3>
-            {organizationsLoading ? (
-              <div className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : (
               <Accordion11
                 type="single"
                 collapsible
@@ -475,14 +401,13 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
                   </Accordion11Item>
                 ))}
               </Accordion11>
-            )}
           </div>
 
           {/* Save Button */}
           <div className="pt-4 border-t">
             <Button
               onClick={handleSavePreferences}
-              disabled={isSaving || organizationsLoading}
+              disabled={isSaving}
               className={`
                 fixed
                 bottom-6
@@ -504,7 +429,7 @@ export function FiltersSidebar({ filters, onFilterChange, onPreferencesChange, i
                 hover:justify-start
                 px-4
                 overflow-hidden
-                ${isSaving || organizationsLoading ? 'opacity-70' : ''}
+                ${isSaving ? 'opacity-70' : ''}
               `}
               style={{ minWidth: "3.5rem" }}
             >
