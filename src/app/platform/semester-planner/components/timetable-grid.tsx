@@ -1,7 +1,7 @@
 "use client";
 
 import { X, Lock, Unlock, Palette, Trash2, CalendarPlus } from "lucide-react";
-import { formatProfessorName } from "../utils";
+import { formatProfessorName, slotsOverlap } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -150,7 +150,7 @@ export function TimetableGrid({
 }: TimetableGridProps) {
   const getCourseForSlot = (day: string, slot: string) => {
     return courses.find((course) =>
-      course.timeSlots.some((ts) => ts.day === day && ts.slot === slot)
+      course.timeSlots.some((ts) => ts.day === day && slotsOverlap(ts.slot, slot))
     );
   };
 
@@ -160,7 +160,7 @@ export function TimetableGrid({
 
   // Check if any course uses the evening slot
   const hasEveningCourse = courses.some((course) =>
-    course.timeSlots.some((ts) => ts.slot === EVENING_SLOT)
+    course.timeSlots.some((ts) => slotsOverlap(ts.slot, EVENING_SLOT))
   );
 
   // Check if any course has a Saturday class
@@ -225,7 +225,7 @@ export function TimetableGrid({
                 const courseKey = course
                   ? getCourseKey(course.id, day, slot)
                   : "";
-                const isLocked = course ? lockedCourses.has(courseKey) : false;
+                const isLocked = course ? Array.from(lockedCourses).some((k) => k.startsWith(`${course.id}-`)) : false;
 
                 return (
                   <div

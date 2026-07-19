@@ -11,6 +11,7 @@ import type {
   ScheduledCourse,
   TimetableDraft,
 } from "./types";
+import { slotsOverlap } from "./utils";
 import {
   Dialog,
   DialogContent,
@@ -108,7 +109,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
           for (const existingTimeSlot of existingCourse.timeSlots) {
             if (
               existingTimeSlot.day === newTimeSlot.day &&
-              existingTimeSlot.slot === newTimeSlot.slot
+              slotsOverlap(existingTimeSlot.slot, newTimeSlot.slot)
             ) {
               return {
                 hasConflict: true,
@@ -254,7 +255,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
                   !(
                     course.id === courseId &&
                     course.timeSlots.some(
-                      (ts) => ts.day === day && ts.slot === slot
+                      (ts) => ts.day === day && slotsOverlap(ts.slot, slot)
                     )
                   )
               ),
@@ -265,10 +266,13 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
       );
 
       // Remove from locked courses if it was locked
-      const key = `${courseId}-${day}-${slot}`;
       setLockedCourses((prev) => {
         const newSet = new Set(prev);
-        newSet.delete(key);
+        for (const k of newSet) {
+          if (k.startsWith(`${courseId}-`)) {
+            newSet.delete(k);
+          }
+        }
         return newSet;
       });
 
@@ -281,12 +285,11 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     const lockedCoursesList: ScheduledCourse[] = [];
 
     for (const course of activeDraft.courses) {
-      for (const timeSlot of course.timeSlots) {
-        const key = `${course.id}-${timeSlot.day}-${timeSlot.slot}`;
-        if (lockedCourses.has(key)) {
-          lockedCoursesList.push(course);
-          break; // Only add the course once even if multiple slots are locked
-        }
+      const isLocked = Array.from(lockedCourses).some((k) =>
+        k.startsWith(`${course.id}-`)
+      );
+      if (isLocked) {
+        lockedCoursesList.push(course);
       }
     }
 
