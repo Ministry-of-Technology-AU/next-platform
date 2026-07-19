@@ -6,10 +6,10 @@ import { strapiGet } from "@/lib/apis/strapi";
 
 export async function GET() {
     try {
-        // Fetch advertisements with explicit sorting and filtering for active entries.
-        // The 'populate' ensures banner_image data is included.
+        // Fetch advertisements with explicit sorting
+        // Only published ads will be returned by default in Strapi
         const response = await strapiGet('/advertisements', {
-            sort: 'order:asc',
+            sort: 'order:asc'
         });
 
         // Check if we have any active advertisements in the response.

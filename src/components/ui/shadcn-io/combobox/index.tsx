@@ -27,6 +27,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { XIcon } from "lucide-react"
 
 type ComboboxData = {
   label: string;
@@ -50,13 +51,13 @@ const ComboboxContext = createContext<ComboboxContextType>({
   data: [],
   type: 'item',
   value: '',
-  onValueChange: () => {},
+  onValueChange: () => { },
   open: false,
-  onOpenChange: () => {},
+  onOpenChange: () => { },
   width: 200,
-  setWidth: () => {},
+  setWidth: () => { },
   inputValue: '',
-  setInputValue: () => {},
+  setInputValue: () => { },
 });
 
 export type ComboboxProps = ComponentProps<typeof Popover> & {

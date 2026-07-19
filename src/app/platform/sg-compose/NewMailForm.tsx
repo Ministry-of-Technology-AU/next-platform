@@ -66,10 +66,11 @@ export default function NewMailForm(onSubmit: ()=>void) {
         placeholder="Enter the subject of your email"
         isRequired
       />
-      <Form.TextInput
+      <Form.RichTextInput
         title="Mail Draft"
         placeholder="Make this a rich text editor"
-        isParagraph
+        value=""
+        onChange={()=>{}}
         isRequired
       />{" "}
       {/** TODO: MAKE THIS A RICH TEXT EDITOR */}
