@@ -1,0 +1,1 @@
+General backend practices and structure. Might deprecate. Could talk about caching, optimizations and best practices, and how to minimize load on server. 
