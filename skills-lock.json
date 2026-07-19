@@ -137,6 +137,18 @@
       "source": "lochie/web-haptics",
       "sourceType": "github",
       "skillPath": "SKILL.md",
+      "computedHash": "951e72beb4da0d70ed690623992c229b8db637da14a25bfb6cee13f9a425c12a""computedHash": "b0f78bc58cc5a3ac68afdf6f2de214e147b09a3f8686447cb3804a921fa198c2"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "computedHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474"
+    },
+    "web-haptics": {
+      "source": "lochie/web-haptics",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
       "computedHash": "951e72beb4da0d70ed690623992c229b8db637da14a25bfb6cee13f9a425c12a"
     }
   }
