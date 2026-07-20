@@ -60,16 +60,112 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     return "1";
   });
 
-  // If initialDrafts changes, update drafts and activeDraftId
+  // If initialDrafts changes, reconcile stale course timings against fresh backend data
   useEffect(() => {
-    if (Array.isArray(initialDrafts) && initialDrafts.length > 0) {
-      setDrafts(initialDrafts.map((d: any) => ({
+    if (!Array.isArray(initialDrafts) || initialDrafts.length === 0) return;
+
+    // Build a lookup map from course id -> fresh course data
+    const freshCourseMap = new Map(courses.map((c) => [c.id, c]));
+
+    // Helper: check if two TimeSlot arrays are identical
+    const timeSlotsChanged = (saved: typeof courses[0]['timeSlots'], fresh: typeof courses[0]['timeSlots']): boolean => {
+      if (saved.length !== fresh.length) return true;
+      return saved.some((s, i) => s.day !== fresh[i].day || s.slot !== fresh[i].slot);
+    };
+
+    // Helper: check for conflict between a course and a list of OTHER courses
+    const hasConflictWith = (
+      candidateSlots: typeof courses[0]['timeSlots'],
+      others: ScheduledCourse[],
+      excludeId: string
+    ) => {
+      for (const ts of candidateSlots) {
+        for (const other of others) {
+          if (other.id === excludeId) continue;
+          for (const ots of other.timeSlots) {
+            if (ots.day === ts.day && slotsOverlap(ots.slot, ts.slot)) {
+              return { clash: true, with: other };
+            }
+          }
+        }
+      }
+      return { clash: false };
+    };
+
+    const reconciledDrafts = initialDrafts.map((d: any) => {
+      const parsedDraft: TimetableDraft = {
         ...d,
         createdAt: d.createdAt ? new Date(d.createdAt) : new Date(),
         updatedAt: d.updatedAt ? new Date(d.updatedAt) : new Date(),
-      })));
-      setActiveDraftId(initialDrafts[0].id);
-    }
+      };
+
+      const updatedCourses: ScheduledCourse[] = [];
+      const timingChangedAndFit: string[] = [];
+      const removedDueToClash: { code: string; clashWith: string }[] = [];
+
+      for (const savedCourse of parsedDraft.courses) {
+        const freshCourse = freshCourseMap.get(savedCourse.id);
+
+        // Course no longer exists in backend — keep as-is (or you could remove; keeping for now)
+        if (!freshCourse) {
+          updatedCourses.push(savedCourse);
+          continue;
+        }
+
+        const changed = timeSlotsChanged(savedCourse.timeSlots, freshCourse.timeSlots);
+
+        if (!changed) {
+          updatedCourses.push(savedCourse);
+          continue;
+        }
+
+        // Timing changed — check if the NEW timings clash with other courses already accepted
+        const conflictResult = hasConflictWith(freshCourse.timeSlots, updatedCourses, savedCourse.id);
+
+        if (conflictResult.clash) {
+          // Remove this course and record for notification
+          removedDueToClash.push({
+            code: savedCourse.code,
+            clashWith: conflictResult.with!.code,
+          });
+        } else {
+          // Update to fresh timings, keep color and other metadata
+          updatedCourses.push({ ...savedCourse, timeSlots: freshCourse.timeSlots, hasSaturday: freshCourse.hasSaturday });
+          timingChangedAndFit.push(savedCourse.code);
+        }
+      }
+
+      // Fire toasts for this draft (group them for UX)
+      if (timingChangedAndFit.length > 0) {
+        const courseList = timingChangedAndFit.join(", ");
+        toast.info(
+          `📅 Timing update in "${parsedDraft.name}": ${courseList} — new schedule applied, no conflicts.`,
+          { duration: 6000 }
+        );
+      }
+
+      for (const removed of removedDueToClash) {
+        toast.error(
+          `⚠️ "${parsedDraft.name}": ${removed.code} was removed — its updated timing now clashes with ${removed.clashWith}.`,
+          {
+            duration: 8000,
+            style: {
+              backgroundColor: '#87281B',
+              color: 'white',
+              border: '2px solid #5a1812',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            },
+          }
+        );
+      }
+
+      return { ...parsedDraft, courses: updatedCourses };
+    });
+
+    setDrafts(reconciledDrafts);
+    setActiveDraftId(reconciledDrafts[0].id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialDrafts]);
   const [lockedCourses, setLockedCourses] = useState<Set<string>>(new Set());
   // State for color picker
