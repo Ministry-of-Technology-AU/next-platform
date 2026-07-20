@@ -15,6 +15,9 @@
 
 
 
+General orchestrator file - agent reads, knows what to do first, then reads the instruction files. 
+
+
 
 ## graphify
 
