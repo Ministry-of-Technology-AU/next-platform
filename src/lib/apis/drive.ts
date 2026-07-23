@@ -8,13 +8,13 @@ const DRIVE_REDIRECT_URI = "https://developers.google.com/oauthplayground";
 const DRIVE_REFRESH_TOKEN = process.env.DRIVE_REFRESH_TOKEN;
 
 const oauth2Client = new google.auth.OAuth2(
-  DRIVE_CLIENT_ID,
-  DRIVE_CLIENT_SECRET,
-  DRIVE_REDIRECT_URI
+    DRIVE_CLIENT_ID,
+    DRIVE_CLIENT_SECRET,
+    DRIVE_REDIRECT_URI
 );
 
 oauth2Client.setCredentials({
-  refresh_token: DRIVE_REFRESH_TOKEN,
+    refresh_token: DRIVE_REFRESH_TOKEN,
 });
 
 // Initialize Google Drive API
@@ -45,7 +45,7 @@ export async function uploadToDrive(file: DriveFile): Promise<UploadedFile> {
         const bufferStream = new Readable();
         bufferStream.push(file.content);
         bufferStream.push(null); // End the stream
-        
+
         const response = await drive.files.create({
             requestBody: {
                 name: file.filename,
@@ -153,7 +153,7 @@ export async function downloadFromDrive(fileId: string): Promise<DriveFile> {
 export async function deleteFromDrive(fileId: string): Promise<void> {
     try {
         await drive.files.delete({ fileId });
-        console.log(`File ${fileId} deleted successfully.`);
+        platform.log(`File ${fileId} deleted successfully.`);
     } catch (error) {
         console.error(`Error deleting file ${fileId}:`, error instanceof Error ? error.message : 'Unknown error');
         throw error;
@@ -167,7 +167,7 @@ export async function getEmailAttachments(attachmentPath: string): Promise<Drive
     if (!attachmentPath) return [];
 
     const attachmentIds = extractFileIds(attachmentPath);
-    
+
     const attachments = await Promise.all(
         attachmentIds.map(async (fileId) => {
             try {

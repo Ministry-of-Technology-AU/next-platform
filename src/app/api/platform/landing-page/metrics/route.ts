@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { strapiGet } from "@/lib/apis/strapi";
 
-export async function GET(){
+export async function GET() {
     try {
         // Fetch users data
         const usersResponse = await strapiGet('/users', { pagination: { pageSize: 10000 } });
@@ -26,7 +26,7 @@ export async function GET(){
             courseReviews: totalCourseReviews,
         };
 
-        // console.log("Platform Metrics:", metricsData);
+        // platform.log("Platform Metrics:", metricsData);
 
         return NextResponse.json(metricsData);
     } catch (error) {

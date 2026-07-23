@@ -66,13 +66,13 @@ export function FiltersSidebar({
   initialPreferences
 }: FiltersSidebarProps) {
   const { categoryColors, setCategoryColors } = useCategoryColors();
-  
+
   const [preferences, setPreferences] = React.useState<FilterPreferences>(initialPreferences || {
     selectedOrganizations: [],
     selectedCategories: ['clubs', 'societies', 'departments', 'ministries', 'others'],
     categoryColors: categoryColors,
   });
-  
+
   const [searchTerms, setSearchTerms] = React.useState<Record<string, string>>({});
   const [mounted, setMounted] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -86,7 +86,6 @@ export function FiltersSidebar({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
 
   React.useEffect(() => {
@@ -106,7 +105,7 @@ export function FiltersSidebar({
           };
           setPreferences(newPreferences);
           setCategoryColors(prefsData.preferences.categoryColors || preferences.categoryColors);
-          
+
           // Notify parent component of preferences change
           if (onPreferencesChange) {
             onPreferencesChange(newPreferences);
@@ -130,7 +129,7 @@ export function FiltersSidebar({
 
   const getFilteredOrganizations = (category: string) => {
     const searchTerm = searchTerms[category] || '';
-    
+
     return organizations
       .filter((org) => {
         const orgType = org.type.toLowerCase();
@@ -161,10 +160,10 @@ export function FiltersSidebar({
   const handleCategoryToggle = (category: string) => {
     const isCurrentlySelected = preferences.selectedCategories.includes(category);
     let newSelected: string[];
-    
+
     if (isCurrentlySelected) {
       newSelected = preferences.selectedCategories.filter(cat => cat !== category);
-      
+
       // Make sure we have at least one category selected
       if (newSelected.length === 0) {
         newSelected = [category];
@@ -213,10 +212,10 @@ export function FiltersSidebar({
         throw new Error(`Failed to save preferences: ${response.statusText}`);
       }
       const data = await response.json();
-      
+
       // Reload preferences after saving to ensure we have the latest data
       await reloadPreferences();
-      
+
       toast.success('Preferences saved successfully!');
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -233,11 +232,10 @@ export function FiltersSidebar({
       <SheetTrigger asChild>
         <Button
           variant="outline"
-          className={`relative h-12 gap-2 rounded-full border-neutral-300 hover:bg-neutral-100 transition-all ${
-            isIconOnly 
-              ? 'w-12 p-0 flex items-center justify-center' 
+          className={`relative h-12 gap-2 rounded-full border-neutral-300 hover:bg-neutral-100 transition-all ${isIconOnly
+              ? 'w-12 p-0 flex items-center justify-center'
               : 'px-6'
-          }`}
+            }`}
         >
           <Filter className="h-5 w-5 flex-shrink-0" />
           {!isIconOnly && (
@@ -336,7 +334,7 @@ export function FiltersSidebar({
                                   backgroundColor: color,
                                   borderColor:
                                     preferences.categoryColors[category] ===
-                                    color
+                                      color
                                       ? '#000'
                                       : '#d1d5db',
                                 }}

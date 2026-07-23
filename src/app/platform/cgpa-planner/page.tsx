@@ -18,7 +18,7 @@ async function fetchCGPAData(): Promise<ParsedCGPAData | null> {
       if (result.success && result.data) {
         return result.data as ParsedCGPAData;
       } else {
-        console.log('CGPAPlanner: No CGPA data found in API result.');
+        platform.log('CGPAPlanner: No CGPA data found in API result.');
       }
     } else {
       console.error('CGPAPlanner: Response not OK:', response.status, await response.text());

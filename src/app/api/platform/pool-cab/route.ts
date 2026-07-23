@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     const session = await auth()
     const userId = await getUserIdByEmail(session?.user?.email || '')
-    console.log("User ID fetched for email:", session?.user?.email, "->", userId)
+    platform.log("User ID fetched for email:", session?.user?.email, "->", userId)
 
     if (!userId) {
       return NextResponse.json({
@@ -174,12 +174,12 @@ export async function GET(request: NextRequest) {
 // POST /api/pools - Create a new pool
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== POST /api/platform/pool-cab called ===')
+    platform.log('=== POST /api/platform/pool-cab called ===')
     const session = await auth()
 
     const userId = await getUserIdByEmail(session?.user?.email || '')
     if (!userId) {
-      console.log('User not found for email:', session?.user?.email)
+      platform.log('User not found for email:', session?.user?.email)
       return NextResponse.json({
         success: false,
         error: 'User not found'
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log('Received request body:', JSON.stringify(body, null, 2))
+    platform.log('Received request body:', JSON.stringify(body, null, 2))
     // Extract and validate required fields
     const {
       date,
@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingPoolResponse.data && existingPoolResponse.data.length > 0) {
-      console.log('User already has an available pool')
+      platform.log('User already has an available pool')
       return NextResponse.json({
         success: false,
         error: 'You already have an active pool request. Please cancel or complete it before creating a new one.'
@@ -312,7 +312,7 @@ export async function POST(request: NextRequest) {
     const toSan = sanitizeInput(actualToLocation)
 
     if (!validateLocation(fromSan) || !validateLocation(toSan)) {
-      console.log(`Invalid from/to values: ${actualFromLocation} -> ${actualToLocation}`)
+      platform.log(`Invalid from/to values: ${actualFromLocation} -> ${actualToLocation}`)
       return NextResponse.json({
         success: false,
         error: `Invalid From or To value. Allowed locations: ${VALID_LOCATIONS.join(', ')}`
@@ -332,12 +332,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log("Submitting pool data:", poolData)
+    platform.log("Submitting pool data:", poolData)
 
     // Submit to Strapi
     const response = await strapiPost('/pools', poolData)
 
-    console.log("Pool created successfully:", JSON.stringify(response, null, 2))
+    platform.log("Pool created successfully:", JSON.stringify(response, null, 2))
 
     return NextResponse.json({
       success: true,
@@ -367,7 +367,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log("Received update data:", JSON.stringify(body, null, 2))
+    platform.log("Received update data:", JSON.stringify(body, null, 2))
 
     const { poolId, time, status } = body
 
@@ -417,12 +417,12 @@ export async function PUT(request: NextRequest) {
       updateData.data.status = status
     }
 
-    console.log("Updating pool with data:", updateData)
+    platform.log("Updating pool with data:", updateData)
 
     // Update the pool
     const response = await strapiPut(`/pools/${poolId}`, updateData)
 
-    console.log("Pool updated successfully:", response)
+    platform.log("Pool updated successfully:", response)
 
     return NextResponse.json({
       success: true,
@@ -452,7 +452,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log("Received delete data:", JSON.stringify(body, null, 2))
+    platform.log("Received delete data:", JSON.stringify(body, null, 2))
 
     const { poolId } = body
 
@@ -475,12 +475,12 @@ export async function DELETE(request: NextRequest) {
       }, { status: 404 })
     }
 
-    console.log("Deleting pool with ID:", poolId)
+    platform.log("Deleting pool with ID:", poolId)
 
     // Delete the pool from Strapi
     const response = await strapiDelete(`/pools/${poolId}`)
 
-    console.log("Pool deleted successfully:", response)
+    platform.log("Pool deleted successfully:", response)
 
     return NextResponse.json({
       success: true,

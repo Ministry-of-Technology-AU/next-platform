@@ -53,15 +53,15 @@ async function fetchTimeTableData(uid?: string): Promise<{
             }
         );
 
-        console.log('When2Meet: Response status:', response.status);
+        platform.log('When2Meet: Response status:', response.status);
 
         if (response.ok) {
             const result = await response.json();
-            console.log('When2Meet: API result:', result);
+            platform.log('When2Meet: API result:', result);
 
             if (result.success && result.data) {
                 const timetableData = result.data.attributes as TimeTableDraft;
-                console.log("TimeTableDraft is ", timetableData);
+                platform.log("TimeTableDraft is ", timetableData);
 
                 // Check if current user is the owner
                 const isOwner = timetableData.grid.owner === currentUserId.toString();
@@ -73,7 +73,7 @@ async function fetchTimeTableData(uid?: string): Promise<{
                     }
                 };
             } else {
-                console.log('When2Meet: No TimeTableDraft data found in API result.');
+                platform.log('When2Meet: No TimeTableDraft data found in API result.');
                 return {
                     data: null,
                     error: "Timetable not found"

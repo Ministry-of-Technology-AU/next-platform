@@ -9,10 +9,13 @@ import {
   ClipboardPenLine,
   CalendarSync,
   WifiPen,
-  Car
+  Car,
+  CalendarDays,
+  Trophy,
+  Award,
 } from 'lucide-react';
 
-const popularTools = [
+const ALL_POPULAR_TOOLS = [
   {
     id: 1,
     title: "Course Reviews",
@@ -20,6 +23,7 @@ const popularTools = [
     icon: ClipboardPenLine,
     href: "/platform/course-reviews",
     color: "text-primary-light",
+    roles: null, // null = available to all roles
   },
   {
     id: 2,
@@ -28,6 +32,7 @@ const popularTools = [
     icon: CalendarSync,
     href: "/platform/semester-planner",
     color: "text-secondary",
+    roles: null,
   },
   {
     id: 3,
@@ -36,6 +41,7 @@ const popularTools = [
     icon: WifiPen,
     href: "/platform/wifi-tickets",
     color: "text-green",
+    roles: ['student', 'beta_tester', 'organization', 'rep', 'hor_member', 'user'], // not ashoka_admin
   },
   {
     id: 4,
@@ -44,10 +50,42 @@ const popularTools = [
     icon: Car,
     href: "/platform/pool-cab",
     color: "text-blue",
-  }
+    roles: ['student', 'beta_tester', 'organization', 'rep', 'hor_member', 'user'], // not ashoka_admin
+  },
+  {
+    id: 5,
+    title: "Events Calendar",
+    description: "Stay up to date with campus events",
+    icon: CalendarDays,
+    href: "/platform/events-calendar",
+    color: "text-orange-400",
+    roles: null,
+  },
+  {
+    id: 6,
+    title: "Sports",
+    description: "Follow campus sports leagues",
+    icon: Trophy,
+    href: "/platform/sports",
+    color: "text-yellow-500",
+    roles: null,
+  },
 ];
 
-export default function PopularToolsGrid() {
+// Tools shown on the dashboard for ashoka_admin (excludes removed tools like Course Reviews)
+const ASHOKA_ADMIN_TOOL_IDS = [2, 4, 5, 6];
+
+interface PopularToolsGridProps {
+  role?: string;
+}
+
+export default function PopularToolsGrid({ role }: PopularToolsGridProps) {
+  const isAshokaAdmin = role === 'ashoka_admin';
+
+  const tools = isAshokaAdmin
+    ? ALL_POPULAR_TOOLS.filter(t => ASHOKA_ADMIN_TOOL_IDS.includes(t.id))
+    : ALL_POPULAR_TOOLS.filter(t => t.roles === null || (role && t.roles?.includes(role)));
+
   return (
     <div className="mb-8 sm:mb-12">
       <div className="flex items-center gap-3 mb-6 sm:mb-8">
@@ -59,7 +97,7 @@ export default function PopularToolsGrid() {
       
       {/* Responsive Grid - 2 cols on mobile/tablet, 4 cols on desktop */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-        {popularTools.map((tool) => {
+        {tools.map((tool) => {
           const Icon = tool.icon;
           return (
             <Card 

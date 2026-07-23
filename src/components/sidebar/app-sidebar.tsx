@@ -232,6 +232,7 @@ export function AppSidebar({
                             ) : (
                               <div className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0 rounded-full bg-muted-foreground/35 animate-pulse" />
                             )}
+
                           </div>
                           <span className={cn(
                             "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",

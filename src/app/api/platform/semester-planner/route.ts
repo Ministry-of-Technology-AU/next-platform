@@ -136,7 +136,7 @@ async function fetchSemesterPlannerData(): Promise<any[]> {
       return timetableData as any[];
     }
 
-    console.log('Successfully fetched semester planner data from Strapi');
+    platform.log('Successfully fetched semester planner data from Strapi');
     return response.data.attributes.current;
   } catch (error) {
     console.warn('Error fetching semester planner data from Strapi, falling back to local JSON:', error instanceof Error ? error.message : error);
@@ -278,8 +278,8 @@ export async function POST(request: NextRequest) {
       */
 
       // Placeholder response - replace with actual Strapi implementation
-      console.log('Draft data to save:', draftData);
-      console.log('User email (if provided):', userEmail);
+      platform.log('Draft data to save:', draftData);
+      platform.log('User email (if provided):', userEmail);
 
       return NextResponse.json({
         success: true,

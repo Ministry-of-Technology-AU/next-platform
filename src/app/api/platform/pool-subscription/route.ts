@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
         const session = await auth()
         const userId = await getUserIdByEmail(session?.user?.email || '')
-        console.log("User ID fetched for email:", session?.user?.email, "->", userId)
+        platform.log("User ID fetched for email:", session?.user?.email, "->", userId)
 
         if (!userId) {
             return NextResponse.json({
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
                 sort: ['start:asc', 'service:asc']
             })
 
-            console.log("Subscriptions response:", JSON.stringify(subscriptionsResponse, null, 2))
+            platform.log("Subscriptions response:", JSON.stringify(subscriptionsResponse, null, 2))
 
             // Fetch user's subscription separately (only show if status is 'open')
             const userSubscriptionResponse = await strapiGet('/subscriptions', {
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
                 }
             })
 
-            console.log("User subscription response:", JSON.stringify(userSubscriptionResponse, null, 2))
+            platform.log("User subscription response:", JSON.stringify(userSubscriptionResponse, null, 2))
 
             return NextResponse.json({
                 success: true,
@@ -147,12 +147,12 @@ export async function GET(request: NextRequest) {
 // POST /api/platform/pool-subscription - Create a new subscription pool
 export async function POST(request: NextRequest) {
     try {
-        console.log('=== POST /api/platform/pool-subscription called ===')
+        platform.log('=== POST /api/platform/pool-subscription called ===')
         const session = await auth()
 
         const userId = await getUserIdByEmail(session?.user?.email || '')
         if (!userId) {
-            console.log('User not found for email:', session?.user?.email)
+            platform.log('User not found for email:', session?.user?.email)
             return NextResponse.json({
                 success: false,
                 error: 'User not found'
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        console.log('Received request body:', JSON.stringify(body, null, 2))
+        platform.log('Received request body:', JSON.stringify(body, null, 2))
 
         // Extract and validate required fields
         const {
@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
         })
 
         if (existingSubscriptionResponse.data && existingSubscriptionResponse.data.length > 0) {
-            console.log('User already has an open subscription')
+            platform.log('User already has an open subscription')
             return NextResponse.json({
                 success: false,
                 error: 'You already have an active subscription pool. Please cancel or complete it before creating a new one.'
@@ -267,12 +267,12 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        console.log("Submitting subscription data:", subscriptionData)
+        platform.log("Submitting subscription data:", subscriptionData)
 
         // Submit to Strapi
         const response = await strapiPost('/subscriptions', subscriptionData)
 
-        console.log("Subscription created successfully:", JSON.stringify(response, null, 2))
+        platform.log("Subscription created successfully:", JSON.stringify(response, null, 2))
 
         return NextResponse.json({
             success: true,
@@ -302,7 +302,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json()
-        console.log("Received update data:", JSON.stringify(body, null, 2))
+        platform.log("Received update data:", JSON.stringify(body, null, 2))
 
         const { subscriptionId, status } = body
 
@@ -340,12 +340,12 @@ export async function PUT(request: NextRequest) {
             updateData.data.status = status
         }
 
-        console.log("Updating subscription with data:", updateData)
+        platform.log("Updating subscription with data:", updateData)
 
         // Update the subscription
         const response = await strapiPut(`/subscriptions/${subscriptionId}`, updateData)
 
-        console.log("Subscription updated successfully:", response)
+        platform.log("Subscription updated successfully:", response)
 
         return NextResponse.json({
             success: true,
@@ -375,7 +375,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         const body = await request.json()
-        console.log("Received delete data:", JSON.stringify(body, null, 2))
+        platform.log("Received delete data:", JSON.stringify(body, null, 2))
 
         const { subscriptionId } = body
 
@@ -398,12 +398,12 @@ export async function DELETE(request: NextRequest) {
             }, { status: 404 })
         }
 
-        console.log("Deleting subscription with ID:", subscriptionId)
+        platform.log("Deleting subscription with ID:", subscriptionId)
 
         // Delete the subscription from Strapi
         const response = await strapiDelete(`/subscriptions/${subscriptionId}`)
 
-        console.log("Subscription deleted successfully:", response)
+        platform.log("Subscription deleted successfully:", response)
 
         return NextResponse.json({
             success: true,

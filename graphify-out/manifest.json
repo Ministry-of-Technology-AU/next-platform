@@ -25,7 +25,7 @@
     "semantic_hash": "f679c03220c8f6e56484d91807f67a79"
   },
   "package.json": {
-    "mtime": 1784373323.9638453,
+    "mtime": 1784441614.560723,
     "ast_hash": "babf49df452509768c47cf257155d85b",
     "semantic_hash": ""
   },
@@ -165,12 +165,12 @@
     "semantic_hash": "1bb3afe811afdc9854f57658c17ad681"
   },
   "src/app/api/platform/organisations-catalogue/route.ts": {
-    "mtime": 1784363009.9394765,
+    "mtime": 1784441614.5628912,
     "ast_hash": "7c22485140d2516e120dda8400d26138",
     "semantic_hash": ""
   },
   "src/app/api/platform/organisations-catalogue/track/[id]/route.ts": {
-    "mtime": 1776186619.3257608,
+    "mtime": 1784441614.563497,
     "ast_hash": "8ec94d940ca6f5aba966f7b7aafcd5e3",
     "semantic_hash": "8ec94d940ca6f5aba966f7b7aafcd5e3"
   },
@@ -795,17 +795,17 @@
     "semantic_hash": "ae1681eae0377a7a1c7403703c281a4c"
   },
   "src/app/platform/organisations-catalog/_components/checklist-progress.tsx": {
-    "mtime": 1776186619.3568642,
+    "mtime": 1784441614.566244,
     "ast_hash": "e90b85ba8c11a0120ccc34c18de7166e",
     "semantic_hash": "e90b85ba8c11a0120ccc34c18de7166e"
   },
   "src/app/platform/organisations-catalog/_components/filter-sidebar.tsx": {
-    "mtime": 1783169289.4486232,
+    "mtime": 1784441614.5666094,
     "ast_hash": "d5abaee9b3c20b5a0042998fd8db50ff",
     "semantic_hash": "d5abaee9b3c20b5a0042998fd8db50ff"
   },
   "src/app/platform/organisations-catalog/_components/organisation-card.tsx": {
-    "mtime": 1784363009.9417727,
+    "mtime": 1784441614.5670788,
     "ast_hash": "fca3a984e6a4837e4868605273f6f63f",
     "semantic_hash": ""
   },
@@ -820,7 +820,7 @@
     "semantic_hash": "21a3d9118f59f32da2d1d3a02a82b294"
   },
   "src/app/platform/organisations-catalog/client.tsx": {
-    "mtime": 1776186619.3573093,
+    "mtime": 1784441614.5675616,
     "ast_hash": "8d6ba1c4e039fb5dcaad3c0e9aad3bca",
     "semantic_hash": "8d6ba1c4e039fb5dcaad3c0e9aad3bca"
   },
@@ -830,7 +830,7 @@
     "semantic_hash": "a04f3c527181769a9a86be28510fed85"
   },
   "src/app/platform/organisations-catalog/page.tsx": {
-    "mtime": 1776186619.3574553,
+    "mtime": 1784441614.5679996,
     "ast_hash": "8ae60466e63c9794801f97a278f92782",
     "semantic_hash": "8ae60466e63c9794801f97a278f92782"
   },
@@ -925,9 +925,9 @@
     "semantic_hash": "f9438d43d63442214d86ed43342dd1cc"
   },
   "src/app/platform/semester-planner/components/timetable-grid.tsx": {
-    "mtime": 1782642686.6730545,
-    "ast_hash": "344d493021fb965ee76e75987517a46b",
-    "semantic_hash": "344d493021fb965ee76e75987517a46b"
+    "mtime": 1784441914.129117,
+    "ast_hash": "7f1ac9e249b9c363be304bb883fc2c5e",
+    "semantic_hash": ""
   },
   "src/app/platform/semester-planner/constants.ts": {
     "mtime": 1776186619.361401,
@@ -950,9 +950,9 @@
     "semantic_hash": "6fca29624b7e38011084e641e6026ebf"
   },
   "src/app/platform/semester-planner/semester-planner.tsx": {
-    "mtime": 1782642686.674251,
-    "ast_hash": "955ed521f52d57aee84c6d5eed9f0185",
-    "semantic_hash": "955ed521f52d57aee84c6d5eed9f0185"
+    "mtime": 1784441921.209582,
+    "ast_hash": "c4f991ca0866dbc1e8d5106626fd5603",
+    "semantic_hash": ""
   },
   "src/app/platform/semester-planner/types.ts": {
     "mtime": 1776186619.3627534,
@@ -960,9 +960,9 @@
     "semantic_hash": "bdcbe853c8624f83e97105260c302cf6"
   },
   "src/app/platform/semester-planner/utils.ts": {
-    "mtime": 1776186619.3632498,
-    "ast_hash": "7bfe845583763a0f5e414b5f8c1b3352",
-    "semantic_hash": "7bfe845583763a0f5e414b5f8c1b3352"
+    "mtime": 1784441902.1449234,
+    "ast_hash": "76fe0b7b701d74959643c3aa0ed125d9",
+    "semantic_hash": ""
   },
   "src/app/platform/sg-compose/NewMailDialog.tsx": {
     "mtime": 1776186619.3634071,
@@ -1300,8 +1300,8 @@
     "semantic_hash": "5e3b8d552ec48188f609e6ba77b6a1e3"
   },
   "src/components/form.tsx": {
-    "mtime": 1784375247.1499043,
-    "ast_hash": "c11d22873ab1fd2b75c870daae32c7bb",
+    "mtime": 1784441614.568892,
+    "ast_hash": "c2b9dba5c6f46ccf5bc7f9a237344d76",
     "semantic_hash": ""
   },
   "src/components/guided-tour.tsx": {
@@ -1710,7 +1710,7 @@
     "semantic_hash": "e79586683455a20f7d419c3b550e6185"
   },
   "src/lib/apis/calendar.ts": {
-    "mtime": 1783169289.4530103,
+    "mtime": 1784441614.5703814,
     "ast_hash": "76a656e82e114bfa2e73dfb8f0a03024",
     "semantic_hash": "76a656e82e114bfa2e73dfb8f0a03024"
   },
@@ -2085,12 +2085,12 @@
     "semantic_hash": ""
   },
   "src/app/api/organisations/profile/route.ts": {
-    "mtime": 1784374591.534632,
-    "ast_hash": "e9366548153105e96637d2580ef2e260",
+    "mtime": 1784441614.562327,
+    "ast_hash": "5d0f9e6f65b2badfeb3babc9a6b5df22",
     "semantic_hash": ""
   },
   "src/app/api/platform/users/search/route.ts": {
-    "mtime": 1784373367.6542537,
+    "mtime": 1784441614.5642028,
     "ast_hash": "1436f74cc8d7608d0926ab9fa96dddbf",
     "semantic_hash": ""
   },
@@ -2130,17 +2130,17 @@
     "semantic_hash": ""
   },
   "src/app/organisations/profile/OrganisationProfileClient.tsx": {
-    "mtime": 1784374817.3364856,
-    "ast_hash": "ce2f46be9dfdebf5c2b54815f1968a7f",
+    "mtime": 1784441614.5657494,
+    "ast_hash": "c8381f905a6feacd46fe065b0b30cc5a",
     "semantic_hash": ""
   },
   "src/app/organisations/profile/page.tsx": {
-    "mtime": 1784373367.6548083,
-    "ast_hash": "5809da388b1db34d861819932f6635f4",
+    "mtime": 1784394250.9487383,
+    "ast_hash": "bffb1ebf0bd47359e2126851d6e02101",
     "semantic_hash": ""
   },
   "src/components/sidebar/organisation-sidebar-entries.json": {
-    "mtime": 1784373323.9657428,
+    "mtime": 1784441614.569931,
     "ast_hash": "ff1aa0803e5398c459a5059a54e50186",
     "semantic_hash": ""
   },
@@ -2160,7 +2160,7 @@
     "semantic_hash": ""
   },
   "src/lib/apis/cloudinary.ts": {
-    "mtime": 1784373323.9669557,
+    "mtime": 1784441614.5714905,
     "ast_hash": "e5c8661218098c8c18ea748af0559571",
     "semantic_hash": ""
   },

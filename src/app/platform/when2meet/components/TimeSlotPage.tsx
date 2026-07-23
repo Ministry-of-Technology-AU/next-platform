@@ -398,7 +398,7 @@ export default function TimeSlotPage({ data }: TimeSlotPageProps) {
     // Save availability for any user (owner or participant)
     const handleSaveAvailability = async () => {
         if (!currentUserEmail) {
-            console.log("Current user email is saved as ", currentUserEmail);
+            platform.log("Current user email is saved as ", currentUserEmail);
             toast.error('Please log in to save your availability')
             return
         }

@@ -15,7 +15,7 @@ export async function GET() {
       );
     }
 
-    // console.log("[PROFILE API] Getting profile for email:", session.user.email);
+    // platform.log("[PROFILE API] Getting profile for email:", session.user.email);
 
     // Get user ID from Strapi
     const userId = await getUserIdByEmail(session.user.email);
@@ -37,7 +37,7 @@ export async function GET() {
     }
 
     // Fetch user data from Strapi
-    // console.log("[PROFILE API] Fetching user data for ID:", userId);
+    // platform.log("[PROFILE API] Fetching user data for ID:", userId);
     const userData = await strapiGet(`/users/${userId}`, {
       populate: '*'
     });
@@ -56,7 +56,7 @@ export async function GET() {
       verified: userData.verified || false,
     };
 
-    // console.log("[PROFILE API] Profile data assembled:", profileData);
+    // platform.log("[PROFILE API] Profile data assembled:", profileData);
 
     return NextResponse.json({
       success: true,
@@ -66,7 +66,7 @@ export async function GET() {
 
   } catch (error) {
     console.error("Error fetching profile data:", error);
-    
+
     // Try to return session data as fallback
     try {
       const session = await auth();
@@ -90,10 +90,10 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Failed to fetch profile data",
-        details: (error as Error).message 
+        details: (error as Error).message
       } as ProfileApiResponse,
       { status: 500 }
     );
@@ -120,9 +120,9 @@ export async function PUT(request: NextRequest) {
       const validation = validatePhoneNumber(phone_number);
       if (!validation.isValid) {
         return NextResponse.json(
-          { 
-            success: false, 
-            error: validation.error || "Invalid phone number" 
+          {
+            success: false,
+            error: validation.error || "Invalid phone number"
           },
           { status: 400 }
         );
@@ -139,15 +139,15 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update user data in Strapi - try both phone_number and phone field names
-    // console.log("[PROFILE API] Updating phone number for user ID:", userId, "with value:", phone_number);
-    
+    // platform.log("[PROFILE API] Updating phone number for user ID:", userId, "with value:", phone_number);
+
     const updateData = {
       phone_number,
       phone: phone_number // Also try the 'phone' field name in case that's what Strapi expects
     };
-    
+
     const updateResult = await strapiPut(`/users/${userId}`, updateData);
-    // console.log("[PROFILE API] Strapi update result:", updateResult);
+    // platform.log("[PROFILE API] Strapi update result:", updateResult);
 
     return NextResponse.json({
       success: true,
@@ -157,10 +157,10 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error updating profile:", error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Failed to update profile",
-        details: (error as Error).message 
+        details: (error as Error).message
       },
       { status: 500 }
     );

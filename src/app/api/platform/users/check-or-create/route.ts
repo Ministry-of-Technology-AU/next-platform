@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Strapi returns data in different formats, handle both
-    const users = Array.isArray(emailResponse) 
-      ? emailResponse 
+    const users = Array.isArray(emailResponse)
+      ? emailResponse
       : (emailResponse?.data || []);
 
     if (users.length === 0) {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         batch: batch
       };
 
-      console.log('Creating new user in Strapi:', userEmail);
+      platform.log('Creating new user in Strapi:', userEmail);
       await strapiPost('/users', userData);
 
       return NextResponse.json({

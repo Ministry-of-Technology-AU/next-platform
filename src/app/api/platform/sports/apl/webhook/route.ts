@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const payload = await request.json();
     const { model, entry, event } = payload;
 
-    console.log(`[SSE Webhook] ${event} on ${model} (ID: ${entry?.id})`);
+    platform.log(`[SSE Webhook] ${event} on ${model} (ID: ${entry?.id})`);
 
     // Broadcast to all connected SSE clients
     aplEmitter.emit('apl-update', {
