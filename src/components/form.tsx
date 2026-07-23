@@ -922,12 +922,15 @@ export function DateTimePicker({
   disabled = false,
 }: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
-  const dateValue = value ? new Date(value) : undefined;
+  const dateValue = (value && !isNaN(new Date(value).getTime())) ? new Date(value) : undefined;
   
   const timeValue = dateValue ? format(dateValue, "HH:mm") : "12:00";
 
   const handleDateChange = (newDate: Date | undefined) => {
-    if (!newDate) return;
+    if (!newDate) {
+      onChange?.("");
+      return;
+    }
     const baseDate = new Date(newDate); // Clone the date
     const [hours, minutes] = timeValue.split(":").map(Number);
     baseDate.setHours(hours, minutes, 0, 0);
@@ -936,7 +939,13 @@ export function DateTimePicker({
   };
 
   const handleTimeChange = (newTime: string) => {
-    const [hours, minutes] = newTime.split(":").map(Number);
+    if (!newTime) return;
+    const parts = newTime.split(":");
+    if (parts.length !== 2) return;
+    const hours = Number(parts[0]);
+    const minutes = Number(parts[1]);
+    if (isNaN(hours) || isNaN(minutes)) return;
+
     const baseDate = dateValue ? new Date(dateValue) : new Date();
     baseDate.setHours(hours, minutes, 0, 0);
     onChange?.(baseDate.toISOString());

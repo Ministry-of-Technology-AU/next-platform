@@ -31,9 +31,6 @@ export function ChecklistProgress({ items, onToggleItem }: ChecklistProgressProp
     <div className="space-y-6">
       {/* Interactive Checklist */}
       <div className="rounded-2xl border border-neutral-200 p-6 shadow-sm">
-        <h3 className="mb-4 text-lg font-semibold">
-          My club checklist!
-        </h3>
         <div className="space-y-3">
           {items.map((item) => (
             <div key={item.id} className="flex items-center gap-3">
@@ -60,7 +57,7 @@ export function ChecklistProgress({ items, onToggleItem }: ChecklistProgressProp
               <span className={`text-sm transition-all ${
                 item.completed
                   ? 'text-neutral-500 line-through'
-                  : 'text-neutral-600'
+                  : 'text-neutral-400'
               }`}>
                 {item.label} : <span className="text-sm text-primary font-extrabold">{formatDDMM(item.deadline)}</span>
               </span>

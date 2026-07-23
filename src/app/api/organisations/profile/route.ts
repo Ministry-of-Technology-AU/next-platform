@@ -4,6 +4,8 @@ import { getUserIdByEmail } from "@/lib/userid";
 import { strapiPut } from "@/lib/apis/strapi";
 import { NextRequest } from "next/server";
 import { uploadImageToCloudinary } from "@/lib/apis/cloudinary";
+import { addEvent, getEvents, updateEvent, deleteEvent } from "@/lib/apis/calendar";
+import type { GoogleEvent } from "@/lib/apis/calendar";
 
 export async function GET() {
     // 🔐 Get session (v5 style)
@@ -24,6 +26,7 @@ export async function GET() {
             populate: {
                 organisations: {
                     populate: {
+                        profile: true,
                         circle1_humans: true,
                         circle2_humans: true,
                         members: true,
@@ -33,6 +36,9 @@ export async function GET() {
         });
 
         const organisation = user?.organisations?.[0] || null;
+        if (organisation) {
+            organisation.logo_url = organisation.profile?.profile_url || user?.profile_url || null;
+        }
 
         return new Response(JSON.stringify({ organisation }), { status: 200 });
     }
@@ -59,12 +65,12 @@ export async function PUT(request: NextRequest) {
         let circle1_humans = [];
         let circle2_humans = [];
         let members = [];
-        
+
         try {
             circle1_humans = JSON.parse(formData.get('circle1_humans') as string || '[]');
             circle2_humans = JSON.parse(formData.get('circle2_humans') as string || '[]');
             members = JSON.parse(formData.get('members') as string || '[]');
-        } catch(e) {
+        } catch (e) {
             console.error("Failed to parse array fields", e);
         }
 
@@ -111,6 +117,78 @@ export async function PUT(request: NextRequest) {
 
         if (bannerUrl) {
             updateData.banner_url = bannerUrl;
+        }
+
+        // Fetch existing organisation for calendar event ID and name
+        const existingOrgRes = await strapiGet(`organisations/${organisationId}`, {
+            fields: ['id', 'name', 'induction', 'induction_end', 'calendar_event_id']
+        });
+        const existingOrg = existingOrgRes?.data?.attributes || existingOrgRes?.data || existingOrgRes?.attributes || existingOrgRes;
+        const existingEventId = existingOrg?.calendar_event_id || null;
+        const orgName = name || existingOrg?.name || 'Unknown Organisation';
+
+        let calendarEventId = existingEventId;
+        const calId = process.env.INDUCTIONS_CALENDAR_ID || undefined;
+
+        if (induction && induction_end) {
+            const startDateStr = new Date().toISOString().split('T')[0];
+            const endDateStr = new Date(induction_end).toISOString().split('T')[0];
+
+            const eventData: GoogleEvent = {
+                summary: `${orgName} — Induction Deadline`,
+                description: `Inductions are open for ${orgName}. Deadline is ${induction_end}.`,
+                start: {
+                    date: startDateStr,
+                },
+                end: {
+                    date: endDateStr,
+                },
+                guestsCanSeeOtherGuests: false,
+                reminders: {
+                    useDefault: false,
+                    overrides: [
+                        // { method: 'email', minutes: 2880 }, // 48 hours before (email)
+                        { method: 'popup', minutes: 2880 }, // 48 hours before (popup)
+                        // { method: 'email', minutes: 1440 }, // 24 hours before (email)
+                        { method: 'popup', minutes: 1440 }, // 24 hours before (popup)
+                    ],
+                },
+            };
+
+            if (!calendarEventId) {
+                try {
+                    const createdEvent = await addEvent(calId, eventData);
+                    calendarEventId = createdEvent?.id || null;
+                    if (calendarEventId) {
+                        updateData.calendar_event_id = calendarEventId;
+                    }
+                } catch (calError) {
+                    console.error('Error creating calendar event:', calError);
+                }
+            } else {
+                try {
+                    const existingEvent = await getEvents(calId, '', '', calendarEventId);
+                    if (existingEvent) {
+                        const existingAttendees = (existingEvent as any).attendees || [];
+                        await updateEvent(calId, calendarEventId, {
+                            ...eventData,
+                            attendees: existingAttendees,
+                        });
+                    }
+                } catch (calError) {
+                    console.error('Error updating calendar event:', calError);
+                }
+            }
+        } else {
+            if (calendarEventId) {
+                try {
+                    await deleteEvent(calId, calendarEventId);
+                    calendarEventId = null;
+                    updateData.calendar_event_id = null;
+                } catch (calError) {
+                    console.error('Error deleting calendar event:', calError);
+                }
+            }
         }
 
         await strapiPut(`organisations/${organisationId}`, {

@@ -62,13 +62,58 @@ export async function uploadImageToCloudinary(
 }
 
 /**
- * Delete an image from Cloudinary
- * @param publicId - The public ID of the image to delete
+ * Upload a non-image file (PDF / Word doc) to Cloudinary as a `raw` resource.
+ * Used by the form builder's file-upload blocks for document uploads (spec §11).
+ * @param file - File object or Buffer to upload
+ * @param filename - Original filename (used for public_id, extension preserved)
+ * @param folder - Cloudinary folder to upload to
+ * @param mime - MIME type for the data URI (default: application/octet-stream)
+ * @returns Promise with { url, publicId }
+ */
+export async function uploadRawToCloudinary(
+    file: File | Buffer,
+    filename: string,
+    folder: string = 'form-uploads',
+    mime: string = 'application/octet-stream'
+): Promise<{ url: string; publicId: string }> {
+    try {
+        let buffer: Buffer;
+        if (file instanceof File) {
+            const arrayBuffer = await file.arrayBuffer();
+            buffer = Buffer.from(arrayBuffer);
+        } else {
+            buffer = file;
+        }
+
+        const base64Data = `data:${mime};base64,${buffer.toString('base64')}`;
+        const ext = filename.match(/\.[^/.]+$/)?.[0] ?? '';
+        const baseName = filename.replace(/\.[^/.]+$/, '').replace(/[^a-z0-9_-]+/gi, '-');
+
+        const uploadResponse = await cloudinary.uploader.upload(base64Data, {
+            folder,
+            public_id: `${Date.now()}-${baseName}${ext}`,
+            resource_type: 'raw',
+        });
+
+        return {
+            url: uploadResponse.secure_url,
+            publicId: uploadResponse.public_id,
+        };
+    } catch (error) {
+        console.error('Cloudinary raw upload error:', error);
+        throw new Error(`Failed to upload file to Cloudinary: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
+
+/**
+ * Delete an asset from Cloudinary
+ * @param publicId - The public ID of the asset to delete
+ * @param resourceType - 'image' (default) or 'raw' for documents
  * @returns Promise with deletion result
  */
-export async function deleteImageFromCloudinary(publicId: string): Promise<void> {
+export async function deleteImageFromCloudinary(publicId: string, resourceType: 'image' | 'raw' = 'image'): Promise<void> {
     try {
-        await cloudinary.uploader.destroy(publicId);
+        await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
     } catch (error) {
         console.error('Cloudinary delete error:', error);
         throw new Error(`Failed to delete image from Cloudinary: ${error instanceof Error ? error.message : 'Unknown error'}`);
