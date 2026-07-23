@@ -98,7 +98,7 @@ export default function SemesterNavigation({
             // First clear existing data
             const clearResult = await clearCGPAData();
             if (clearResult.success) {
-                console.log('CGPA data cleared successfully');
+                platform.log('CGPA data cleared successfully');
                 // Then redirect to form view to input new data
                 setIsFormView(true);
             } else {

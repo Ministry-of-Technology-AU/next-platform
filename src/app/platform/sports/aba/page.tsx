@@ -111,7 +111,7 @@ export default function ABAEventPage() {
     eventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        console.log('[SSE] Received update:', payload);
+        platform.log('[SSE] Received update:', payload);
         // Re-fetch all data when any ABA entity changes
         fetchData();
       } catch (e) {
@@ -274,13 +274,13 @@ export default function ABAEventPage() {
 
     const displayScorers = rawParticipants.length > 0
       ? rawParticipants
-          .map((p: any) => ({
-            id: p.id,
-            name: p.attributes?.name || 'Unknown',
-            team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
-            points: p.attributes?.points_scored || 0
-          }))
-          .filter((p: any) => p.points > 0)
+        .map((p: any) => ({
+          id: p.id,
+          name: p.attributes?.name || 'Unknown',
+          team: p.attributes?.team?.data?.attributes?.name || 'Unassigned',
+          points: p.attributes?.points_scored || 0
+        }))
+        .filter((p: any) => p.points > 0)
       : MOCK_TOP_SCORERS;
 
     // 5. Winner team logos
@@ -496,64 +496,64 @@ export default function ABAEventPage() {
                   </Card>
                 ))}
               </div>
-              </TabsContent>
+            </TabsContent>
 
             <TabsContent value="knockout" className="mt-0">
-            {knockoutMatches.length === 0 ? (
-              <Card className="bg-zinc-900 border-zinc-800 text-zinc-500">
-                <CardContent className="h-64 flex flex-col items-center justify-center p-6 text-center">
-                  <p className="text-lg font-bold tracking-widest uppercase mb-2">Knockout Stage</p>
-                  <p className="text-sm">The bracket will be generated once the group stages conclude.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <ScrollArea className="h-[400px] pr-2">
-              <div className="space-y-4">
-                {knockoutMatches.map((match: any) => (
-                  <Link key={match.id} href={`/platform/sports/aba/${match.id}`}>
-                    <div className="bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-xs font-bold text-muted-foreground tracking-wide">
-                          {match.start_time ? new Date(match.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (match.date + ' • ' + match.time)}
-                        </span>
-                        {match.status === 'LIVE' ? (
-                          <div className="flex items-center gap-1.5">
-                            {match.round && <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
-                            <Badge variant="destructive" className="bg-red-500 text-[10px] px-1.5 py-0 animate-pulse rounded-sm">LIVE</Badge>
+              {knockoutMatches.length === 0 ? (
+                <Card className="bg-zinc-900 border-zinc-800 text-zinc-500">
+                  <CardContent className="h-64 flex flex-col items-center justify-center p-6 text-center">
+                    <p className="text-lg font-bold tracking-widest uppercase mb-2">Knockout Stage</p>
+                    <p className="text-sm">The bracket will be generated once the group stages conclude.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <ScrollArea className="h-[400px] pr-2">
+                  <div className="space-y-4">
+                    {knockoutMatches.map((match: any) => (
+                      <Link key={match.id} href={`/platform/sports/aba/${match.id}`}>
+                        <div className="bg-card border border-border rounded-xl p-5 hover:bg-muted/50 transition-colors relative overflow-hidden shadow-sm">
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs font-bold text-muted-foreground tracking-wide">
+                              {match.start_time ? new Date(match.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : (match.date + ' • ' + match.time)}
+                            </span>
+                            {match.status === 'LIVE' ? (
+                              <div className="flex items-center gap-1.5">
+                                {match.round && <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
+                                <Badge variant="destructive" className="bg-red-500 text-[10px] px-1.5 py-0 animate-pulse rounded-sm">LIVE</Badge>
+                              </div>
+                            ) : match.status === 'PAST' ? (
+                              <div className="flex items-center gap-1.5">
+                                {match.round && <Badge className="bg-primary/10 text-primary dark:text-yellow-600 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
+                                {/* <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Final</Badge> */}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5">
+                                {match.round && <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
+                                <Badge className="text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Upcoming</Badge>
+                              </div>
+                            )}
                           </div>
-                        ) : match.status === 'PAST' ? (
-                          <div className="flex items-center gap-1.5">
-                            {match.round && <Badge className="bg-primary/10 text-primary dark:text-yellow-600 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
-                            {/* <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Final</Badge> */}
+                          <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                            <div className="text-center">
+                              <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamA}</h4>
+                              {match.status === 'PAST' && (
+                                <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreA}</p>
+                              )}
+                            </div>
+                            <div className="text-xs font-bold text-muted-foreground">VS</div>
+                            <div className="text-center">
+                              <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamB}</h4>
+                              {match.status === 'PAST' && (
+                                <p className={`text-3xl font-black mt-2 ${match.scoreB > match.scoreA ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreB}</p>
+                              )}
+                            </div>
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            {match.round && <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">{match.round}</Badge>}
-                            <Badge className="text-[10px] px-1.5 py-0 uppercase tracking-wider rounded-sm" variant="outline">Upcoming</Badge>
-                          </div>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
-                        <div className="text-center">
-                          <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamA}</h4>
-                          {match.status === 'PAST' && (
-                            <p className={`text-3xl font-black mt-2 ${match.scoreA > match.scoreB ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreA}</p>
-                          )}
                         </div>
-                        <div className="text-xs font-bold text-muted-foreground">VS</div>
-                        <div className="text-center">
-                          <h4 className="font-bold text-sm text-foreground md:text-base">{match.teamB}</h4>
-                          {match.status === 'PAST' && (
-                            <p className={`text-3xl font-black mt-2 ${match.scoreB > match.scoreA ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground'}`}>{match.scoreB}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              </ScrollArea>
-            )}
+                      </Link>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
             </TabsContent>
           </Tabs>
         </section>

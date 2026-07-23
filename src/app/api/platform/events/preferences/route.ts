@@ -17,14 +17,14 @@ export async function GET(request: NextRequest) {
   try {
     // For now, hardcode the user ID as 1
     const userId = 1;
-    
+
     // Fetch the user's preferences from Strapi
     const userData = await strapiGet(`/users/${userId}`, {
       fields: ['id', 'username', 'events_calendar_filter_preferences'],
     });
-    
+
     let preferences: EventsCalendarPreferences | null = null;
-    
+
     // Check if the user has saved preferences
     if (userData.events_calendar_filter_preferences) {
       try {
@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
           // If it's already an object, use it directly
           preferences = userData.events_calendar_filter_preferences;
         }
-        
+
         // Validate that the preferences match our expected format
         if (!validatePreferences(preferences)) {
-          console.log('Invalid preferences format, resetting to default');
+          platform.log('Invalid preferences format, resetting to default');
           preferences = null;
         }
       } catch (error) {
@@ -46,18 +46,18 @@ export async function GET(request: NextRequest) {
         preferences = null;
       }
     }
-    
+
     // Return the preferences or default values
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       data: preferences || getDefaultPreferences()
     });
   } catch (error) {
     console.error("Error fetching user preferences:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: (error as Error).message 
+      {
+        success: false,
+        error: (error as Error).message
       },
       { status: 500 }
     );
@@ -73,36 +73,36 @@ export async function POST(request: NextRequest) {
     // Parse the request body
     const body = await request.json();
     const { preferences } = body;
-    
+
     // Validate the preferences
     if (!validatePreferences(preferences)) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: "Invalid preferences format" 
+        {
+          success: false,
+          error: "Invalid preferences format"
         },
         { status: 400 }
       );
     }
-    
+
     // For now, hardcode the user ID as 1
     const userId = 1;
-    
+
     // Save the preferences to Strapi
     await strapiPut(`/users/${userId}`, {
       events_calendar_filter_preferences: preferences
     });
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       message: "Preferences saved successfully"
     });
   } catch (error) {
     console.error("Error saving user preferences:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: (error as Error).message 
+      {
+        success: false,
+        error: (error as Error).message
       },
       { status: 500 }
     );

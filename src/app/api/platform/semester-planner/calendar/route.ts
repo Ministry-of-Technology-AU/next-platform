@@ -109,7 +109,7 @@ async function getAllExistingEvents(accessToken: string): Promise<Set<string>> {
             }
         }
 
-        console.log(`Found ${existingCourseIds.size} existing synced courses`);
+        platform.log(`Found ${existingCourseIds.size} existing synced courses`);
     } catch (error) {
         console.error('Error fetching existing events:', error);
     }
@@ -280,7 +280,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 0: Get all existing events to check for duplicates
-        console.log('Step 0: Checking for existing events...');
+        platform.log('Step 0: Checking for existing events...');
         const existingCourseIds = await getAllExistingEvents(accessToken);
 
         // Filter out courses that already exist
@@ -288,7 +288,7 @@ export async function POST(request: NextRequest) {
         const skippedCount = courses.length - coursesToCreate.length;
 
         if (skippedCount > 0) {
-            console.log(`Skipping ${skippedCount} courses that already exist in calendar`);
+            platform.log(`Skipping ${skippedCount} courses that already exist in calendar`);
         }
 
         if (coursesToCreate.length === 0) {
@@ -304,7 +304,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 1: Create calendar events for new courses only
-        console.log(`Step 1: Creating ${coursesToCreate.length} new calendar events...`);
+        platform.log(`Step 1: Creating ${coursesToCreate.length} new calendar events...`);
         const results = await Promise.all(
             coursesToCreate.map((course) => createCalendarEvent(course, accessToken))
         );
@@ -337,21 +337,21 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 3: Find and delete events on holidays
-        console.log('Step 2: Checking for events on holidays...');
+        platform.log('Step 2: Checking for events on holidays...');
         const eventsOnHolidays = await getEventsOnHolidays(accessToken);
 
         let deletedCount = 0;
         if (eventsOnHolidays.length > 0) {
-            console.log(`Found ${eventsOnHolidays.length} events on holidays. Deleting...`);
+            platform.log(`Found ${eventsOnHolidays.length} events on holidays. Deleting...`);
 
             const deleteResults = await Promise.all(
                 eventsOnHolidays.map((event) => deleteEvent(event.id, accessToken))
             );
 
             deletedCount = deleteResults.filter(Boolean).length;
-            console.log(`Deleted ${deletedCount} events that fell on holidays`);
+            platform.log(`Deleted ${deletedCount} events that fell on holidays`);
         } else {
-            console.log('No events found on holidays');
+            platform.log('No events found on holidays');
         }
 
         const messageParts = [];

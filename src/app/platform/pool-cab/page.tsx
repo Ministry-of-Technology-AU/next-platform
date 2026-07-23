@@ -15,7 +15,7 @@ async function existPoolRequest() {
         const userId = await getUserIdByEmail(session?.user?.email || '');
 
         if (!userId) {
-            console.log("User not found, cannot check for existing pool");
+            platform.log("User not found, cannot check for existing pool");
             return null;
         }
 
@@ -43,7 +43,7 @@ async function existPoolRequest() {
         });
 
         const userPool = userPoolResponse?.data?.[0] || null;
-        console.log("User's pool from Strapi:", userPool);
+        platform.log("User's pool from Strapi:", userPool);
 
         return {
             success: true,
@@ -57,7 +57,7 @@ async function existPoolRequest() {
 
 export default async function PoolCab() {
     const existingRequest = await existPoolRequest();
-    console.log("Existing Pool Request:", existingRequest);
+    platform.log("Existing Pool Request:", existingRequest);
 
     // Check if user has existing pool (query already filters for status='available')
     const hasActivePool = existingRequest?.success && existingRequest?.userPool;

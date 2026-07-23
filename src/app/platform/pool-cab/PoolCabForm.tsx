@@ -140,7 +140,7 @@ export default function PoolCabForm() {
         useEmailContact: useEmail
       }
 
-      console.log("Form data to be submitted:", poolData)
+      platform.log("Form data to be submitted:", poolData)
 
       // Call API endpoint
       const response = await fetch('/api/platform/pool-cab', {
@@ -183,7 +183,7 @@ export default function PoolCabForm() {
           <Label htmlFor="date-picker" className="px-1 text-base font-medium">
             Date and Time <span className="text-destructive">*</span>
           </Label>
-          
+
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {/* Date Selection */}
             <div className="flex-1 min-w-0">

@@ -42,7 +42,7 @@ export default async function Page() {
     } catch (error) {
       console.error('Error fetching calendar events:', error);
       // For debugging - fall back to sample data
-      console.log('Falling back to sample data');
+      platform.log('Falling back to sample data');
       // Import sample data for fallback
       const { sampleEvents } = await import('./data/calendar-data');
       return sampleEvents;
@@ -135,7 +135,7 @@ export default async function Page() {
    */
   function mapGoogleEventsToAppEvents(googleEvents: any[]): Event[] {
     if (!Array.isArray(googleEvents) || googleEvents.length === 0) {
-      console.log('No Google events to map or invalid format');
+      platform.log('No Google events to map or invalid format');
       return [];
     }
 
@@ -245,7 +245,7 @@ export default async function Page() {
     );
 
     if (matchedOrg) {
-      console.log(`Matched event "${event.title}" with organization "${matchedOrg.name}" (${matchedOrg.id})`);
+      platform.log(`Matched event "${event.title}" with organization "${matchedOrg.name}" (${matchedOrg.id})`);
       // Update the event with the matched organization ID
       return {
         ...event,

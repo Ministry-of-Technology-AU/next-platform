@@ -1,0 +1,100 @@
+{
+  "categories": [
+    {
+      "id": "home",
+      "title": "Home",
+      "items": [
+        {
+          "title": "Dashboard",
+          "icon": "Home",
+          "href": "/"
+        },
+        {
+          "title": "Games and Puzzles",
+          "icon": "Puzzle",
+          "href": "/games"
+        }
+      ]
+    },
+    {
+      "id": "academics",
+      "title": "Academics",
+      "items": [
+        {
+          "title": "Semester Planner",
+          "icon": "CalendarSync",
+          "href": "/semester-planner"
+        },
+        {
+          "title": "CGPA Planner",
+          "icon": "Award",
+          "href": "/cgpa-planner"
+        },
+        {
+          "title": "Trajectory Planner",
+          "icon": "Route",
+          "href": "/trajectory-planner"
+        }
+      ]
+    },
+    {
+      "id": "cultural-life",
+      "title": "Cultural Life",
+      "items": [
+        {
+          "title": "Events Calendar",
+          "icon": "CalendarDays",
+          "href": "/events-calendar"
+        },
+        {
+          "title": "Organisations Catalogue",
+          "icon": "GalleryHorizontalEnd",
+          "href": "/organisations-catalog"
+        },
+        {
+          "title": "When2meet",
+          "icon": "CalendarSearch",
+          "href": "/when2meet"
+        }
+      ]
+    },
+    {
+      "id": "campus-life",
+      "title": "Campus Life",
+      "items": [
+        {
+          "title": "Pool a Cab",
+          "icon": "Car",
+          "href": "/pool-cab"
+        },
+        {
+          "title": "Pool Subscriptions",
+          "icon": "Users",
+          "href": "/pool-subscription"
+        }
+      ]
+    },
+    {
+      "id": "sports",
+      "title": "Sports",
+      "items": [
+        {
+          "title": "Sports",
+          "icon": "Trophy",
+          "href": "/sports"
+        }
+      ]
+    },
+    {
+      "id": "my-resources",
+      "title": "My Resources",
+      "items": [
+        {
+          "title": "My Profile",
+          "icon": "UserCog",
+          "href": "/profile"
+        }
+      ]
+    }
+  ]
+}

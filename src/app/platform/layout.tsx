@@ -5,12 +5,14 @@ import Navbar from "@/components/navbar/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import platformSidebarData from "@/components/sidebar/sidebar-entries.json";
+import adminSidebarData from "@/components/sidebar/admin-sidebar-entries.json";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
 import { NewToolAlert } from "@/components/new-tool-alert";
 import { WhatsNewModal } from "@/components/whats-new-modal";
 import { RecentPageTracker } from "@/components/landing-page/recent-page-tracker";
+import { auth } from "@/auth";
 
 const nunito = Nunito({
   variable: "--font-heading",
@@ -29,11 +31,15 @@ export const metadata: Metadata = {
   description: "Engineered by the Ministry of Technology of Ashoka University",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+  const isAshokaAdmin = session?.user?.role === "ashoka_admin";
+  const sidebarData = isAshokaAdmin ? adminSidebarData : platformSidebarData;
+
   return (
     <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
       <TooltipProvider>
@@ -41,16 +47,18 @@ export default function RootLayout({
           autoStart={false}
         >
           <SidebarProvider defaultOpen={false}>
-            <NewToolAlert
-              href="/platform/ashokan-around"
-              title="Ashokan Around"
-              checkSeenKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1"
-              blockIfNewVersion={true}
-            />
+            {!isAshokaAdmin && (
+              <NewToolAlert
+                href="/platform/ashokan-around"
+                title="Ashokan Around"
+                checkSeenKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1"
+                blockIfNewVersion={true}
+              />
+            )}
             <WhatsNewModal />
             <RecentPageTracker />
             <div className="flex min-h-screen w-full overflow-x-hidden">
-              <AppSidebar data={platformSidebarData} basePath="/platform" title="Platform" />
+              <AppSidebar data={sidebarData} basePath="/platform" title="Platform" />
               <div className="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">
                 <Navbar />
                 <Suspense>

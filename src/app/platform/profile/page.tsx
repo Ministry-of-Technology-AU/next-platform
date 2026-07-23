@@ -29,7 +29,7 @@ export default function ProfilePage() {
   useEffect(() => {
     async function loadUserData() {
       if (status === "loading") return;
-      
+
       if (!session?.user?.email) {
         setError("No user session found");
         setLoading(false);
@@ -53,7 +53,7 @@ export default function ProfilePage() {
         if (!result.success) {
           throw new Error(result.error || 'Failed to fetch profile');
         }
-        
+
         setUserData(result.data);
         setPhoneNumber(result.data.phone_number || "");
         setError(null);
@@ -71,7 +71,7 @@ export default function ProfilePage() {
   const handlePhoneChange = (value: string) => {
     setPhoneNumber(value);
     setHasChanges(value !== (userData?.phone_number || ""));
-    
+
     // Clear phone error when user starts typing
     if (phoneError) {
       setPhoneError(null);
@@ -108,7 +108,7 @@ export default function ProfilePage() {
     try {
       setIsSaving(true);
       setPhoneError(null);
-      
+
       const response = await fetch('/api/platform/profile', {
         method: 'PUT',
         headers: {
@@ -127,11 +127,11 @@ export default function ProfilePage() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to save phone number');
       }
-      
+
       setUserData(prev => prev ? { ...prev, phone_number: phoneNumber } : null);
       setHasChanges(false);
-      // console.log('[PROFILE] Phone number saved successfully');
-      
+      // platform.log('[PROFILE] Phone number saved successfully');
+
       // Show success toast
       toast.success("Phone number saved successfully!", {
         description: "Your profile has been updated.",
@@ -140,7 +140,7 @@ export default function ProfilePage() {
     } catch (err) {
       console.error("Error saving phone number:", err);
       setPhoneError("Failed to save phone number. Please try again.");
-      
+
       // Show error toast
       toast.error("Failed to save phone number", {
         description: "Please check your connection and try again.",
@@ -273,53 +273,53 @@ export default function ProfilePage() {
                   </TabsList>
                 </CardHeader>
                 <CardContent>
-                    <TabsContents>
-                  <TabsContent value="deactivate" className="space-y-4 mt-0">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold mb-2">Before you go:</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Take backup of your data. Account deletion is final. There will be no way to restore your account.
-                        </p>
-                      </div>
+                  <TabsContents>
+                    <TabsContent value="deactivate" className="space-y-4 mt-0">
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="font-semibold mb-2">Before you go:</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Take backup of your data. Account deletion is final. There will be no way to restore your account.
+                          </p>
+                        </div>
 
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          id="delete-confirm"
-                          checked={deleteConfirm}
-                          onCheckedChange={(checked) => setDeleteConfirm(checked as boolean)}
-                        />
-                        <Label
-                          htmlFor="delete-confirm"
-                          className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          Yes, I would like to delete my account!
-                        </Label>
-                      </div>
+                        <div className="flex items-start space-x-3">
+                          <Checkbox
+                            id="delete-confirm"
+                            checked={deleteConfirm}
+                            onCheckedChange={(checked) => setDeleteConfirm(checked as boolean)}
+                          />
+                          <Label
+                            htmlFor="delete-confirm"
+                            className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          >
+                            Yes, I would like to delete my account!
+                          </Label>
+                        </div>
 
-                      <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                        <Button
-                          variant="destructive"
-                          disabled={!deleteConfirm}
-                          className="flex-1 bg-primary"
-                        >
-                          Permanently Delete
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                        >
-                          Keep my account
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                          <Button
+                            variant="destructive"
+                            disabled={!deleteConfirm}
+                            className="flex-1 bg-primary"
+                          >
+                            Permanently Delete
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            Keep my account
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </TabsContent>
+                    </TabsContent>
 
-                  <TabsContent value="linked" className="mt-0">
-                    <div className="py-8 text-center text-muted-foreground">
-                      <p>No linked accounts found.</p>
-                    </div>
-                  </TabsContent>
+                    <TabsContent value="linked" className="mt-0">
+                      <div className="py-8 text-center text-muted-foreground">
+                        <p>No linked accounts found.</p>
+                      </div>
+                    </TabsContent>
                   </TabsContents>
                 </CardContent>
               </Tabs>

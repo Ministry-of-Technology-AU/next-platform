@@ -17,13 +17,13 @@ export async function GET() {
     }
 
     const userEmail = session.user.email;
-    
+
     // Get the user's Strapi ID
     const userId = await getUserIdByEmail(userEmail);
-    
+
     // Fetch organizations data from Strapi
     let organisationsReq;
-    
+
     try {
       organisationsReq = await strapiGet('/organisations', {
         populate: {
@@ -66,7 +66,7 @@ export async function GET() {
 
     // Handle different possible response structures from Strapi
     let organisationsData = [];
-    
+
     if (Array.isArray(organisationsReq)) {
       // Direct array response
       organisationsData = organisationsReq;
@@ -84,16 +84,16 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    console.log('Processed organisations data:', organisationsData.length, 'items');
+    platform.log('Processed organisations data:', organisationsData.length, 'items');
 
     // Transform the data to match frontend expectations
     const organisations = organisationsData.map((x: any) => {
       try {
         const attrs = x.attributes || {};
-        
+
         // Normalize type to lowercase for consistency
         const normalizedType = (attrs.type || 'other').toLowerCase();
-        
+
         // Get banner image with fallback
         let bannerUrl = DEFAULT_BANNER;
         if (attrs.banner_url) {
@@ -108,8 +108,8 @@ export async function GET() {
         // Get logo image from profile user's profile_url
         let logoUrl: string | null = null;
         if (attrs.profile?.data) {
-          const profileData = Array.isArray(attrs.profile.data) 
-            ? attrs.profile.data[0] 
+          const profileData = Array.isArray(attrs.profile.data)
+            ? attrs.profile.data[0]
             : attrs.profile.data;
           logoUrl = profileData?.attributes?.profile_url || null;
         }
@@ -122,7 +122,7 @@ export async function GET() {
           fullDescription: attrs.description || attrs.short_description || '',
           bannerUrl: bannerUrl,
           logoUrl: logoUrl,
-          
+
           // Member relations
           circle1_humans: (attrs.circle1_humans?.data || []).map((member: any) => ({
             id: member.id,
@@ -144,12 +144,12 @@ export async function GET() {
             username: member.attributes?.username || 'Unknown User',
             email: member.attributes?.email || 'No email'
           })),
-          
+
           // Induction details
           inductionsOpen: attrs.induction || false,
           inductionEnd: attrs.induction_end || null,
           inductionDescription: attrs.induction_description || '',
-          
+
           // Social links with fallback to empty strings
           instagram: attrs.instagram || '',
           twitter: attrs.twitter || '',
@@ -157,7 +157,7 @@ export async function GET() {
           youtube: attrs.youtube || '',
           website: attrs.website_blog || '',
           whatsapp: attrs.whatsapp || '',
-          
+
           // Additional fields
           calendarEventId: attrs.calendar_event_id || null,
           createdAt: attrs.createdAt || new Date().toISOString(),
@@ -169,7 +169,7 @@ export async function GET() {
       }
     }).filter(Boolean);
 
-    console.log('Successfully transformed', organisations.length, 'organizations');
+    platform.log('Successfully transformed', organisations.length, 'organizations');
 
     // Get unique types for filtering
     const types = [...new Set(organisations.map((org: any) => org.type))];
@@ -186,13 +186,13 @@ export async function GET() {
 
   } catch (error) {
     console.error('Error fetching organisations:', error);
-    
+
     // More detailed error logging
     if (error instanceof Error) {
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
     }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to fetch organisations' },
       { status: 500 }

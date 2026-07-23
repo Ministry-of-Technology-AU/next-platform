@@ -5,6 +5,7 @@ import PopularToolsGrid from '@/components/landing-page/popular-tools-grid';
 import DashboardStats from '@/components/landing-page/dashboard-stats';
 import { TourStep } from '@/components/guided-tour';
 import { cookies } from 'next/headers';
+import { auth } from '@/auth';
 
 async function getData() {
   const cookieStore = await cookies();
@@ -19,11 +20,12 @@ async function getData() {
 }
 
 export default async function Home() {
-  const data = await getData();
+  const [data, session] = await Promise.all([getData(), auth()]);
   const adverts = data?.adverts?.data;
   const recentlyVisited = data?.recentlyVisited;
+  const userRole = session?.user?.role;
 
-  console.log(adverts);
+  platform.log(adverts);
   return (
 
     <div className="min-h-screen bg-background flex flex-col">
@@ -50,7 +52,7 @@ export default async function Home() {
         {/* Most Popular Section */}
         <div className="mb-6 sm:mb-8">
           <TourStep id="popular-tools" order={3} position="right" content="Explore the most popular tools used by others." title="Popular Tools">
-            <PopularToolsGrid />
+            <PopularToolsGrid role={userRole} />
           </TourStep>
         </div>
 

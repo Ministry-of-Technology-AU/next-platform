@@ -9,7 +9,7 @@ import { FormData } from "../../types";
 export default function AddReview({ params }: { params: Promise<{ id: string }> }) {
   // Unwrap the params Promise using React.use()
   const { id } = use(params);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [courseDetails, setCourseDetails] = useState<{
@@ -19,7 +19,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
     year: number;
     semester: string;
   } | null>(null);
- 
+
   // Initialize all form state at the top level
   const [formData, setFormData] = useState<FormData>({
     reviewExperience: "",
@@ -46,18 +46,18 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
     async function fetchCourseDetail() {
       try {
         setLoading(true);
-        console.log('Fetching course details for ID:', id);
-        
+        platform.log('Fetching course details for ID:', id);
+
         // Use the dedicated course API endpoint
         const response = await fetch(`/api/platform/courses/${id}`);
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        console.log('API Response:', result);
-        
+        platform.log('API Response:', result);
+
         if (result.data) {
           const course = result.data;
           setCourseDetails({
@@ -86,7 +86,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
   // const subheading = courseDetails 
   //   ? `Submit a course review about ${courseDetails.name} (${courseDetails.code}) offered in ${courseDetails.semester} ${courseDetails.year}.`
   //   : "Loading course details...";
-  
+
   // Show loading state
   if (loading) {
     return (
@@ -134,7 +134,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
       </div>
     );
   }
-  
+
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -179,7 +179,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
       }
     };
 
-    console.log("Submitting review with data:", apiData);
+    platform.log("Submitting review with data:", apiData);
 
     try {
       const response = await fetch(`/api/platform/courses/${courseDetails.id}`, {
@@ -191,7 +191,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
       });
 
       const result = await response.json();
-      console.log("API Response:", result);
+      platform.log("API Response:", result);
 
       if (!response.ok) {
         throw new Error(result.error || `HTTP error! status: ${response.status}`);
@@ -221,21 +221,21 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
     { value: "have not received yet", label: " Not Received Yet" },
     { value: "do not wish to reveal", label: " Do not wish to disclose" },
   ];
-  
+
   return (
     <div className="min-h-screen container mx-auto sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
       <Form.FormContainer
         onSubmit={handleSubmit}
         className="max-w-6xl mt-4 sm:mt-6 bg-gray-light-90 sm:p-4 lg:p-6 rounded-lg shadow-md"
       >
-      <div className="space-y-3 sm:space-y-4">
-        <div className="flex items-center justify-center gap-2 sm:gap-3">
-          <CirclePlus className="text-primary w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-          <p className="text-lg sm:text-xl font-bold text-center">
-            Add a Course Review - <span className="font-normal text-primary"> {courseDetails.name} ({courseDetails.code}),{courseDetails.semester} {courseDetails.year}</span>
-          </p>
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            <CirclePlus className="text-primary w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+            <p className="text-lg sm:text-xl font-bold text-center">
+              Add a Course Review - <span className="font-normal text-primary"> {courseDetails.name} ({courseDetails.code}),{courseDetails.semester} {courseDetails.year}</span>
+            </p>
+          </div>
         </div>
-      </div>
         <div className="space-y-4">
           <h3 className="text-xl font-bold">SECTION 1 - Review</h3>
           <Form.TextInput
@@ -420,7 +420,7 @@ export default function AddReview({ params }: { params: Promise<{ id: string }> 
             value={!formData.isAnonymous}
             onChange={(checked) => handleInputChange("isAnonymous", !checked)}
           />
-          <Form.SubmitButton 
+          <Form.SubmitButton
             text="Submit Review"
             isLoading={isSubmitting}
             disabled={isSubmitting}
