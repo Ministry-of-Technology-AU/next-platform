@@ -134,7 +134,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         const email = user.email!;
         const aplAdminEmails = (process.env.APL_ADMIN_EMAILS || '').split(',').map(email => email.trim());
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim()).filter(Boolean);
 
+        // ashoka_admin role takes highest precedence — they get filtered platform access and organization access
+        if (adminEmails.includes(email)) {
+          token.role = 'ashoka_admin';
+          token.access = ['platform', 'ashoka_admin', 'organization'];
+        }
         // Determine user role based on email patterns
         // if (ORGANIZATION_EMAILS.includes(email)) {
         //   token.role = 'organization';
@@ -150,7 +156,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         //   token.access = ['platform']; // Default access
         // }
         // Only for beta launch TODO: Change this before full launch
-        if (ORGANIZATION_EMAILS.includes(email)) {
+        else if (ORGANIZATION_EMAILS.includes(email)) {
           token.role = 'organization';
           token.access = ['platform', 'organization'];
         } else if (process.env.BETA_TESTERS?.split(',').includes(email)) {

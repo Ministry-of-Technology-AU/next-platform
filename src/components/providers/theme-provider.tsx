@@ -1,5 +1,6 @@
 'use client'
 
+import '@/lib/platform-logger'
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
 export type Theme = 'light' | 'dark' | 'system'

@@ -21,3 +21,6 @@ export const platform = new PlatformLogger();
 if (typeof globalThis !== "undefined") {
   (globalThis as any).platform = platform;
 }
+if (typeof window !== "undefined") {
+  (window as any).platform = platform;
+}

@@ -2,12 +2,25 @@ import { NextResponse } from 'next/server'
 import { auth } from './auth'
 
 // Define protected routes and their access requirements
+// ashoka_admin has 'platform' access so they can reach /platform,
+// but the sidebar and dashboard are filtered for them at the layout/page level.
 const ROUTE_ACCESS = {
   '/platform': ['platform'],
   '/platform/rep-dashboard': ['rep_dashboard'],
   '/sg-compose': ['platform'],
   '/organisations': ['organization'],
 }
+
+// Tools that ashoka_admin users are NOT allowed to access directly by URL.
+// Keep in sync with admin-sidebar-entries.json.
+const ASHOKA_ADMIN_BLOCKED_ROUTES = [
+  '/platform/course-reviews',
+  '/platform/sg-compose',
+  '/sg-compose',
+  '/platform/wifi-tickets',
+  '/platform/borrow-assets',
+  '/platform/ashokan-around',
+]
 
 export default auth(async function middleware(req) {
   const { pathname } = req.nextUrl
@@ -93,6 +106,17 @@ export default auth(async function middleware(req) {
     }
 
     platform.log(`✅ User ${req.auth.user.email} granted access to Rep Dashboard`)
+    return NextResponse.next()
+  }
+
+  // ashoka_admin: block access to routes outside their allowed tool set
+  if (req.auth.user?.role === 'ashoka_admin') {
+    const isBlocked = ASHOKA_ADMIN_BLOCKED_ROUTES.some(route => pathname.startsWith(route))
+    if (isBlocked) {
+      platform.log(`🔒 ashoka_admin ${req.auth.user.email} denied access to ${pathname}`)
+      return NextResponse.redirect(new URL('/unauthorized', req.url))
+    }
+    // Allow access to everything else in /platform (dashboard, profile, allowed tools)
     return NextResponse.next()
   }
 
