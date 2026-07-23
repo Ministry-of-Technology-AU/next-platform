@@ -6,7 +6,7 @@ const ROUTE_ACCESS = {
   '/platform': ['platform'],
   '/platform/rep-dashboard': ['rep_dashboard'],
   '/sg-compose': ['platform'],
-  '/organization': ['organization'],
+  '/organisations': ['organization'],
 }
 
 export default auth(async function middleware(req) {
@@ -120,7 +120,7 @@ export const config = {
   matcher: [
     '/sg-compose/:path*',
     '/platform/:path*',
-    '/organization/:path*',
+    '/organisations/:path*',
     '/api/sg-compose/:path*',
     '/api/drive/:path*',
     '/api/mail/:path*',

@@ -2,13 +2,13 @@ import axios from 'axios';
 import qs from 'qs';
 
 const secret =
-  process.env.STRAPI_API_TOKEN || "";
+    process.env.STRAPI_API_TOKEN || "";
 const axiosConfig = {
-  baseURL: process.env.STRAPI_URL || "http://localhost:1337/api",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${secret}`,
-  },
+    baseURL: process.env.STRAPI_URL || "http://localhost:1337/api",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${secret}`,
+    },
 };
 
 const strapi = axios.create(axiosConfig);
@@ -23,34 +23,34 @@ interface StrapiPopulate {
 }
 
 interface StrapiFilters {
-    [key: string]: 
-        | string 
-        | number 
-        | boolean 
-        | StrapiFilters
-        | StrapiFilters[]
-        | {
-            $eq?: string | number | boolean;
-            $ne?: string | number | boolean;
-            $lt?: string | number;
-            $lte?: string | number;
-            $gt?: string | number;
-            $gte?: string | number;
-            $in?: (string | number | boolean)[];
-            $notIn?: (string | number | boolean)[];
-            $contains?: string | number;
-            $notContains?: string | number;
-            $containsi?: string;
-            $notContainsi?: string;
-            $null?: boolean;
-            $notNull?: boolean;
-            $between?: [string | number, string | number];
-            $startsWith?: string;
-            $endsWith?: string;
-            $or?: StrapiFilters[];
-            $and?: StrapiFilters[];
-            $not?: StrapiFilters;
-        };
+    [key: string]:
+    | string
+    | number
+    | boolean
+    | StrapiFilters
+    | StrapiFilters[]
+    | {
+        $eq?: string | number | boolean;
+        $ne?: string | number | boolean;
+        $lt?: string | number;
+        $lte?: string | number;
+        $gt?: string | number;
+        $gte?: string | number;
+        $in?: (string | number | boolean)[];
+        $notIn?: (string | number | boolean)[];
+        $contains?: string | number;
+        $notContains?: string | number;
+        $containsi?: string;
+        $notContainsi?: string;
+        $null?: boolean;
+        $notNull?: boolean;
+        $between?: [string | number, string | number];
+        $startsWith?: string;
+        $endsWith?: string;
+        $or?: StrapiFilters[];
+        $and?: StrapiFilters[];
+        $not?: StrapiFilters;
+    };
 }
 
 interface StrapiSort {
@@ -91,7 +91,7 @@ interface StrapiCallProps {
 function buildQueryString(params?: StrapiQueryParams | string): string {
     if (!params) return '';
     if (typeof params === 'string') return params;
-    
+
     // Use qs to properly serialize Strapi query parameters
     // This handles nested objects correctly for Strapi's API format
     return qs.stringify(params, {
@@ -104,6 +104,7 @@ function strapiGet(endpoint: string, queryParams?: string | StrapiQueryParams, h
     try {
         const qs = buildQueryString(queryParams);
         const url = endpoint + (qs ? `?${qs}` : '');
+        console.log(url);
         const response = strapi.get(url, { headers, ...options });
         return response.then(r => r.data);
     }
@@ -193,8 +194,8 @@ export {
     strapiRequest,
 }
 
-export type { 
-    StrapiQueryParams, 
+export type {
+    StrapiQueryParams,
     StrapiCallProps,
     StrapiPopulate,
     StrapiFilters,

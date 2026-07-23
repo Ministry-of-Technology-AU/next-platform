@@ -89,6 +89,13 @@ const MemberTag: React.FC<MemberTagProps> = ({ username, email }) => {
 export function OrganizationCard({ organization }: OrganizationCardProps) {
   const { categoryColors } = useCategoryColors();
   const [isHovered, setIsHovered] = React.useState(false);
+  const [bannerSrc, setBannerSrc] = React.useState(organization.bannerUrl);
+  const [logoError, setLogoError] = React.useState(false);
+
+  React.useEffect(() => {
+    setBannerSrc(organization.bannerUrl);
+    setLogoError(false);
+  }, [organization.bannerUrl, organization.logoUrl]);
   // const [isTrackingInductions, setIsTrackingInductions] = React.useState(false);
 
   const truncateDescription = (text: string, maxLength: number = 80) => {
@@ -152,11 +159,12 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
         'flex items-center justify-center rounded-full bg-red-900 shadow-lg sm:shadow-xl text-white font-bold overflow-hidden',
         sizeClasses
       )}>
-        {logoUrl ? (
+        {logoUrl && !logoError ? (
           <img 
             src={logoUrl} 
             alt={organization.name}
             className="w-full h-full object-cover"
+            onError={() => setLogoError(true)}
           />
         ) : (
           organization.name.charAt(0).toUpperCase()
@@ -183,9 +191,10 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
           onMouseLeave={() => setIsHovered(false)}
         >
           <MorphingDialogImage
-            src={organization.bannerUrl}
+            src={bannerSrc}
             alt={organization.name}
-            className="h-80 sm:h-96 lg:h-[420px] w-full object-cover"
+            className="h-80 sm:h-96 lg:h-[420px] w-full object-cover block"
+            onError={() => setBannerSrc('/orgs_catalogue_default.png')}
           />
 
           {/* Logo Circle */}
@@ -283,9 +292,10 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
           <div className="overflow-y-auto">
             <div className="sticky top-0 z-10 relative">
               <MorphingDialogImage
-                src={organization.bannerUrl}
+                src={bannerSrc}
                 alt={organization.name}
-                className="h-72 sm:h-80 md:h-96 w-full object-cover"
+                className="h-72 sm:h-80 md:h-96 w-full object-cover block"
+                onError={() => setBannerSrc('/orgs_catalogue_default.png')}
               />
               
               {/* Dark Overlay (dimmed) */}
