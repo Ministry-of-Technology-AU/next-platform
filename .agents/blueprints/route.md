@@ -19,6 +19,11 @@
 - For caching practices, follow `caching.md`. 
 - Always ensure thorough null handling. In case the API fails to obtain data, pass appropriate error message to the frontend.
 - For all auth based practices and RBAC, refer to `auth.md`. 
+- Always verify the user's session in every request. If a session expires or is unauthorized, do not send back data, pass an appropriate error. 
+- Rely as much as possible on predefined library functions for auth, strapi, etc. 
+- Only request as much data from strapi as necessary. This means adding correct filters and parameters - don't over-fetch data. 
+- Return appropriate error codes whenever necessary. 
+- Use nextjs functions, types and apis where possible, and avoid redundant custom code. 
 
 
 ## `route.ts` Structure
@@ -51,119 +56,5 @@ export async function GET(request: Request) {
   }
 }
 
-// Optional: Other HTTP method handlers (POST, PUT, DELETE, etc.) can be added here
+// Optional: Other HTTP method handlers (POST, PUT, DELETE, etc.) can be added here - depends on the usecase. 
 ```
-
-
-
-## `layout.tsx` Structure
-- `layout.tsx` is a server-side rendered component that is used to wrap the page in a layout. 
-- Only add one if the tool is a multi-page one. 
-- Keep it broad, since multiple pages will be nested inside this layout, and may not share the exact same attributes.
-- Always first check the global layout files to first understand the padding, margins, etc. Accordingly make adjustments in this file. 
-- The general structure should be as follows:
-    ```tsx
-    import { OrientationDialog } from "@/components/orientation-dialog"; //Only if the page cannot be made responsive
-    import DeveloperCredits from "@/components/developer-credits";
-    import { DismissNewToolAlert } from "@/components/dismiss-new-tool-alert";
-    export default function PageNameLayout({
-        children,
-    }:{
-        children: React.ReactNode;
-    }){
-        const developers = [
-            { name: "", 'profileUrl': "", 'role': "" } //Prompt the user to tell you these details. 
-        ];
-
-        return(
-            <>
-                <TourManager />
-                <NewToolBanner className="" /> //Style as necessary
-                <div className=""> //Add stlying here as necessary for the page
-                    <DismissNewToolAlert storageKey=""/> //Refer to the instructions. 
-                    <OrientationDialog /> //Only if present. 
-                    {children}
-                </div>
-                <DeveloperCredits developers={developers} />
-            </>
-        )
-    }
-    ```
-    
-- `page.tsx` is a server-side rendered component (unless explicitly told otherwise).
-- Always export `export const dynamic = 'force-dynamic'` at the top level, since pages use cookies and must never be statically cached by Next.js.
-- Data fetching must be done via a typed async function defined above the page component. This function must:
-    - Await `cookies()` from `next/headers` and forward them in the `Cookie` header so the internal API route can authenticate the request.
-    - Use `cache: 'no-store'` to prevent stale data.
-    - Return a typed result object (never throw to the page component directly).
-    - Handle errors gracefully — return an empty/fallback value and an `error` string rather than crashing.
-    - Check `response.ok` before parsing JSON.
-- The `PageTitle` component (`@/components/page-title`) must always be present and wrapped in a `TourStep` with `id="page-title"` and `order={0}`.
-- The general structure should be as follows:
-
-    ```tsx
-    import PageTitle from "@/components/page-title";
-    import { TourStep } from "@/components/tour-step"; // or wherever TourStep is exported from
-    import { PageClientComponent } from "./client";
-    import { SomeIcon } from "lucide-react";
-    import { SomeType } from "./types";
-    import { cookies } from "next/headers";
-
-    // Force dynamic rendering since we're using cookies
-    export const dynamic = 'force-dynamic';
-
-    async function fetchPageData(): Promise<{ data: SomeType[]; error: string | null }> {
-      try {
-        const cookieStore = await cookies();
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/[route-name]`,
-          {
-            headers: {
-              Cookie: cookieStore.toString(),
-            },
-            cache: 'no-store',
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
-        const json = await response.json();
-
-        if (json.success && json.data) {
-          return { data: json.data, error: null };
-        } else {
-          throw new Error('Invalid response format');
-        }
-      } catch (err) {
-        platform.log('Error fetching page data:', err);
-        return {
-          data: [],
-          error: err instanceof Error ? err.message : 'An error occurred',
-        };
-      }
-    }
-
-    export default async function PageNamePage() {
-      const { data, error } = await fetchPageData();
-
-      return (
-        <div className="pt-6 px-6">
-          <TourStep
-            id="page-title"
-            title="[Page Title]"
-            content="[Short description of what this tool does — used in the guided tour]"
-            order={0}
-          >
-            <PageTitle
-              icon={SomeIcon}
-              text="[Page Title]"
-              subheading="[Short subheading describing the page]"
-            />
-          </TourStep>
-          <PageClientComponent initialData={data} initialError={error} />
-        </div>
-      );
-    }
-    ```
