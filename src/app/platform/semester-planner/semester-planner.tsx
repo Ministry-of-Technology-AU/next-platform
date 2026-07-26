@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
 import { CourseSelection } from "./components/course-selection";
@@ -177,6 +177,72 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
     course: null,
   });
 
+  // Activity tracking for auto-sync
+  const isDirtyRef = useRef(false);
+  const markDirty = useCallback(() => {
+    isDirtyRef.current = true;
+  }, []);
+
+  // Save logic (lifted from DraftTabs for auto-sync)
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveDraft = useCallback(async (isAutoSave = false) => {
+    const activeDraft = drafts.find(d => d.id === activeDraftId);
+    if (!activeDraft) {
+      if (!isAutoSave) toast.error("Active draft not found");
+      return;
+    }
+    if (activeDraft.courses.length === 0) {
+      if (!isAutoSave) toast.error("No courses to save in the current draft");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const updatedDrafts = drafts.map(d => d.id === activeDraft.id ? { ...activeDraft, updatedAt: new Date().toISOString() } : d);
+      const response = await fetch(`/api/platform/semester-planner/drafts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ drafts: updatedDrafts }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        isDirtyRef.current = false; // Reset dirty flag on successful save
+        if (isAutoSave) {
+          toast.success(`Draft "${activeDraft.name}" auto-saved successfully!`, { duration: 2500 });
+        } else {
+          toast.success(`Draft "${activeDraft.name}" saved successfully!`);
+        }
+      } else {
+        toast.error(result.error || 'Failed to save draft');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('Failed to save draft. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [drafts, activeDraftId]);
+
+  // Manual save (shows manual save success toast)
+  const handleManualSave = useCallback(async () => {
+    await handleSaveDraft(false);
+  }, [handleSaveDraft]);
+
+  // Auto-sync: save every 20 seconds ONLY if there is user activity (isDirtyRef is true)
+  const handleSaveDraftRef = useRef(handleSaveDraft);
+  useEffect(() => {
+    handleSaveDraftRef.current = handleSaveDraft;
+  }, [handleSaveDraft]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isDirtyRef.current) {
+        handleSaveDraftRef.current(true); // isAutoSave = true
+      }
+    }, 20000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   const handleToggleFullScreen = useCallback(() => {
@@ -266,6 +332,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
       const color = DEPARTMENT_COLOR_MAP[course.department] || COURSE_COLORS[0];
       const scheduledCourse: ScheduledCourse = { ...course, color };
 
+      markDirty();
       setDrafts((prev) =>
         prev.map((draft) =>
           draft.id === activeDraftId
@@ -320,6 +387,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
   // Color picker is now only for changing color, not for adding
   const handleColorSelect = useCallback(
     (course: Course, color: string) => {
+      markDirty();
       setDrafts((prev) =>
         prev.map((draft) =>
           draft.id === activeDraftId
@@ -341,6 +409,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
   const handleRemoveCourse = useCallback(
     (courseId: string, day: string, slot: string) => {
+      markDirty();
       setDrafts((prev) =>
         prev.map((draft) =>
           draft.id === activeDraftId
@@ -404,6 +473,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         updatedAt: new Date(),
       };
 
+      markDirty();
       setDrafts((prev) => [...prev, newDraft]);
       setActiveDraftId(newDraft.id);
 
@@ -432,6 +502,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         updatedAt: new Date(),
       };
 
+      markDirty();
       setDrafts((prev) => [...prev, newDraft]);
       setActiveDraftId(newDraft.id);
       toast.success(`Draft "${newName}" created from "${sourceDraft.name}"`, {
@@ -443,8 +514,9 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
   const handleRenameDraft = useCallback((draftId: string, newName: string) => {
     if (!newName.trim()) return;
+    markDirty();
     setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, name: newName.trim(), updatedAt: new Date() } : d));
-  }, []);
+  }, [markDirty]);
 
   const handleDeleteDraft = useCallback(
     (draftId: string) => {
@@ -453,6 +525,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         return;
       }
 
+      markDirty();
       setDrafts((prev) => prev.filter((d) => d.id !== draftId));
 
       if (activeDraftId === draftId) {
@@ -554,6 +627,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
   const handleToggleLock = useCallback(
     (courseId: string, day: string, slot: string) => {
+      markDirty();
       const key = `${courseId}-${day}-${slot}`;
       setLockedCourses((prev) => {
         const newSet = new Set(prev);
@@ -576,6 +650,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
   const handleRecolorCourse = useCallback(
     (courseId: string, day: string, slot: string, color: string) => {
+      markDirty();
       setDrafts((prev) =>
         prev.map((draft) =>
           draft.id === activeDraftId
@@ -637,6 +712,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             <DraftTabs
               drafts={drafts}
               activeDraftId={activeDraftId}
+              activeDraftCourses={activeDraft.courses}
               onCreateDraft={handleCreateDraft}
               onDuplicateDraft={handleDuplicateDraft}
               onDeleteDraft={handleDeleteDraft}
@@ -644,6 +720,8 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
               onDownloadTimetable={handleDownloadTimetable}
               onRenameDraft={handleRenameDraft}
               onToggleFullScreen={() => { }}
+              onSaveDraft={handleManualSave}
+              isSaving={isSaving}
               isFullScreenMode={true}
             >
               <TimetableGrid
@@ -665,6 +743,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
           <DraftTabs
             drafts={drafts}
             activeDraftId={activeDraftId}
+            activeDraftCourses={activeDraft.courses}
             onCreateDraft={handleCreateDraft}
             onDuplicateDraft={handleDuplicateDraft}
             onDeleteDraft={handleDeleteDraft}
@@ -672,6 +751,8 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             onDownloadTimetable={handleDownloadTimetable}
             onRenameDraft={handleRenameDraft}
             onToggleFullScreen={handleToggleFullScreen}
+            onSaveDraft={handleManualSave}
+            isSaving={isSaving}
           >
 
             <TourStep

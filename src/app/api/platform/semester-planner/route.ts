@@ -12,6 +12,7 @@ interface RawCourseData {
   year: string;
   description?: string;
   prerequisites?: any[];
+  credits?: number;
 }
 
 interface TimeSlot {
@@ -28,7 +29,7 @@ interface Course {
   location: string;
   description: string;
   prerequisites: string[];
-  credits: number;
+  credits?: number;
   timeSlots: TimeSlot[];
   hasSaturday: boolean;
 }
@@ -205,6 +206,7 @@ async function formatCourses(): Promise<Course[]> {
       location,
       description: course.description || 'No description available',
       prerequisites,
+      ...(typeof course.credits === 'number' ? { credits: course.credits } : {}),
       timeSlots,
       hasSaturday
     } as Course;

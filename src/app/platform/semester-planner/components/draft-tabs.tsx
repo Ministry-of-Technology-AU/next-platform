@@ -3,7 +3,8 @@
 import type React from "react";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Copy, Download, Trash2, Save, Maximize2, Calendar } from "lucide-react";
+import { Plus, Copy, Download, Trash2, Save, Maximize2, Calendar, GraduationCap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -30,6 +31,7 @@ import { ScheduledCourse } from "../types";
 interface DraftTabsProps {
   drafts: TimetableDraft[];
   activeDraftId: string;
+  activeDraftCourses: ScheduledCourse[];
   onCreateDraft: (name: string) => void;
   onDuplicateDraft: (draftId: string, newName: string) => void;
   onDeleteDraft: (draftId: string) => void;
@@ -37,6 +39,8 @@ interface DraftTabsProps {
   onDownloadTimetable: (draftId: string) => void;
   onRenameDraft: (draftId: string, newName: string) => void;
   onToggleFullScreen: () => void;
+  onSaveDraft: () => Promise<void>;
+  isSaving: boolean;
   // syncCalendar: () => Promise<void>;
   isFullScreenMode?: boolean;
   children: React.ReactNode;
@@ -45,6 +49,7 @@ interface DraftTabsProps {
 export function DraftTabs({
   drafts,
   activeDraftId,
+  activeDraftCourses,
   onCreateDraft,
   onDuplicateDraft,
   onDeleteDraft,
@@ -52,6 +57,8 @@ export function DraftTabs({
   onDownloadTimetable,
   onRenameDraft,
   onToggleFullScreen,
+  onSaveDraft,
+  isSaving: isSavingProp,
   isFullScreenMode = false,
   children,
 }: DraftTabsProps) {
@@ -62,7 +69,6 @@ export function DraftTabs({
   const [isDuplicateOpen, setIsDuplicateOpen] = useState(false);
   const [isCalendarSyncOpen, setIsCalendarSyncOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [duplicateSourceId, setDuplicateSourceId] = useState("");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -84,37 +90,6 @@ export function DraftTabs({
     }
   };
 
-  const handleSaveDraft = useCallback(async () => {
-    const activeDraft = drafts.find(d => d.id === activeDraftId);
-    if (!activeDraft) {
-      toast.error("Active draft not found");
-      return;
-    }
-    if (activeDraft.courses.length === 0) {
-      toast.error("No courses to save in the current draft");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      const updatedDrafts = drafts.map(d => d.id === activeDraft.id ? { ...activeDraft, updatedAt: new Date().toISOString() } : d);
-      const response = await fetch(`/api/platform/semester-planner/drafts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ drafts: updatedDrafts }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        toast.success(`Draft "${activeDraft.name}" saved successfully!`);
-      } else {
-        toast.error(result.error || 'Failed to save draft');
-      }
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      toast.error('Failed to save draft. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [drafts, activeDraftId]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -132,7 +107,7 @@ export function DraftTabs({
             break;
           case 's':
             e.preventDefault();
-            handleSaveDraft();
+            onSaveDraft();
             break;
           case 'l':
             e.preventDefault();
@@ -143,7 +118,7 @@ export function DraftTabs({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeDraftId, onDownloadTimetable, handleSaveDraft]);
+  }, [activeDraftId, onDownloadTimetable, onSaveDraft]);
 
   const startEditing = (draftId: string, currentName: string) => {
     setEditingDraftId(draftId);
@@ -334,6 +309,26 @@ export function DraftTabs({
           </div>
         </TourStep>
 
+        {/* Credit Count Badge */}
+        {(() => {
+          const totalCredits = activeDraftCourses.reduce((sum, c) => sum + (c.credits ?? 0), 0);
+          const hasCreditsData = activeDraftCourses.some(c => typeof c.credits === 'number');
+          if (!hasCreditsData || activeDraftCourses.length === 0) return null;
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary/40 dark:bg-secondary/15 backdrop-blur-sm border border-secondary/60 dark:border-secondary/40 text-secondary-foreground dark:text-foreground text-xs font-semibold select-none shrink-0">
+                  <GraduationCap className="h-3.5 w-3.5" />
+                  <span>{totalCredits} Credits</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-sm">Total credits across {activeDraftCourses.length} course{activeDraftCourses.length !== 1 ? 's' : ''} in this draft</p>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })()}
+
         {/* Buttons */}
         <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center justify-end">
           <TourStep
@@ -458,11 +453,11 @@ export function DraftTabs({
                   size="sm"
                   variant="outline"
                   className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
-                  onClick={handleSaveDraft}
-                  disabled={isSaving}
+                  onClick={onSaveDraft}
+                  disabled={isSavingProp}
                 >
                   <Save className="h-3.5 w-3.5 xl:mr-1.5" />
-                  {isSaving ? 'Saving...' : <span className="hidden xl:inline">Save Draft</span>}
+                  {isSavingProp ? 'Saving...' : <span className="hidden xl:inline">Save Draft</span>}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

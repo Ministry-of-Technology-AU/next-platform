@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Plus, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,56 @@ export function CourseSelection({
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Senior FC detection: parse CSV and extract LS codes. Ignore rows without LS code.
+  const [seniorFCCodes, setSeniorFCCodes] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    fetch('/Senior FCs Monsoon 2026.csv')
+      .then(res => {
+        if (!res.ok) throw new Error('CSV fetch failed');
+        return res.text();
+      })
+      .then(csvText => {
+        const fullCodes = new Set<string>();
+        const lines = csvText.split('\n');
+
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i]?.trim();
+          if (!line) continue;
+
+          // Parse CSV line (handle quoted fields with commas)
+          const fields: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          for (const char of line) {
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              fields.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          fields.push(current.trim());
+
+          // Extract full LS Code (index 4) if present: "FC-0102-6"
+          const lsCode = (fields[4] || '').trim().toUpperCase();
+
+          if (lsCode && lsCode.length > 0) {
+            // Full LS Code present -> exact match on course code
+            fullCodes.add(lsCode);
+          }
+          // Rows without LS Code are ignored
+        }
+
+        setSeniorFCCodes(fullCodes);
+      })
+      .catch(err => {
+        console.warn('Could not load Senior FCs CSV:', err);
+      });
+  }, []);
+
   const handleCardClick = (course: Course) => {
     setSelectedCourse(course);
     setIsDialogOpen(true);
@@ -55,6 +105,14 @@ export function CourseSelection({
     );
     return depts.sort();
   }, [courses]);
+
+  // Check if a course code matches a senior FC (exact LS code match only)
+  const isSeniorFC = useMemo(() => {
+    return (courseCode: string): boolean => {
+      if (!courseCode) return false;
+      return seniorFCCodes.has(courseCode.trim().toUpperCase());
+    };
+  }, [seniorFCCodes]);
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
@@ -124,8 +182,13 @@ export function CourseSelection({
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-medium text-sm">{course.code}</h4>
+                        {isSeniorFC(course.code) && (
+                          <Badge className="text-[10px] px-1.5 py-0 h-4 bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20">
+                            Senior FC
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {course.name}
@@ -159,8 +222,13 @@ export function CourseSelection({
           {selectedCourse && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+                <DialogTitle className="flex items-center gap-2 flex-wrap">
                   <span>{selectedCourse.code}</span>
+                  {isSeniorFC(selectedCourse.code) && (
+                    <Badge className="text-xs bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20">
+                      Senior FC
+                    </Badge>
+                  )}
                   {(selectedCourse as any).hasSaturday && (
                     <Badge variant="destructive" className="text-xs">
                       Saturday Class

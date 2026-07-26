@@ -1,18 +1,12 @@
 {
-    "version": "1.0.9",
-    "lastUpdated": "2026-04-18",
+    "version": "1.0.10",
+    "lastUpdated": "2026-07-26",
     "updates": [
         {
-            "id": "ashokan-around-launch",
-            "title": "NEW FEATURE: Ashokan Around!",
-            "description": "Find and share accommodation during this internship season! Connect with other Ashokans to find roommates or offer spare rooms."
-        },
-        {
-            "id": "apl-scorekeeping-launch",
-            "title": "TRACK APL LIVE!",
-            "description": "View live scores and status of the ongoing APL matches as they happen!",
-            "type": "new",
-            "link": "/platform/sports/apl"
+            "id": "sem-planner-improvements",
+            "title": "Major improvements to Semester Planner!",
+            "description": "We added: Daily syncing. Auto-saving drafts. Senior/Junior FCs. Semester credit counts.",
+            "link": "/platform/semester-planner"
         }
     ]
 }

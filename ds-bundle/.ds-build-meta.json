@@ -1,0 +1,9 @@
+{
+  "namespace": "AshokaDS",
+  "source": "..@0.1.0",
+  "shape": "package",
+  "provider": "NextAuthProvider",
+  "componentCount": 229,
+  "skippedStoryIds": [],
+  "runtimeFontPrefixes": []
+}
