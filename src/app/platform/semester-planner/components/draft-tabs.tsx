@@ -3,8 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Copy, Download, Trash2, Save, Maximize2, Calendar, GraduationCap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Plus, Copy, Download, Trash2, Save, Maximize2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -26,12 +25,10 @@ import { toast } from "sonner";
 import { TourStep } from "@/components/guided-tour";
 import type { TimetableDraft } from "../types";
 import { useIsMac } from "@/hooks/useIsMac";
-import { ScheduledCourse } from "../types";
 
 interface DraftTabsProps {
   drafts: TimetableDraft[];
   activeDraftId: string;
-  activeDraftCourses: ScheduledCourse[];
   onCreateDraft: (name: string) => void;
   onDuplicateDraft: (draftId: string, newName: string) => void;
   onDeleteDraft: (draftId: string) => void;
@@ -49,7 +46,6 @@ interface DraftTabsProps {
 export function DraftTabs({
   drafts,
   activeDraftId,
-  activeDraftCourses,
   onCreateDraft,
   onDuplicateDraft,
   onDeleteDraft,
@@ -308,26 +304,6 @@ export function DraftTabs({
             </ScrollArea>
           </div>
         </TourStep>
-
-        {/* Credit Count Badge */}
-        {(() => {
-          const totalCredits = activeDraftCourses.reduce((sum, c) => sum + (c.credits ?? 0), 0);
-          const hasCreditsData = activeDraftCourses.some(c => typeof c.credits === 'number');
-          if (!hasCreditsData || activeDraftCourses.length === 0) return null;
-          return (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary/40 dark:bg-secondary/15 backdrop-blur-sm border border-secondary/60 dark:border-secondary/40 text-secondary-foreground dark:text-foreground text-xs font-semibold select-none shrink-0">
-                  <GraduationCap className="h-3.5 w-3.5" />
-                  <span>{totalCredits} Credits</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-sm">Total credits across {activeDraftCourses.length} course{activeDraftCourses.length !== 1 ? 's' : ''} in this draft</p>
-              </TooltipContent>
-            </Tooltip>
-          );
-        })()}
 
         {/* Buttons */}
         <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center justify-end">

@@ -712,7 +712,6 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             <DraftTabs
               drafts={drafts}
               activeDraftId={activeDraftId}
-              activeDraftCourses={activeDraft.courses}
               onCreateDraft={handleCreateDraft}
               onDuplicateDraft={handleDuplicateDraft}
               onDeleteDraft={handleDeleteDraft}
@@ -743,7 +742,6 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
           <DraftTabs
             drafts={drafts}
             activeDraftId={activeDraftId}
-            activeDraftCourses={activeDraft.courses}
             onCreateDraft={handleCreateDraft}
             onDuplicateDraft={handleDuplicateDraft}
             onDeleteDraft={handleDeleteDraft}
