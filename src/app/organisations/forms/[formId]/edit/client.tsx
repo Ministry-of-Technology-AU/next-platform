@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { editorReducer, isMutating, type EditorAction, type EditorState } from './editor-reducer';
 import { BlockPalette } from './_components/block-palette';
 import { BuilderCanvas } from './_components/builder-canvas';
@@ -282,23 +283,30 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
             <Input
               value={state.title}
               onChange={(e) => dispatch({ type: 'SET_META', patch: { title: e.target.value } })}
-              className="h-9 max-w-xs border-transparent bg-transparent px-2 text-base font-semibold shadow-none hover:border-border focus-visible:border-input"
+              className="h-9 max-w-xs border-border bg-card px-2 text-base font-semibold focus-visible:border-input"
               aria-label="Form title"
             />
             <Pencil className="pointer-events-none -ml-6 h-3.5 w-3.5 text-muted-foreground" />
           </div>
 
           <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={copyShareLink}
-              className="gap-1.5 text-muted-foreground"
-            >
-              <Link2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={copyShareLink}
+                  className="text-foreground hover:bg-muted"
+                  aria-label="Share"
+                >
+                  <Link2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Share
+              </TooltipContent>
+            </Tooltip>
             <ThemeEditor
               theme={state.schema.theme}
               onChange={(theme) => dispatch({ type: 'SET_THEME', theme })}
@@ -311,21 +319,40 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
               onMeta={(patch) => dispatch({ type: 'SET_META', patch })}
               onSettings={(settings) => dispatch({ type: 'SET_SETTINGS', settings })}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setPreviewing((p) => !p)}
-              className="gap-1.5"
-            >
-              {previewing ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {previewing ? 'Edit' : 'Preview'}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setPreviewing((p) => !p)}
+                  className="text-foreground hover:bg-muted"
+                  aria-label={previewing ? 'Edit' : 'Preview'}
+                >
+                  {previewing ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {previewing ? 'Edit' : 'Preview'}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  onClick={() => void save()}
+                  className="rounded-full"
+                  aria-label="Save"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Save
+              </TooltipContent>
+            </Tooltip>
             <SaveIndicator state={saveState} lastSaved={lastSaved} />
-            <Button type="button" size="sm" onClick={() => void save()} className="gap-1.5">
-              <Save className="h-4 w-4" />
-              Save
-            </Button>
           </div>
         </div>
 

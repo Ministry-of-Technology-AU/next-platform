@@ -1,14 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Eye, FileText, Send, Pencil, BarChart3, Link2, Trash2, MoreVertical } from 'lucide-react';
+import { Eye, FileText, Send, Pencil, BarChart3, Link2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import type { FormStatus } from '@/lib/forms/strapi-forms';
 import type { FormSummary } from '../types';
 
@@ -62,37 +56,35 @@ export function FormCard({
 
       <div className="mt-auto flex items-center gap-2">
         <Button asChild size="sm" variant="outline" className="flex-1 gap-1.5">
-          <Link href={`/organisations/forms/${form.id}/edit`}>
-            <Pencil className="h-3.5 w-3.5" />
-            Edit
-          </Link>
-        </Button>
-        <Button asChild size="sm" variant="outline" className="flex-1 gap-1.5">
           <Link href={`/organisations/forms/${form.id}/responses`}>
             <BarChart3 className="h-3.5 w-3.5" />
             Responses
           </Link>
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" className="h-9 w-9" aria-label="More actions">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onCopyLink(form)}>
-              <Link2 className="mr-2 h-4 w-4" />
-              Copy share link
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDelete(form)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1">
+          <Button asChild size="icon" variant="ghost" aria-label="Edit form">
+            <Link href={`/organisations/forms/${form.id}/edit`}>
+              <Pencil className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => onCopyLink(form)}
+            aria-label="Copy share link"
+          >
+            <Link2 className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => onDelete(form)}
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            aria-label="Delete form"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

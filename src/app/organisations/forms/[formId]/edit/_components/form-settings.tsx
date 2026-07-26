@@ -3,6 +3,7 @@
 import { Settings } from 'lucide-react';
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { DateTimePicker } from '@/components/form';
 import { RichTextEditor as UIRichTextEditor } from '@/components/ui/rich-text-editor';
 import { Field, TextField, ToggleField, SelectField } from './inspector-fields';
@@ -30,12 +31,24 @@ export function FormSettingsSheet({
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button type="button" variant="outline" size="sm" className="gap-1.5">
-          <Settings className="h-4 w-4" />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <SheetTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-foreground hover:bg-muted"
+              aria-label="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
           Settings
-        </Button>
-      </SheetTrigger>
+        </TooltipContent>
+      </Tooltip>
       <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Form settings</SheetTitle>
