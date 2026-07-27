@@ -187,7 +187,7 @@ function parsePrerequisites(prerequisites: any[]): string[] {
 async function formatCourses(): Promise<Course[]> {
   const rawCourses = await fetchCourses();
 
-  return rawCourses.map((course, index) => {
+  return rawCourses.map((course) => {
     const timeSlots = parseTimeSlots(course.classDetails);
     const location = parseLocation(course.classDetails);
     const hasSaturday = timeSlots.some(slot => slot.day === 'Saturday');
@@ -196,7 +196,7 @@ async function formatCourses(): Promise<Course[]> {
     const prerequisites = parsePrerequisites(course.prerequisites || []);
 
     return {
-      id: `${course.courseCode}-${index}`,
+      id: course.courseCode,
       code: course.courseCode,
       name: course.courseTitle,
       professor: course.faculty?.replace('@ashoka.edu.in', '').replace(/\./g, ' ').split(' ').map(word =>

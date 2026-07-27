@@ -35,10 +35,25 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
 
   const [drafts, setDrafts] = useState<TimetableDraft[]>(() => {
     if (Array.isArray(initialDrafts) && initialDrafts.length > 0) {
+      const freshCourseMap = new Map(courses.map((c) => [c.code, c]));
       return initialDrafts.map((d: any) => ({
         ...d,
         createdAt: d.createdAt ? new Date(d.createdAt) : new Date(),
         updatedAt: d.updatedAt ? new Date(d.updatedAt) : new Date(),
+        courses: (d.courses ?? []).map((savedCourse: any) => {
+          const fresh = freshCourseMap.get(savedCourse.code);
+          if (!fresh) return savedCourse;
+          return {
+            ...savedCourse,
+            credits: fresh.credits,
+            name: fresh.name,
+            professor: fresh.professor,
+            location: fresh.location,
+            description: fresh.description,
+            prerequisites: fresh.prerequisites,
+            department: fresh.department,
+          };
+        }),
       }));
     }
     return [
@@ -64,8 +79,8 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
   useEffect(() => {
     if (!Array.isArray(initialDrafts) || initialDrafts.length === 0) return;
 
-    // Build a lookup map from course id -> fresh course data
-    const freshCourseMap = new Map(courses.map((c) => [c.id, c]));
+    // Build a lookup map from course code -> fresh course data
+    const freshCourseMap = new Map(courses.map((c) => [c.code, c]));
 
     // Helper: check if two TimeSlot arrays are identical
     const timeSlotsChanged = (saved: typeof courses[0]['timeSlots'], fresh: typeof courses[0]['timeSlots']): boolean => {
@@ -104,7 +119,7 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
       const removedDueToClash: { code: string; clashWith: string }[] = [];
 
       for (const savedCourse of parsedDraft.courses) {
-        const freshCourse = freshCourseMap.get(savedCourse.id);
+        const freshCourse = freshCourseMap.get(savedCourse.code);
 
         // Course no longer exists in backend — keep as-is (or you could remove; keeping for now)
         if (!freshCourse) {
@@ -115,7 +130,17 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
         const changed = timeSlotsChanged(savedCourse.timeSlots, freshCourse.timeSlots);
 
         if (!changed) {
-          updatedCourses.push(savedCourse);
+          // Merge fresh metadata (credits, name, professor, etc.) while keeping saved color
+          updatedCourses.push({
+            ...savedCourse,
+            credits: freshCourse.credits,
+            name: freshCourse.name,
+            professor: freshCourse.professor,
+            location: freshCourse.location,
+            description: freshCourse.description,
+            prerequisites: freshCourse.prerequisites,
+            department: freshCourse.department,
+          });
           continue;
         }
 
@@ -129,8 +154,19 @@ export function SemesterPlannerClient({ courses, initialDrafts }: SemesterPlanne
             clashWith: conflictResult.with!.code,
           });
         } else {
-          // Update to fresh timings, keep color and other metadata
-          updatedCourses.push({ ...savedCourse, timeSlots: freshCourse.timeSlots, hasSaturday: freshCourse.hasSaturday });
+          // Update to fresh timings and all metadata, keep color and user-specific metadata
+          updatedCourses.push({
+            ...savedCourse,
+            timeSlots: freshCourse.timeSlots,
+            hasSaturday: freshCourse.hasSaturday,
+            credits: freshCourse.credits,
+            name: freshCourse.name,
+            professor: freshCourse.professor,
+            location: freshCourse.location,
+            description: freshCourse.description,
+            prerequisites: freshCourse.prerequisites,
+            department: freshCourse.department,
+          });
           timingChangedAndFit.push(savedCourse.code);
         }
       }
