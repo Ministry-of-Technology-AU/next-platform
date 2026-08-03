@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import { strapiGet, strapiPost } from "./lib/apis/strapi"
+import { getUserIdByEmail, getOrganisationIdByUserId } from "./lib/userid"
 
 // Special admin emails list for organization access
 const ORGANIZATION_EMAILS = [
@@ -136,27 +137,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const aplAdminEmails = (process.env.APL_ADMIN_EMAILS || '').split(',').map(email => email.trim());
         const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim()).filter(Boolean);
 
+        // Check if the user is associated with an organisation in the database
+        let hasOrg = false;
+        try {
+          const userId = await getUserIdByEmail(email);
+          const orgId = userId ? await getOrganisationIdByUserId(userId) : null;
+          hasOrg = orgId !== null;
+        } catch (error) {
+          console.error("Error during organisation auth check in JWT callback:", error);
+        }
+
         // ashoka_admin role takes highest precedence — they get filtered platform access and organization access
         if (adminEmails.includes(email)) {
           token.role = 'ashoka_admin';
           token.access = ['platform', 'ashoka_admin', 'organization'];
         }
-        // Determine user role based on email patterns
-        // if (ORGANIZATION_EMAILS.includes(email)) {
-        //   token.role = 'organization';
-        //   token.access = ['platform', 'organization'];
-        // } else if (process.env.BETA_TESTERS?.split(',').includes(email)) {
-        //   token.role = 'beta_tester';
-        //   token.access = ['platform', 'beta_features'];
-        // } else if (email.includes('_ug')) {
-        //   token.role = 'student';
-        //   token.access = ['platform'];
-        // } else {
-        //   token.role = 'user';
-        //   token.access = ['platform']; // Default access
-        // }
-        // Only for beta launch TODO: Change this before full launch
-        else if (ORGANIZATION_EMAILS.includes(email)) {
+        else if (ORGANIZATION_EMAILS.includes(email) || hasOrg) {
           token.role = 'organization';
           token.access = ['platform', 'organization'];
         } else if (process.env.BETA_TESTERS?.split(',').includes(email)) {
