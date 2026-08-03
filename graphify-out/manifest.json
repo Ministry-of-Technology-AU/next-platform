@@ -2125,8 +2125,8 @@
     "semantic_hash": ""
   },
   "src/app/organisations/page.tsx": {
-    "mtime": 1785647571.316252,
-    "ast_hash": "63578ebb70fa9b93eb393c582194bc39",
+    "mtime": 1785735726.368153,
+    "ast_hash": "7ab6d7392a48c06675fe4ec53eac34c1",
     "semantic_hash": ""
   },
   "src/app/organisations/profile/OrganisationProfileClient.tsx": {
@@ -2140,8 +2140,8 @@
     "semantic_hash": ""
   },
   "src/components/sidebar/organisation-sidebar-entries.json": {
-    "mtime": 1785647223.1280694,
-    "ast_hash": "ff1aa0803e5398c459a5059a54e50186",
+    "mtime": 1785735375.5759394,
+    "ast_hash": "1cf4ce0da8d646ac5aa6fa46a60c2d24",
     "semantic_hash": ""
   },
   "src/components/ui/field.tsx": {

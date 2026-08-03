@@ -18,6 +18,11 @@
                     "title": "Inductions",
                     "icon": "Newspaper",
                     "href": "/inductions"
+                },
+                {
+                    "title": "When2meet",
+                    "icon": "CalendarSearch",
+                    "href": "../platform/when2meet"
                 }
             ]
         },
