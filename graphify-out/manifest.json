@@ -200,18 +200,18 @@
     "semantic_hash": "2eb209bbe7329505e065f7dcf362b2d6"
   },
   "src/app/api/platform/semester-planner/calendar/route.ts": {
-    "mtime": 1785075605.5122013,
-    "ast_hash": "f33b6e309a38264784f44247d8dc8653",
+    "mtime": 1786021740.0439093,
+    "ast_hash": "65775efc72e9766513b169deefc21f3a",
     "semantic_hash": ""
   },
   "src/app/api/platform/semester-planner/drafts/route.ts": {
-    "mtime": 1776186619.3280387,
+    "mtime": 1786022323.8649259,
     "ast_hash": "1c9e4d7c825a01d29bf86a6af4b9ce5a",
-    "semantic_hash": "1c9e4d7c825a01d29bf86a6af4b9ce5a"
+    "semantic_hash": ""
   },
   "src/app/api/platform/semester-planner/route.ts": {
-    "mtime": 1785154823.7648773,
-    "ast_hash": "1db1223c71b0f349bc2fb9e720e9e94f",
+    "mtime": 1786022313.4266393,
+    "ast_hash": "7bd8cd29c676a56e75cb9fecbdc50afc",
     "semantic_hash": ""
   },
   "src/app/api/platform/sg-compose/dashboard/route.ts": {
@@ -935,9 +935,9 @@
     "semantic_hash": "ce7d169f401538b2dab2f0adcee8906a"
   },
   "src/app/platform/semester-planner/holidays.ts": {
-    "mtime": 1782642686.673428,
-    "ast_hash": "58a0fbb480c2fa681476dabf15d8d919",
-    "semantic_hash": "58a0fbb480c2fa681476dabf15d8d919"
+    "mtime": 1786021720.00198,
+    "ast_hash": "f5a845f48a1ea43843d3fe343369ba5c",
+    "semantic_hash": ""
   },
   "src/app/platform/semester-planner/layout.tsx": {
     "mtime": 1782642686.6738658,
@@ -1675,9 +1675,9 @@
     "semantic_hash": "f2faae9fd87eb642adf654d16c14f55d"
   },
   "src/data/timetable-planner.json": {
-    "mtime": 1782571949.6723542,
-    "ast_hash": "88579b375b67f01b60818979e94a841e",
-    "semantic_hash": "88579b375b67f01b60818979e94a841e"
+    "mtime": 1786021888.8515956,
+    "ast_hash": "bebd9a62455adfee06fc04512cb96028",
+    "semantic_hash": ""
   },
   "src/hooks/use-mobile.ts": {
     "mtime": 1776186619.3969758,

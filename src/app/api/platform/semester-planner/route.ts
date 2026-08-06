@@ -130,17 +130,30 @@ function getDepartmentFromCourseCode(courseCode: string): string {
 async function fetchSemesterPlannerData(): Promise<any[]> {
   try {
     const response = await strapiGet('/semester-planner-sync');
+    
+    // Log the structure of the response to diagnose structural mismatch
+    console.log('[Semester Planner Sync] Raw response structure:', {
+      hasResponse: !!response,
+      keys: response ? Object.keys(response) : [],
+      hasData: !!response?.data,
+      dataKeys: response?.data ? Object.keys(response.data) : [],
+      hasAttributes: !!response?.data?.attributes,
+      attributesKeys: response?.data?.attributes ? Object.keys(response.data.attributes) : []
+    });
 
-    // The response structure for single types is: { data: { id, attributes: { current } } }
-    if (!response?.data?.attributes?.current) {
-      console.warn('Invalid Strapi response structure, falling back to local JSON');
+    // Support both wrapped (data.attributes.current) and flat (data.current or current) structures
+    const data = response?.data?.attributes ?? response?.data ?? response;
+    const current = data?.current;
+
+    if (!current) {
+      console.warn('[Semester Planner Sync] Invalid Strapi response structure (missing "current" property), falling back to local JSON');
       return timetableData as any[];
     }
 
-    platform.log('Successfully fetched semester planner data from Strapi');
-    return response.data.attributes.current;
+    console.log('[Semester Planner Sync] Successfully fetched semester planner data from Strapi');
+    return current;
   } catch (error) {
-    console.warn('Error fetching semester planner data from Strapi, falling back to local JSON:', error instanceof Error ? error.message : error);
+    console.warn('[Semester Planner Sync] Error fetching semester planner data from Strapi, falling back to local JSON:', error instanceof Error ? error.message : error);
     return timetableData as any[];
   }
 }
