@@ -247,9 +247,9 @@ export function CourseSelection({
                       <p className="text-muted-foreground">
                         <strong>Department:</strong> {selectedCourse.department}
                       </p>
-                      {/* <p className="text-muted-foreground">
-            <strong>Credits:</strong> {(selectedCourse as any).credits || 'TBA'}
-              </p> */}
+                      <p className="text-muted-foreground">
+                        <strong>Credits:</strong> {selectedCourse.credits !== undefined ? selectedCourse.credits : 'TBA'}
+                      </p>
                     </div>
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
