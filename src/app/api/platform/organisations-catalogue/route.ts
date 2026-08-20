@@ -139,6 +139,7 @@ export async function GET() {
           fullDescription: attrs.description || attrs.short_description || '',
           bannerUrl: bannerUrl,
           logoUrl: logoUrl,
+          email: attrs.email || null,
 
           // Member relations
           circle1_humans: (attrs.circle1_humans?.data || []).map((member: any) => ({
