@@ -25,9 +25,9 @@ export default async function InductionsPage() {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <PageTitle
-        text="Induction Cycles"
+        text="Inductions"
         icon={UserCheck}
-        subheading="Manage your organisation's induction cycles — create rounds, assign roles, build forms, and track applicants."
+        subheading="Manage your inductions end to end. Multiple cycles, roles and forms. Inductions, completely your way!"
       />
       <InductionsClient initialCycles={cycles} />
     </div>

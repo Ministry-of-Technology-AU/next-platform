@@ -155,7 +155,25 @@ export async function listCyclesByOrg(organisationId: number): Promise<Induction
   });
 
   const rows = res?.data ?? [];
-  return rows.map(normalizeCycle).filter((c: InductionCycleSummary | null): c is InductionCycleSummary => c !== null);
+  const cycles = rows.map(normalizeCycle).filter((c: InductionCycleSummary | null): c is InductionCycleSummary => c !== null);
+
+  for (const cycle of cycles) {
+    try {
+      const roles = await listRolesByCycle(cycle.id);
+      cycle.stats.rolesCount = roles.length;
+      let totalApps = 0;
+      for (const r of roles) {
+        const apps = await listApplicantsByRole(r.id);
+        totalApps += apps.length;
+      }
+      cycle.stats.applicantsCount = totalApps;
+      cycle.stats.totalFills = totalApps;
+    } catch (err) {
+      console.error(`Error computing backend stats for cycle ${cycle.id}:`, err);
+    }
+  }
+
+  return cycles;
 }
 
 export async function getCycleById(cycleId: string | number): Promise<InductionCycleSummary | null> {
@@ -167,7 +185,23 @@ export async function getCycleById(cycleId: string | number): Promise<InductionC
     },
   });
 
-  return normalizeCycle(res?.data);
+  const cycle = normalizeCycle(res?.data);
+  if (cycle) {
+    try {
+      const roles = await listRolesByCycle(cycle.id);
+      cycle.stats.rolesCount = roles.length;
+      let totalApps = 0;
+      for (const r of roles) {
+        const apps = await listApplicantsByRole(r.id);
+        totalApps += apps.length;
+      }
+      cycle.stats.applicantsCount = totalApps;
+      cycle.stats.totalFills = totalApps;
+    } catch (err) {
+      console.error(`Error computing backend stats for cycle ${cycleId}:`, err);
+    }
+  }
+  return cycle;
 }
 
 export async function createCycle(input: {

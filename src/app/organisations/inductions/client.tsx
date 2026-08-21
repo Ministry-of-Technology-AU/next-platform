@@ -18,15 +18,17 @@ import { NewCycleDialog } from './_components/new-cycle-dialog';
 import type { InductionCycleSummary, CycleStats } from './types';
 import { PLACEHOLDER_CYCLE_STATS } from './types';
 
-function aggregateStats(cycles: InductionCycleSummary[]): CycleStats {
-  if (cycles.length === 0) return PLACEHOLDER_CYCLE_STATS;
+function aggregateStats(cycles: InductionCycleSummary[]): CycleStats & { activeCyclesCount: number } {
+  if (cycles.length === 0) return { ...PLACEHOLDER_CYCLE_STATS, activeCyclesCount: 0 };
+  const activeCount = cycles.filter((c) => c.status === 'active').length;
   return {
     totalOpens: cycles.reduce((a, c) => a + (c.stats?.totalOpens || 0), 0),
     totalFills: cycles.reduce((a, c) => a + (c.stats?.totalFills || 0), 0),
     completionRate:
       cycles.reduce((a, c) => a + (c.stats?.completionRate || 0), 0) / Math.max(cycles.length, 1),
     rolesCount: cycles.reduce((a, c) => a + (c.stats?.rolesCount || 0), 0),
-    applicantsCount: cycles.reduce((a, c) => a + (c.stats?.applicantsCount || 0), 0),
+    applicantsCount: cycles.reduce((a, c) => a + (c.stats?.applicantsCount || c.stats?.totalFills || 0), 0),
+    activeCyclesCount: activeCount,
   };
 }
 

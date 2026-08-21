@@ -1,6 +1,7 @@
 'use client';
 
-import { BarChart3, Users, Target, Activity } from 'lucide-react';
+import { BarChart3, Users, Activity, Compass } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import type { CycleStats } from '../types';
 
 function StatCard({
@@ -34,15 +35,23 @@ function StatCard({
   );
 }
 
-export function CycleStatsBar({ stats }: { stats: CycleStats }) {
-  const completionPct = Math.round((stats.completionRate || 0) * 100);
-
+export function CycleStatsBar({ stats }: { stats: CycleStats & { activeCyclesCount?: number } }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard icon={Activity} label="Active Cycles" value={stats.rolesCount} accent="primary" />
-      <StatCard icon={Users} label="Total Applicants" value={stats.applicantsCount} accent="blue" />
-      <StatCard icon={BarChart3} label="Total Opens" value={stats.totalOpens} accent="secondary" />
-      <StatCard icon={Target} label="Completion Rate" value={`${completionPct}%`} accent="green" />
+      <StatCard icon={Activity} label="Active Cycles" value={stats.activeCyclesCount ?? 0} accent="primary" />
+      <StatCard icon={Users} label="Total Applicants" value={stats.applicantsCount || stats.totalFills || 0} accent="blue" />
+      <StatCard icon={BarChart3} label="Total Roles" value={stats.rolesCount || 0} accent="secondary" />
+      <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-5 flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green/10 text-green-dark dark:text-green-light">
+          <Compass className="w-6 h-6" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Top Source</p>
+          <Badge variant="outline" className="mt-1 text-xs text-muted-foreground font-normal">
+            Coming Soon
+          </Badge>
+        </div>
+      </div>
     </div>
   );
 }

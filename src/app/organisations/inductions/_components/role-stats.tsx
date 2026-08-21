@@ -36,21 +36,29 @@ function StatCard({
 }
 
 export function RoleStatsBar({ stats }: { stats: RoleStats }) {
-  const completionPct = Math.round((stats.completionRate || 0) * 100);
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={Send} label="Applicants / Fills" value={stats.fills} accent="green" />
         <StatCard icon={Eye} label="Opens" value={stats.opens} accent="blue" />
-        <StatCard icon={Send} label="Fills" value={stats.fills} accent="green" />
-        <StatCard icon={Target} label="Completion Rate" value={`${completionPct}%`} accent="primary" />
+        <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 text-primary dark:text-primary-bright">
+            <Send className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">Top Source</p>
+            <Badge variant="outline" className="mt-1 text-xs text-muted-foreground font-normal">
+              Coming Soon
+            </Badge>
+          </div>
+        </div>
         <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-5 flex items-center gap-4">
           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-muted text-muted-foreground">
             <Clock className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-medium text-muted-foreground">Top UTM</p>
-            <Badge variant="outline" className="mt-1 text-xs text-muted-foreground">
+            <Badge variant="outline" className="mt-1 text-xs text-muted-foreground font-normal">
               Coming Soon
             </Badge>
           </div>

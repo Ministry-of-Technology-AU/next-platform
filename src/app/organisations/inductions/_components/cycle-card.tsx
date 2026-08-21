@@ -64,9 +64,14 @@ export function CycleCard({
 
       {/* Stats */}
       <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-        <Stat icon={Eye} label="Opens" value={cycle.stats.totalOpens} />
-        <Stat icon={Send} label="Fills" value={cycle.stats.totalFills} />
-        <Stat icon={Users} label="Roles" value={cycle.stats.rolesCount} />
+        <Stat icon={Users} label="Total Roles" value={cycle.stats.rolesCount || 0} />
+        <Stat icon={Send} label="Applicants" value={cycle.stats.applicantsCount || cycle.stats.totalFills || 0} />
+        <div className="flex items-center gap-1 text-xs text-muted-foreground" title="Top Source">
+          <span>Top Source:</span>
+          <span className="rounded border border-border bg-muted/50 px-1.5 py-0.5 text-[10px] font-normal text-muted-foreground">
+            Coming Soon
+          </span>
+        </div>
       </div>
 
       {/* Actions */}
