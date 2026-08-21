@@ -16,9 +16,19 @@ import {
   ImageUpload,
 } from "@/components/form";
 import { toast } from "sonner";
-
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import Image from "next/image";
+
+function extractUsersList(relation: any): any[] {
+  if (!relation) return [];
+  const list = Array.isArray(relation)
+    ? relation
+    : (Array.isArray(relation?.data) ? relation.data : []);
+  return list.map((u: any) => ({
+    id: u.id,
+    username: u.username || u.attributes?.username || u.email || u.attributes?.email || `User #${u.id}`
+  }));
+}
 
 export default function OrganisationProfileClient({
   organisation,
@@ -113,16 +123,20 @@ export default function OrganisationProfileClient({
     organisation?.twitter || ""
   );
 
+  const circle1Users = React.useMemo(() => extractUsersList(organisation?.circle1_humans), [organisation]);
+  const circle2Users = React.useMemo(() => extractUsersList(organisation?.circle2_humans), [organisation]);
+  const membersUsers = React.useMemo(() => extractUsersList(organisation?.members), [organisation]);
+
   const [circle1, setCircle1] = useState<string[]>(
-    organisation?.circle1_humans?.map((u: any) => String(u.id)) || []
+    circle1Users.map((u: any) => String(u.id))
   );
 
   const [circle2, setCircle2] = useState<string[]>(
-    organisation?.circle2_humans?.map((u: { id: number }) => String(u.id)) || []
+    circle2Users.map((u: any) => String(u.id))
   );
 
   const [membersDrop, setMembersDrop] = useState<string[]>(
-    organisation?.members?.map((u: any) => String(u.id)) || []
+    membersUsers.map((u: any) => String(u.id))
   );
 
   const [isOpen, setIsOpen] = useState(
@@ -138,11 +152,11 @@ export default function OrganisationProfileClient({
         usersList.forEach(u => map.set(String(u.id), { id: String(u.id), label: u.username }));
       }
     };
-    addUsers(organisation?.circle1_humans);
-    addUsers(organisation?.circle2_humans);
-    addUsers(organisation?.members);
+    addUsers(circle1Users);
+    addUsers(circle2Users);
+    addUsers(membersUsers);
     return Array.from(map.values());
-  }, [organisation]);
+  }, [circle1Users, circle2Users, membersUsers]);
 
   const searchUsers = React.useCallback(async (query: string) => {
     if (!query) return [];

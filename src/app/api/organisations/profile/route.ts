@@ -1,6 +1,6 @@
 import { strapiGet } from "@/lib/apis/strapi";
 import { auth } from "@/auth"; // ← this is the new v5 way
-import { getUserIdByEmail } from "@/lib/userid";
+import { getUserIdByEmail, getOrganisationIdByUserId } from "@/lib/userid";
 import { strapiPut } from "@/lib/apis/strapi";
 import { NextRequest } from "next/server";
 import { uploadImageToCloudinary } from "@/lib/apis/cloudinary";
@@ -12,8 +12,6 @@ export async function GET() {
     const session = await auth();
 
     const email = session?.user?.email;
-
-
 
     // 🆔 Get user ID from email
     if (email) {
@@ -35,9 +33,45 @@ export async function GET() {
             },
         });
 
-        const organisation = user?.organisations?.[0] || null;
+        let organisation = user?.organisations?.[0] || null;
+
+        // If user.organisations is empty, lookup using getOrganisationIdByUserId (for circle1/circle2 leadership)
+        if (!organisation) {
+            const orgId = await getOrganisationIdByUserId(userId);
+            if (orgId) {
+                const orgRes = await strapiGet(`organisations/${orgId}`, {
+                    populate: {
+                        profile: true,
+                        circle1_humans: true,
+                        circle2_humans: true,
+                        members: true,
+                    }
+                });
+                const rawData = orgRes?.data || orgRes;
+                if (rawData) {
+                    organisation = rawData.attributes ? { id: rawData.id, ...rawData.attributes } : rawData;
+                }
+            }
+        }
+
         if (organisation) {
-            organisation.logo_url = organisation.profile?.profile_url || user?.profile_url || null;
+            const flattenRelation = (rel: any) => {
+                if (!rel) return [];
+                if (Array.isArray(rel)) return rel;
+                if (Array.isArray(rel.data)) {
+                    return rel.data.map((item: any) => item.attributes ? { id: item.id, ...item.attributes } : item);
+                }
+                if (rel.data && typeof rel.data === 'object') {
+                    return rel.data.attributes ? { id: rel.data.id, ...rel.data.attributes } : rel.data;
+                }
+                return rel;
+            };
+
+            organisation.circle1_humans = flattenRelation(organisation.circle1_humans);
+            organisation.circle2_humans = flattenRelation(organisation.circle2_humans);
+            organisation.members = flattenRelation(organisation.members);
+            organisation.profile = flattenRelation(organisation.profile);
+            organisation.logo_url = (Array.isArray(organisation.profile) ? organisation.profile[0]?.profile_url : organisation.profile?.profile_url) || user?.profile_url || null;
         }
 
         return new Response(JSON.stringify({ organisation }), { status: 200 });
@@ -47,9 +81,29 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
     try {
+        const session = await auth();
+        const email = session?.user?.email;
+        if (!email) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+        }
+
+        const userId = await getUserIdByEmail(email);
+        if (!userId) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+        }
+
+        const userOrgId = await getOrganisationIdByUserId(userId);
+        if (!userOrgId) {
+            return new Response(JSON.stringify({ error: "Forbidden: You are not associated with any organisation." }), { status: 403 });
+        }
+
         const formData = await request.formData();
 
         const organisationId = formData.get('organisationId') as string;
+
+        if (String(userOrgId) !== String(organisationId)) {
+            return new Response(JSON.stringify({ error: "Forbidden: You can only edit details for your own organisation." }), { status: 403 });
+        }
         const name = formData.get('name') as string;
         const type = formData.get('type') as string;
         const short_description = formData.get('short_description') as string;
