@@ -1,16 +1,16 @@
 # Graph Report - next-platform  (2026-08-21)
 
 ## Corpus Check
-- 539 files · ~1,217,429 words
+- 539 files · ~1,217,406 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3249 nodes · 7311 edges · 221 communities (194 shown, 27 thin omitted)
+- 3249 nodes · 7311 edges · 220 communities (193 shown, 27 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 96 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a8773478`
+- Built from commit: `0767bbe7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -220,7 +220,6 @@
 - [[_COMMUNITY_Community 211|Community 211]]
 - [[_COMMUNITY_Community 212|Community 212]]
 - [[_COMMUNITY_Community 213|Community 213]]
-- [[_COMMUNITY_Community 214|Community 214]]
 - [[_COMMUNITY_Community 215|Community 215]]
 - [[_COMMUNITY_Community 216|Community 216]]
 - [[_COMMUNITY_Community 217|Community 217]]
@@ -255,7 +254,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (221 total, 27 thin omitted)
+## Communities (220 total, 27 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
@@ -283,7 +282,7 @@ Nodes (23): ExtraCreditCard, HeaderRow, scaleOptions, Section3Data, Section3Prop
 
 ### Community 6 - "Community 6"
 Cohesion: 0.05
-Nodes (47): axiosConfig, buildQueryString(), strapi, StrapiCallProps, strapiDelete(), StrapiFields, strapiGet(), StrapiPagination (+39 more)
+Nodes (48): axiosConfig, buildQueryString(), strapi, StrapiCallProps, strapiDelete(), StrapiFields, strapiGet(), StrapiPagination (+40 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.06
@@ -299,7 +298,7 @@ Nodes (38): BlockInspectorProps, BLOCK_META, BlockMeta, PALETTE_GROUPS, BlockPal
 
 ### Community 10 - "Community 10"
 Cohesion: 0.09
-Nodes (31): DELETE(), POST(), GET(), uploadImageToCloudinary(), ArchivePuzzle, GET(), GET(), POST() (+23 more)
+Nodes (33): GET(), uploadImageToCloudinary(), ArchivePuzzle, GET(), GET(), POST(), GET(), ArchivePageProps (+25 more)
 
 ### Community 11 - "Community 11"
 Cohesion: 0.13
@@ -326,8 +325,8 @@ Cohesion: 0.12
 Nodes (7): Developer, DeveloperCredits(), DeveloperProps, DismissNewToolAlert(), NewToolBanner(), OrientationDialog(), Loader()
 
 ### Community 17 - "Community 17"
-Cohesion: 0.14
-Nodes (19): CreateBorrowRequestData, GET(), POST(), GET(), POST(), AuthenticatedUser, getAuthenticatedUser(), hasAccess() (+11 more)
+Cohesion: 0.15
+Nodes (16): MailParams, sendMail(), sendMailSG(), GET(), POST(), POST(), AuthenticatedUser, hasAccess() (+8 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.06
@@ -390,8 +389,8 @@ Cohesion: 0.27
 Nodes (8): Announcement(), AnnouncementProps, AnnouncementTag(), AnnouncementTagProps, AnnouncementTitle(), AnnouncementTitleProps, NewToolAlert(), NewToolAlertProps
 
 ### Community 33 - "Community 33"
-Cohesion: 0.11
-Nodes (24): deleteFromDrive(), drive, DriveFile, extractFileIds(), getEmailAttachments(), getPublicEmbedLink(), oauth2Client, UploadedFile (+16 more)
+Cohesion: 0.16
+Nodes (17): deleteFromDrive(), drive, DriveFile, extractFileIds(), getEmailAttachments(), getPublicEmbedLink(), oauth2Client, UploadedFile (+9 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.13
@@ -542,8 +541,8 @@ Cohesion: 0.15
 Nodes (14): colorMap, CourseDialog(), CourseDialogProps, Rating, ratingMetrics, Review, Disclosure(), DisclosureContent() (+6 more)
 
 ### Community 71 - "Community 71"
-Cohesion: 0.15
-Nodes (18): ansi_ljust(), format_ascii_box(), format_markdown(), format_master_md(), format_page_override_md(), generate_design_system(), hex_to_ansi(), persist_design_system() (+10 more)
+Cohesion: 0.17
+Nodes (16): ansi_ljust(), format_ascii_box(), format_markdown(), format_master_md(), generate_design_system(), hex_to_ansi(), persist_design_system(), Convert hex color to ANSI True Color swatch (██) with fallback. (+8 more)
 
 ### Community 72 - "Community 72"
 Cohesion: 0.25
@@ -950,8 +949,8 @@ Cohesion: 0.50
 Nodes (3): Trim and Delay, Trim the Beginning, Trim the End
 
 ### Community 188 - "Community 188"
-Cohesion: 0.50
-Nodes (4): _detect_page_type(), _generate_intelligent_overrides(), Generate intelligent overrides based on page type using layered search., Detect page type from context and search results.
+Cohesion: 0.33
+Nodes (6): _detect_page_type(), format_page_override_md(), _generate_intelligent_overrides(), Format a page-specific override file with intelligent AI-generated content., Generate intelligent overrides based on page type using layered search., Detect page type from context and search results.
 
 ### Community 190 - "Community 190"
 Cohesion: 0.50
@@ -977,17 +976,13 @@ Nodes (12): Decisions locked in, Environment / one-time (outside this repo), Ind
 Cohesion: 0.39
 Nodes (8): convertTo24HourFormat(), GET(), POST(), PUT(), sanitizeInput(), VALID_LOCATIONS, validateLocation(), validatePhoneNumber()
 
-### Community 214 - "Community 214"
-Cohesion: 0.47
-Nodes (5): AshokaWordlePage(), DailyPuzzle, getTodayDate(), getWordleData(), UserProgress
-
 ### Community 215 - "Community 215"
 Cohesion: 0.67
 Nodes (3): buttonVariants, CopyButton(), CopyButtonProps
 
 ### Community 216 - "Community 216"
-Cohesion: 0.16
-Nodes (14): strapiPut(), DELETE(), GET(), POST(), EventsCalendarPreferences, validatePreferences(), GET(), getDefaultPreferences() (+6 more)
+Cohesion: 0.10
+Nodes (26): DELETE(), POST(), strapiPut(), CreateBorrowRequestData, GET(), POST(), getAuthenticatedUser(), getCurrentDateISTString() (+18 more)
 
 ### Community 217 - "Community 217"
 Cohesion: 0.50
@@ -1005,11 +1000,11 @@ Nodes (3): Notes, Order of operations, Strapi collection types for the Form Buil
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Button()` connect `Community 22` to `Community 0`, `Community 1`, `Community 2`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 11`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 27`, `Community 28`, `Community 30`, `Community 32`, `Community 38`, `Community 40`, `Community 41`, `Community 44`, `Community 47`, `Community 54`, `Community 56`, `Community 60`, `Community 189`, `Community 70`, `Community 200`, `Community 73`, `Community 78`, `Community 82`, `Community 213`, `Community 85`, `Community 93`, `Community 110`?**
+- **Why does `Button()` connect `Community 22` to `Community 0`, `Community 1`, `Community 2`, `Community 5`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 27`, `Community 28`, `Community 30`, `Community 32`, `Community 38`, `Community 40`, `Community 41`, `Community 44`, `Community 47`, `Community 54`, `Community 56`, `Community 60`, `Community 189`, `Community 70`, `Community 200`, `Community 73`, `Community 78`, `Community 82`, `Community 213`, `Community 85`, `Community 93`, `Community 110`?**
   _High betweenness centrality (0.069) - this node is a cross-community bridge._
 - **Why does `cn()` connect `Community 18` to `Community 0`, `Community 1`, `Community 2`, `Community 5`, `Community 7`, `Community 8`, `Community 11`, `Community 12`, `Community 14`, `Community 19`, `Community 20`, `Community 149`, `Community 22`, `Community 27`, `Community 30`, `Community 32`, `Community 38`, `Community 40`, `Community 43`, `Community 51`, `Community 56`, `Community 62`, `Community 63`, `Community 70`, `Community 211`, `Community 85`, `Community 215`, `Community 99`, `Community 116`?**
   _High betweenness centrality (0.058) - this node is a cross-community bridge._
-- **Why does `strapiGet()` connect `Community 6` to `Community 1`, `Community 4`, `Community 10`, `Community 17`, `Community 19`, `Community 21`, `Community 24`, `Community 33`, `Community 41`, `Community 46`, `Community 49`, `Community 55`, `Community 57`, `Community 58`, `Community 74`, `Community 75`, `Community 76`, `Community 84`, `Community 212`, `Community 214`, `Community 216`?**
+- **Why does `strapiGet()` connect `Community 6` to `Community 1`, `Community 4`, `Community 10`, `Community 17`, `Community 19`, `Community 21`, `Community 24`, `Community 33`, `Community 41`, `Community 46`, `Community 49`, `Community 55`, `Community 57`, `Community 58`, `Community 74`, `Community 75`, `Community 76`, `Community 84`, `Community 212`, `Community 216`?**
   _High betweenness centrality (0.039) - this node is a cross-community bridge._
 - **Are the 22 inferred relationships involving `strapiGet()` (e.g. with `GET()` and `PUT()`) actually correct?**
   _`strapiGet()` has 22 INFERRED edges - model-reasoned connections that need verification._

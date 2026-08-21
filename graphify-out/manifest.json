@@ -220,8 +220,8 @@
     "semantic_hash": "edf63ceb38358ad8790816aa31ae855b"
   },
   "src/app/api/platform/sg-compose/new/route.ts": {
-    "mtime": 1787300693.5475845,
-    "ast_hash": "95f765e893c853c0449497d3cf14cb1b",
+    "mtime": 1787300755.468656,
+    "ast_hash": "0332726c4f7c6bb272aa25ac9961988d",
     "semantic_hash": ""
   },
   "src/app/api/platform/sg-compose/outbox/route.ts": {
@@ -970,8 +970,8 @@
     "semantic_hash": "09a359a45342910064f774957d6c34f6"
   },
   "src/app/platform/sg-compose/NewMailForm.tsx": {
-    "mtime": 1787300701.479709,
-    "ast_hash": "4e555b447e817c1d03de8de120b04f16",
+    "mtime": 1787300727.088834,
+    "ast_hash": "d8ccdbd1f0f08cf376e7534c271201a3",
     "semantic_hash": ""
   },
   "src/app/platform/sg-compose/dashboard/columns.tsx": {
@@ -990,8 +990,8 @@
     "semantic_hash": "1680c52e5d0c8867d3400ca927cd73ad"
   },
   "src/app/platform/sg-compose/new/page.tsx": {
-    "mtime": 1787300682.2742035,
-    "ast_hash": "2c9acbcdff826114243d3ff02da03d3d",
+    "mtime": 1787300732.7549598,
+    "ast_hash": "4acb66058d1efffcac1af25d4198f959",
     "semantic_hash": ""
   },
   "src/app/platform/sg-compose/outbox/OutboxTable.tsx": {
@@ -1670,8 +1670,8 @@
     "semantic_hash": "df844dcf04f953933294b5ca854f52dc"
   },
   "src/data/data.ts": {
-    "mtime": 1787300707.8823352,
-    "ast_hash": "02f8b0c4d564c4782cb8295a5fb0a365",
+    "mtime": 1787321160.9855278,
+    "ast_hash": "61329915059563770fac59a88b7922e4",
     "semantic_hash": ""
   },
   "src/data/timetable-planner.json": {
@@ -2160,8 +2160,8 @@
     "semantic_hash": ""
   },
   "src/lib/apis/cloudinary.ts": {
-    "mtime": 1787212734.425951,
-    "ast_hash": "37617cea11c9ca2481c389b0da68c07a",
+    "mtime": 1787321428.8938262,
+    "ast_hash": "a4af675a38ad968361c593dd74d78f86",
     "semantic_hash": ""
   },
   ".agents/CLAUDE.md": {

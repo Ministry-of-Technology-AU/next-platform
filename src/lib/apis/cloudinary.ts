@@ -32,10 +32,15 @@ export async function uploadImageToCloudinary(
         // Convert buffer to base64 data URI
         const base64Data = `data:image/jpeg;base64,${buffer.toString('base64')}`;
 
+        // Sanitize filename to remove special characters (e.g., '#', '?', '%', spaces) invalid in Cloudinary public_id
+        const sanitizedFilename = filename
+            .replace(/\.[^/.]+$/, '') // Remove extension
+            .replace(/[^a-zA-Z0-9_-]+/g, '_'); // Replace invalid URL chars with underscore
+
         // Upload to Cloudinary with optimizations
         const uploadResponse = await cloudinary.uploader.upload(base64Data, {
             folder: folder,
-            public_id: `${Date.now()}-${filename.replace(/\.[^/.]+$/, '')}`, // Remove extension
+            public_id: `${Date.now()}-${sanitizedFilename}`,
             resource_type: 'image',
             // Optimization settings
             quality: 'auto:good',
