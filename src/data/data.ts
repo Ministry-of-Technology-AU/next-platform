@@ -8,27 +8,22 @@ const batches = [
 
 //TODO: CORRECT MAJORS
 const majors = [
-    "Select Major",
-    "Biology",
-    "Business & Society",
-    "Chemistry",
-    "Computer Science",
-    "Data Science",
-    "Economics",
-    "Environmental Studies",
-    "History",
-    "Mathematics",
-    "Philosophy",
-    "Physics",
-    "Political Science",
-    "Psychology",
-    "Sociology & Anthropology",
-    "Interdisciplinary Studies",
-    "Literature & Cultural Studies",
-    "Media Studies",
-    "Peace & Conflict Studies",
-    "Public Health",
-    "Religious Studies"
+  "Select Major",
+  "Biology",
+  "Business & Society",
+  "Chemistry",
+  "Computer Science",
+  "Economics",
+  "Environmental Studies",
+  "History",
+  "Mathematics",
+  "Philosophy",
+  "Physics",
+  "Political Science",
+  "Psychology",
+  "Sociology & Anthropology",
+  "Literature & Cultural Studies",
+  "Media Studies",
 ]
 
-export {batches, majors};
+export { batches, majors };
