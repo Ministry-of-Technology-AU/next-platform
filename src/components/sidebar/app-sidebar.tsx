@@ -44,7 +44,8 @@ import {
   Megaphone,
   Trophy,
   MapPinned,
-  Newspaper
+  Newspaper,
+  BadgeInfo
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import sidebarData from "@/components/sidebar/sidebar-entries.json";
@@ -76,7 +77,8 @@ const iconMap = {
   Megaphone,
   Trophy,
   MapPinned,
-  Newspaper
+  Newspaper,
+  BadgeInfo
 };
 
 interface SidebarItem {
@@ -175,7 +177,7 @@ export function AppSidebar({
               {title}
             </h3>
             <p className="text-xs text-muted-foreground leading-tight whitespace-wrap">
-              by Technology Ministry
+              by Techmin
             </p>
           </div>
         </div>

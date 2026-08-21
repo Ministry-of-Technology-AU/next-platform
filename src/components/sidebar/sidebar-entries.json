@@ -18,6 +18,11 @@
           "title": "Games and Puzzles",
           "icon": "Puzzle",
           "href": "/games"
+        },
+        {
+          "title": "Request for Information",
+          "icon": "BadgeInfo",
+          "href": "/sg-rti"
         }
       ]
     },
