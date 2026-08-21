@@ -1,12 +1,8 @@
 'use client';
 
-/**
- * Post-submit confirmation (spec §9.1 step 3) and the repeat-visit
- * "already responded" screen. Renders the org's customizable confirmation
- * message (sanitized server-side before it reaches here).
- */
-
-import { CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function ConfirmationScreen({
   title,
@@ -42,6 +38,14 @@ export function ConfirmationScreen({
           dangerouslySetInnerHTML={{ __html: html }}
         />
       )}
+      <div className="mt-4">
+        <Button asChild variant="outline" className="gap-2">
+          <Link href="/platform/induction">
+            Back to Induction Dashboard
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

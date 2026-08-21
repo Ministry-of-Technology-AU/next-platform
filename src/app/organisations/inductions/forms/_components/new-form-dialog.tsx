@@ -41,7 +41,7 @@ export function NewFormDialog() {
         toast.error(json?.error ?? 'Could not create the form');
         return;
       }
-      router.push(`/organisations/forms/${json.data.id}/edit`);
+      router.push(`/organisations/inductions/forms/${json.data.id}/edit`);
     } catch {
       toast.error('Could not create the form');
     } finally {

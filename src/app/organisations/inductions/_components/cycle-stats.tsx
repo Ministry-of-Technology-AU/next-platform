@@ -1,0 +1,48 @@
+'use client';
+
+import { BarChart3, Users, Target, Activity } from 'lucide-react';
+import type { CycleStats } from '../types';
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  accent = 'primary',
+}: {
+  icon: typeof BarChart3;
+  label: string;
+  value: string | number;
+  accent?: 'primary' | 'green' | 'blue' | 'secondary';
+}) {
+  const accentMap = {
+    primary: 'bg-primary/10 text-primary dark:text-primary-bright',
+    green: 'bg-green/10 text-green-dark dark:text-green-light',
+    blue: 'bg-blue/10 text-blue-dark dark:text-blue-light',
+    secondary: 'bg-secondary/10 text-secondary-dark dark:text-secondary-light',
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-5 flex items-center gap-4">
+      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${accentMap[accent]}`}>
+        <Icon className="w-6 h-6" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <h3 className="text-2xl font-bold text-foreground">{value}</h3>
+      </div>
+    </div>
+  );
+}
+
+export function CycleStatsBar({ stats }: { stats: CycleStats }) {
+  const completionPct = Math.round((stats.completionRate || 0) * 100);
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard icon={Activity} label="Active Cycles" value={stats.rolesCount} accent="primary" />
+      <StatCard icon={Users} label="Total Applicants" value={stats.applicantsCount} accent="blue" />
+      <StatCard icon={BarChart3} label="Total Opens" value={stats.totalOpens} accent="secondary" />
+      <StatCard icon={Target} label="Completion Rate" value={`${completionPct}%`} accent="green" />
+    </div>
+  );
+}

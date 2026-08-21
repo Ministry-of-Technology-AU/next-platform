@@ -41,7 +41,7 @@ export function FormCard({
     <div className="flex flex-col rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-sm">
       <div className="mb-3 flex items-start justify-between gap-2">
         <Link
-          href={`/organisations/forms/${form.id}/edit`}
+          href={`/organisations/inductions/forms/${form.id}/edit`}
           className="min-w-0 flex-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <h3 className="truncate text-base font-semibold text-foreground">{form.title}</h3>
@@ -62,13 +62,13 @@ export function FormCard({
 
       <div className="mt-auto flex items-center gap-2">
         <Button asChild size="sm" variant="outline" className="flex-1 gap-1.5">
-          <Link href={`/organisations/forms/${form.id}/edit`}>
+          <Link href={`/organisations/inductions/forms/${form.id}/edit`}>
             <Pencil className="h-3.5 w-3.5" />
             Edit
           </Link>
         </Button>
         <Button asChild size="sm" variant="outline" className="flex-1 gap-1.5">
-          <Link href={`/organisations/forms/${form.id}/responses`}>
+          <Link href={`/organisations/inductions/forms/${form.id}/responses`}>
             <BarChart3 className="h-3.5 w-3.5" />
             Responses
           </Link>

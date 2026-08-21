@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
@@ -56,6 +57,7 @@ function useIsDesktop() {
 }
 
 export function BuilderClient({ uid, initial }: BuilderClientProps) {
+  const router = useRouter();
   const [state, rawDispatch] = useReducer(editorReducer, {
     title: initial.title,
     status: initial.status,
@@ -273,10 +275,21 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
       {/* Toolbar */}
       <div className="flex flex-col gap-3 border-b border-border pb-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="ghost" size="icon" className="h-9 w-9" aria-label="Back to forms">
-            <Link href="/organisations/forms">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            aria-label="Back to inductions"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/organisations/inductions');
+              }
+            }}
+          >
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="relative flex min-w-0 flex-1 items-center">
             <Input

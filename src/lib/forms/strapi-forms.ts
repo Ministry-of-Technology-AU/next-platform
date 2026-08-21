@@ -12,6 +12,7 @@ import { unstable_cache, revalidateTag } from 'next/cache';
 import { v4 as uuidv4 } from 'uuid';
 import { strapiGet, strapiPost, strapiPut, strapiDelete, type StrapiFilters } from '@/lib/apis/strapi';
 import { deleteImageFromCloudinary } from '@/lib/apis/cloudinary';
+import { normalizeStartDateToStartOfDay, normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 import { createDefaultSchema } from './defaults';
 import type { FileDescriptor, FormSchema } from './schema';
 
@@ -47,6 +48,9 @@ export interface ResponseRecord {
   visitedAt: string | null;
   lastSavedAt: string | null;
   submittedAt: string | null;
+  applicationStatus?: 'pending' | 'approved' | 'rejected' | 'advanced' | null;
+  statusMessage?: string | null;
+  currentRound?: number | null;
 }
 
 export const zeroStats: FormStats = {
@@ -109,6 +113,9 @@ function normalizeResponse(entry: any): ResponseRecord | null {
     visitedAt: a.visited_at ?? null,
     lastSavedAt: a.last_saved_at ?? null,
     submittedAt: a.submitted_at ?? null,
+    applicationStatus: (a.application_status as 'pending' | 'approved' | 'rejected' | 'advanced' | null) ?? null,
+    statusMessage: a.status_message ?? null,
+    currentRound: typeof a.current_round === 'number' ? a.current_round : null,
   };
 }
 
@@ -117,16 +124,20 @@ function normalizeResponse(entry: any): ResponseRecord | null {
 // ---------------------------------------------------------------------------
 
 export function isFormActive(form: Pick<FormRecord, 'status' | 'startDate' | 'endDate'>): boolean {
-  const start = form.startDate ? new Date(form.startDate) : null;
-  const end = form.endDate ? new Date(form.endDate) : null;
+  const startIso = form.startDate ? normalizeStartDateToStartOfDay(form.startDate) : null;
+  const endIso = form.endDate ? normalizeEndDateToEndOfDay(form.endDate) : null;
+  const start = startIso ? new Date(startIso) : null;
+  const end = endIso ? new Date(endIso) : null;
   const now = new Date();
-  return form.status === 'active' && (!start || start <= now) && (!end || end > now);
+  return form.status !== 'inactive' && (!start || start <= now) && (!end || end >= now);
 }
 
 /** True when an active form's end date has elapsed (needs a lazy flip). */
 export function hasExpired(form: Pick<FormRecord, 'status' | 'endDate'>): boolean {
-  if (form.status !== 'active' || !form.endDate) return false;
-  return new Date(form.endDate) <= new Date();
+  if (form.status === 'inactive' || !form.endDate) return false;
+  const endIso = normalizeEndDateToEndOfDay(form.endDate);
+  if (!endIso) return false;
+  return new Date(endIso) < new Date();
 }
 
 // ---------------------------------------------------------------------------
@@ -142,6 +153,16 @@ export async function getFormByUid(uid: string): Promise<FormRecord | null> {
   });
   const entry = res?.data?.[0];
   return normalizeForm(entry);
+}
+
+/** Fetch form by numeric database ID. */
+export async function getFormById(id: number | string): Promise<FormRecord | null> {
+  const numericId = typeof id === 'number' ? id : parseInt(id, 10);
+  if (isNaN(numericId)) return getFormByUid(id.toString());
+  const res = await strapiGet(`/forms/${numericId}`, {
+    populate: { organisation: { fields: ['id'] } },
+  });
+  return normalizeForm(res?.data);
 }
 
 /**
@@ -198,7 +219,15 @@ interface FormPatch {
 
 /** Persist a patch to a form by numeric id, then invalidate its cache tag. */
 export async function updateForm(id: number, uid: string, patch: FormPatch): Promise<FormRecord | null> {
-  const res = await strapiPut(`/forms/${id}`, { data: patch });
+  const data: Record<string, any> = { ...patch };
+  if (patch.start_date !== undefined) {
+    data.start_date = patch.start_date ? normalizeStartDateToStartOfDay(patch.start_date) : null;
+  }
+  if (patch.end_date !== undefined) {
+    data.end_date = patch.end_date ? normalizeEndDateToEndOfDay(patch.end_date) : null;
+  }
+
+  const res = await strapiPut(`/forms/${id}`, { data });
   revalidateTag(formTag(uid));
   return normalizeForm(res?.data);
 }
@@ -334,4 +363,101 @@ export async function getResponsesByForm(
 /** completionRate is derived at read time — never stored (spec §13). */
 export function withCompletionRate(stats: FormStats): FormStats & { completionRate: number } {
   return { ...stats, completionRate: stats.submissionCount / Math.max(stats.uniqueVisits, 1) };
+}
+
+export interface InterviewDetailSummary {
+  roundId: string;
+  roundLabel: string;
+  deadline?: string | null;
+  location?: string | null;
+  slotDuration?: number;
+  isBooked: boolean;
+  booking?: {
+    slotKey: string;
+    candidateEmail: string;
+    candidateName?: string;
+    bookedAt?: string;
+  } | null;
+  bookingUrl: string;
+}
+
+export interface PopulatedResponseRecord extends ResponseRecord {
+  form: Pick<FormRecord, 'id' | 'uid' | 'title' | 'endDate' | 'status' | 'organisationId'> & {
+    organisation?: any;
+  } | null;
+  role?: {
+    id: string;
+    name: string;
+    tier?: string;
+    department?: string | null;
+  } | null;
+  pipeline?: any[];
+  interviewDetails?: InterviewDetailSummary | null;
+}
+
+export async function getResponsesByUserEmail(email: string): Promise<PopulatedResponseRecord[]> {
+  const res = await strapiGet('/form-responses', {
+    filters: { respondent_email: { $eq: email } },
+    populate: {
+      form: {
+        populate: {
+          organisation: {
+            populate: {
+              profile: {
+                fields: ['profile_url'],
+              },
+            },
+          },
+        },
+      },
+    },
+    sort: 'updatedAt:desc',
+    pagination: { pageSize: 100 },
+  });
+
+  const rows = res?.data ?? [];
+  return rows
+    .map((entry: any) => {
+      const base = normalizeResponse(entry);
+      if (!base) return null;
+
+      const a = attrs<any>(entry);
+      const formEntry = a.form?.data ?? a.form;
+      const formAttrs = formEntry?.attributes ?? formEntry;
+
+      let formObj = null;
+      if (formEntry) {
+        const formBase = normalizeForm(formEntry);
+        const orgEntry = formAttrs?.organisation?.data ?? formAttrs?.organisation;
+        const orgAttrs = orgEntry?.attributes ?? orgEntry;
+        const profileEntry = orgAttrs?.profile?.data ?? orgAttrs?.profile;
+        const profileAttrs = profileEntry?.attributes ?? profileEntry;
+
+        if (formBase) {
+          formObj = {
+            id: formBase.id,
+            uid: formBase.uid,
+            title: formBase.title,
+            endDate: formBase.endDate,
+            status: formBase.status,
+            organisationId: formBase.organisationId,
+            organisation: orgEntry
+              ? {
+                  id: orgEntry.id ?? orgAttrs?.id,
+                  name: orgAttrs?.name,
+                  induction: orgAttrs?.induction,
+                  induction_end: orgAttrs?.induction_end,
+                  profile_url: profileAttrs?.profile_url || orgAttrs?.profile_url || null,
+                }
+              : undefined,
+          };
+        }
+      }
+
+      return {
+        ...base,
+        form: formObj,
+      };
+    })
+    .filter((r: PopulatedResponseRecord | null): r is PopulatedResponseRecord => r !== null);
 }

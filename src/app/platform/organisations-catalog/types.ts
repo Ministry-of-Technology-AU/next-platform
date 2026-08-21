@@ -25,6 +25,7 @@ export interface Organization {
   inductionsOpen: boolean;
   inductionEnd: string | null;
   inductionDescription: string;
+  openPositions?: OpenPosition[];
   
   // Social links
   instagram: string;
@@ -38,6 +39,15 @@ export interface Organization {
   calendarEventId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OpenPosition {
+  id: string;
+  title: string;
+  department?: string;
+  description?: string;
+  tier?: string;
+  formUid?: string | null;
 }
 
 export interface FilterOptions {
