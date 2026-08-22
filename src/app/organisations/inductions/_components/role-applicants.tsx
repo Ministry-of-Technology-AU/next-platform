@@ -418,12 +418,6 @@ export function RoleApplicants({
           <Badge variant="outline" className="text-xs">
             {totalCount} total
           </Badge>
-          <Badge className="text-xs bg-green/10 text-green-dark dark:text-green-light border border-green/20">
-            {advancedCount} advanced
-          </Badge>
-          <Badge className="text-xs bg-destructive/10 text-destructive border border-destructive/20">
-            {rejectedCount} rejected
-          </Badge>
         </div>
       </div>
 

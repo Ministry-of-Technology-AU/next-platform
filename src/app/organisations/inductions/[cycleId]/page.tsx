@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { getCycleById, listRolesByCycle } from '@/lib/inductions/strapi-inductions';
 import { CycleClient } from './client';
 import type { InductionCycleSummary, InductionRole } from '../types';
+import { CYCLE_STATUS_STYLE, formatCycleDateRange, getDerivedCycleStatus } from '../types';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,13 +39,7 @@ export default async function CyclePage({ params }: PageProps) {
   }
 
   const roles = await getRoles(cycleId);
-
-  const startFormatted = cycle.startDate
-    ? new Date(cycle.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
-    : 'TBD';
-  const endFormatted = cycle.endDate
-    ? new Date(cycle.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'TBD';
+  const status = getDerivedCycleStatus(cycle.status, cycle.startDate, cycle.endDate);
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
@@ -58,7 +53,19 @@ export default async function CyclePage({ params }: PageProps) {
       </div>
       <PageTitle
         text={cycle.name}
-        subheading={`${cycle.status === 'active' ? '🟢 Active' : cycle.status === 'completed' ? '✅ Completed' : '📝 Draft'} · ${startFormatted} — ${endFormatted}`}
+        subheading={
+          <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
+            <span className="whitespace-nowrap font-medium text-foreground/80">
+              {formatCycleDateRange(cycle.startDate, cycle.endDate)}
+            </span>
+            <span>·</span>
+            <span
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${CYCLE_STATUS_STYLE[status]}`}
+            >
+              {status}
+            </span>
+          </div>
+        }
       />
       <CycleClient cycleId={cycleId} cycle={cycle} initialRoles={roles} />
     </div>

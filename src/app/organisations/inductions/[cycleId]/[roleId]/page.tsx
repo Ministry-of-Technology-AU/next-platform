@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
@@ -44,7 +44,15 @@ async function getAllOrgForms(): Promise<RoleFormSummary[]> {
       id: f.uid,
       title: f.title,
       form_status: f.status,
-      stats: withCompletionRate(f.stats),
+      startDate: f.startDate,
+      endDate: f.endDate,
+      updatedAt: f.updatedAt,
+      fieldsCount:
+        f.schema?.pages?.reduce((acc, p) => acc + (p.blocks?.length || 0), 0) ?? 0,
+      stats: {
+        ...withCompletionRate(f.stats),
+        lastSubmissionAt: f.stats?.lastSubmissionAt ?? null,
+      },
     }));
   } catch (err) {
     console.error('Error fetching forms for role:', err);
@@ -74,7 +82,9 @@ export default async function RolePage({ params }: PageProps) {
   const applicants = await getApplicants(roleId);
 
   // Filter forms: only display forms that belong/link to this role's pipeline
-  const linkedFormIds = new Set(pipeline.map((r) => r.formId).filter(Boolean));
+  const linkedFormIds = new Set(
+    pipeline.flatMap((r) => r.formIds ?? (r.formId ? [r.formId] : [])).filter(Boolean),
+  );
   const roleForms = allOrgForms.filter(
     (f) => linkedFormIds.has(f.id) || linkedFormIds.has(String(f.id)),
   );
@@ -90,8 +100,31 @@ export default async function RolePage({ params }: PageProps) {
         </Button>
       </div>
       <PageTitle
+        icon={User}
         text={role.name}
-        subheading={`${TIER_LABELS[role.tier]}${role.department ? ` · ${role.department}` : ''}`}
+        subheading={
+          <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
+            <span className="font-semibold text-foreground/80">{TIER_LABELS[role.tier] || 'Other'}</span>
+            {role.department && (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span>{role.department}</span>
+              </>
+            )}
+            {role.description && (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="text-muted-foreground/80 line-clamp-1 max-w-xl">{role.description}</span>
+              </>
+            )}
+            {role.accessEmails && role.accessEmails.length > 0 && (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="text-foreground/75 font-medium">{role.accessEmails.length} with access</span>
+              </>
+            )}
+          </div>
+        }
       />
       <RoleClient
         cycleId={cycleId}

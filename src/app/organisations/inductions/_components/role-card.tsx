@@ -1,101 +1,117 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Eye, Send, Target, MoreVertical, Trash2, ArrowRight } from 'lucide-react';
+import { User, Trash2, ArrowRight, Users, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
+import { RoleAccessDialog } from './role-access-dialog';
 import type { InductionRole } from '../types';
 import { TIER_LABELS } from '../types';
-
-function Stat({ icon: Icon, label, value }: { icon: typeof Eye; label: string; value: number | string }) {
-  return (
-    <div className="flex items-center gap-1.5" title={label}>
-      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-      <span className="text-sm font-medium tabular-nums">{value}</span>
-    </div>
-  );
-}
 
 export function RoleCard({
   role,
   cycleId,
   onDelete,
+  onUpdate,
 }: {
   role: InductionRole;
   cycleId: string;
   onDelete: (role: InductionRole) => void;
+  onUpdate?: (updatedRole: InductionRole) => void;
 }) {
-  const completionPct = Math.round((role.stats.completionRate || 0) * 100);
-  const tierStyle =
-    role.tier === 'tier-1'
-      ? 'bg-primary/10 text-primary dark:text-primary-bright border-primary/20'
-      : role.tier === 'tier-2'
-      ? 'bg-secondary/10 text-secondary-extradark dark:text-secondary border-secondary/20'
-      : 'bg-muted text-muted-foreground border-border';
+  const [accessOpen, setAccessOpen] = useState(false);
+  const tierLabel = TIER_LABELS[role.tier] || 'Other';
+  const accessCount = role.accessEmails?.length || 0;
 
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-sm">
-      {/* Header */}
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <Link
-          href={`/organisations/inductions/${cycleId}/${role.id}`}
-          className="min-w-0 flex-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <h3 className="truncate text-base font-semibold text-foreground !text-left">{role.name}</h3>
-        </Link>
-        <Badge variant="outline" className={`flex-shrink-0 text-xs ${tierStyle}`}>
-          {TIER_LABELS[role.tier]}
-        </Badge>
-      </div>
+    <div className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-all">
+      <div>
+        {/* Header */}
+        <div className="flex items-start gap-3">
+          {/* Person Icon */}
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary flex-shrink-0 mt-0.5">
+            <User className="h-5 w-5" />
+          </div>
 
-      {/* Department */}
-      {role.department && (
-        <p className="mb-3 text-xs text-muted-foreground truncate">{role.department}</p>
-      )}
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <Link
+              href={`/organisations/inductions/${cycleId}/${role.id}`}
+              className="group inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            >
+              <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary transition-colors !text-left">
+                {role.name}
+              </h3>
+            </Link>
 
-      {/* Description */}
-      {role.description && (
-        <p className="mb-3 text-xs text-muted-foreground line-clamp-2">{role.description}</p>
-      )}
+            {/* Subtext: Tier & Department */}
+            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 flex-wrap">
+              <span className="font-semibold text-foreground/75">{tierLabel}</span>
+              {role.department && (
+                <>
+                  <span className="text-muted-foreground/50">·</span>
+                  <span className="truncate">{role.department}</span>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
 
-      {/* Stats */}
-      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-        <Stat icon={Eye} label="Opens" value={role.stats.opens} />
-        <Stat icon={Send} label="Fills" value={role.stats.fills} />
-        <Stat icon={Target} label="Completion" value={`${completionPct}%`} />
+        {/* Description */}
+        {role.description && (
+          <p className="mt-3.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            {role.description}
+          </p>
+        )}
+
+        {/* Access info bar */}
+        <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-border/40">
+          <div className="flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5 text-muted-foreground/70" />
+            <span className="font-medium text-foreground/80">
+              {accessCount === 0 ? 'All Admins Access' : `${accessCount} with access`}
+            </span>
+          </div>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setAccessOpen(true)}
+            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+            Access
+          </Button>
+        </div>
       </div>
 
       {/* Actions */}
-      <div className="mt-auto flex items-center gap-2">
-        <Button asChild size="sm" variant="outline" className="flex-1 gap-1.5">
+      <div className="mt-5 flex items-center gap-2 pt-3 border-t border-border/40">
+        <Button asChild size="sm" variant="default" className="flex-1 gap-1.5 font-medium">
           <Link href={`/organisations/inductions/${cycleId}/${role.id}`}>
-            <ArrowRight className="h-3.5 w-3.5" />
             View Role
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" className="h-9 w-9" aria-label="More actions">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => onDelete(role)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => onDelete(role)}
+          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          aria-label="Delete role"
+          title="Delete role"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
+
+      {/* Role Access Management Modal */}
+      <RoleAccessDialog
+        role={role}
+        open={accessOpen}
+        onOpenChange={setAccessOpen}
+        onUpdated={onUpdate}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FileText, Mic, Trash2, Pencil, Link as LinkIcon, Sparkles } from 'lucide-react';
+import { FileText, Mic, Trash2, Pencil, Link as LinkIcon, Sparkles, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { PipelineRound, PipelineRoundType } from '../types';
@@ -36,12 +36,19 @@ const TYPE_CONFIG: Record<
     borderAccent: 'bg-secondary-dark dark:bg-secondary',
     iconStyle: 'bg-secondary/15 text-secondary-extradark dark:text-secondary border-secondary/30',
   },
+  results: {
+    icon: Trophy,
+    label: 'Results',
+    borderAccent: 'bg-green-dark dark:bg-green',
+    iconStyle: 'bg-green/15 text-green-dark dark:text-green-light border-green/30',
+  },
 };
 
 export function PipelineNode({
   round,
   index,
   formTitle,
+  formTitles,
   onEdit,
   onDelete,
   onConfigureSchedule,
@@ -49,6 +56,7 @@ export function PipelineNode({
   round: PipelineRound;
   index: number;
   formTitle?: string | null;
+  formTitles?: string[];
   onEdit: (round: PipelineRound) => void;
   onDelete: (roundId: string) => void;
   onConfigureSchedule?: (round: PipelineRound) => void;
@@ -56,7 +64,10 @@ export function PipelineNode({
   const config = TYPE_CONFIG[round.type] || TYPE_CONFIG.form;
   const Icon = config.icon;
   const isInterview = round.type === 'interview';
+  const isResults = round.type === 'results';
+  const isForm = round.type === 'form';
   const slotCount = round.interviewConfig?.selectedSlots?.length || 0;
+  const formCount = round.formIds?.length || 0;
 
   return (
     <div
@@ -76,12 +87,18 @@ export function PipelineNode({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
+                  <Icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                   <h4 className="text-sm font-semibold text-foreground truncate !text-left">
                     {round.label}
                   </h4>
                   {isInterview && (
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-secondary/40 text-secondary-extradark dark:text-secondary font-medium">
                       {slotCount > 0 ? `${slotCount} slots` : 'No slots'}
+                    </Badge>
+                  )}
+                  {isResults && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green/40 text-green-dark dark:text-green-light font-medium">
+                      Results
                     </Badge>
                   )}
                 </div>
@@ -91,27 +108,25 @@ export function PipelineNode({
               </div>
             </div>
 
-            {/* Actions (Index 0 is compulsory and cannot be deleted) */}
-            {index > 0 && (
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(round.id);
-                  }}
-                  aria-label="Delete round"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )}
+            {/* Delete button — available on all rounds */}
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(round.id);
+                }}
+                aria-label="Delete round"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
 
-          {/* Form association info or Interview Schedule configuration indicator */}
+          {/* Footer: type-specific info */}
           {isInterview ? (
             <div className="flex items-center justify-between pt-1 border-t border-border/60 text-xs">
               <div className="flex items-center gap-1 text-muted-foreground truncate">
@@ -139,35 +154,55 @@ export function PipelineNode({
                 {slotCount > 0 ? 'Edit Grid' : 'Set Grid'}
               </button>
             </div>
+          ) : isResults ? (
+            <div className="flex items-center justify-between pt-1 border-t border-border/60 text-xs">
+              <div className="flex items-center gap-1 text-muted-foreground truncate">
+                <Trophy className="h-3 w-3 text-green-dark dark:text-green-light flex-shrink-0" />
+                <span className="text-[11px] truncate">
+                  {round.resultsConfig?.emailTemplate
+                    ? 'Email template configured'
+                    : 'No template yet'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(round);
+                }}
+                className="flex items-center gap-1 text-green-dark dark:text-green-light hover:underline text-[11px] font-semibold ml-auto"
+              >
+                <Pencil className="h-3 w-3" />
+                Configure
+              </button>
+            </div>
           ) : (
+            /* Form type */
             (() => {
-              const raw = round.formId;
-              const validFormId =
-                typeof raw === 'string' &&
-                raw !== '[object Object]' &&
-                raw.trim() !== '' &&
-                raw !== 'none'
-                  ? raw.trim()
-                  : typeof raw === 'number'
-                  ? String(raw)
-                  : null;
+              const validFormIds = (round.formIds || []).filter(
+                (id) => id && id !== '[object Object]' && id !== 'none',
+              );
 
               return (
                 <div className="flex items-center justify-between pt-1 border-t border-border/60 text-xs">
-                  {validFormId ? (
+                  {validFormIds.length > 0 ? (
                     <div className="flex items-center gap-1 text-muted-foreground truncate">
                       <LinkIcon className="h-3 w-3 text-primary flex-shrink-0" />
                       <span className="truncate max-w-[140px] font-medium text-foreground">
-                        {formTitle || `Form #${validFormId}`}
+                        {formTitles && formTitles.length > 0
+                          ? formTitles.length === 1
+                            ? formTitles[0]
+                            : `${formTitles.length} forms linked`
+                          : formTitle || `${validFormIds.length} form${validFormIds.length > 1 ? 's' : ''}`}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-muted-foreground italic text-[11px]">No form linked</span>
+                    <span className="text-muted-foreground italic text-[11px]">No forms linked</span>
                   )}
 
-                  {validFormId && (
+                  {validFormIds.length === 1 && (
                     <Link
-                      href={`/organisations/inductions/forms/${encodeURIComponent(validFormId)}/edit`}
+                      href={`/organisations/inductions/forms/${encodeURIComponent(validFormIds[0])}/edit`}
                       onClick={(e) => e.stopPropagation()}
                       className="flex items-center gap-1 text-primary hover:underline text-[11px] font-medium ml-auto"
                     >

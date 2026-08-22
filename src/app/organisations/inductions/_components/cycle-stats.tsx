@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Users, Activity, Compass } from 'lucide-react';
+import { BarChart3, Users, Activity, Compass, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { CycleStats } from '../types';
 
@@ -55,3 +55,35 @@ export function CycleStatsBar({ stats }: { stats: CycleStats & { activeCyclesCou
     </div>
   );
 }
+
+export function SingleCycleStatsBar({
+  stats,
+  rolesCount,
+}: {
+  stats?: Partial<CycleStats>;
+  rolesCount?: number;
+}) {
+  const currentRoles = rolesCount ?? stats?.rolesCount ?? 0;
+  const currentApplicants = stats?.applicantsCount || stats?.totalFills || 0;
+  const currentOpens = stats?.totalOpens || 0;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard icon={BarChart3} label="Total Roles" value={currentRoles} accent="primary" />
+      <StatCard icon={Users} label="Total Applicants" value={currentApplicants} accent="blue" />
+      <StatCard icon={Eye} label="Total Opens" value={currentOpens} accent="secondary" />
+      <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-5 flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green/10 text-green-dark dark:text-green-light">
+          <Compass className="w-6 h-6" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Top Source</p>
+          <Badge variant="outline" className="mt-1 text-xs text-muted-foreground font-normal">
+            Coming Soon
+          </Badge>
+        </div>
+      </div>
+    </div>
+  );
+}
+

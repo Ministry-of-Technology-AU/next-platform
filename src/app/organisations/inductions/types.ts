@@ -32,11 +32,12 @@ export interface InductionRole {
   tier: RoleTier;
   department: string | null;
   description: string | null;
+  accessEmails?: string[];
   stats: RoleStats;
   createdAt: string;
 }
 
-export type PipelineRoundType = 'form' | 'interview';
+export type PipelineRoundType = 'form' | 'interview' | 'results';
 
 export interface InterviewBooking {
   slotKey: string; // e.g. "2026-08-25-10:00am-10:30am" or "Mon-10:00am-10:30am"
@@ -61,15 +62,23 @@ export interface InterviewConfig {
   bookings?: InterviewBooking[];
 }
 
+export interface ResultsConfig {
+  emailTemplate: string;   // HTML rich text
+  sendEmail: boolean;      // default true
+}
+
 export interface PipelineRound {
   id: string;
   type: PipelineRoundType;
   label: string;
-  formId: string | null;
+  /** @deprecated Use formIds instead. Kept for backward compat reads. */
+  formId?: string | null;
+  formIds: string[];
   deadline: string | null;
   description: string | null;
   order: number;
   interviewConfig?: InterviewConfig | null;
+  resultsConfig?: ResultsConfig | null;
 }
 
 /** Placeholder stat values used when no real data is available yet. */
@@ -100,3 +109,65 @@ export const TIER_LABELS: Record<RoleTier, string> = {
   'tier-2': 'Tier 2',
   'other': 'Other',
 };
+
+export function formatCycleDateRange(startDateStr?: string | null, endDateStr?: string | null): string {
+  if (!startDateStr && !endDateStr) return 'Dates TBD';
+
+  const formatDatePart = (dStr: string, includeYear: boolean) => {
+    const d = new Date(dStr);
+    if (isNaN(d.getTime())) return 'TBD';
+    const day = d.getDate();
+    const month = d.toLocaleDateString('en-IN', { month: 'short' });
+    const year = d.getFullYear();
+    return includeYear ? `${day} ${month} ${year}` : `${day} ${month}`;
+  };
+
+  const start = startDateStr ? formatDatePart(startDateStr, false) : 'TBD';
+  const end = endDateStr ? formatDatePart(endDateStr, true) : 'TBD';
+
+  return `${start} - ${end}`;
+}
+
+export function getDerivedCycleStatus(
+  status: CycleStatus = 'draft',
+  startDateStr?: string | null,
+  endDateStr?: string | null
+): CycleStatus {
+  if (status === 'archived') return 'archived';
+  if (!startDateStr && !endDateStr) return status;
+
+  const now = new Date();
+
+  let start: Date | null = null;
+  if (startDateStr) {
+    const s = new Date(startDateStr);
+    if (!isNaN(s.getTime())) {
+      start = s;
+    }
+  }
+
+  let end: Date | null = null;
+  if (endDateStr) {
+    const e = new Date(endDateStr);
+    if (!isNaN(e.getTime())) {
+      end = e;
+      if (endDateStr.length <= 10) {
+        end.setHours(23, 59, 59, 999);
+      }
+    }
+  }
+
+  if (start && now < start) {
+    return 'draft';
+  }
+  if (end && now > end) {
+    return 'completed';
+  }
+  if ((start && now >= start) || (!start && end && now <= end)) {
+    return 'active';
+  }
+
+  return status;
+}
+
+

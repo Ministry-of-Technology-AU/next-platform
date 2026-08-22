@@ -16,11 +16,13 @@ import { CycleStatsBar } from './_components/cycle-stats';
 import { CycleCard } from './_components/cycle-card';
 import { NewCycleDialog } from './_components/new-cycle-dialog';
 import type { InductionCycleSummary, CycleStats } from './types';
-import { PLACEHOLDER_CYCLE_STATS } from './types';
+import { PLACEHOLDER_CYCLE_STATS, getDerivedCycleStatus } from './types';
 
 function aggregateStats(cycles: InductionCycleSummary[]): CycleStats & { activeCyclesCount: number } {
   if (cycles.length === 0) return { ...PLACEHOLDER_CYCLE_STATS, activeCyclesCount: 0 };
-  const activeCount = cycles.filter((c) => c.status === 'active').length;
+  const activeCount = cycles.filter(
+    (c) => getDerivedCycleStatus(c.status, c.startDate, c.endDate) === 'active'
+  ).length;
   return {
     totalOpens: cycles.reduce((a, c) => a + (c.stats?.totalOpens || 0), 0),
     totalFills: cycles.reduce((a, c) => a + (c.stats?.totalFills || 0), 0),
@@ -53,6 +55,10 @@ export function InductionsClient({
     setCycles((prev) => [newCycle, ...prev]);
   };
 
+  const handleUpdated = (updatedCycle: InductionCycleSummary) => {
+    setCycles((prev) => prev.map((c) => (c.id === updatedCycle.id ? updatedCycle : c)));
+  };
+
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     setDeleting(true);
@@ -75,7 +81,8 @@ export function InductionsClient({
     }
   };
 
-  const aggregated = aggregateStats(cycles);
+  const visibleCycles = cycles.filter((c) => c.status !== 'archived');
+  const aggregated = aggregateStats(visibleCycles);
 
   return (
     <div className="mt-6 space-y-6">
@@ -85,15 +92,15 @@ export function InductionsClient({
       {/* List header */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {cycles.length === 0
+          {visibleCycles.length === 0
             ? 'No induction cycles yet.'
-            : `${cycles.length} cycle${cycles.length === 1 ? '' : 's'}`}
+            : `${visibleCycles.length} cycle${visibleCycles.length === 1 ? '' : 's'}`}
         </p>
         <NewCycleDialog autoOpen={hashAdd} onCreated={handleCreated} />
       </div>
 
       {/* Grid / empty state */}
-      {cycles.length === 0 ? (
+      {visibleCycles.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-16 text-center">
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Layers className="h-7 w-7" />
@@ -108,9 +115,14 @@ export function InductionsClient({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {cycles.map((cycle) => (
-            <CycleCard key={cycle.id} cycle={cycle} onDelete={setPendingDelete} />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {visibleCycles.map((cycle) => (
+            <CycleCard
+              key={cycle.id}
+              cycle={cycle}
+              onDelete={setPendingDelete}
+              onUpdate={handleUpdated}
+            />
           ))}
         </div>
       )}

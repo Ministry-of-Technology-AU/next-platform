@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { RoleStatsBar } from '../../_components/role-stats';
+import { RoleAccessDialog } from '../../_components/role-access-dialog';
 import { PipelineBuilder } from '../../_components/pipeline-builder';
 import { RoleForms, type RoleFormSummary } from '../../_components/role-forms';
 import { RoleApplicants, type ApplicantRow } from '../../_components/role-applicants';
@@ -22,12 +23,14 @@ interface RoleClientProps {
 export function RoleClient({
   cycleId,
   roleId,
-  role,
+  role: initialRole,
   initialPipeline,
   initialForms,
   allOrgForms,
   initialApplicants,
 }: RoleClientProps) {
+  const [role, setRole] = useState<InductionRole>(initialRole);
+  const [accessOpen, setAccessOpen] = useState(false);
   const [pipeline, setPipeline] = useState<PipelineRound[]>(initialPipeline);
   const [forms, setForms] = useState<RoleFormSummary[]>(initialForms);
   const [availableForms, setAvailableForms] = useState<RoleFormSummary[]>(allOrgForms);
@@ -46,7 +49,7 @@ export function RoleClient({
       }
 
       // Re-sync displayed forms based on updated pipeline rounds
-      const linkedFormIds = new Set(rounds.map((r) => r.formId).filter(Boolean));
+      const linkedFormIds = new Set(rounds.flatMap((r) => r.formIds ?? (r.formId ? [r.formId] : [])).filter(Boolean));
       const updatedForms = availableForms.filter((f) => linkedFormIds.has(f.id));
       setForms(updatedForms);
       toast.success('Pipeline updated');
@@ -59,12 +62,18 @@ export function RoleClient({
     setForms(updatedForms);
     const updatedIds = new Set(updatedForms.map((f) => f.id));
     // If a form was deleted, unlink it from pipeline rounds
-    const updatedPipeline = pipeline.map((r) =>
-      r.formId && !updatedIds.has(r.formId) ? { ...r, formId: null } : r,
-    );
+    const updatedPipeline = pipeline.map((r) => {
+      const cleanedFormIds = (r.formIds ?? []).filter((id) => updatedIds.has(id));
+      const changed = cleanedFormIds.length !== (r.formIds ?? []).length;
+      return changed ? { ...r, formIds: cleanedFormIds, formId: cleanedFormIds[0] ?? null } : r;
+    });
     if (JSON.stringify(updatedPipeline) !== JSON.stringify(pipeline)) {
       void handlePipelineChange(updatedPipeline);
     }
+  };
+
+  const handleFormCreated = (newForm: RoleFormSummary) => {
+    setAvailableForms((prev) => [newForm, ...prev.filter((f) => f.id !== newForm.id)]);
   };
 
   // Derive round labels from pipeline for filter tabs in the applicants table
@@ -72,15 +81,12 @@ export function RoleClient({
 
   return (
     <div className="mt-6 space-y-8">
-      {/* Role Stats */}
-      <RoleStatsBar stats={role.stats} />
-
-      {/* Description */}
-      {role.description && (
-        <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-5">
-          <p className="text-sm text-muted-foreground !text-left">{role.description}</p>
-        </div>
-      )}
+      {/* Role Stats with Access Permissions */}
+      <RoleStatsBar
+        stats={role.stats}
+        accessCount={role.accessEmails?.length || 0}
+        onManageAccess={() => setAccessOpen(true)}
+      />
 
       <Separator />
 
@@ -99,7 +105,9 @@ export function RoleClient({
         forms={forms}
         cycleId={cycleId}
         roleId={roleId}
+        pipeline={pipeline}
         onFormsChange={handleFormsChange}
+        onFormCreated={handleFormCreated}
       />
 
       <Separator />
@@ -110,6 +118,15 @@ export function RoleClient({
         forms={availableForms}
         roleName={role.name}
         onChange={handlePipelineChange}
+        onFormCreated={handleFormCreated}
+      />
+
+      {/* Role Access Management Modal */}
+      <RoleAccessDialog
+        role={role}
+        open={accessOpen}
+        onOpenChange={setAccessOpen}
+        onUpdated={setRole}
       />
     </div>
   );

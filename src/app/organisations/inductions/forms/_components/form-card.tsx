@@ -1,14 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Eye, FileText, Send, Pencil, BarChart3, Link2, Trash2, MoreVertical } from 'lucide-react';
+import { Eye, FileText, Send, Pencil, BarChart3, Link2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import type { FormStatus } from '@/lib/forms/strapi-forms';
 import type { FormSummary } from '../types';
 
@@ -73,26 +67,25 @@ export function FormCard({
             Responses
           </Link>
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" className="h-9 w-9" aria-label="More actions">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onCopyLink(form)}>
-              <Link2 className="mr-2 h-4 w-4" />
-              Copy share link
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDelete(form)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={() => onCopyLink(form)}
+          title="Copy share link"
+          className="h-9 w-9"
+        >
+          <Link2 className="h-4 w-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => onDelete(form)}
+          className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          aria-label="Delete form"
+          title="Delete form"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

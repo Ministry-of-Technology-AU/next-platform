@@ -24,26 +24,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RoleCard } from '../_components/role-card';
 import { NewRoleDialog } from '../_components/new-role-dialog';
+import { SingleCycleStatsBar } from '../_components/cycle-stats';
 import type { InductionCycleSummary, InductionRole } from '../types';
 import { PLACEHOLDER_ROLE_STATS } from '../types';
-
-// Stat card (reusable)
-function StatCard({
-  label,
-  value,
-  accent = 'primary',
-}: {
-  label: string;
-  value: string | number;
-  accent?: string;
-}) {
-  return (
-    <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-5">
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <h3 className="text-2xl font-bold text-foreground mt-1">{value}</h3>
-    </div>
-  );
-}
 
 export function CycleClient({
   cycleId,
@@ -67,6 +50,10 @@ export function CycleClient({
 
   const handleRoleCreated = (role: InductionRole) => {
     setRoles((prev) => [role, ...prev]);
+  };
+
+  const handleRoleUpdated = (updated: InductionRole) => {
+    setRoles((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   };
 
   const confirmDelete = async () => {
@@ -98,46 +85,10 @@ export function CycleClient({
     opens: r.stats?.opens || 0,
   }));
 
-  const completionPct = Math.round((cycle.stats?.completionRate || 0) * 100);
-
   return (
     <div className="mt-6 space-y-8">
       {/* Stats overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="Total Opens" value={cycle.stats?.totalOpens || 0} />
-        <StatCard label="Total Fills" value={cycle.stats?.totalFills || 0} />
-        <StatCard label="Overall Completion Rate" value={`${completionPct}%`} />
-      </div>
-
-      {/* Role-wise distribution chart */}
-      {chartData.length > 0 && (
-        <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-primary dark:text-primary-bright !text-left">
-              Role-wise Application Distribution
-            </h3>
-            <Badge className="bg-primary/10 text-primary border border-primary/20 dark:bg-secondary-dark/20 dark:text-secondary-light dark:border-secondary-dark/30 px-2.5 py-0.5 rounded text-xs font-semibold">
-              {roles.length} role{roles.length === 1 ? '' : 's'}
-            </Badge>
-          </div>
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" opacity={0.2} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                <Tooltip
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5' }}
-                />
-                <Bar dataKey="applications" name="Applications" fill="#87281b" radius={[4, 4, 0, 0]} barSize={40} />
-                <Bar dataKey="opens" name="Opens" fill="#ffcd74" radius={[4, 4, 0, 0]} barSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+      <SingleCycleStatsBar stats={cycle.stats} rolesCount={roles.length} />
 
       {/* Roles section */}
       <div>
@@ -167,13 +118,49 @@ export function CycleClient({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {roles.map((role) => (
-              <RoleCard key={role.id} role={role} cycleId={cycleId} onDelete={setPendingDelete} />
+              <RoleCard
+                key={role.id}
+                role={role}
+                cycleId={cycleId}
+                onDelete={setPendingDelete}
+                onUpdate={handleRoleUpdated}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {/* Role-wise distribution chart */}
+      {chartData.length > 0 && (
+        <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <BarChart3 className="w-5 h-5 text-primary dark:text-secondary-extradark" />
+            <h3 className="text-lg font-semibold text-primary dark:text-secondary-extradark !text-left">
+              Role-wise Application Distribution
+            </h3>
+            <Badge className="bg-primary/10 text-primary border border-primary/20 dark:bg-secondary-dark/20 dark:text-secondary-light dark:border-secondary-dark/30 px-2.5 py-0.5 rounded text-xs font-semibold">
+              {roles.length} role{roles.length === 1 ? '' : 's'}
+            </Badge>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" opacity={0.2} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                <Tooltip
+                  cursor={{ fill: 'transparent' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5' }}
+                />
+                <Bar dataKey="applications" name="Applications" fill="#87281b" radius={[4, 4, 0, 0]} barSize={40} />
+                <Bar dataKey="opens" name="Opens" fill="#ffcd74" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Delete confirmation dialog */}
       <Dialog open={!!pendingDelete} onOpenChange={(open) => !open && setPendingDelete(null)}>
@@ -182,7 +169,7 @@ export function CycleClient({
             <DialogTitle>Delete this role?</DialogTitle>
             <DialogDescription>
               &ldquo;{pendingDelete?.name}&rdquo; and all its pipeline rounds and form data will be
-              permanently removed.
+              permanently removed. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

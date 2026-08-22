@@ -41,6 +41,7 @@ export async function POST(req: Request, context: RouteContext) {
       tier: (body.tier as RoleTier) || 'tier-1',
       department: body.department || null,
       description: body.description || null,
+      accessEmails: Array.isArray(body.accessEmails) ? body.accessEmails : [],
     });
 
     if (!created) return jsonError('Failed to create role', 500);

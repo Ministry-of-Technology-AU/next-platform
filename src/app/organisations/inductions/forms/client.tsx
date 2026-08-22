@@ -88,7 +88,7 @@ export function FormsClient({ initialForms }: { initialForms: FormSummary[] }) {
           <DialogHeader>
             <DialogTitle>Delete this form?</DialogTitle>
             <DialogDescription>
-              &ldquo;{pendingDelete?.title}&rdquo; and its drafts will be permanently removed. Forms
+              &ldquo;{pendingDelete?.title}&rdquo; and its drafts will be permanently removed. This action cannot be undone. Forms
               with submissions can&apos;t be deleted — set them to inactive instead.
             </DialogDescription>
           </DialogHeader>

@@ -208,6 +208,37 @@ export async function createForm(title: string, organisationId: number): Promise
   return created;
 }
 
+export async function duplicateForm(
+  sourceFormIdOrUid: string | number,
+  organisationId: number,
+  titleOverride?: string,
+): Promise<FormRecord> {
+  const source =
+    typeof sourceFormIdOrUid === 'number' || (!isNaN(Number(sourceFormIdOrUid)) && !String(sourceFormIdOrUid).includes('-'))
+      ? await getFormById(sourceFormIdOrUid)
+      : await getFormByUid(String(sourceFormIdOrUid));
+
+  if (!source) throw new Error('Source form not found');
+
+  const uid = uuidv4();
+  const title = titleOverride || `${source.title} (Copy)`;
+
+  const res = await strapiPost('/forms', {
+    data: {
+      title,
+      form_uid: uid,
+      schema: source.schema ? JSON.parse(JSON.stringify(source.schema)) : createDefaultSchema(),
+      form_status: 'draft',
+      stats: zeroStats,
+      organisation: organisationId,
+    },
+  });
+
+  const created = normalizeForm(res?.data);
+  if (!created) throw new Error('Failed to duplicate form');
+  return created;
+}
+
 interface FormPatch {
   title?: string;
   schema?: FormSchema;

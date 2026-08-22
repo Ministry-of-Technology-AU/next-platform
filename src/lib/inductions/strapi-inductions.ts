@@ -14,7 +14,11 @@ import type {
   CycleStatus,
   PipelineRoundType,
 } from '@/app/organisations/inductions/types';
-import { PLACEHOLDER_CYCLE_STATS, PLACEHOLDER_ROLE_STATS } from '@/app/organisations/inductions/types';
+import {
+  PLACEHOLDER_CYCLE_STATS,
+  PLACEHOLDER_ROLE_STATS,
+  getDerivedCycleStatus,
+} from '@/app/organisations/inductions/types';
 import type { ApplicantRow, ApplicantStatus } from '@/app/organisations/inductions/_components/role-applicants';
 import { createForm, getFormByUid } from '@/lib/forms/strapi-forms';
 import { normalizeStartDateToStartOfDay, normalizeEndDateToEndOfDay } from '@/lib/date-utils';
@@ -33,12 +37,17 @@ export function normalizeCycle(entry: any): InductionCycleSummary | null {
   const id = entry.id ?? a.id;
   if (id == null) return null;
 
+  const rawStatus = (a.status as CycleStatus) || 'draft';
+  const startDate = a.start_date ?? null;
+  const endDate = a.end_date ?? null;
+  const derivedStatus = getDerivedCycleStatus(rawStatus, startDate, endDate);
+
   return {
     id: id.toString(),
     name: a.name || 'Untitled Cycle',
-    status: (a.status as CycleStatus) || 'draft',
-    startDate: a.start_date ?? null,
-    endDate: a.end_date ?? null,
+    status: derivedStatus,
+    startDate,
+    endDate,
     stats: a.stats || PLACEHOLDER_CYCLE_STATS,
     createdAt: a.createdAt || new Date().toISOString(),
   };
@@ -56,6 +65,7 @@ export function normalizeRole(entry: any): InductionRole | null {
     tier: (a.tier as RoleTier) || 'tier-1',
     department: a.department || null,
     description: a.description || null,
+    accessEmails: a.access_emails || a.accessEmails || [],
     stats: a.stats || PLACEHOLDER_ROLE_STATS,
     createdAt: a.createdAt || new Date().toISOString(),
   };
@@ -67,6 +77,7 @@ export function normalizePipelineRound(entry: any): PipelineRound | null {
   const id = entry.id ?? a.id;
   if (id == null) return null;
 
+  // --- Backward-compat: read legacy single `form` relation as formIds[0] ---
   const formEntry = a.form?.data ?? a.form;
   const formAttrs = formEntry?.attributes ?? formEntry;
   const extractedFormId =
@@ -75,20 +86,30 @@ export function normalizePipelineRound(entry: any): PipelineRound | null {
     formEntry?.id ??
     (typeof a.form === 'string' || typeof a.form === 'number' ? a.form : null);
 
-  const formIdStr =
+  const legacyFormId =
     extractedFormId != null && typeof extractedFormId !== 'object'
       ? String(extractedFormId)
       : null;
+
+  // New field: form_ids (JSON array of form uid strings)
+  const rawFormIds: string[] | undefined = a.form_ids ?? a.formIds;
+  const formIds: string[] = Array.isArray(rawFormIds)
+    ? rawFormIds.filter((id: any) => typeof id === 'string' && id.trim() && id !== '[object Object]')
+    : legacyFormId && legacyFormId !== '[object Object]'
+      ? [legacyFormId]
+      : [];
 
   return {
     id: id.toString(),
     type: (a.type as PipelineRoundType) || 'form',
     label: a.label || 'Round',
-    formId: formIdStr && formIdStr !== '[object Object]' ? formIdStr : null,
+    formId: formIds[0] ?? null,
+    formIds,
     deadline: a.deadline ?? null,
     description: a.description ?? null,
     order: typeof a.order === 'number' ? a.order : 0,
     interviewConfig: a.interview_config ?? a.interviewConfig ?? null,
+    resultsConfig: a.results_config ?? a.resultsConfig ?? null,
   };
 }
 
@@ -155,7 +176,12 @@ export async function listCyclesByOrg(organisationId: number): Promise<Induction
   });
 
   const rows = res?.data ?? [];
-  const cycles = rows.map(normalizeCycle).filter((c: InductionCycleSummary | null): c is InductionCycleSummary => c !== null);
+  const cycles = rows
+    .map(normalizeCycle)
+    .filter(
+      (c: InductionCycleSummary | null): c is InductionCycleSummary =>
+        c !== null && c.status !== 'archived'
+    );
 
   for (const cycle of cycles) {
     try {
@@ -211,10 +237,12 @@ export async function createCycle(input: {
   endDate?: string | null;
   description?: string | null;
 }): Promise<InductionCycleSummary | null> {
+  const derivedStatus = getDerivedCycleStatus('draft', input.startDate, input.endDate);
+
   const res = await strapiPost('/induction-cycles', {
     data: {
       name: input.name,
-      status: 'draft',
+      status: derivedStatus,
       start_date: input.startDate ? normalizeStartDateToStartOfDay(input.startDate) : undefined,
       end_date: input.endDate ? normalizeEndDateToEndOfDay(input.endDate) : undefined,
       description: input.description || undefined,
@@ -239,23 +267,27 @@ export async function updateCycle(
 ): Promise<InductionCycleSummary | null> {
   const data: Record<string, any> = {};
   if (patch.name !== undefined) data.name = patch.name;
-  if (patch.status !== undefined) data.status = patch.status;
   if (patch.startDate !== undefined) data.start_date = patch.startDate ? normalizeStartDateToStartOfDay(patch.startDate) : null;
   if (patch.endDate !== undefined) data.end_date = patch.endDate ? normalizeEndDateToEndOfDay(patch.endDate) : null;
   if (patch.description !== undefined) data.description = patch.description;
   if (patch.stats !== undefined) data.stats = patch.stats;
+
+  const rawStatus = patch.status !== undefined ? patch.status : 'draft';
+  const effectiveStart = patch.startDate !== undefined ? patch.startDate : null;
+  const effectiveEnd = patch.endDate !== undefined ? patch.endDate : null;
+  data.status = getDerivedCycleStatus(rawStatus, effectiveStart, effectiveEnd);
 
   const res = await strapiPut(`/induction-cycles/${cycleId}`, { data });
   return normalizeCycle(res?.data);
 }
 
 export async function deleteCycle(cycleId: string | number): Promise<void> {
-  // Cascading cleanup of roles
-  const roles = await listRolesByCycle(cycleId);
-  for (const role of roles) {
-    await deleteRole(role.id);
-  }
-  await strapiDelete(`/induction-cycles/${cycleId}`);
+  // Soft-delete: set status to 'archived' so all roles, rounds, and applicant data remain in Strapi
+  await strapiPut(`/induction-cycles/${cycleId}`, {
+    data: {
+      status: 'archived',
+    },
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -292,6 +324,7 @@ export async function createRole(input: {
   tier: RoleTier;
   department?: string | null;
   description?: string | null;
+  accessEmails?: string[];
 }): Promise<InductionRole | null> {
   const res = await strapiPost('/induction-roles', {
     data: {
@@ -299,6 +332,7 @@ export async function createRole(input: {
       tier: input.tier || 'tier-1',
       department: input.department || undefined,
       description: input.description || undefined,
+      access_emails: input.accessEmails || [],
       stats: PLACEHOLDER_ROLE_STATS,
       induction_cycle: input.cycleId,
     },
@@ -350,6 +384,7 @@ export async function updateRole(
     tier: RoleTier;
     department: string | null;
     description: string | null;
+    accessEmails: string[];
     stats: any;
   }>,
 ): Promise<InductionRole | null> {
@@ -358,6 +393,7 @@ export async function updateRole(
   if (patch.tier !== undefined) data.tier = patch.tier;
   if (patch.department !== undefined) data.department = patch.department;
   if (patch.description !== undefined) data.description = patch.description;
+  if (patch.accessEmails !== undefined) data.access_emails = patch.accessEmails;
   if (patch.stats !== undefined) data.stats = patch.stats;
 
   const res = await strapiPut(`/induction-roles/${roleId}`, { data });
@@ -405,32 +441,39 @@ export async function syncPipeline(roleId: string | number, rounds: PipelineRoun
     }
   }
 
-  // Upsert rounds (Enforce: Round 0 is ALWAYS form, Round 1+ are interview rounds)
+  // Upsert rounds — type is user-chosen, no enforcement
   for (let i = 0; i < rounds.length; i++) {
     const round = rounds[i];
-    const enforcedType: PipelineRoundType = i === 0 ? 'form' : 'interview';
+    const roundType = round.type || 'form';
 
+    // Resolve first formId for legacy single-relation `form` field
+    const formIds = round.formIds ?? (round.formId ? [round.formId] : []);
     let formDbId: number | null = null;
-    if (enforcedType === 'form' && round.formId && round.formId !== 'none' && round.formId !== '[object Object]') {
-      if (!isNaN(Number(round.formId)) && !round.formId.includes('-')) {
-        formDbId = Number(round.formId);
-      } else {
-        const formRecord = await getFormByUid(round.formId);
-        if (formRecord?.id) {
-          formDbId = formRecord.id;
+    if (roundType === 'form' && formIds.length > 0) {
+      const firstId = formIds[0];
+      if (firstId && firstId !== 'none' && firstId !== '[object Object]') {
+        if (!isNaN(Number(firstId)) && !firstId.includes('-')) {
+          formDbId = Number(firstId);
+        } else {
+          const formRecord = await getFormByUid(firstId);
+          if (formRecord?.id) {
+            formDbId = formRecord.id;
+          }
         }
       }
     }
 
     const data = {
       label: round.label,
-      type: enforcedType,
+      type: roundType,
       order: i,
       deadline: round.deadline ? normalizeEndDateToEndOfDay(round.deadline) : undefined,
       description: round.description || undefined,
-      form: enforcedType === 'form' ? formDbId ?? null : null,
+      form: roundType === 'form' ? formDbId ?? null : null,
+      form_ids: roundType === 'form' ? formIds : [],
       role: parseInt(roleId.toString(), 10),
-      interview_config: enforcedType === 'interview' ? round.interviewConfig ?? null : null,
+      interview_config: roundType === 'interview' ? round.interviewConfig ?? null : null,
+      results_config: roundType === 'results' ? round.resultsConfig ?? null : null,
     };
 
     if (existingIds.has(round.id)) {
@@ -613,15 +656,17 @@ export async function listApplicantsByRole(roleId: string | number): Promise<App
     const uidFormIds: string[] = [];
 
     for (const round of rounds) {
-      if (round.formId && round.formId !== 'none' && round.formId !== '[object Object]') {
-        const raw = round.formId;
-        if (!isNaN(Number(raw)) && !String(raw).includes('-')) {
-          numericFormIds.push(Number(raw));
-        } else {
-          uidFormIds.push(raw);
-          const formRecord = await getFormByUid(raw);
-          if (formRecord?.id && !numericFormIds.includes(formRecord.id)) {
-            numericFormIds.push(formRecord.id);
+      const allFormIds = round.formIds ?? (round.formId ? [round.formId] : []);
+      for (const fid of allFormIds) {
+        if (fid && fid !== 'none' && fid !== '[object Object]') {
+          if (!isNaN(Number(fid)) && !String(fid).includes('-')) {
+            numericFormIds.push(Number(fid));
+          } else {
+            uidFormIds.push(fid);
+            const formRecord = await getFormByUid(fid);
+            if (formRecord?.id && !numericFormIds.includes(formRecord.id)) {
+              numericFormIds.push(formRecord.id);
+            }
           }
         }
       }
