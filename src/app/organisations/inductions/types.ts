@@ -33,11 +33,14 @@ export interface InductionRole {
   department: string | null;
   description: string | null;
   accessEmails?: string[];
+  formIds?: string[];
+  primaryFormId?: string | null;
   stats: RoleStats;
   createdAt: string;
 }
 
 export type PipelineRoundType = 'form' | 'interview' | 'results';
+export type PipelineRoundStatus = 'draft' | 'active' | 'completed' | 'paused';
 
 export interface InterviewBooking {
   slotKey: string; // e.g. "2026-08-25-10:00am-10:30am" or "Mon-10:00am-10:30am"
@@ -71,6 +74,7 @@ export interface PipelineRound {
   id: string;
   type: PipelineRoundType;
   label: string;
+  status?: PipelineRoundStatus;
   /** @deprecated Use formIds instead. Kept for backward compat reads. */
   formId?: string | null;
   formIds: string[];

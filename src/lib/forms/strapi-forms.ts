@@ -316,20 +316,76 @@ export async function deleteFormCascade(form: FormRecord): Promise<void> {
 // Responses
 // ---------------------------------------------------------------------------
 
-/** The caller's own row for a form (one per user, ever). */
+/** Helper to delete orphan duplicate responses in the background. */
+async function cleanupDuplicates(rows: ResponseRecord[]): Promise<ResponseRecord> {
+  if (rows.length <= 1) return rows[0];
+
+  // Sort rows: submitted first, then newest submitted_at, then newest last_saved_at/id
+  const sorted = [...rows].sort((a, b) => {
+    if (a.state === 'submitted' && b.state !== 'submitted') return -1;
+    if (b.state === 'submitted' && a.state !== 'submitted') return 1;
+
+    const timeA = new Date(a.submittedAt || a.lastSavedAt || 0).getTime();
+    const timeB = new Date(b.submittedAt || b.lastSavedAt || 0).getTime();
+    if (timeA !== timeB) return timeB - timeA;
+
+    return b.id - a.id;
+  });
+
+  const canonical = sorted[0];
+  const duplicates = sorted.slice(1);
+
+  // Delete all duplicate rows in Strapi
+  for (const dup of duplicates) {
+    try {
+      await strapiDelete(`/form-responses/${dup.id}`);
+      console.log(`[Form Responses] Cleaned up duplicate response row ID: ${dup.id} for ${canonical.respondentEmail}`);
+    } catch (err) {
+      console.error(`[Form Responses] Failed to delete duplicate row ID: ${dup.id}:`, err);
+    }
+  }
+
+  return canonical;
+}
+
+/** Get all response rows for a user (used for deduplication). */
+export async function getAllResponseRowsForUser(
+  formId: number,
+  email: string,
+): Promise<ResponseRecord[]> {
+  const normalized = email.trim().toLowerCase();
+  try {
+    const res = await strapiGet('/form-responses', {
+      filters: {
+        form: { id: { $eq: formId } },
+        $or: [
+          { respondent_email: { $eq: normalized } },
+          { respondent_email: { $eq: email.trim() } },
+          { respondent_email: { $containsi: normalized } },
+        ],
+      },
+      sort: 'createdAt:desc',
+      pagination: { pageSize: 50 },
+    });
+
+    const list = res?.data || (Array.isArray(res) ? res : []);
+    return list
+      .map(normalizeResponse)
+      .filter((r: ResponseRecord | null): r is ResponseRecord => r !== null && r.respondentEmail.trim().toLowerCase() === normalized);
+  } catch (err) {
+    console.error('getAllResponseRowsForUser failed:', err);
+    return [];
+  }
+}
+
+/** The caller's own row for a form (one per user, ever) with auto-deduplication. */
 export async function getResponseRow(
   formId: number,
   email: string,
 ): Promise<ResponseRecord | null> {
-  const res = await strapiGet('/form-responses', {
-    filters: {
-      form: { id: { $eq: formId } },
-      respondent_email: { $eq: email },
-    },
-    sort: 'createdAt:asc',
-    pagination: { pageSize: 1 },
-  });
-  return normalizeResponse(res?.data?.[0]);
+  const rows = await getAllResponseRowsForUser(formId, email);
+  if (rows.length === 0) return null;
+  return await cleanupDuplicates(rows);
 }
 
 export async function createResponseRow(input: {
@@ -341,12 +397,13 @@ export async function createResponseRow(input: {
   visitedAt?: string;
   submittedAt?: string;
 }): Promise<ResponseRecord | null> {
+  const normalizedEmail = input.email.trim().toLowerCase();
   const now = new Date().toISOString();
   const res = await strapiPost('/form-responses', {
     data: {
       form: input.formId,
       respondent: input.userId ?? undefined,
-      respondent_email: input.email,
+      respondent_email: normalizedEmail,
       data: input.data ?? {},
       state: input.state ?? 'draft',
       visited_at: input.visitedAt ?? now,
@@ -366,6 +423,46 @@ export async function updateResponseRow(
   return normalizeResponse(res?.data);
 }
 
+/**
+ * Upsert / patch response row — ensures no duplicate rows are ever created for the same user.
+ */
+export async function upsertResponseRow(input: {
+  formId: number;
+  userId: number | null;
+  email: string;
+  data?: Record<string, unknown>;
+  state?: 'draft' | 'submitted';
+  visitedAt?: string;
+  submittedAt?: string;
+  files?: FileDescriptor[];
+}): Promise<ResponseRecord | null> {
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const existing = await getResponseRow(input.formId, normalizedEmail);
+  const now = new Date().toISOString();
+
+  if (existing) {
+    // PATCH existing row
+    const patch: Record<string, unknown> = {
+      last_saved_at: now,
+      respondent_email: normalizedEmail,
+    };
+    if (input.data !== undefined) patch.data = input.data;
+    if (input.state !== undefined) patch.state = input.state;
+    if (input.submittedAt !== undefined) patch.submitted_at = input.submittedAt;
+    if (input.visitedAt !== undefined && !existing.visitedAt) patch.visited_at = input.visitedAt;
+    if (input.files !== undefined) patch.files = input.files;
+    if (input.userId != null) patch.respondent = input.userId;
+
+    return await updateResponseRow(existing.id, patch);
+  }
+
+  // Create single new row
+  return await createResponseRow({
+    ...input,
+    email: normalizedEmail,
+  });
+}
+
 export interface ResponsePage {
   rows: ResponseRecord[];
   total: number;
@@ -381,14 +478,37 @@ export async function getResponsesByForm(
   if (state !== 'all') filters.state = { $eq: state };
   const res = await strapiGet('/form-responses', {
     filters,
-    sort: 'submitted_at:desc',
-    pagination: { page, pageSize },
+    sort: 'submitted_at:desc,updatedAt:desc',
+    pagination: { page: 1, pageSize: 1000 },
   });
-  const rows = (res?.data ?? [])
+  const rawRows = (res?.data ?? [])
     .map(normalizeResponse)
     .filter((r: ResponseRecord | null): r is ResponseRecord => r !== null);
-  const total = res?.meta?.pagination?.total ?? rows.length;
-  return { rows, total };
+
+  // Group by respondent email to eliminate duplicates
+  const grouped = new Map<string, ResponseRecord[]>();
+  for (const r of rawRows) {
+    const emailKey = r.respondentEmail.trim().toLowerCase();
+    if (!grouped.has(emailKey)) grouped.set(emailKey, []);
+    grouped.get(emailKey)!.push(r);
+  }
+
+  const deduplicatedRows: ResponseRecord[] = [];
+  for (const [, userRows] of grouped.entries()) {
+    if (userRows.length === 1) {
+      deduplicatedRows.push(userRows[0]);
+    } else {
+      // Multiple rows found for this user — cleanup duplicates
+      const canonical = await cleanupDuplicates(userRows);
+      deduplicatedRows.push(canonical);
+    }
+  }
+
+  // Apply in-memory pagination on deduplicated results
+  const start = (page - 1) * pageSize;
+  const paginatedRows = deduplicatedRows.slice(start, start + pageSize);
+
+  return { rows: paginatedRows, total: deduplicatedRows.length };
 }
 
 /** completionRate is derived at read time — never stored (spec §13). */

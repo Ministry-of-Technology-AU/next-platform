@@ -59,6 +59,19 @@ export function normalizeRole(entry: any): InductionRole | null {
   const id = entry.id ?? a.id;
   if (id == null) return null;
 
+  // Extract linked form IDs from pipeline_rounds if present
+  const rounds = Array.isArray(a.pipeline_rounds?.data)
+    ? a.pipeline_rounds.data
+    : Array.isArray(a.pipeline_rounds)
+      ? a.pipeline_rounds
+      : [];
+  const formIds = rounds
+    .flatMap((r: any) => {
+      const rAttrs = r?.attributes ?? r;
+      return rAttrs?.form_ids ?? rAttrs?.formIds ?? (rAttrs?.form ? [rAttrs.form] : []);
+    })
+    .filter((fId: any) => typeof fId === 'string' && fId.trim() && fId !== '[object Object]');
+
   return {
     id: id.toString(),
     name: a.name || 'Untitled Role',
@@ -66,6 +79,8 @@ export function normalizeRole(entry: any): InductionRole | null {
     department: a.department || null,
     description: a.description || null,
     accessEmails: a.access_emails || a.accessEmails || [],
+    formIds,
+    primaryFormId: formIds[0] ?? null,
     stats: a.stats || PLACEHOLDER_ROLE_STATS,
     createdAt: a.createdAt || new Date().toISOString(),
   };
@@ -102,6 +117,7 @@ export function normalizePipelineRound(entry: any): PipelineRound | null {
   return {
     id: id.toString(),
     type: (a.type as PipelineRoundType) || 'form',
+    status: (a.status as any) || 'active',
     label: a.label || 'Round',
     formId: formIds[0] ?? null,
     formIds,
@@ -207,7 +223,6 @@ export async function getCycleById(cycleId: string | number): Promise<InductionC
     populate: {
       organisation: { fields: ['id', 'name'] },
       roles: { fields: ['id', 'name', 'tier', 'department'] },
-      timeline: true,
     },
   });
 
@@ -298,6 +313,9 @@ export async function listRolesByCycle(cycleId: string | number): Promise<Induct
   const res = await strapiGet('/induction-roles', {
     filters: {
       induction_cycle: { id: { $eq: cycleId } },
+    },
+    populate: {
+      pipeline_rounds: true,
     },
     sort: 'createdAt:asc',
     pagination: { pageSize: 100 },
@@ -466,6 +484,7 @@ export async function syncPipeline(roleId: string | number, rounds: PipelineRoun
     const data = {
       label: round.label,
       type: roundType,
+      status: round.status || 'active',
       order: i,
       deadline: round.deadline ? normalizeEndDateToEndOfDay(round.deadline) : undefined,
       description: round.description || undefined,
@@ -792,3 +811,99 @@ export async function getPipelineForForm(formId: number | string): Promise<{
     return null;
   }
 }
+
+/**
+ * Checks whether a given user email belongs strictly to an organization account (profile)
+ * and NOT an individual human member in circle1_humans or circle2_humans.
+ */
+export async function isOrganisationAccount(
+  userEmail: string,
+  organisationId?: number | string,
+): Promise<boolean> {
+  if (!userEmail) return false;
+  const normalizedEmail = userEmail.trim().toLowerCase();
+
+  // 1. Admin emails can always manage for testing & platform governance
+  const adminEmails = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  if (adminEmails.includes(normalizedEmail)) {
+    return true;
+  }
+
+  // 2. Special organization emails list
+  const orgAdminEmails = [
+    'technology.ministry@ashoka.edu.in',
+    'sg@ashoka.edu.in',
+  ];
+  if (orgAdminEmails.includes(normalizedEmail)) {
+    return true;
+  }
+
+  const { getUserIdByEmail } = await import('@/lib/userid');
+  const userId = await getUserIdByEmail(normalizedEmail);
+  if (!userId) return false;
+
+  // 3. Direct query: Check if an organization exists where profile.id === userId
+  try {
+    const directMatch = await strapiGet('/organisations', {
+      filters: {
+        profile: {
+          id: {
+            $eq: userId,
+          },
+        },
+      },
+      populate: {
+        profile: true,
+      },
+    });
+
+    const orgs = directMatch?.data || (Array.isArray(directMatch) ? directMatch : []);
+    if (Array.isArray(orgs) && orgs.length > 0) {
+      if (!organisationId) return true;
+      const matched = orgs.find(
+        (o: any) =>
+          o.id === Number(organisationId) ||
+          o.attributes?.id === Number(organisationId) ||
+          String(o.id) === String(organisationId),
+      );
+      if (matched) return true;
+      return true;
+    }
+  } catch (err) {
+    console.error('[isOrganisationAccount] Direct query failed:', err);
+  }
+
+  // 4. Fetch the target organisation and check if its profile matches
+  if (organisationId) {
+    try {
+      const orgRes = await strapiGet(`/organisations/${organisationId}`, {
+        populate: {
+          profile: true,
+        },
+      });
+
+      const raw = orgRes?.data || orgRes;
+      const a = raw?.attributes || raw;
+      const profile = a?.profile?.data || a?.profile;
+      const profileAttrs = profile?.attributes || profile;
+
+      const profileId = profile?.id ?? profileAttrs?.id ?? null;
+      const profileEmail = (profileAttrs?.email ?? profile?.email ?? '').toLowerCase().trim();
+
+      if (profileId && Number(profileId) === Number(userId)) {
+        return true;
+      }
+      if (profileEmail && profileEmail === normalizedEmail) {
+        return true;
+      }
+    } catch (err) {
+      console.error('[isOrganisationAccount] Org fetch failed:', err);
+    }
+  }
+
+  return false;
+}
+

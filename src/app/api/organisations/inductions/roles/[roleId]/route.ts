@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireOrgSession, jsonOk, jsonError } from '@/lib/forms/api-helpers';
 import { getRoleById, updateRole, deleteRole } from '@/lib/inductions/strapi-inductions';
+import { strapiGet } from '@/lib/apis/strapi';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,16 @@ export async function PUT(req: Request, context: RouteContext) {
 
     const { roleId } = await context.params;
     const body = await req.json().catch(() => ({}));
+
+    // If accessEmails is modified, ensure only the organization's account can update it
+    if (body.accessEmails !== undefined) {
+      const { isOrganisationAccount } = await import('@/lib/inductions/strapi-inductions');
+      const isOrgAccount = await isOrganisationAccount(org.email, org.organisationId);
+
+      if (!isOrgAccount) {
+        return jsonError('Only the organization account can edit access permissions', 403);
+      }
+    }
 
     const updated = await updateRole(roleId, body);
     if (!updated) return jsonError('Failed to update role', 500);

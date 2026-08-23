@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { User, Trash2, ArrowRight, Users, ShieldCheck } from 'lucide-react';
+import { User, Trash2, ArrowRight, Users, ShieldCheck, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RoleAccessDialog } from './role-access-dialog';
 import type { InductionRole } from '../types';
@@ -93,6 +93,16 @@ export function RoleCard({
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
+
+        {role.primaryFormId && (
+          <Button asChild size="sm" variant="outline" className="gap-1.5 font-medium">
+            <Link href={`/organisations/inductions/forms/${role.primaryFormId}/responses?cycleId=${cycleId}&roleId=${role.id}`}>
+              <ClipboardList className="h-3.5 w-3.5" />
+              Responses
+            </Link>
+          </Button>
+        )}
+
         <Button
           size="icon"
           variant="ghost"

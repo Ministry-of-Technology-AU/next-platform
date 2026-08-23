@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   Users,
@@ -14,6 +15,8 @@ import {
   Filter,
   Calendar,
   RefreshCw,
+  ClipboardList,
+  Eye,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -300,14 +303,18 @@ function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: Action
 
 export function RoleApplicants({
   roleId,
+  cycleId,
   applicants: initialApplicants = [],
   roundLabels = ['Application Form'],
   pipeline = [],
+  primaryFormId,
 }: {
   roleId?: string;
+  cycleId?: string;
   applicants?: ApplicantRow[];
   roundLabels?: string[];
   pipeline?: PipelineRound[];
+  primaryFormId?: string | null;
 }) {
   const [applicants, setApplicants] = useState<ApplicantRow[]>(initialApplicants);
   const [roundFilter, setRoundFilter] = useState<number | 'all'>('all');
@@ -411,13 +418,36 @@ export function RoleApplicants({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold !text-left">Applicants</h3>
           <Badge variant="outline" className="text-xs">
             {totalCount} total
           </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {primaryFormId && (
+            <Button asChild size="sm" variant="outline" className="h-8 gap-1.5 text-xs font-medium">
+              <Link href={`/organisations/inductions/forms/${primaryFormId}/responses${cycleId && roleId ? `?cycleId=${cycleId}&roleId=${roleId}` : ''}`}>
+                <ClipboardList className="h-3.5 w-3.5" />
+                View Form Responses
+              </Link>
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+            title="Refresh applicants list"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
         </div>
       </div>
 
@@ -558,29 +588,48 @@ export function RoleApplicants({
 
                     {/* Actions */}
                     <TableCell className="text-right">
-                      {isTerminal ? (
-                        <span className="text-xs text-muted-foreground italic">—</span>
-                      ) : (
-                        <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {primaryFormId && applicant.email && (
                           <Button
-                            size="sm"
-                            className="h-7 px-2.5 gap-1 text-xs bg-green-dark hover:bg-green-dark/90 text-white dark:bg-green dark:text-black dark:hover:bg-green/80"
-                            onClick={() => openAction(applicant, 'proceed')}
+                            asChild
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
+                            title="View form response"
+                            aria-label={`View response for ${applicant.email}`}
                           >
-                            <ArrowRight className="h-3 w-3" />
-                            Proceed
+                            <Link
+                              href={`/organisations/inductions/forms/${primaryFormId}/responses?email=${encodeURIComponent(
+                                applicant.email,
+                              )}${cycleId && roleId ? `&cycleId=${cycleId}&roleId=${roleId}` : ''}`}
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </Link>
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 px-2.5 gap-1 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive"
-                            onClick={() => openAction(applicant, 'reject')}
-                          >
-                            <XCircle className="h-3 w-3" />
-                            Reject
-                          </Button>
-                        </div>
-                      )}
+                        )}
+
+                        {!isTerminal && (
+                          <>
+                            <Button
+                              size="sm"
+                              className="h-7 px-2.5 gap-1 text-xs bg-green-dark hover:bg-green-dark/90 text-white dark:bg-green dark:text-black dark:hover:bg-green/80"
+                              onClick={() => openAction(applicant, 'proceed')}
+                            >
+                              <ArrowRight className="h-3 w-3" />
+                              Proceed
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2.5 gap-1 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive"
+                              onClick={() => openAction(applicant, 'reject')}
+                            >
+                              <XCircle className="h-3 w-3" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

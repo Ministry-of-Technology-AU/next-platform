@@ -1,5 +1,18 @@
 import { useState } from 'react';
-import { Plus, Workflow, FileText, Loader2, Mic, Clock, Sparkles, Trophy, Mail } from 'lucide-react';
+import {
+  Plus,
+  Workflow,
+  FileText,
+  Loader2,
+  Mic,
+  Clock,
+  Sparkles,
+  Trophy,
+  Mail,
+  FilePlus2,
+  Link2,
+  Lock,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -27,15 +40,19 @@ import { PipelineNode } from './pipeline-node';
 import { InterviewSchedulerDialog } from './interview-scheduler-dialog';
 import type { PipelineRound, PipelineRoundType, InterviewConfig, ResultsConfig } from '../types';
 import type { RoleFormSummary } from './role-forms';
+import type { ApplicantRow } from './role-applicants';
 
 interface PipelineBuilderProps {
   rounds: PipelineRound[];
   forms?: RoleFormSummary[];
+  applicants?: ApplicantRow[];
   roleName?: string;
   orgEmail?: string;
   onChange: (rounds: PipelineRound[]) => void;
   onFormCreated?: (newForm: RoleFormSummary) => void;
 }
+
+type FormMode = 'create' | 'link';
 
 const DEFAULT_ROUNDS: PipelineRound[] = [
   {
@@ -55,6 +72,7 @@ const DEFAULT_RESULTS_TEMPLATE = `<p>Dear Applicant,</p><p>Thank you for partici
 export function PipelineBuilder({
   rounds: initialRounds,
   forms = [],
+  applicants = [],
   roleName = 'Role',
   orgEmail,
   onChange,
@@ -68,7 +86,8 @@ export function PipelineBuilder({
   const [editingRound, setEditingRound] = useState<PipelineRound | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [editType, setEditType] = useState<PipelineRoundType>('form');
-  const [editFormIds, setEditFormIds] = useState<string[]>([]);
+  const [editFormMode, setEditFormMode] = useState<FormMode>('create');
+  const [editFormId, setEditFormId] = useState<string | null>(null);
   const [editDeadline, setEditDeadline] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editInterviewConfig, setEditInterviewConfig] = useState<InterviewConfig | null>(null);
@@ -82,7 +101,8 @@ export function PipelineBuilder({
   const [addAfterIndex, setAddAfterIndex] = useState<number>(-1);
   const [newLabel, setNewLabel] = useState('');
   const [newType, setNewType] = useState<PipelineRoundType>('form');
-  const [newFormIds, setNewFormIds] = useState<string[]>([]);
+  const [newFormMode, setNewFormMode] = useState<FormMode>('create');
+  const [newFormId, setNewFormId] = useState<string | null>(null);
   const [newDeadline, setNewDeadline] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newInterviewConfig, setNewInterviewConfig] = useState<InterviewConfig | null>(null);
@@ -104,6 +124,19 @@ export function PipelineBuilder({
     onChange(reordered);
   };
 
+  // Active round detection (locked if applicants are in/past this round, or linked form has submissions, or interviews booked)
+  const isRoundActive = (round: PipelineRound, index: number): boolean => {
+    const hasApplicantsInRound = (applicants || []).some(
+      (a) => a.currentRound === index || a.currentRound > index,
+    );
+    const formId = round.formIds?.[0] ?? round.formId;
+    const linkedForm = forms.find((f) => f.id === formId);
+    const hasFormSubmissions = (linkedForm?.stats?.submissionCount ?? 0) > 0;
+    const hasBookings = (round.interviewConfig?.bookings?.length ?? 0) > 0;
+
+    return hasApplicantsInRound || hasFormSubmissions || hasBookings;
+  };
+
   // Helper to map formId to title
   const getFormTitle = (formId: string | null) => {
     if (!formId) return null;
@@ -111,18 +144,13 @@ export function PipelineBuilder({
     return match ? match.title : null;
   };
 
-  const getFormTitles = (formIds: string[]): string[] => {
-    return formIds
-      .map((id) => forms.find((f) => f.id === id)?.title)
-      .filter((t): t is string => !!t);
-  };
-
   // ---- Add ----
   const openAddDialog = (afterIndex: number) => {
     setAddAfterIndex(afterIndex);
     setNewLabel('');
     setNewType('form');
-    setNewFormIds([]);
+    setNewFormMode('create');
+    setNewFormId(null);
     setNewDeadline('');
     setNewDescription('');
     setNewInterviewConfig(null);
@@ -134,39 +162,42 @@ export function PipelineBuilder({
     const trimmed = newLabel.trim();
     if (!trimmed) return;
 
-    let finalFormIds = newType === 'form' ? newFormIds.filter((id) => id !== 'none') : [];
+    let finalFormId: string | null = null;
 
-    // If "create-new" is selected, create a new form in Strapi
-    if (newType === 'form' && newFormIds.includes('create-new')) {
-      try {
-        setCreatingInlineForm(true);
-        const res = await fetch('/api/organisations/forms', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: trimmed }),
-        });
-        const json = await res.json();
-        if (json?.success && json?.data?.id) {
-          const createdId = json.data.id;
-          finalFormIds = finalFormIds.filter((id) => id !== 'create-new');
-          finalFormIds.unshift(createdId);
-          const newFormObj: RoleFormSummary = {
-            id: createdId,
-            title: json.data.title || trimmed,
-            form_status: json.data.form_status || 'draft',
-            startDate: json.data.start_date || null,
-            endDate: json.data.end_date || null,
-            updatedAt: json.data.updatedAt || new Date().toISOString(),
-            fieldsCount: 0,
-            stats: json.data.stats || { submissionCount: 0, completionRate: 0, views: 0 },
-          };
-          onFormCreated?.(newFormObj);
-          toast.success(`Form "${trimmed}" created and linked`);
+    if (newType === 'form') {
+      if (newFormMode === 'create') {
+        try {
+          setCreatingInlineForm(true);
+          const res = await fetch('/api/organisations/forms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: trimmed }),
+          });
+          const json = await res.json();
+          if (json?.success && json?.data?.id) {
+            finalFormId = json.data.id;
+            const newFormObj: RoleFormSummary = {
+              id: json.data.id,
+              title: json.data.title || trimmed,
+              form_status: json.data.form_status || 'draft',
+              startDate: json.data.start_date || null,
+              endDate: json.data.end_date || null,
+              updatedAt: json.data.updatedAt || new Date().toISOString(),
+              fieldsCount: 0,
+              stats: json.data.stats || { submissionCount: 0, completionRate: 0, views: 0 },
+            };
+            onFormCreated?.(newFormObj);
+            toast.success(`Form "${trimmed}" created and linked`);
+          } else {
+            throw new Error(json?.error || 'Failed to create form');
+          }
+        } catch (err: any) {
+          toast.error(err.message || 'Could not auto-create form');
+        } finally {
+          setCreatingInlineForm(false);
         }
-      } catch (err: any) {
-        toast.error('Could not auto-create form');
-      } finally {
-        setCreatingInlineForm(false);
+      } else {
+        finalFormId = newFormId && newFormId !== 'none' ? newFormId : null;
       }
     }
 
@@ -174,8 +205,8 @@ export function PipelineBuilder({
       id: crypto.randomUUID(),
       type: newType,
       label: trimmed,
-      formId: finalFormIds[0] ?? null,
-      formIds: newType === 'form' ? finalFormIds : [],
+      formId: finalFormId,
+      formIds: newType === 'form' && finalFormId ? [finalFormId] : [],
       deadline: newDeadline || null,
       description: newDescription.trim() || null,
       order: addAfterIndex + 1,
@@ -193,7 +224,9 @@ export function PipelineBuilder({
     setEditingRound(round);
     setEditLabel(round.label);
     setEditType(round.type);
-    setEditFormIds(round.formIds ?? (round.formId ? [round.formId] : []));
+    const existingForm = round.formIds?.[0] ?? round.formId ?? null;
+    setEditFormId(existingForm);
+    setEditFormMode(existingForm ? 'link' : 'create');
     setEditDeadline(round.deadline || '');
     setEditDescription(round.description || '');
     setEditInterviewConfig(round.interviewConfig || null);
@@ -207,39 +240,43 @@ export function PipelineBuilder({
     const trimmed = editLabel.trim();
     if (!trimmed) return;
 
-    let selectedFormIds = editType === 'form' ? editFormIds.filter((id) => id !== 'none') : [];
+    const roundIndex = editingRound.order ?? rounds.findIndex((r) => r.id === editingRound.id);
+    const isLocked = isRoundActive(editingRound, roundIndex);
 
-    // Handle inline form creation if 'create-new' is selected
-    if (editType === 'form' && editFormIds.includes('create-new')) {
-      try {
-        setCreatingInlineForm(true);
-        const res = await fetch('/api/organisations/forms', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: trimmed }),
-        });
-        const json = await res.json();
-        if (json?.success && json?.data?.id) {
-          const createdId = json.data.id;
-          selectedFormIds = selectedFormIds.filter((id) => id !== 'create-new');
-          selectedFormIds.unshift(createdId);
-          const newFormObj: RoleFormSummary = {
-            id: createdId,
-            title: json.data.title || trimmed,
-            form_status: json.data.form_status || 'draft',
-            startDate: json.data.start_date || null,
-            endDate: json.data.end_date || null,
-            updatedAt: json.data.updatedAt || new Date().toISOString(),
-            fieldsCount: 0,
-            stats: json.data.stats || { submissionCount: 0, completionRate: 0, views: 0 },
-          };
-          onFormCreated?.(newFormObj);
-          toast.success(`Form "${trimmed}" created and linked`);
+    let selectedFormId: string | null = editingRound.formIds?.[0] ?? editingRound.formId ?? null;
+
+    if (!isLocked && editType === 'form') {
+      if (editFormMode === 'create') {
+        try {
+          setCreatingInlineForm(true);
+          const res = await fetch('/api/organisations/forms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: trimmed }),
+          });
+          const json = await res.json();
+          if (json?.success && json?.data?.id) {
+            selectedFormId = json.data.id;
+            const newFormObj: RoleFormSummary = {
+              id: json.data.id,
+              title: json.data.title || trimmed,
+              form_status: json.data.form_status || 'draft',
+              startDate: json.data.start_date || null,
+              endDate: json.data.end_date || null,
+              updatedAt: json.data.updatedAt || new Date().toISOString(),
+              fieldsCount: 0,
+              stats: json.data.stats || { submissionCount: 0, completionRate: 0, views: 0 },
+            };
+            onFormCreated?.(newFormObj);
+            toast.success(`Form "${trimmed}" created and linked`);
+          }
+        } catch {
+          toast.error('Could not auto-create form');
+        } finally {
+          setCreatingInlineForm(false);
         }
-      } catch {
-        toast.error('Could not auto-create form');
-      } finally {
-        setCreatingInlineForm(false);
+      } else {
+        selectedFormId = editFormId && editFormId !== 'none' ? editFormId : null;
       }
     }
 
@@ -248,9 +285,9 @@ export function PipelineBuilder({
         ? {
             ...r,
             label: trimmed,
-            type: editType,
-            formId: selectedFormIds[0] ?? null,
-            formIds: editType === 'form' ? selectedFormIds : [],
+            type: isLocked ? r.type : editType,
+            formId: (isLocked ? r.type : editType) === 'form' ? selectedFormId : null,
+            formIds: (isLocked ? r.type : editType) === 'form' && selectedFormId ? [selectedFormId] : [],
             deadline: editDeadline || null,
             description: editDescription.trim() || null,
             interviewConfig: editType === 'interview' ? editInterviewConfig || r.interviewConfig : null,
@@ -264,6 +301,11 @@ export function PipelineBuilder({
 
   // ---- Delete ----
   const deleteRound = (roundId: string) => {
+    const roundIdx = rounds.findIndex((r) => r.id === roundId);
+    if (roundIdx !== -1 && isRoundActive(rounds[roundIdx], roundIdx)) {
+      toast.error('Cannot delete an active round with applicants or submissions');
+      return;
+    }
     const next = rounds.filter((r) => r.id !== roundId);
     updateRounds(next);
   };
@@ -290,96 +332,131 @@ export function PipelineBuilder({
     setInterviewSchedulerTarget(null);
   };
 
-  // Toggle form in a multi-select set
-  const toggleFormId = (
-    currentIds: string[],
-    formId: string,
-    setter: (ids: string[]) => void,
-  ) => {
-    if (currentIds.includes(formId)) {
-      setter(currentIds.filter((id) => id !== formId));
-    } else {
-      setter([...currentIds, formId]);
-    }
-  };
-
-  // ---- Shared form picker for Add / Edit dialogs ----
+  // ---- Segregated Form Picker (Create new vs Link existing — Single Selection) ----
   const renderFormPicker = (
-    selectedIds: string[],
-    setter: (ids: string[]) => void,
+    formMode: FormMode,
+    setFormMode: (mode: FormMode) => void,
+    selectedId: string | null,
+    setSelectedId: (id: string | null) => void,
     roundTitle: string,
+    disabled = false,
   ) => {
-    const isCreateNewChecked = selectedIds.includes('create-new');
-    const selectedExistingCount = selectedIds.filter((id) => id !== 'create-new').length;
-    const totalSelectedCount = selectedExistingCount + (isCreateNewChecked ? 1 : 0);
-
     return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <Label>Linked Forms</Label>
-          {totalSelectedCount > 0 && (
-            <span className="text-[11px] font-medium text-primary">
-              {totalSelectedCount} selected
-            </span>
-          )}
+      <div className="space-y-3 pt-0.5">
+        <Label className="text-xs font-semibold text-foreground">Form Setup</Label>
+
+        {/* 2 Segregated Options: Create New vs Link Existing */}
+        <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-muted/40 border border-border/70">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setFormMode('create')}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+              formMode === 'create'
+                ? 'bg-background text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <FilePlus2 className={`h-3.5 w-3.5 ${formMode === 'create' ? 'text-primary' : 'text-muted-foreground'}`} />
+            Create new form
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setFormMode('link')}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+              formMode === 'link'
+                ? 'bg-background text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <Link2 className={`h-3.5 w-3.5 ${formMode === 'link' ? 'text-primary' : 'text-muted-foreground'}`} />
+            Link existing form
+            {selectedId && formMode === 'link' && (
+              <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px] font-bold">
+                1
+              </Badge>
+            )}
+          </button>
         </div>
 
-        {/* Scrollable list with persistent visible scrollbar */}
-        <div className="rounded-xl border border-border bg-muted/20 p-2.5 max-h-[220px] overflow-y-scroll custom-scrollbar [scrollbar-gutter:stable] space-y-1.5">
-          {/* 1. Create a new form option (First option) */}
-          <label
-            className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 cursor-pointer transition-colors border ${
-              isCreateNewChecked
-                ? 'bg-primary/10 border-primary/40 text-primary'
-                : 'hover:bg-muted/40 border-dashed border-border bg-background/60'
-            }`}
-          >
-            <Checkbox
-              checked={isCreateNewChecked}
-              onCheckedChange={() => toggleFormId(selectedIds, 'create-new', setter)}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate !text-left flex items-center gap-1.5 text-foreground">
-                <Plus className="h-3.5 w-3.5 text-primary shrink-0" />
-                + Create new form with this round&apos;s title
+        {/* Option 1: Create New Form — Minimal & Zero Clutter */}
+        {formMode === 'create' ? (
+          <div className="rounded-xl border border-primary/25 bg-primary/5 p-3.5 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+              <FilePlus2 className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <p className="text-xs font-semibold text-foreground truncate !text-left">
+                {roundTitle.trim() ? `"${roundTitle.trim()}" will be created` : 'New form will be created'}
               </p>
-              <p className="text-[11px] text-muted-foreground !text-left">
-                {roundTitle.trim()
-                  ? `Will create and link "${roundTitle.trim()}"`
-                  : 'Automatically creates a new draft form and links it'}
+              <p className="text-[11px] text-muted-foreground !text-left leading-relaxed">
+                A draft application form will automatically be created and linked when you save this round.
               </p>
             </div>
-          </label>
+          </div>
+        ) : (
+          /* Option 2: Link Existing Form — Single Select list */
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground font-medium">Select a form to link:</span>
+              {selectedId && (
+                <span className="text-[11px] font-semibold text-primary">
+                  1 form selected
+                </span>
+              )}
+            </div>
 
-          {/* 2. Existing forms */}
-          {forms.map((f) => {
-            const isChecked = selectedIds.includes(f.id);
-            return (
-              <label
-                key={f.id}
-                className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 cursor-pointer transition-colors border ${
-                  isChecked
-                    ? 'bg-primary/5 border-primary/30'
-                    : 'hover:bg-muted/40 border-border/40 bg-background/40'
-                }`}
-              >
-                <Checkbox
-                  checked={isChecked}
-                  onCheckedChange={() => toggleFormId(selectedIds, f.id, setter)}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate !text-left text-foreground">{f.title}</p>
-                  <p className="text-[11px] text-muted-foreground !text-left">
-                    Status: {f.form_status} · {f.stats?.submissionCount ?? 0} responses
-                  </p>
+            <div className="rounded-xl border border-border bg-muted/20 p-2 max-h-[190px] overflow-y-scroll custom-scrollbar [scrollbar-gutter:stable] space-y-1.5">
+              {forms.length === 0 ? (
+                <div className="py-6 text-center text-xs text-muted-foreground">
+                  <p>No existing forms found in this organisation.</p>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setFormMode('create')}
+                    className="text-primary hover:underline text-[11px] font-medium mt-1 inline-block"
+                  >
+                    Switch to Create new form
+                  </button>
                 </div>
-              </label>
-            );
-          })}
-        </div>
-        <p className="text-[11px] text-muted-foreground">
-          Select one or more existing forms, or check the option above to create a new form automatically.
-        </p>
+              ) : (
+                forms.map((f) => {
+                  const isSelected = selectedId === f.id;
+                  return (
+                    <div
+                      key={f.id}
+                      onClick={() => {
+                        if (!disabled) {
+                          setSelectedId(isSelected ? null : f.id);
+                        }
+                      }}
+                      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 cursor-pointer transition-colors border ${
+                        isSelected
+                          ? 'bg-primary/10 border-primary/40 text-foreground font-medium shadow-sm'
+                          : 'hover:bg-muted/40 border-border/40 bg-background/50 text-muted-foreground'
+                      } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/50'
+                        }`}
+                      >
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-background" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium truncate !text-left text-foreground">{f.title}</p>
+                        <p className="text-[10px] text-muted-foreground !text-left">
+                          Status: {f.form_status} · {f.stats?.submissionCount ?? 0} responses
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -389,27 +466,27 @@ export function PipelineBuilder({
     config: ResultsConfig,
     setter: (config: ResultsConfig) => void,
   ) => (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <Label>Results Email Template</Label>
+    <div className="space-y-3 pt-0.5">
+      <div className="space-y-1.5">
+        <Label className="text-xs font-semibold">Results Email Template</Label>
         <RichTextEditor
           value={config.emailTemplate}
           onChange={(val) => setter({ ...config, emailTemplate: val })}
           placeholder="Write the results email template that will be sent to applicants..."
-          className="min-h-[140px]"
+          className="min-h-[130px]"
         />
       </div>
-      <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+      <div className="flex items-center gap-3 rounded-lg border border-border p-3 bg-muted/20">
         <Checkbox
           id="results-send-email"
           checked={config.sendEmail}
           onCheckedChange={(checked) => setter({ ...config, sendEmail: !!checked })}
         />
         <div>
-          <Label htmlFor="results-send-email" className="cursor-pointer text-sm font-medium">
+          <Label htmlFor="results-send-email" className="cursor-pointer text-xs font-medium">
             Send email to applicants by default
           </Label>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-[11px] text-muted-foreground mt-0.5">
             {config.sendEmail
               ? 'Applicants will receive the results email when triggered'
               : 'Email will not be sent unless toggled on per-applicant'}
@@ -424,33 +501,42 @@ export function PipelineBuilder({
   const renderTypeSelector = (
     currentType: PipelineRoundType,
     setter: (type: PipelineRoundType) => void,
+    disabled = false,
   ) => (
-    <div className="space-y-2">
-      <Label>Round Type</Label>
-      <Select value={currentType} onValueChange={(v) => setter(v as PipelineRoundType)}>
-        <SelectTrigger>
+    <div className="space-y-1.5">
+      <Label className="text-xs font-semibold">Round Type</Label>
+      <Select
+        value={currentType}
+        onValueChange={(v) => setter(v as PipelineRoundType)}
+        disabled={disabled}
+      >
+        <SelectTrigger className="text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="form">
             <span className="flex items-center gap-1.5">
-              <FileText className="h-3.5 w-3.5" /> Form
+              <FileText className="h-3.5 w-3.5 text-primary" /> Form
             </span>
           </SelectItem>
           <SelectItem value="interview">
             <span className="flex items-center gap-1.5">
-              <Mic className="h-3.5 w-3.5" /> Interview
+              <Mic className="h-3.5 w-3.5 text-secondary-dark dark:text-secondary" /> Interview
             </span>
           </SelectItem>
           <SelectItem value="results">
             <span className="flex items-center gap-1.5">
-              <Trophy className="h-3.5 w-3.5" /> Results
+              <Trophy className="h-3.5 w-3.5 text-green-dark dark:text-green-light" /> Results
             </span>
           </SelectItem>
         </SelectContent>
       </Select>
     </div>
   );
+
+  const isEditingRoundLocked = editingRound
+    ? isRoundActive(editingRound, editingRound.order ?? rounds.findIndex((r) => r.id === editingRound.id))
+    : false;
 
   return (
     <div id="induction-pipeline-section" className="space-y-3 scroll-mt-6">
@@ -505,7 +591,7 @@ export function PipelineBuilder({
                     round={round}
                     index={index}
                     formTitle={getFormTitle(round.formIds?.[0] ?? round.formId ?? null)}
-                    formTitles={getFormTitles(round.formIds ?? [])}
+                    isLocked={isRoundActive(round, index)}
                     onEdit={openEditDialog}
                     onDelete={deleteRound}
                     onConfigureSchedule={(r) => {
@@ -540,12 +626,12 @@ export function PipelineBuilder({
           <DialogHeader>
             <DialogTitle>Add Round</DialogTitle>
             <DialogDescription>
-              Add a new stage to the induction pipeline.
+              Add a new stage to your induction pipeline.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Round name</Label>
+          <div className="space-y-4 py-1">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Round name</Label>
               <Input
                 value={newLabel}
                 autoFocus
@@ -558,13 +644,14 @@ export function PipelineBuilder({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') void confirmAdd();
                 }}
+                className="text-sm"
               />
             </div>
 
             {renderTypeSelector(newType, setNewType)}
 
             {/* Type-specific config */}
-            {newType === 'form' && renderFormPicker(newFormIds, setNewFormIds, newLabel)}
+            {newType === 'form' && renderFormPicker(newFormMode, setNewFormMode, newFormId, setNewFormId, newLabel)}
 
             {newType === 'interview' && (
               <div className="rounded-xl border border-secondary/30 bg-secondary/10 p-3.5 space-y-2">
@@ -605,29 +692,31 @@ export function PipelineBuilder({
 
             {newType === 'results' && renderResultsEditor(newResultsConfig, setNewResultsConfig)}
 
-            <div className="space-y-2">
-              <Label>Deadline (optional)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Deadline (optional)</Label>
               <Input
                 type="date"
                 value={newDeadline}
                 onChange={(e) => setNewDeadline(e.target.value)}
+                className="text-xs"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Description (optional)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Description (optional)</Label>
               <Textarea
                 value={newDescription}
                 placeholder="Brief description or instructions for candidates in this round"
                 rows={2}
                 onChange={(e) => setNewDescription(e.target.value)}
+                className="text-xs"
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setAddDialogOpen(false)} disabled={creatingInlineForm}>
               Cancel
             </Button>
-            <Button onClick={() => void confirmAdd()} disabled={!newLabel.trim() || creatingInlineForm} className="gap-1.5">
+            <Button onClick={() => void confirmAdd()} disabled={!newLabel.trim() || creatingInlineForm} className="gap-1.5 font-medium">
               {creatingInlineForm && <Loader2 className="h-4 w-4 animate-spin" />}
               Add Round
             </Button>
@@ -644,9 +733,22 @@ export function PipelineBuilder({
               Update this pipeline round's configuration.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Round name</Label>
+          <div className="space-y-4 py-1">
+            {/* Locked Active Stage Alert */}
+            {isEditingRoundLocked && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200">
+                <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">Active Stage Locked</p>
+                  <p className="text-[11px] opacity-90 mt-0.5">
+                    This round is currently active with applicants or responses. The round type and form link cannot be modified.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Round name</Label>
               <Input
                 value={editLabel}
                 autoFocus
@@ -654,13 +756,14 @@ export function PipelineBuilder({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') void confirmEdit();
                 }}
+                className="text-sm"
               />
             </div>
 
-            {renderTypeSelector(editType, setEditType)}
+            {renderTypeSelector(editType, setEditType, isEditingRoundLocked)}
 
             {/* Type-specific config */}
-            {editType === 'form' && renderFormPicker(editFormIds, setEditFormIds, editLabel)}
+            {editType === 'form' && renderFormPicker(editFormMode, setEditFormMode, editFormId, setEditFormId, editLabel, isEditingRoundLocked)}
 
             {editType === 'interview' && (
               <div className="rounded-xl border border-secondary/30 bg-secondary/10 p-3.5 space-y-2">
@@ -698,28 +801,30 @@ export function PipelineBuilder({
 
             {editType === 'results' && renderResultsEditor(editResultsConfig, setEditResultsConfig)}
 
-            <div className="space-y-2">
-              <Label>Deadline (optional)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Deadline (optional)</Label>
               <Input
                 type="date"
                 value={editDeadline}
                 onChange={(e) => setEditDeadline(e.target.value)}
+                className="text-xs"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Description (optional)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Description (optional)</Label>
               <Textarea
                 value={editDescription}
                 rows={2}
                 onChange={(e) => setEditDescription(e.target.value)}
+                className="text-xs"
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setEditingRound(null)} disabled={creatingInlineForm}>
               Cancel
             </Button>
-            <Button onClick={() => void confirmEdit()} disabled={!editLabel.trim() || creatingInlineForm} className="gap-1.5">
+            <Button onClick={() => void confirmEdit()} disabled={!editLabel.trim() || creatingInlineForm} className="gap-1.5 font-medium">
               {creatingInlineForm && <Loader2 className="h-4 w-4 animate-spin" />}
               Save Changes
             </Button>

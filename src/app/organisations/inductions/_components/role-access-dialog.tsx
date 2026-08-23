@@ -42,23 +42,42 @@ export function RoleAccessDialog({
   }, [open, role.accessEmails]);
 
   const handleAddEmail = () => {
-    const trimmed = newEmail.trim().toLowerCase();
-    if (!trimmed) return;
+    if (!newEmail.trim()) return;
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmed)) {
-      toast.error('Please enter a valid email address');
-      return;
+    const tokens = newEmail
+      .split(/[,;\n]+/)
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (tokens.length === 0) return;
+
+    const invalid: string[] = [];
+    const duplicates: string[] = [];
+    const valid: string[] = [];
+
+    tokens.forEach((email) => {
+      if (!emailRegex.test(email)) {
+        invalid.push(email);
+      } else if (emails.includes(email) || valid.includes(email)) {
+        duplicates.push(email);
+      } else {
+        valid.push(email);
+      }
+    });
+
+    if (invalid.length > 0) {
+      toast.error(`Invalid email: ${invalid.join(', ')}`);
     }
 
-    if (emails.includes(trimmed)) {
-      toast.error('This email is already added');
-      return;
+    if (duplicates.length > 0 && valid.length === 0) {
+      toast.info(`Email already added: ${duplicates.join(', ')}`);
     }
 
-    setEmails([...emails, trimmed]);
-    setNewEmail('');
+    if (valid.length > 0) {
+      setEmails([...emails, ...valid]);
+      setNewEmail('');
+    }
   };
 
   const handleRemoveEmail = (indexToRemove: number) => {

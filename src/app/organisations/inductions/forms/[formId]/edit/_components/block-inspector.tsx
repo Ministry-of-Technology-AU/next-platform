@@ -45,36 +45,60 @@ interface BlockInspectorProps {
 export function BlockInspector({ block, schema, currentPageId, onUpdate }: BlockInspectorProps) {
   if (!block) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-6 text-center text-sm text-muted-foreground">
-        <MousePointerClick className="mb-2 h-6 w-6" />
-        Select a block to edit its settings.
+      <div className="flex h-full flex-col items-center justify-center p-8 text-center text-muted-foreground">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/30">
+          <MousePointerClick className="h-5 w-5 text-muted-foreground/70" />
+        </div>
+        <p className="mt-3 text-xs font-semibold text-foreground">No block selected</p>
+        <p className="mt-1 max-w-[200px] text-[11px] leading-relaxed text-muted-foreground">
+          Click any block on the canvas to configure its options and visibility logic.
+        </p>
       </div>
     );
   }
 
   const meta = BLOCK_META[block.type];
   const Icon = meta.icon;
+  const isInput = isInputBlock(block);
+  const hasCondition = !!block.visibleWhen && block.visibleWhen.rules.length > 0;
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-          <Icon className="h-4 w-4" />
-        </span>
-        <span className="text-sm font-semibold">{meta.label}</span>
+      <div className="flex items-center justify-between border-b border-border/80 px-4 py-3 bg-card/50">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-xs">
+            <Icon className="h-4 w-4" />
+          </span>
+          <div>
+            <span className="block text-xs font-bold text-foreground leading-none">{meta.label}</span>
+            <span className="text-[10px] text-muted-foreground">{isInput ? 'Question block' : 'Content block'}</span>
+          </div>
+        </div>
+
+        {hasCondition && (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+            Logic attached
+          </span>
+        )}
       </div>
 
       <Tabs defaultValue="content" className="flex min-h-0 flex-1 flex-col">
-        <TabsList className="mx-4 mt-3 grid grid-cols-2">
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="logic">Logic</TabsTrigger>
-        </TabsList>
+        <div className="px-4 pt-3 pb-1">
+          <TabsList className="grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
+            <TabsTrigger value="content" className="rounded-lg text-xs font-semibold data-[state=active]:shadow-xs">
+              Content
+            </TabsTrigger>
+            <TabsTrigger value="logic" className="rounded-lg text-xs font-semibold data-[state=active]:shadow-xs">
+              Logic {hasCondition && '•'}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="content" className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <TabsContent value="content" className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           <div className="space-y-4">{renderTypeFields(block, onUpdate)}</div>
         </TabsContent>
 
-        <TabsContent value="logic" className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <TabsContent value="logic" className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           <ConditionEditor
             schema={schema}
             currentPageId={currentPageId}

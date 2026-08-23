@@ -22,7 +22,7 @@ import { editorReducer, isMutating, type EditorAction, type EditorState } from '
 import { BlockPalette } from './_components/block-palette';
 import { BuilderCanvas } from './_components/builder-canvas';
 import { BlockInspector } from './_components/block-inspector';
-import { PageTabs } from './_components/page-tabs';
+import { PageFooter } from './_components/page-footer';
 import { ThemeEditor } from './_components/theme-editor';
 import { FormSettingsSheet } from './_components/form-settings';
 import { BuilderPreview } from './_components/builder-preview';
@@ -83,6 +83,7 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
   const apiUrl = `/api/organisations/forms/${uid}`;
   const draftKey = `form-builder:${uid}`;
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/platform/forms/${uid}` : '';
+  const isFormActive = state.status === 'active';
 
   // Dispatch wrapper: snapshot for undo + mark dirty on mutating actions.
   const dispatch = useCallback((action: EditorAction) => {
@@ -271,15 +272,16 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
   );
 
   return (
-    <div className="flex h-[calc(100vh-1.5rem)] flex-col">
-      {/* Toolbar */}
-      <div className="flex flex-col gap-3 border-b border-border pb-3">
-        <div className="flex flex-wrap items-center gap-2">
+    <div className="flex h-[calc(100dvh-3.5rem)] sm:h-[calc(100dvh-3.75rem)] -mt-6 -mb-4 -mx-2 xs:-mx-3 sm:-mx-4 md:-mx-6 lg:-mx-8 flex-col overflow-hidden bg-background">
+      {/* Top Header Navbar */}
+      <header className="flex h-13 flex-shrink-0 items-center justify-between border-b border-border/80 bg-card/80 px-4 backdrop-blur-md sm:px-6">
+        {/* Left: Back & Editable Title & Status Badge */}
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="h-9 w-9"
+            className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
             aria-label="Back to inductions"
             onClick={() => {
               if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -291,123 +293,169 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="relative flex min-w-0 flex-1 items-center">
+
+          <div className="group relative flex min-w-0 items-center">
             <Input
               value={state.title}
               onChange={(e) => dispatch({ type: 'SET_META', patch: { title: e.target.value } })}
-              className="h-9 max-w-xs border-transparent bg-transparent px-2 text-base font-semibold shadow-none hover:border-border focus-visible:border-input"
+              className="h-8 max-w-[140px] sm:max-w-xs truncate border-transparent bg-transparent px-2 text-sm font-semibold shadow-none transition-colors hover:border-border/60 hover:bg-muted/30 focus-visible:border-input focus-visible:bg-background"
               aria-label="Form title"
             />
-            <Pencil className="pointer-events-none -ml-6 h-3.5 w-3.5 text-muted-foreground" />
+            <Pencil className="pointer-events-none -ml-6 h-3 w-3 text-muted-foreground/60 opacity-0 transition-opacity group-hover:opacity-100" />
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={copyShareLink}
-              className="gap-1.5 text-muted-foreground"
-            >
-              <Link2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
-            <ThemeEditor
-              theme={state.schema.theme}
-              onChange={(theme) => dispatch({ type: 'SET_THEME', theme })}
-            />
-            <FormSettingsSheet
-              status={state.status}
-              startDate={state.startDate}
-              endDate={state.endDate}
-              settings={state.schema.settings}
-              onMeta={(patch) => dispatch({ type: 'SET_META', patch })}
-              onSettings={(settings) => dispatch({ type: 'SET_SETTINGS', settings })}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setPreviewing((p) => !p)}
-              className="gap-1.5"
-            >
-              {previewing ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {previewing ? 'Edit' : 'Preview'}
-            </Button>
-            <SaveIndicator state={saveState} lastSaved={lastSaved} />
-            <Button type="button" size="sm" onClick={() => void save()} className="gap-1.5">
-              <Save className="h-4 w-4" />
-              Save
-            </Button>
+          {/* Form Status Badge */}
+          <div className="hidden items-center sm:flex">
+            {state.status === 'active' ? (
+              <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live (Active)
+              </span>
+            ) : state.status === 'draft' ? (
+              <span className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Draft
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" />
+                Inactive
+              </span>
+            )}
           </div>
         </div>
 
-        {!previewing && (
-          <PageTabs
-            schema={state.schema}
-            selectedPageId={state.selectedPageId}
-            onSelect={(pageId) => dispatch({ type: 'SELECT_PAGE', pageId })}
-            onAdd={() => dispatch({ type: 'ADD_PAGE' })}
-            onUpdatePage={(pageId, patch) => dispatch({ type: 'UPDATE_PAGE', pageId, patch })}
-            onDeletePage={(pageId) => dispatch({ type: 'DELETE_PAGE', pageId })}
-            onReorder={(activeId, overId) => dispatch({ type: 'REORDER_PAGES', activeId, overId })}
+        {/* Right: Actions */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <ThemeEditor
+            theme={state.schema.theme}
+            onChange={(theme) => dispatch({ type: 'SET_THEME', theme })}
           />
-        )}
-      </div>
 
-      {/* Body */}
+          <FormSettingsSheet
+            status={state.status}
+            startDate={state.startDate}
+            endDate={state.endDate}
+            settings={state.schema.settings}
+            onMeta={(patch) => dispatch({ type: 'SET_META', patch })}
+            onSettings={(settings) => dispatch({ type: 'SET_SETTINGS', settings })}
+          />
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={copyShareLink}
+            className="h-8.5 gap-1.5 rounded-lg text-xs font-medium"
+          >
+            <Link2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Share</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant={previewing ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setPreviewing((p) => !p)}
+            className="h-8.5 gap-1.5 rounded-lg text-xs font-medium"
+          >
+            {previewing ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            <span>{previewing ? 'Edit' : 'Preview'}</span>
+          </Button>
+
+          <div className="mx-1 hidden h-5 w-px bg-border/80 sm:block" />
+
+          {/* Save Button (LEFT of saved indicator) */}
+          <Button
+            type="button"
+            size="sm"
+            disabled={saveState === 'saving'}
+            onClick={() => void save()}
+            className="h-8.5 gap-1.5 rounded-lg px-3.5 text-xs font-semibold shadow-xs"
+          >
+            {saveState === 'saving' ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="h-3.5 w-3.5" />
+            )}
+            Save
+          </Button>
+
+          {/* Saved Status Indicator (RIGHT of Save button) */}
+          <SaveIndicator state={saveState} lastSaved={lastSaved} />
+        </div>
+      </header>
+
+      {/* Main Body */}
       {previewing ? (
-        <div className="min-h-0 flex-1 overflow-y-auto bg-muted/30 py-2">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-muted/20 py-4">
           <BuilderPreview schema={state.schema} title={state.title} />
         </div>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 lg:grid-cols-[260px_1fr_340px]">
-          {/* Palette (desktop) */}
-          <aside className="hidden min-h-0 overflow-y-auto border-r border-border py-4 pr-4 lg:block">
-            <BlockPalette onAdd={addBlock} />
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 overflow-hidden lg:grid-cols-[270px_1fr_340px]">
+          {/* Palette (desktop left sidebar) */}
+          <aside className="hidden min-h-0 overflow-y-auto border-r border-border/70 bg-card/40 p-4 lg:block">
+            <BlockPalette onAdd={addBlock} isFormActive={isFormActive} />
           </aside>
 
-          {/* Canvas */}
-          <main className="min-h-0 overflow-y-auto bg-muted/20 px-3 py-4 sm:px-6">
-            <div className="mx-auto max-w-2xl">
+          {/* Canvas (center area) */}
+          <main className="min-h-0 overflow-y-auto bg-muted/10 px-4 py-6 sm:px-8 md:px-12">
+            <div className="mx-auto w-full max-w-3xl">
               {/* Mobile add-block trigger */}
-              <div className="mb-3 lg:hidden">
+              <div className="mb-4 lg:hidden">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setMobilePaletteOpen(true)}
-                  className="w-full gap-1.5"
+                  className="w-full gap-1.5 rounded-xl border-dashed"
                 >
                   <Plus className="h-4 w-4" />
                   Add block
                 </Button>
               </div>
+
               <BuilderCanvas
                 page={currentPage}
                 selectedBlockId={state.selectedBlockId}
+                isFormActive={isFormActive}
                 onSelect={(blockId) => dispatch({ type: 'SELECT_BLOCK', blockId })}
                 onDuplicate={(blockId) => dispatch({ type: 'DUPLICATE_BLOCK', blockId })}
                 onDelete={(blockId) => dispatch({ type: 'DELETE_BLOCK', blockId })}
                 onReorder={(activeId, overId) =>
                   dispatch({ type: 'REORDER_BLOCKS', pageId: currentPage.id, activeId, overId })
                 }
-                onAddFirst={() => addBlock('short-text')}
+                onAddFirst={() => addBlock(isFormActive ? 'paragraph' : 'short-text')}
               />
             </div>
           </main>
 
-          {/* Inspector (desktop) */}
-          <aside className="hidden min-h-0 border-l border-border lg:block">{inspector}</aside>
+          {/* Inspector (desktop right sidebar) */}
+          <aside className="hidden min-h-0 overflow-y-auto border-l border-border/70 bg-card/40 lg:block">
+            {inspector}
+          </aside>
         </div>
+      )}
+
+      {/* Bottom Footer Dock (Multi-page navigation & Page Logic) */}
+      {!previewing && (
+        <PageFooter
+          schema={state.schema}
+          selectedPageId={state.selectedPageId}
+          onSelect={(pageId) => dispatch({ type: 'SELECT_PAGE', pageId })}
+          onAdd={() => dispatch({ type: 'ADD_PAGE' })}
+          onUpdatePage={(pageId, patch) => dispatch({ type: 'UPDATE_PAGE', pageId, patch })}
+          onDeletePage={(pageId) => dispatch({ type: 'DELETE_PAGE', pageId })}
+          onReorder={(activeId, overId) => dispatch({ type: 'REORDER_PAGES', activeId, overId })}
+        />
       )}
 
       {/* Mobile palette sheet */}
       <Sheet open={!isDesktop && mobilePaletteOpen} onOpenChange={setMobilePaletteOpen}>
-        <SheetContent side="left" className="w-80 overflow-y-auto">
-          <SheetTitle className="px-4 pt-4">Add a block</SheetTitle>
-          <div className="p-4">
-            <BlockPalette onAdd={addBlock} />
+        <SheetContent side="left" className="w-84 overflow-y-auto p-4">
+          <SheetTitle className="text-sm font-semibold">Add a block</SheetTitle>
+          <div className="mt-4">
+            <BlockPalette onAdd={addBlock} isFormActive={isFormActive} />
           </div>
         </SheetContent>
       </Sheet>
@@ -431,18 +479,23 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
 function SaveIndicator({ state, lastSaved }: { state: SaveState; lastSaved: string | null }) {
   if (state === 'saving') {
     return (
-      <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
         Saving…
       </span>
     );
   }
   if (state === 'unsaved') {
-    return <span className="hidden text-xs text-muted-foreground sm:inline">Unsaved changes</span>;
+    return (
+      <span className="hidden items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 sm:flex">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        Unsaved
+      </span>
+    );
   }
   return (
-    <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
-      <Check className="h-3.5 w-3.5 text-green" />
+    <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+      <Check className="h-3.5 w-3.5 text-emerald-500" />
       {lastSaved ? `Saved · ${lastSaved}` : 'Saved'}
     </span>
   );

@@ -95,7 +95,7 @@ export function RoleForms({
 
   const copyShareLink = async (form: RoleFormSummary) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const shareUrl = `${origin}/forms/${form.id}`;
+    const shareUrl = `${origin}/platform/forms/${form.id}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopiedId(form.id);
@@ -318,7 +318,7 @@ export function RoleForms({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link href={`/forms/${form.id}`} target="_blank" rel="noopener noreferrer" className="flex items-center cursor-pointer">
+                        <Link href={`/platform/forms/${form.id}`} target="_blank" rel="noopener noreferrer" className="flex items-center cursor-pointer">
                           <ExternalLink className="mr-2 h-4 w-4" />
                           Live preview
                         </Link>
@@ -341,8 +341,15 @@ export function RoleForms({
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => setPendingDelete(form)}
-                        className="text-destructive focus:text-destructive cursor-pointer"
+                        onClick={() => {
+                          if (form.stats.submissionCount > 0) {
+                            toast.error('Cannot delete a form that has active submissions');
+                            return;
+                          }
+                          setPendingDelete(form);
+                        }}
+                        disabled={form.stats.submissionCount > 0}
+                        className="text-destructive focus:text-destructive cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete form

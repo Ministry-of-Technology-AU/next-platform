@@ -309,6 +309,8 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
       return;
     }
 
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    dirtyRef.current = false;
     setSubmitting(true);
     try {
       const res = await fetch(responseUrl, {

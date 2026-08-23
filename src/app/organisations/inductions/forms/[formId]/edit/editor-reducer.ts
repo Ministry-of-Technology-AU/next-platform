@@ -7,13 +7,15 @@
 import { v4 as uuidv4 } from 'uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import { createBlock, createPage } from '@/lib/forms/defaults';
-import type {
-  FormBlock,
-  FormBlockType,
-  FormPage,
-  FormSchema,
-  FormSettings,
-  FormTheme,
+import {
+  isInputBlock,
+  INPUT_BLOCK_TYPES,
+  type FormBlock,
+  type FormBlockType,
+  type FormPage,
+  type FormSchema,
+  type FormSettings,
+  type FormTheme,
 } from '@/lib/forms/schema';
 import type { FormStatus } from '@/lib/forms/strapi-forms';
 
@@ -78,6 +80,9 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       return action.state;
 
     case 'ADD_BLOCK': {
+      if (state.status === 'active' && (INPUT_BLOCK_TYPES as readonly string[]).includes(action.blockType)) {
+        return state;
+      }
       const schema = structuredClone(state.schema);
       const page = findPage(schema, action.pageId);
       if (!page) return state;
@@ -116,7 +121,11 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       for (const page of schema.pages) {
         const idx = page.blocks.findIndex((b) => b.id === action.blockId);
         if (idx !== -1) {
-          const clone = { ...structuredClone(page.blocks[idx]), id: uuidv4() };
+          const targetBlock = page.blocks[idx];
+          if (state.status === 'active' && isInputBlock(targetBlock)) {
+            return state;
+          }
+          const clone = { ...structuredClone(targetBlock), id: uuidv4() };
           page.blocks.splice(idx + 1, 0, clone);
           return { ...state, schema, selectedBlockId: clone.id };
         }

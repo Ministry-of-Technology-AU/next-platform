@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import PageTitle from '@/components/page-title';
@@ -52,6 +52,7 @@ export default async function CyclePage({ params }: PageProps) {
         </Button>
       </div>
       <PageTitle
+        icon={CalendarDays}
         text={cycle.name}
         subheading={
           <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">

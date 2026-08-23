@@ -100,10 +100,19 @@ function buildQueryString(params?: StrapiQueryParams | string): string {
     });
 }
 
+function normalizeEndpoint(endpoint: string): string {
+    if (!endpoint) return '/';
+    if (!endpoint.startsWith('/') && !endpoint.startsWith('http://') && !endpoint.startsWith('https://')) {
+        return `/${endpoint}`;
+    }
+    return endpoint;
+}
+
 function strapiGet(endpoint: string, queryParams?: string | StrapiQueryParams, headers?: Record<string, string>, options?: Record<string, unknown>) {
     try {
+        const normalized = normalizeEndpoint(endpoint);
         const qs = buildQueryString(queryParams);
-        const url = endpoint + (qs ? `?${qs}` : '');
+        const url = normalized + (qs ? `?${qs}` : '');
         console.log(url);
         const response = strapi.get(url, { headers, ...options });
         return response.then(r => r.data);
@@ -116,8 +125,9 @@ function strapiGet(endpoint: string, queryParams?: string | StrapiQueryParams, h
 
 function strapiPost(endpoint: string, body?: Record<string, unknown> | FormData, queryParams?: string | StrapiQueryParams, headers?: Record<string, string>, options?: Record<string, unknown>) {
     try {
+        const normalized = normalizeEndpoint(endpoint);
         const qs = buildQueryString(queryParams);
-        const url = endpoint + (qs ? `?${qs}` : '');
+        const url = normalized + (qs ? `?${qs}` : '');
         const response = strapi.post(url, body, { headers, ...options });
         return response.then(r => r.data);
     }
@@ -129,8 +139,9 @@ function strapiPost(endpoint: string, body?: Record<string, unknown> | FormData,
 
 function strapiPut(endpoint: string, body?: Record<string, unknown> | FormData, queryParams?: string | StrapiQueryParams, headers?: Record<string, string>, options?: Record<string, unknown>) {
     try {
+        const normalized = normalizeEndpoint(endpoint);
         const qs = buildQueryString(queryParams);
-        const url = endpoint + (qs ? `?${qs}` : '');
+        const url = normalized + (qs ? `?${qs}` : '');
         const response = strapi.put(url, body, { headers, ...options });
         return response.then(r => r.data);
     }
@@ -142,8 +153,9 @@ function strapiPut(endpoint: string, body?: Record<string, unknown> | FormData, 
 
 function strapiDelete(endpoint: string, queryParams?: string | StrapiQueryParams, headers?: Record<string, string>, options?: Record<string, unknown>) {
     try {
+        const normalized = normalizeEndpoint(endpoint);
         const qs = buildQueryString(queryParams);
-        const url = endpoint + (qs ? `?${qs}` : '');
+        const url = normalized + (qs ? `?${qs}` : '');
         const response = strapi.delete(url, { headers, ...options });
         return response.then(r => r.data);
     }
@@ -154,8 +166,9 @@ function strapiDelete(endpoint: string, queryParams?: string | StrapiQueryParams
 }
 
 async function strapiRequest<T = unknown>({ endpoint, queryParams, body, method, headers, options }: StrapiCallProps): Promise<T> {
+    const normalized = normalizeEndpoint(endpoint);
     const qs = buildQueryString(queryParams);
-    const url = endpoint + (qs ? `?${qs}` : '');
+    const url = normalized + (qs ? `?${qs}` : '');
     try {
         switch (method) {
             case 'GET': {

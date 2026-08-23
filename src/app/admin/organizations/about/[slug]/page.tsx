@@ -100,13 +100,7 @@ async function getOrganizationAnalytics(orgId: number, orgAttrs: any) {
     const cycles = await listCyclesByOrg(orgId);
     if (cycles.length > 0) {
       const activeCycle = await getCycleById(cycles[0].id);
-      if (activeCycle && (activeCycle as any).timeline?.length > 0) {
-        timeline = (activeCycle as any).timeline.map((step: any) => ({
-          step: step.title || step.step || 'Milestone',
-          date: step.date ? new Date(step.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'TBD',
-          status: step.status || 'upcoming',
-        }));
-      } else if (activeCycle?.startDate || activeCycle?.endDate) {
+      if (activeCycle?.startDate || activeCycle?.endDate) {
         timeline = [
           {
             step: "Applications Open",

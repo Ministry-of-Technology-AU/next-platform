@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FileText, Mic, Trash2, Pencil, Link as LinkIcon, Sparkles, Trophy } from 'lucide-react';
+import { FileText, Mic, Trash2, Pencil, Link as LinkIcon, Sparkles, Trophy, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { PipelineRound, PipelineRoundType } from '../types';
@@ -49,6 +49,7 @@ export function PipelineNode({
   index,
   formTitle,
   formTitles,
+  isLocked = false,
   onEdit,
   onDelete,
   onConfigureSchedule,
@@ -57,6 +58,7 @@ export function PipelineNode({
   index: number;
   formTitle?: string | null;
   formTitles?: string[];
+  isLocked?: boolean;
   onEdit: (round: PipelineRound) => void;
   onDelete: (roundId: string) => void;
   onConfigureSchedule?: (round: PipelineRound) => void;
@@ -101,6 +103,12 @@ export function PipelineNode({
                       Results
                     </Badge>
                   )}
+                  {isLocked && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-0.5">
+                      <Lock className="h-2.5 w-2.5" />
+                      Active
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground !text-left truncate">
                   Round {index + 1} · {formatDeadline(round.deadline)}
@@ -108,22 +116,24 @@ export function PipelineNode({
               </div>
             </div>
 
-            {/* Delete button — available on all rounds */}
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(round.id);
-                }}
-                aria-label="Delete round"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+            {/* Delete button — disabled on active/locked rounds */}
+            {!isLocked && (
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(round.id);
+                  }}
+                  aria-label="Delete round"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Footer: type-specific info */}
@@ -179,30 +189,25 @@ export function PipelineNode({
           ) : (
             /* Form type */
             (() => {
-              const validFormIds = (round.formIds || []).filter(
-                (id) => id && id !== '[object Object]' && id !== 'none',
-              );
+              const formId = round.formIds?.[0] ?? round.formId;
+              const hasForm = Boolean(formId && formId !== '[object Object]' && formId !== 'none');
 
               return (
                 <div className="flex items-center justify-between pt-1 border-t border-border/60 text-xs">
-                  {validFormIds.length > 0 ? (
+                  {hasForm ? (
                     <div className="flex items-center gap-1 text-muted-foreground truncate">
                       <LinkIcon className="h-3 w-3 text-primary flex-shrink-0" />
                       <span className="truncate max-w-[140px] font-medium text-foreground">
-                        {formTitles && formTitles.length > 0
-                          ? formTitles.length === 1
-                            ? formTitles[0]
-                            : `${formTitles.length} forms linked`
-                          : formTitle || `${validFormIds.length} form${validFormIds.length > 1 ? 's' : ''}`}
+                        {formTitle || '1 form linked'}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-muted-foreground italic text-[11px]">No forms linked</span>
+                    <span className="text-muted-foreground italic text-[11px]">No form linked</span>
                   )}
 
-                  {validFormIds.length === 1 && (
+                  {hasForm && formId && (
                     <Link
-                      href={`/organisations/inductions/forms/${encodeURIComponent(validFormIds[0])}/edit`}
+                      href={`/organisations/inductions/forms/${encodeURIComponent(formId)}/edit`}
                       onClick={(e) => e.stopPropagation()}
                       className="flex items-center gap-1 text-primary hover:underline text-[11px] font-medium ml-auto"
                     >

@@ -10,6 +10,8 @@
 import { Plus, X, GitBranch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectTrigger,
@@ -131,15 +133,16 @@ export function ConditionEditor({
 
   return (
     <div className="space-y-3">
-      <label className="flex items-center gap-2 text-sm font-medium">
-        <input
-          type="checkbox"
+      <div className="flex items-center gap-2.5">
+        <Checkbox
+          id="condition-toggle"
           checked={enabled}
-          onChange={(e) => toggle(e.target.checked)}
-          className="h-4 w-4 rounded border-input"
+          onCheckedChange={(checked) => toggle(checked === true)}
         />
-        Only show when…
-      </label>
+        <Label htmlFor="condition-toggle" className="cursor-pointer text-xs font-semibold text-foreground">
+          Only show when…
+        </Label>
+      </div>
 
       {enabled && group && (
         <div className="space-y-2 rounded-lg border border-border p-3">

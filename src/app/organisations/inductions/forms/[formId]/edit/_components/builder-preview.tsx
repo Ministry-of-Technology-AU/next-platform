@@ -39,15 +39,15 @@ export function BuilderPreview({ schema, title }: { schema: FormSchema; title: s
     setAnswers((prev) => ({ ...prev, [blockId]: value }));
 
   return (
-    <FormThemeRoot theme={schema.theme} className="min-h-full w-full rounded-xl px-4 py-8">
-      <div className="mx-auto w-full max-w-2xl">
-        <div className="mb-3 flex items-center justify-center gap-1.5 text-xs text-[var(--form-text-muted)]">
+    <FormThemeRoot theme={schema.theme} className="min-h-full w-full px-4 py-8 sm:px-8">
+      <div className="mx-auto w-full max-w-3xl">
+        <div className="mb-4 flex items-center justify-center gap-1.5 text-xs text-[var(--form-text-muted)]">
           <Eye className="h-3.5 w-3.5" />
           Preview — responses are not saved
         </div>
-        <div className="rounded-[var(--form-radius)] border border-[var(--form-border)] bg-[var(--form-surface)] p-6 shadow-sm sm:p-8">
+        <div className="py-2">
           <h1
-            className="mb-6 text-2xl font-bold text-[var(--form-text)]"
+            className="mb-8 text-3xl font-bold text-[var(--form-text)]"
             style={{ fontFamily: 'var(--form-font-heading)' }}
           >
             {title}
@@ -59,7 +59,7 @@ export function BuilderPreview({ schema, title }: { schema: FormSchema; title: s
             <p className="text-[var(--form-text-muted)]">No visible pages with the current answers.</p>
           )}
 
-          <div className="mt-8 flex items-center justify-between">
+          <div className="mt-10 flex items-center justify-between border-t border-[var(--form-border)] pt-6">
             <Button
               type="button"
               variant="ghost"

@@ -32,12 +32,12 @@ export function Field({
   return (
     <div className="space-y-1.5">
       {label && (
-        <Label htmlFor={htmlFor} className="text-xs font-medium text-muted-foreground">
+        <Label htmlFor={htmlFor} className="text-xs font-semibold text-foreground/90">
           {label}
         </Label>
       )}
       {children}
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="text-[11px] leading-relaxed text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -57,7 +57,12 @@ export function TextField({
 }) {
   return (
     <Field label={label} hint={hint}>
-      <Input value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+      <Input
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-8.5 text-xs rounded-lg"
+      />
     </Field>
   );
 }
@@ -81,7 +86,7 @@ export function TextAreaField({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-20"
+        className="min-h-20 text-xs rounded-lg"
       />
     </Field>
   );
@@ -106,6 +111,7 @@ export function NumberField({
         type="number"
         value={value ?? ''}
         placeholder={placeholder}
+        className="h-8.5 text-xs rounded-lg"
         onChange={(e) => {
           const raw = e.target.value;
           onChange(raw === '' ? undefined : Number(raw));
@@ -128,14 +134,19 @@ export function ToggleField({
 }) {
   const id = `toggle-${label.replace(/\s+/g, '-').toLowerCase()}`;
   return (
-    <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-2.5">
-      <div className="min-w-0">
-        <Label htmlFor={id} className="cursor-pointer text-sm font-medium">
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-border/70 bg-muted/20 p-3 transition-colors hover:bg-muted/40">
+      <div className="min-w-0 flex-1">
+        <Label htmlFor={id} className="cursor-pointer text-xs font-semibold text-foreground">
           {label}
         </Label>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+        {hint && <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{hint}</p>}
       </div>
-      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-0.5" />
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(v) => onChange(v === true)}
+        className="mt-0.5"
+      />
     </div>
   );
 }
@@ -156,12 +167,12 @@ export function SelectField<T extends string>({
   return (
     <Field label={label} hint={hint}>
       <Select value={value} onValueChange={(v) => onChange(v as T)}>
-        <SelectTrigger>
+        <SelectTrigger className="h-8.5 text-xs rounded-lg">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
+            <SelectItem key={o.value} value={o.value} className="text-xs">
               {o.label}
             </SelectItem>
           ))}
@@ -207,13 +218,13 @@ export function OptionsEditor({
             <Input
               value={option.label}
               onChange={(e) => update(i, e.target.value)}
-              className="h-8"
+              className="h-8 text-xs rounded-lg"
             />
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-7"
+              className="h-8 w-7 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Move option up"
               disabled={i === 0}
               onClick={() => move(i, -1)}
@@ -224,7 +235,7 @@ export function OptionsEditor({
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-7"
+              className="h-8 w-7 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Move option down"
               disabled={i === options.length - 1}
               onClick={() => move(i, 1)}
@@ -235,7 +246,7 @@ export function OptionsEditor({
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-7 text-muted-foreground hover:text-destructive"
+              className="h-8 w-7 rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               aria-label="Remove option"
               disabled={options.length <= 1}
               onClick={() => remove(i)}
@@ -244,7 +255,13 @@ export function OptionsEditor({
             </Button>
           </div>
         ))}
-        <Button type="button" variant="outline" size="sm" onClick={add} className="w-full gap-1.5">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={add}
+          className="h-8 w-full gap-1.5 rounded-lg text-xs"
+        >
           <Plus className="h-3.5 w-3.5" />
           Add option
         </Button>
