@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   Eye,
+  EyeOff,
   FileText,
   Pencil,
   BarChart3,
@@ -17,6 +18,7 @@ import {
   CopyPlus,
   Check,
   Send,
+  Globe,
   ArrowRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -163,6 +165,32 @@ export function RoleForms({
       toast.error(err.message || 'Could not delete form');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const togglePublishForm = async (form: RoleFormSummary) => {
+    const nextStatus: 'draft' | 'active' = form.form_status === 'active' ? 'draft' : 'active';
+    try {
+      const res = await fetch(`/api/organisations/forms/${form.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ form_status: nextStatus }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.success) {
+        throw new Error(json?.error || 'Failed to update form status');
+      }
+
+      const next = forms.map((f) => (f.id === form.id ? { ...f, form_status: nextStatus } : f));
+      setForms(next);
+      onFormsChange?.(next);
+      toast.success(
+        nextStatus === 'active'
+          ? `"${form.title}" is now published and active!`
+          : `"${form.title}" unpublished and set to Draft.`,
+      );
+    } catch (err: any) {
+      toast.error(err.message || 'Could not update form status');
     }
   };
 
@@ -317,6 +345,20 @@ export function RoleForms({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => void togglePublishForm(form)} className="cursor-pointer font-medium">
+                        {form.form_status === 'active' ? (
+                          <>
+                            <EyeOff className="mr-2 h-4 w-4 text-muted-foreground" />
+                            Unpublish (Set to Draft)
+                          </>
+                        ) : (
+                          <>
+                            <Globe className="mr-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                            Publish (Set Active)
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                         <Link href={`/platform/forms/${form.id}`} target="_blank" rel="noopener noreferrer" className="flex items-center cursor-pointer">
                           <ExternalLink className="mr-2 h-4 w-4" />

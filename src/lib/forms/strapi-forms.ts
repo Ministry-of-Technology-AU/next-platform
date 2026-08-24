@@ -129,12 +129,12 @@ export function isFormActive(form: Pick<FormRecord, 'status' | 'startDate' | 'en
   const start = startIso ? new Date(startIso) : null;
   const end = endIso ? new Date(endIso) : null;
   const now = new Date();
-  return form.status !== 'inactive' && (!start || start <= now) && (!end || end >= now);
+  return form.status === 'active' && (!start || start <= now) && (!end || end >= now);
 }
 
 /** True when an active form's end date has elapsed (needs a lazy flip). */
 export function hasExpired(form: Pick<FormRecord, 'status' | 'endDate'>): boolean {
-  if (form.status === 'inactive' || !form.endDate) return false;
+  if (form.status !== 'active' || !form.endDate) return false;
   const endIso = normalizeEndDateToEndOfDay(form.endDate);
   if (!endIso) return false;
   return new Date(endIso) < new Date();
@@ -532,6 +532,17 @@ export interface InterviewDetailSummary {
   bookingUrl: string;
 }
 
+export interface FormDetailSummary {
+  roundId: string;
+  roundLabel: string;
+  formUid: string;
+  deadline?: string | null;
+  description?: string | null;
+  isCompleted: boolean;
+  isDraft: boolean;
+  formUrl: string;
+}
+
 export interface PopulatedResponseRecord extends ResponseRecord {
   form: Pick<FormRecord, 'id' | 'uid' | 'title' | 'endDate' | 'status' | 'organisationId'> & {
     organisation?: any;
@@ -543,7 +554,15 @@ export interface PopulatedResponseRecord extends ResponseRecord {
     department?: string | null;
   } | null;
   pipeline?: any[];
+  cycle?: any | null;
+  deadlineExtension?: {
+    extendedAt: string;
+    previousDeadline: string;
+    newDeadline: string;
+    reason?: string | null;
+  } | null;
   interviewDetails?: InterviewDetailSummary | null;
+  formDetails?: FormDetailSummary | null;
 }
 
 export async function getResponsesByUserEmail(email: string): Promise<PopulatedResponseRecord[]> {
@@ -582,7 +601,9 @@ export async function getResponsesByUserEmail(email: string): Promise<PopulatedR
         const orgEntry = formAttrs?.organisation?.data ?? formAttrs?.organisation;
         const orgAttrs = orgEntry?.attributes ?? orgEntry;
         const profileEntry = orgAttrs?.profile?.data ?? orgAttrs?.profile;
-        const profileAttrs = profileEntry?.attributes ?? profileEntry;
+        const profileItem = Array.isArray(profileEntry) ? profileEntry[0] : profileEntry;
+        const profileAttrs = profileItem?.attributes ?? profileItem;
+        const profileUrl = profileAttrs?.profile_url || profileItem?.profile_url || orgAttrs?.profile_url || null;
 
         if (formBase) {
           formObj = {
@@ -598,7 +619,7 @@ export async function getResponsesByUserEmail(email: string): Promise<PopulatedR
                   name: orgAttrs?.name,
                   induction: orgAttrs?.induction,
                   induction_end: orgAttrs?.induction_end,
-                  profile_url: profileAttrs?.profile_url || orgAttrs?.profile_url || null,
+                  profile_url: profileUrl,
                 }
               : undefined,
           };

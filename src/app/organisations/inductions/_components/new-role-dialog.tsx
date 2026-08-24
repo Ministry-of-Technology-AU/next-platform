@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Plus, Loader2, Users, X, Mail } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogTrigger,
@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -26,79 +25,103 @@ import {
 } from '@/components/ui/select';
 import type { RoleTier, InductionRole } from '../types';
 
-interface NewRoleDialogProps {
+export interface RoleFormDialogProps {
+  /** If provided, editing existing role; otherwise creating a new one */
+  role?: InductionRole | null;
   cycleId?: string;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   autoOpen?: boolean;
   onCreated?: (role: InductionRole) => void;
+  onUpdated?: (role: InductionRole) => void;
 }
 
-export function NewRoleDialog({ cycleId, autoOpen = false, onCreated }: NewRoleDialogProps) {
-  const [open, setOpen] = useState(false);
+export function NewRoleDialog(props: RoleFormDialogProps) {
+  return <RoleFormDialog {...props} />;
+}
+
+export function RoleFormDialog({
+  role,
+  cycleId,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  autoOpen = false,
+  onCreated,
+  onUpdated,
+}: RoleFormDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (val: boolean) => {
+    if (isControlled) {
+      setControlledOpen?.(val);
+    } else {
+      setInternalOpen(val);
+    }
+  };
+
+  const isEditing = Boolean(role);
+
   const [name, setName] = useState('');
   const [tier, setTier] = useState<RoleTier>('tier-1');
   const [department, setDepartment] = useState('');
   const [description, setDescription] = useState('');
-  const [accessEmails, setAccessEmails] = useState<string[]>([]);
-  const [newEmail, setNewEmail] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Sync initial state when editing role or opening dialog
+  useEffect(() => {
+    if (role) {
+      setName(role.name || '');
+      setTier(role.tier || 'tier-1');
+      setDepartment(role.department || '');
+      setDescription(role.description || '');
+    } else {
+      setName('');
+      setTier('tier-1');
+      setDepartment('');
+      setDescription('');
+    }
+  }, [role, open]);
 
   useEffect(() => {
     if (autoOpen) setOpen(true);
   }, [autoOpen]);
 
-  const handleAddEmail = () => {
-    if (!newEmail.trim()) return;
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const tokens = newEmail
-      .split(/[,;\n]+/)
-      .map((t) => t.trim().toLowerCase())
-      .filter(Boolean);
-
-    if (tokens.length === 0) return;
-
-    const invalid: string[] = [];
-    const duplicates: string[] = [];
-    const valid: string[] = [];
-
-    tokens.forEach((email) => {
-      if (!emailRegex.test(email)) {
-        invalid.push(email);
-      } else if (accessEmails.includes(email) || valid.includes(email)) {
-        duplicates.push(email);
-      } else {
-        valid.push(email);
-      }
-    });
-
-    if (invalid.length > 0) {
-      toast.error(`Invalid email: ${invalid.join(', ')}`);
-    }
-
-    if (duplicates.length > 0 && valid.length === 0) {
-      toast.info(`Email already added: ${duplicates.join(', ')}`);
-    }
-
-    if (valid.length > 0) {
-      setAccessEmails([...accessEmails, ...valid]);
-      setNewEmail('');
-    }
-  };
-
-  const handleRemoveEmail = (idxToRemove: number) => {
-    setAccessEmails(accessEmails.filter((_, idx) => idx !== idxToRemove));
-  };
-
-  const create = async () => {
+  const handleSubmit = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
       toast.error('Give this role a name');
       return;
     }
 
-    setCreating(true);
+    setLoading(true);
     try {
-      if (cycleId) {
+      if (isEditing && role) {
+        // PUT update role
+        const res = await fetch(`/api/organisations/inductions/roles/${role.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: trimmed,
+            tier,
+            department: department.trim() || null,
+            description: description.trim() || null,
+          }),
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.error || 'Failed to update role');
+        }
+
+        const updated: InductionRole = json.data;
+        onUpdated?.(updated);
+        toast.success('Role updated');
+        setOpen(false);
+      } else if (cycleId) {
+        // POST create role under cycle
         const res = await fetch(`/api/organisations/inductions/${cycleId}/roles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -107,7 +130,6 @@ export function NewRoleDialog({ cycleId, autoOpen = false, onCreated }: NewRoleD
             tier,
             department: department.trim() || null,
             description: description.trim() || null,
-            accessEmails,
           }),
         });
 
@@ -118,6 +140,12 @@ export function NewRoleDialog({ cycleId, autoOpen = false, onCreated }: NewRoleD
 
         const created: InductionRole = json.data;
         onCreated?.(created);
+        toast.success('Role created');
+        setOpen(false);
+        setName('');
+        setTier('tier-1');
+        setDepartment('');
+        setDescription('');
       } else {
         // Fallback for mock if cycleId not provided
         const newRole: InductionRole = {
@@ -126,143 +154,126 @@ export function NewRoleDialog({ cycleId, autoOpen = false, onCreated }: NewRoleD
           tier,
           department: department.trim() || null,
           description: description.trim() || null,
-          accessEmails,
           stats: { opens: 0, fills: 0, completionRate: 0, topUtm: null },
           createdAt: new Date().toISOString(),
         };
         onCreated?.(newRole);
+        toast.success('Role created');
+        setOpen(false);
       }
-
-      toast.success('Role created');
-      setOpen(false);
-      setName('');
-      setTier('tier-1');
-      setDepartment('');
-      setDescription('');
-      setAccessEmails([]);
-      setNewEmail('');
     } catch (err: any) {
-      toast.error(err.message || 'Could not create the role');
+      toast.error(err.message || `Could not ${isEditing ? 'update' : 'create'} the role`);
     } finally {
-      setCreating(false);
+      setLoading(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-1.5 font-medium">
-          <Plus className="h-4 w-4" />
-          Add Role
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add a role</DialogTitle>
-          <DialogDescription>
-            Create a new role for this induction cycle. You can configure application rounds, forms,
-            and specific member permissions.
+      {trigger ? (
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+      ) : !isControlled ? (
+        <DialogTrigger asChild>
+          <Button className="gap-1.5 font-semibold rounded-xl">
+            <Plus className="h-4 w-4" />
+            Add Role
+          </Button>
+        </DialogTrigger>
+      ) : null}
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader className="text-left">
+          <DialogTitle className="text-left font-bold text-lg">
+            {isEditing ? 'Role Settings' : 'Add a role'}
+          </DialogTitle>
+          <DialogDescription className="text-left text-xs">
+            {isEditing
+              ? 'Update the role name, circle, department, and description.'
+              : 'Create a new role for this induction cycle. You can configure application rounds and forms once created.'}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="new-role-name">Role name</Label>
+        <div className="space-y-4 py-1 text-left">
+          <div className="space-y-1.5">
+            <Label htmlFor="role-form-name" className="text-xs font-semibold">
+              Role name
+            </Label>
             <Input
-              id="new-role-name"
+              id="role-form-name"
               value={name}
               autoFocus
-              placeholder="e.g. Content Writer"
+              placeholder="e.g. Creative Director, Content Writer"
+              className="rounded-xl h-9 text-xs sm:text-sm border-border/80"
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') void create();
+                if (e.key === 'Enter') void handleSubmit();
               }}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="new-role-tier">Tier</Label>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="role-form-tier" className="text-xs font-semibold">
+              Circle
+            </Label>
             <Select value={tier} onValueChange={(v) => setTier(v as RoleTier)}>
-              <SelectTrigger id="new-role-tier">
-                <SelectValue />
+              <SelectTrigger id="role-form-tier" className="rounded-xl h-9 text-xs sm:text-sm border-border/80">
+                <SelectValue placeholder="Select circle" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="tier-1">Tier 1</SelectItem>
-                <SelectItem value="tier-2">Tier 2</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="tier-1">Circle 1 (Leadership)</SelectItem>
+                <SelectItem value="tier-2">Circle 2 (Core Team)</SelectItem>
+                <SelectItem value="other">Circle 3 (General)</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="new-role-department">Department (optional)</Label>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="role-form-department" className="text-xs font-semibold">
+              Department (optional)
+            </Label>
             <Input
-              id="new-role-department"
+              id="role-form-department"
               value={department}
-              placeholder="e.g. Editorial"
+              placeholder="e.g. Design, Operations, Editorial"
+              className="rounded-xl h-9 text-xs sm:text-sm border-border/80"
               onChange={(e) => setDepartment(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="new-role-description">Description (optional)</Label>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="role-form-description" className="text-xs font-semibold">
+                Role Description (optional)
+              </Label>
+              <span className="text-[11px] text-muted-foreground">Keep it short</span>
+            </div>
             <Textarea
-              id="new-role-description"
+              id="role-form-description"
               value={description}
-              placeholder="What does this role involve?"
-              rows={2}
+              placeholder="What does this role involve? Key responsibilities and expectations..."
+              rows={3}
+              className="resize-none rounded-xl text-xs sm:text-sm border-border/80"
               onChange={(e) => setDescription(e.target.value)}
             />
-          </div>
-
-          {/* People with Access (optional) */}
-          <div className="space-y-2 pt-2 border-t border-border">
-            <Label className="text-xs font-semibold flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-primary" />
-              People with Access (Optional)
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="e.g. lead@ashoka.edu.in"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddEmail();
-                  }
-                }}
-                className="text-sm"
-              />
-              <Button type="button" size="sm" variant="outline" onClick={handleAddEmail} className="shrink-0 gap-1">
-                <Plus className="h-3.5 w-3.5" /> Add
-              </Button>
-            </div>
-            {accessEmails.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {accessEmails.map((email, idx) => (
-                  <Badge key={idx} variant="secondary" className="gap-1 px-2.5 py-0.5 text-xs">
-                    {email}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveEmail(idx)}
-                      className="text-muted-foreground hover:text-destructive transition-colors ml-0.5"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-            <p className="text-[11px] text-muted-foreground">
-              Leave empty to give all organization managers access by default.
+            <p className="text-[11px] text-muted-foreground/80">
+              Displayed as the role overview on the student induction catalog.
             </p>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={creating}>
+        <DialogFooter className="gap-2 sm:gap-0 pt-2">
+          <Button
+            variant="outline"
+            className="rounded-xl text-xs"
+            onClick={() => setOpen(false)}
+            disabled={loading}
+          >
             Cancel
           </Button>
-          <Button onClick={() => void create()} disabled={creating} className="gap-1.5">
-            {creating && <Loader2 className="h-4 w-4 animate-spin" />}
-            Create Role
+          <Button
+            onClick={() => void handleSubmit()}
+            disabled={loading}
+            className="gap-1.5 rounded-xl text-xs font-semibold"
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isEditing ? 'Save Changes' : 'Create Role'}
           </Button>
         </DialogFooter>
       </DialogContent>

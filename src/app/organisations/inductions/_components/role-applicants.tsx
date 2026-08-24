@@ -17,11 +17,21 @@ import {
   RefreshCw,
   ClipboardList,
   Eye,
+  MoreVertical,
+  Check,
+  RotateCcw,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -44,9 +54,10 @@ import type { PipelineRound, InterviewBooking } from '../types';
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type ApplicantStatus =
+  | 'pending'
   | 'submitted'
-  | 'draft'
   | 'advanced'     // proceeded to next round
+  | 'approved'     // final selection / passed
   | 'rejected';
 
 export interface ApplicantRow {
@@ -61,17 +72,21 @@ export interface ApplicantRow {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const STATUS_BADGE: Record<ApplicantStatus, { label: string; className: string }> = {
+  pending: {
+    label: 'Under Review',
+    className: 'bg-blue/10 text-blue-dark dark:text-blue-light border-blue/20',
+  },
   submitted: {
     label: 'Submitted',
     className: 'bg-blue/10 text-blue-dark dark:text-blue-light border-blue/20',
   },
-  draft: {
-    label: 'In Progress',
-    className: 'bg-secondary/40 text-secondary-extradark dark:text-secondary border-secondary/20',
-  },
   advanced: {
     label: 'Advanced',
     className: 'bg-green/15 text-green-dark dark:text-green-light border-green/20',
+  },
+  approved: {
+    label: 'Selected',
+    className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
   },
   rejected: {
     label: 'Rejected',
@@ -79,7 +94,7 @@ const STATUS_BADGE: Record<ApplicantStatus, { label: string; className: string }
   },
 };
 
-// Placeholder applicants spread across rounds
+// Placeholder applicants spread across rounds (submitted applicants only)
 const PLACEHOLDER_APPLICANTS: ApplicantRow[] = [
   {
     id: '1',
@@ -107,14 +122,6 @@ const PLACEHOLDER_APPLICANTS: ApplicantRow[] = [
   },
   {
     id: '4',
-    email: 'rohit.das@ashoka.edu.in',
-    name: 'Rohit Das',
-    submittedAt: null,
-    status: 'draft',
-    currentRound: 0,
-  },
-  {
-    id: '5',
     email: 'ananya.verma@ashoka.edu.in',
     name: 'Ananya Verma',
     submittedAt: '2026-08-16T09:45:00Z',
@@ -145,12 +152,13 @@ function avatarInitial(applicant: ApplicantRow): string {
 interface ActionDialogProps {
   applicant: ApplicantRow | null;
   type: 'proceed' | 'reject';
+  isLastRound?: boolean;
   nextRound?: PipelineRound | null;
   onClose: () => void;
   onConfirm: (applicant: ApplicantRow, sendEmail: boolean, content: string) => void;
 }
 
-function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: ActionDialogProps) {
+function ActionDialog({ applicant, type, isLastRound = false, nextRound, onClose, onConfirm }: ActionDialogProps) {
   const [editorContent, setEditorContent] = useState('');
   const [sendEmail, setSendEmail] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -160,6 +168,10 @@ function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: Action
   const defaultContent = useMemo(() => {
     if (!isProceed) {
       return `<p>Dear ${applicant?.name || 'Applicant'},</p><p>Thank you for your interest and time in applying. After careful consideration, we regret to inform you that you have not been selected to proceed further at this time.</p><p>We appreciate your effort and encourage you to apply again in the future.</p><p>Best regards,<br/>The Inductions Team</p>`;
+    }
+
+    if (isLastRound || !nextRound) {
+      return `<p>Dear ${applicant?.name || 'Applicant'},</p><p>Congratulations! We are delighted to inform you that you have been selected for this role.</p><p>We look forward to welcoming you to the team.</p><p>Warm regards,<br/>The Inductions Team</p>`;
     }
 
     const roundName = nextRound?.label || 'next round';
@@ -173,7 +185,7 @@ function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: Action
     }
 
     return `<p>Dear ${applicant?.name || 'Applicant'},</p><p>Congratulations! We are pleased to inform you that you have been selected to proceed to <strong>${roundName}</strong> in our induction process.</p>${bookingUrlHtml}<p>We look forward to meeting you.</p><p>Warm regards,<br/>The Inductions Team</p>`;
-  }, [isProceed, applicant, nextRound]);
+  }, [isProceed, isLastRound, applicant, nextRound]);
 
   const handleOpen = () => {
     setEditorContent(defaultContent);
@@ -184,9 +196,7 @@ function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: Action
     if (!applicant) return;
     setLoading(true);
     try {
-      // TODO: Replace with real API call
       if (sendEmail) {
-        // TODO: POST /api/organisations/inductions/send-email
         await new Promise((r) => setTimeout(r, 600)); // simulate
         toast.success(`Email sent to ${applicant.email}`);
       }
@@ -211,10 +221,17 @@ function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: Action
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isProceed ? (
-              <>
-                <ArrowRight className="h-5 w-5 text-green-dark dark:text-green-light" />
-                Proceed to Next Round
-              </>
+              isLastRound ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  Final Selection / Accept Candidate
+                </>
+              ) : (
+                <>
+                  <ArrowRight className="h-5 w-5 text-green-dark dark:text-green-light" />
+                  Proceed to Next Round ({nextRound?.label || 'Next Round'})
+                </>
+              )
             ) : (
               <>
                 <XCircle className="h-5 w-5 text-destructive" />
@@ -224,7 +241,9 @@ function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: Action
           </DialogTitle>
           <DialogDescription>
             {isProceed
-              ? `You are advancing ${applicant?.name || applicant?.email} to the next round.`
+              ? isLastRound
+                ? `You are selecting ${applicant?.name || applicant?.email} for this role.`
+                : `You are advancing ${applicant?.name || applicant?.email} to ${nextRound?.label || 'the next round'}.`
               : `You are rejecting ${applicant?.name || applicant?.email}'s application.`}
           </DialogDescription>
         </DialogHeader>
@@ -243,13 +262,15 @@ function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: Action
 
           {/* Rich text editor */}
           <div className="space-y-2">
-            <Label>{isProceed ? 'Email / Message Content' : 'Rejection Reason / Email Content'}</Label>
+            <Label>{isProceed ? (isLastRound ? 'Acceptance Email / Message Content' : 'Email / Message Content') : 'Rejection Reason / Email Content'}</Label>
             <RichTextEditor
               value={editorContent}
               onChange={setEditorContent}
               placeholder={
                 isProceed
-                  ? 'Write a message to send to the applicant...'
+                  ? isLastRound
+                    ? 'Write an acceptance message to send to the candidate...'
+                    : 'Write a message to send to the applicant...'
                   : 'Provide a reason for rejection or a message to send...'
               }
               className="min-h-[180px]"
@@ -286,12 +307,14 @@ function ActionDialog({ applicant, type, nextRound, onClose, onConfirm }: Action
             disabled={loading}
             className={`gap-1.5 ${
               isProceed
-                ? 'bg-green-dark hover:bg-green-dark/90 text-white dark:bg-green dark:text-black'
+                ? isLastRound
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  : 'bg-green-dark hover:bg-green-dark/90 text-white dark:bg-green dark:text-black'
                 : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
             }`}
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isProceed ? 'Confirm & Advance' : 'Confirm & Reject'}
+            {isProceed ? (isLastRound ? 'Confirm & Select' : 'Confirm & Advance') : 'Confirm & Reject'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -373,8 +396,23 @@ export function RoleApplicants({
     sendEmail: boolean,
     content: string,
   ) => {
-    const nextStatus = actionType === 'proceed' ? 'advanced' : 'rejected';
-    const nextRound = actionType === 'proceed' ? applicant.currentRound + 1 : applicant.currentRound;
+    const totalRounds = pipeline?.length || roundLabels?.length || 1;
+    const isLastRound = applicant.currentRound >= totalRounds - 1;
+
+    let nextStatus: ApplicantStatus = 'rejected';
+    let nextRound = applicant.currentRound;
+
+    if (actionType === 'proceed') {
+      if (isLastRound) {
+        nextStatus = 'approved';
+        nextRound = applicant.currentRound;
+      } else {
+        nextStatus = 'advanced';
+        nextRound = applicant.currentRound + 1;
+      }
+    } else {
+      nextStatus = 'rejected';
+    }
 
     try {
       if (roleId) {
@@ -395,19 +433,65 @@ export function RoleApplicants({
       setApplicants((prev) =>
         prev.map((a) => {
           if (a.id !== applicant.id) return a;
-          if (actionType === 'proceed') {
-            return { ...a, status: 'advanced', currentRound: nextRound };
-          }
-          return { ...a, status: 'rejected' };
+          return { ...a, status: nextStatus, currentRound: nextRound };
         }),
       );
       toast.success(
         actionType === 'proceed'
-          ? `${applicant.name || applicant.email} advanced to next round`
+          ? isLastRound
+            ? `${applicant.name || applicant.email} selected for this role!`
+            : `${applicant.name || applicant.email} advanced to next round`
           : `${applicant.name || applicant.email} rejected`,
       );
     } catch {
       toast.error('Failed to update applicant status');
+    }
+  };
+
+  const handleQuickMoveRound = async (applicant: ApplicantRow, targetRoundIdx: number) => {
+    try {
+      if (roleId) {
+        await fetch(`/api/organisations/inductions/roles/${roleId}/applicants`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            responseId: applicant.id,
+            status: 'advanced',
+            currentRound: targetRoundIdx,
+            email: applicant.email,
+          }),
+        });
+      }
+      setApplicants((prev) =>
+        prev.map((a) => (a.id === applicant.id ? { ...a, currentRound: targetRoundIdx, status: 'advanced' } : a)),
+      );
+      const targetRoundName = pipeline?.[targetRoundIdx]?.label || roundLabels?.[targetRoundIdx] || `Round ${targetRoundIdx + 1}`;
+      toast.success(`${applicant.name || applicant.email} moved to ${targetRoundName}`);
+    } catch {
+      toast.error('Failed to move applicant to stage');
+    }
+  };
+
+  const handleResetStatus = async (applicant: ApplicantRow) => {
+    try {
+      if (roleId) {
+        await fetch(`/api/organisations/inductions/roles/${roleId}/applicants`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            responseId: applicant.id,
+            status: 'submitted',
+            currentRound: applicant.currentRound,
+            email: applicant.email,
+          }),
+        });
+      }
+      setApplicants((prev) =>
+        prev.map((a) => (a.id === applicant.id ? { ...a, status: 'submitted' } : a)),
+      );
+      toast.success(`${applicant.name || applicant.email} reset to Under Review`);
+    } catch {
+      toast.error('Failed to reset applicant status');
     }
   };
 
@@ -503,9 +587,11 @@ export function RoleApplicants({
               </TableRow>
             ) : (
               filtered.map((applicant) => {
-                const badge = STATUS_BADGE[applicant.status];
+                const badge = STATUS_BADGE[applicant.status] || STATUS_BADGE.submitted;
+                const totalRounds = pipeline?.length || roundLabels?.length || 1;
+                const isLastRound = applicant.currentRound >= totalRounds - 1;
                 const isTerminal =
-                  applicant.status === 'rejected' || applicant.status === 'advanced';
+                  applicant.status === 'rejected' || (applicant.status === 'approved' && isLastRound);
                 const currentRoundLabel =
                   roundLabels[applicant.currentRound] ?? `Round ${applicant.currentRound + 1}`;
 
@@ -570,14 +656,14 @@ export function RoleApplicants({
                     {/* Status */}
                     <TableCell>
                       <Badge variant="outline" className={`text-xs ${badge.className}`}>
-                        {applicant.status === 'submitted' && (
+                        {(applicant.status === 'submitted' || applicant.status === 'pending') && (
                           <CheckCircle2 className="h-3 w-3 mr-1" />
-                        )}
-                        {applicant.status === 'draft' && (
-                          <AlertCircle className="h-3 w-3 mr-1" />
                         )}
                         {applicant.status === 'advanced' && (
                           <ArrowRight className="h-3 w-3 mr-1" />
+                        )}
+                        {applicant.status === 'approved' && (
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
                         )}
                         {applicant.status === 'rejected' && (
                           <XCircle className="h-3 w-3 mr-1" />
@@ -612,11 +698,24 @@ export function RoleApplicants({
                           <>
                             <Button
                               size="sm"
-                              className="h-7 px-2.5 gap-1 text-xs bg-green-dark hover:bg-green-dark/90 text-white dark:bg-green dark:text-black dark:hover:bg-green/80"
+                              className={`h-7 px-2.5 gap-1 text-xs ${
+                                isLastRound
+                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:text-white'
+                                  : 'bg-green-dark hover:bg-green-dark/90 text-white dark:bg-green dark:text-black dark:hover:bg-green/80'
+                              }`}
                               onClick={() => openAction(applicant, 'proceed')}
                             >
-                              <ArrowRight className="h-3 w-3" />
-                              Proceed
+                              {isLastRound ? (
+                                <>
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Select
+                                </>
+                              ) : (
+                                <>
+                                  <ArrowRight className="h-3 w-3" />
+                                  Proceed
+                                </>
+                              )}
                             </Button>
                             <Button
                               size="sm"
@@ -629,6 +728,70 @@ export function RoleApplicants({
                             </Button>
                           </>
                         )}
+
+                        {/* Extra Actions Dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
+                              aria-label="More applicant actions"
+                            >
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-52">
+                            {pipeline && pipeline.length > 1 && (
+                              <>
+                                <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                  Move to Pipeline Stage
+                                </div>
+                                {pipeline.map((round, rIdx) => (
+                                  <DropdownMenuItem
+                                    key={round.id || rIdx}
+                                    disabled={applicant.currentRound === rIdx}
+                                    onClick={() => void handleQuickMoveRound(applicant, rIdx)}
+                                    className="cursor-pointer text-xs justify-between"
+                                  >
+                                    <span className="truncate">{round.label || `Round ${rIdx + 1}`}</span>
+                                    {applicant.currentRound === rIdx && (
+                                      <Check className="h-3.5 w-3.5 text-primary ml-1.5 shrink-0" />
+                                    )}
+                                  </DropdownMenuItem>
+                                ))}
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            {applicant.status !== 'approved' && (
+                              <DropdownMenuItem
+                                onClick={() => openAction(applicant, 'proceed')}
+                                className="cursor-pointer text-xs font-medium text-emerald-600 dark:text-emerald-400"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
+                                {isLastRound ? 'Select Candidate' : 'Advance to Next Stage'}
+                              </DropdownMenuItem>
+                            )}
+                            {applicant.status !== 'rejected' && (
+                              <DropdownMenuItem
+                                onClick={() => openAction(applicant, 'reject')}
+                                className="cursor-pointer text-xs font-medium text-destructive"
+                              >
+                                <XCircle className="h-3.5 w-3.5 mr-2" />
+                                Reject Applicant
+                              </DropdownMenuItem>
+                            )}
+                            {(applicant.status === 'rejected' || applicant.status === 'approved') && (
+                              <DropdownMenuItem
+                                onClick={() => void handleResetStatus(applicant)}
+                                className="cursor-pointer text-xs"
+                              >
+                                <RotateCcw className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                                Reset to Under Review
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -643,7 +806,15 @@ export function RoleApplicants({
       <ActionDialog
         applicant={actionTarget}
         type={actionType}
-        nextRound={pipeline && actionTarget ? pipeline[actionTarget.currentRound + 1] : null}
+        isLastRound={
+          actionTarget != null &&
+          actionTarget.currentRound >= (pipeline?.length || roundLabels?.length || 1) - 1
+        }
+        nextRound={
+          actionTarget != null && pipeline
+            ? pipeline[actionTarget.currentRound + 1] ?? null
+            : null
+        }
         onClose={() => setActionTarget(null)}
         onConfirm={handleActionConfirm}
       />

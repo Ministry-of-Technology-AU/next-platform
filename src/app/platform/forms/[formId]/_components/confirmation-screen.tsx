@@ -8,10 +8,12 @@ export function ConfirmationScreen({
   title,
   html,
   alreadyResponded = false,
+  primaryOutline = false,
 }: {
   title: string;
   html: string;
   alreadyResponded?: boolean;
+  primaryOutline?: boolean;
 }) {
   return (
     <div className="flex flex-col items-center gap-4 py-8 text-center">
@@ -39,8 +41,17 @@ export function ConfirmationScreen({
         />
       )}
       <div className="mt-4">
-        <Button asChild variant="outline" className="gap-2">
-          <Link href="/platform/induction">
+        <Button
+          asChild
+          variant={primaryOutline ? 'outline' : 'default'}
+          className="min-h-11 min-w-44 gap-2 shadow-xs"
+          style={{
+            fontFamily: 'var(--form-font-button)',
+            fontWeight: 'var(--form-weight-button)' as any,
+            fontStyle: 'var(--form-style-button)' as any,
+          }}
+        >
+          <Link href="/platform/inductions">
             Back to Induction Dashboard
             <ArrowRight className="h-4 w-4" />
           </Link>

@@ -14,6 +14,8 @@ import {
   Link2,
   Pencil,
   Plus,
+  Send,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +28,7 @@ import { PageFooter } from './_components/page-footer';
 import { ThemeEditor } from './_components/theme-editor';
 import { FormSettingsSheet } from './_components/form-settings';
 import { BuilderPreview } from './_components/builder-preview';
-import type { FormBlock, FormBlockType, FormSchema } from '@/lib/forms/schema';
+import { isInputBlock, type FormBlock, type FormBlockType, type FormSchema } from '@/lib/forms/schema';
 import type { FormStatus } from '@/lib/forms/strapi-forms';
 
 interface BuilderClientProps {
@@ -164,6 +166,92 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
     },
     [apiUrl, buildPayload, persistLocal, draftKey],
   );
+
+  const handlePublish = async () => {
+    const hasInput = state.schema.pages.some((p) => p.blocks.some(isInputBlock));
+    if (!hasInput) {
+      toast.error('Add at least one question before publishing the form.');
+      return;
+    }
+
+    setSaveState('saving');
+    dispatch({ type: 'SET_META', patch: { status: 'active' } });
+
+    const s = stateRef.current;
+    const payload = {
+      schema: s.schema,
+      title: s.title,
+      form_status: 'active',
+      start_date: s.startDate,
+      end_date: s.endDate,
+    };
+
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.success) {
+        setSaveState('unsaved');
+        toast.error(json?.error ?? 'Could not publish the form');
+        return;
+      }
+      dirtyRef.current = false;
+      setSaveState('saved');
+      setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {
+        /* ignore */
+      }
+      toast.success('Form published! It is now live and accepting responses.');
+    } catch {
+      setSaveState('unsaved');
+      toast.error('Could not publish the form');
+    }
+  };
+
+  const handleUnpublish = async () => {
+    setSaveState('saving');
+    dispatch({ type: 'SET_META', patch: { status: 'draft' } });
+
+    const s = stateRef.current;
+    const payload = {
+      schema: s.schema,
+      title: s.title,
+      form_status: 'draft',
+      start_date: s.startDate,
+      end_date: s.endDate,
+    };
+
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.success) {
+        setSaveState('unsaved');
+        toast.error(json?.error ?? 'Could not unpublish the form');
+        return;
+      }
+      dirtyRef.current = false;
+      setSaveState('saved');
+      setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {
+        /* ignore */
+      }
+      toast.success('Form unpublished and reverted to Draft.');
+    } catch {
+      setSaveState('unsaved');
+      toast.error('Could not unpublish the form');
+    }
+  };
 
   // localStorage restore prompt on mount (newer local draft than server).
   useEffect(() => {
@@ -365,13 +453,14 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
 
           <div className="mx-1 hidden h-5 w-px bg-border/80 sm:block" />
 
-          {/* Save Button (LEFT of saved indicator) */}
+          {/* Save Button */}
           <Button
             type="button"
+            variant="outline"
             size="sm"
             disabled={saveState === 'saving'}
             onClick={() => void save()}
-            className="h-8.5 gap-1.5 rounded-lg px-3.5 text-xs font-semibold shadow-xs"
+            className="h-8.5 gap-1.5 rounded-lg px-3 text-xs font-semibold shadow-xs"
           >
             {saveState === 'saving' ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -381,7 +470,34 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
             Save
           </Button>
 
-          {/* Saved Status Indicator (RIGHT of Save button) */}
+          {/* Publish / Live Button */}
+          {state.status === 'active' ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={saveState === 'saving'}
+              onClick={handleUnpublish}
+              className="h-8.5 gap-1.5 rounded-lg px-3 text-xs font-semibold border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-950/40 shadow-xs"
+              title="Form is Live. Click to unpublish."
+            >
+              <Globe className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Published</span>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              disabled={saveState === 'saving'}
+              onClick={handlePublish}
+              className="h-8.5 gap-1.5 rounded-lg px-3.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+            >
+              <Send className="h-3.5 w-3.5" />
+              <span>Publish</span>
+            </Button>
+          )}
+
+          {/* Saved Status Indicator */}
           <SaveIndicator state={saveState} lastSaved={lastSaved} />
         </div>
       </header>

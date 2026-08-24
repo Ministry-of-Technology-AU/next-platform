@@ -10,6 +10,7 @@
 import { Plus, X, GitBranch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import {
@@ -278,11 +279,11 @@ function ValueInput({
   }
   if (block.type === 'date') {
     return (
-      <Input
-        type="date"
+      <DatePicker
         className="h-8 flex-1"
         value={typeof value === 'string' ? value : ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(_, str) => onChange(str)}
+        placeholder="Pick comparison date"
       />
     );
   }

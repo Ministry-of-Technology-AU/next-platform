@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   ExternalLink,
   ChevronRight,
-  Sparkles,
   ArrowLeft,
   Copy,
   Check,
@@ -20,10 +19,12 @@ import {
   Building2,
   Loader2,
   Share2,
+  Sparkles,
 } from 'lucide-react';
 import { format, parseISO, addDays, isAfter } from 'date-fns';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
+import { TourStep, useTour } from '@/components/guided-tour';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -381,27 +382,47 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
     }
   };
 
+  const { startTour } = useTour();
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Top Breadcrumb & Status */}
       <div className="flex items-center justify-between">
         <Link
-          href="/platform/induction"
+          href="/platform/inductions"
           className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Applications
         </Link>
-        <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-primary/5 gap-1.5 py-1 px-3">
-          <Sparkles className="h-3.5 w-3.5" />
-          Live Slot Scheduling
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => startTour()}
+            className="h-8 px-3 rounded-lg text-xs font-semibold gap-1.5 border-border/80 hover:bg-muted/80 shadow-2xs text-foreground cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span>Booking Guide</span>
+          </Button>
+          <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-primary/5 gap-1.5 py-1 px-3">
+            <Clock className="h-3.5 w-3.5" />
+            Live Slot Scheduling
+          </Badge>
+        </div>
       </div>
 
       {/* Main Container */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Side: Org & Event Metadata & Anti-Tamper Notice */}
-        <div className="lg:col-span-5 space-y-6">
+        <TourStep
+          id="interview-details"
+          order={1}
+          position="bottom"
+          title="Interview Overview"
+          content="Review the interview details, host organisation, and important instructions before reserving your slot."
+          className="lg:col-span-5 space-y-6"
+        >
           <Card className="border-border bg-card shadow-sm overflow-hidden">
             <div className="p-6 space-y-5">
               {/* Org Header */}
@@ -506,10 +527,17 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
                 'Please do not modify the event title, timings, location, or host invitees when adding this to your Google Calendar. Any alterations will prevent your interview from being recognized and may invalidate your application.'}
             </p>
           </div>
-        </div>
+        </TourStep>
 
         {/* Right Side: Appointment Slot Booking Picker */}
-        <div className="lg:col-span-7 space-y-6">
+        <TourStep
+          id="interview-slot-picker"
+          order={2}
+          position="top"
+          title="Select an Interview Slot"
+          content="Browse available dates across the tabs and choose an open time slot that fits your schedule."
+          className="lg:col-span-7 space-y-6"
+        >
           <Card className="border-border bg-card shadow-sm overflow-hidden">
             <div className="p-6 space-y-6">
               {/* Header */}
@@ -711,100 +739,108 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
 
               {/* Confirmation & Google Calendar Generation Box */}
               {selectedSlotKey && (
-                <div className="pt-4 border-t border-border space-y-4 bg-muted/20 -mx-6 -mb-6 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-bold text-foreground">Confirm Your Details</h4>
-                      <p className="text-xs text-muted-foreground">
-                        Selected: <span className="font-semibold text-primary">{selectedSlotKey}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="cand-name" className="text-xs">
-                        Your Full Name
-                      </Label>
-                      <Input
-                        id="cand-name"
-                        value={candidateName}
-                        onChange={(e) => setCandidateName(e.target.value)}
-                        placeholder="e.g. John Doe"
-                        className="text-xs h-9 bg-background"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="cand-email" className="text-xs">
-                        Your Ashoka Email <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id="cand-email"
-                        value={candidateEmail}
-                        onChange={(e) => setCandidateEmail(e.target.value)}
-                        placeholder="e.g. yourname@ashoka.edu.in"
-                        className="text-xs h-9 bg-background"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Submit Action */}
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <Button
-                      onClick={handleConfirmBooking}
-                      disabled={isBooking || !candidateEmail}
-                      className="flex-1 gap-2 font-bold py-5 shadow-lg bg-primary hover:bg-primary/90 text-white"
-                    >
-                      {isBooking ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Reserving Slot...
-                        </>
-                      ) : (
-                        <>
-                          <CalendarIcon className="h-4 w-4" />
-                          Book Slot &amp; Open Google Calendar
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  {/* Post-booking quick link */}
-                  {bookedSuccess && generatedGcalUrl && (
-                    <div className="rounded-xl bg-green/15 border border-green/30 p-4 space-y-2 mt-2">
-                      <div className="flex items-center gap-2 text-green-dark dark:text-green-light font-bold text-xs">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Slot Reserved Successfully!
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        If the Google Calendar tab did not open automatically, use the buttons below:
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs h-8 gap-1.5"
-                          onClick={() => window.open(generatedGcalUrl, '_blank')}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" /> Open Google Calendar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-xs h-8 gap-1.5"
-                          onClick={handleCopyLink}
-                        >
-                          {isCopiedGcal ? <Check className="h-3.5 w-3.5 text-green" /> : <Copy className="h-3.5 w-3.5" />}
-                          {isCopiedGcal ? 'Copied' : 'Copy Calendar URL'}
-                        </Button>
+                <TourStep
+                  id="interview-confirm-sync"
+                  order={3}
+                  position="top"
+                  title="Confirm and Add to Calendar"
+                  content="Verify your contact details and click Book Interview to reserve your slot and generate a Google Calendar invite."
+                >
+                  <div className="pt-4 border-t border-border space-y-4 bg-muted/20 -mx-6 -mb-6 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-foreground">Confirm Your Details</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Selected: <span className="font-semibold text-primary">{selectedSlotKey}</span>
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="cand-name" className="text-xs">
+                          Your Full Name
+                        </Label>
+                        <Input
+                          id="cand-name"
+                          value={candidateName}
+                          onChange={(e) => setCandidateName(e.target.value)}
+                          placeholder="e.g. John Doe"
+                          className="text-xs h-9 bg-background"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="cand-email" className="text-xs">
+                          Your Ashoka Email <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="cand-email"
+                          value={candidateEmail}
+                          onChange={(e) => setCandidateEmail(e.target.value)}
+                          placeholder="e.g. yourname@ashoka.edu.in"
+                          className="text-xs h-9 bg-background"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Submit Action */}
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <Button
+                        onClick={handleConfirmBooking}
+                        disabled={isBooking || !candidateEmail}
+                        className="flex-1 gap-2 font-bold py-5 shadow-lg bg-primary hover:bg-primary/90 text-white"
+                      >
+                        {isBooking ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Reserving Slot...
+                          </>
+                        ) : (
+                          <>
+                            <CalendarIcon className="h-4 w-4" />
+                            Book Slot &amp; Open Google Calendar
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Post-booking quick link */}
+                    {bookedSuccess && generatedGcalUrl && (
+                      <div className="rounded-xl bg-green/15 border border-green/30 p-4 space-y-2 mt-2">
+                        <div className="flex items-center gap-2 text-green-dark dark:text-green-light font-bold text-xs">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Slot Reserved Successfully!
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          If the Google Calendar tab did not open automatically, use the buttons below:
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs h-8 gap-1.5"
+                            onClick={() => window.open(generatedGcalUrl, '_blank')}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" /> Open Google Calendar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-xs h-8 gap-1.5"
+                            onClick={handleCopyLink}
+                          >
+                            {isCopiedGcal ? <Check className="h-3.5 w-3.5 text-green" /> : <Copy className="h-3.5 w-3.5" />}
+                            {isCopiedGcal ? 'Copied' : 'Copy Calendar URL'}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TourStep>
               )}
             </div>
           </Card>
-        </div>
+        </TourStep>
       </div>
     </div>
   );

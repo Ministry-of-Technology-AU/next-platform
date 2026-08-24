@@ -1,14 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
+import { User, Settings, ClipboardList } from 'lucide-react';
+import PageTitle from '@/components/page-title';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { RoleStatsBar } from '../../_components/role-stats';
 import { RoleAccessBar } from '../../_components/role-access-bar';
 import { PipelineBuilder } from '../../_components/pipeline-builder';
 import { RoleForms, type RoleFormSummary } from '../../_components/role-forms';
 import { RoleApplicants, type ApplicantRow } from '../../_components/role-applicants';
+import { RoleFormDialog } from '../../_components/new-role-dialog';
 import type { InductionRole, PipelineRound } from '../../types';
+import { TIER_LABELS } from '../../types';
 
 interface RoleClientProps {
   cycleId: string;
@@ -32,6 +38,7 @@ export function RoleClient({
   initialApplicants,
 }: RoleClientProps) {
   const [role, setRole] = useState<InductionRole>(initialRole);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [pipeline, setPipeline] = useState<PipelineRound[]>(initialPipeline);
   const [forms, setForms] = useState<RoleFormSummary[]>(initialForms);
   const [availableForms, setAvailableForms] = useState<RoleFormSummary[]>(allOrgForms);
@@ -92,6 +99,70 @@ export function RoleClient({
 
   return (
     <div className="mt-6 space-y-8">
+      {/* Header with Title, Circle/Department/Description Subheading, and Actions */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageTitle
+          icon={User}
+          text={role.name}
+          subheading={
+            <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
+              <span className="font-semibold text-foreground/80">{TIER_LABELS[role.tier] || 'Circle 3 (General)'}</span>
+              {role.department && (
+                <>
+                  <span className="text-muted-foreground/40">·</span>
+                  <span>{role.department}</span>
+                </>
+              )}
+              {role.description && (
+                <>
+                  <span className="text-muted-foreground/40">·</span>
+                  <span className="text-muted-foreground/80 line-clamp-1 max-w-xl">{role.description}</span>
+                </>
+              )}
+              {role.accessEmails && role.accessEmails.length > 0 && (
+                <>
+                  <span className="text-muted-foreground/40">·</span>
+                  <span className="text-foreground/75 font-medium">{role.accessEmails.length} with access</span>
+                </>
+              )}
+            </div>
+          }
+        />
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => setSettingsOpen(true)}
+            className="h-9 w-9 mt-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl"
+            aria-label="Role settings"
+            title="Role settings"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+
+          {forms[0] && (
+            <Button asChild size="sm" variant="outline" className="gap-1.5 mt-1 font-medium rounded-xl">
+              <Link href={`/organisations/inductions/forms/${forms[0].id}/responses?cycleId=${cycleId}&roleId=${roleId}`}>
+                <ClipboardList className="h-4 w-4" />
+                View Form Responses
+              </Link>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Role Settings Dialog */}
+      <RoleFormDialog
+        role={role}
+        cycleId={cycleId}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        onUpdated={(updated) => {
+          setRole(updated);
+          setSettingsOpen(false);
+        }}
+      />
+
       {/* Role Stats */}
       <RoleStatsBar stats={role.stats} />
 

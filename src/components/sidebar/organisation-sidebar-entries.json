@@ -16,8 +16,9 @@
                 },
                 {
                     "title": "Inductions",
-                    "icon": "Newspaper",
-                    "href": "/inductions"
+                    "icon": "FileUser",
+                    "href": "/inductions",
+                    "isNew": true
                 },
                 {
                     "title": "When2meet",

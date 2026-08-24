@@ -10,10 +10,12 @@ import { CYCLE_STATUS_STYLE, formatCycleDateRange, getDerivedCycleStatus } from 
 
 export function CycleCard({
   cycle,
+  activeCycle,
   onDelete,
   onUpdate,
 }: {
   cycle: InductionCycleSummary;
+  activeCycle?: InductionCycleSummary | null;
   onDelete: (cycle: InductionCycleSummary) => void;
   onUpdate?: (updatedCycle: InductionCycleSummary) => void;
 }) {
@@ -50,6 +52,13 @@ export function CycleCard({
             <span className="whitespace-nowrap">{formatCycleDateRange(cycle.startDate, cycle.endDate)}</span>
           </div>
         </div>
+
+        {/* Cycle Description preview */}
+        {cycle.description ? (
+          <p className="mt-2.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed !text-left text-left" style={{ textAlign: 'left' }}>
+            {cycle.description}
+          </p>
+        ) : null}
       </div>
 
       <div>
@@ -75,13 +84,14 @@ export function CycleCard({
             </Link>
           </Button>
           <Button
-            size="sm"
-            variant="outline"
+            size="icon"
+            variant="ghost"
             onClick={() => setEditOpen(true)}
-            className="gap-1.5 font-medium text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+            aria-label="Cycle settings"
+            title="Cycle settings"
           >
-            <Settings className="h-3.5 w-3.5" />
-            Settings
+            <Settings className="h-4 w-4" />
           </Button>
           <Button
             size="icon"
@@ -97,6 +107,7 @@ export function CycleCard({
           {/* Settings Dialog (CycleFormDialog) */}
           <CycleFormDialog
             cycle={cycle}
+            activeCycle={activeCycle}
             open={editOpen}
             onOpenChange={setEditOpen}
             onUpdated={(updated) => {

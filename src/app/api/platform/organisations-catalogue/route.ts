@@ -140,21 +140,30 @@ export async function GET() {
 
         const cyclesData = attrs.induction_cycles?.data || attrs.induction_cycles || [];
 
-        // Open positions derived from induction cycles and roles
-        const openPositions = cyclesData.flatMap((cycle: any) => {
+        // Only consider truly active cycles for the student catalog
+        const activeCyclesOnly = cyclesData.filter((c: any) => {
+          const ca = c.attributes || c || {};
+          return ca.status === 'active';
+        });
+
+        // Open positions derived only from active induction cycles
+        const openPositions = activeCyclesOnly.flatMap((cycle: any) => {
           const cycleAttrs = cycle.attributes || cycle || {};
           const rolesData = cycleAttrs.roles?.data || cycleAttrs.roles || [];
           return rolesData.map((role: any) => {
             const roleAttrs = role.attributes || role || {};
             const rounds = roleAttrs.pipeline_rounds?.data || roleAttrs.pipeline_rounds || [];
-            
+
             // Find the primary form round for candidates
             const formRound = rounds.find((r: any) => {
               const ra = r.attributes || r || {};
               return ra.type === 'form';
             });
             const formObj = formRound?.attributes?.form?.data || formRound?.form?.data || formRound?.form;
-            const formUid = formObj?.attributes?.form_uid || formObj?.form_uid || (typeof formRound?.attributes?.form === 'string' ? formRound.attributes.form : null);
+            const formAttrs = formObj?.attributes || formObj || {};
+            const isFormActive = formAttrs?.form_status === 'active';
+            const rawFormUid = formAttrs?.form_uid || formObj?.form_uid || (typeof formRound?.attributes?.form === 'string' ? formRound.attributes.form : null);
+            const formUid = isFormActive && rawFormUid ? rawFormUid : null;
 
             return {
               id: (role.id || '').toString(),
@@ -167,10 +176,18 @@ export async function GET() {
           });
         });
 
-        const hasActiveCycle = cyclesData.some((c: any) => {
-          const ca = c.attributes || c || {};
-          return ca.status === 'active' || ca.status === 'draft';
-        });
+        // Pick the single active cycle for display metadata; no draft fallback
+        const activeCycle = activeCyclesOnly[0] ?? null;
+
+        const activeCycleAttrs = activeCycle?.attributes || activeCycle || {};
+        const cycleName = activeCycleAttrs.name || null;
+        const cycleDescription = activeCycleAttrs.description || '';
+        const cycleEndDate = activeCycleAttrs.end_date || attrs.induction_end || null;
+        const cycleStats = activeCycleAttrs.stats || {};
+        const deadlineExtension = activeCycleAttrs.deadline_extension ?? cycleStats?.deadlineExtension ?? null;
+
+        // hasActiveCycle is true only when there is a genuinely 'active' cycle
+        const hasActiveCycle = activeCyclesOnly.length > 0;
 
         return {
           id: x.id.toString(),
@@ -205,10 +222,18 @@ export async function GET() {
           })),
 
           // Induction details
-          inductionsOpen: attrs.induction === true || hasActiveCycle || openPositions.length > 0,
-          inductionEnd: attrs.induction_end || null,
-          inductionDescription: attrs.induction_description || '',
+          inductionsOpen: attrs.induction === true || hasActiveCycle,
+          inductionEnd: cycleEndDate,
+          inductionDescription: attrs.induction_description || cycleDescription || '',
+          cycleName: cycleName || undefined,
+          cycleDescription: cycleDescription || attrs.induction_description || '',
           openPositions,
+          deadlineExtension: deadlineExtension ? {
+            extendedAt: deadlineExtension.extendedAt,
+            previousDeadline: deadlineExtension.previousDeadline,
+            newDeadline: deadlineExtension.newDeadline || cycleEndDate,
+            reason: deadlineExtension.reason || null,
+          } : null,
 
           // Social links with fallback to empty strings
           instagram: attrs.instagram || '',

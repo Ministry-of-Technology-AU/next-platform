@@ -25,7 +25,15 @@ export interface Organization {
   inductionsOpen: boolean;
   inductionEnd: string | null;
   inductionDescription: string;
+  cycleName?: string;
+  cycleDescription?: string;
   openPositions?: OpenPosition[];
+  deadlineExtension?: {
+    extendedAt: string;
+    previousDeadline: string;
+    newDeadline: string;
+    reason?: string | null;
+  } | null;
   
   // Social links
   instagram: string;

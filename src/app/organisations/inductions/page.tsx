@@ -1,4 +1,4 @@
-import { UserCheck } from 'lucide-react';
+import { FileUser } from 'lucide-react';
 import { NextResponse } from 'next/server';
 import PageTitle from '@/components/page-title';
 import { requireOrgSession } from '@/lib/forms/api-helpers';
@@ -26,7 +26,7 @@ export default async function InductionsPage() {
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <PageTitle
         text="Inductions"
-        icon={UserCheck}
+        icon={FileUser}
         subheading="Manage your inductions end to end. Multiple cycles, roles and forms. Inductions, completely your way!"
       />
       <InductionsClient initialCycles={cycles} />

@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { Newspaper } from 'lucide-react';
+import { FileUser } from 'lucide-react';
 import PageTitle from '@/components/page-title';
 import { FormsClient } from './client';
 import type { FormSummary } from './types';
@@ -29,7 +29,7 @@ export default async function FormsPage() {
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <PageTitle
         text="Inductions"
-        icon={Newspaper}
+        icon={FileUser}
         subheading="Build customisable, block-by-block induction forms — questions, logic, pages, theming — and share a single link."
       />
       <FormsClient initialForms={forms} />

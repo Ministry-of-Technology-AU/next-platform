@@ -7,6 +7,7 @@ import { Plus, X, MousePointerClick } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectTrigger,
@@ -297,17 +298,17 @@ function renderInputExtras(block: InputBlock, update: Patch) {
       return (
         <div className="grid grid-cols-2 gap-2">
           <Field label="Earliest">
-            <Input
-              type="date"
+            <DatePicker
               value={block.validation?.minDate ?? ''}
-              onChange={(e) => update({ validation: { ...block.validation, minDate: e.target.value || undefined } })}
+              onChange={(_, str) => update({ validation: { ...block.validation, minDate: str || undefined } })}
+              placeholder="Min date"
             />
           </Field>
           <Field label="Latest">
-            <Input
-              type="date"
+            <DatePicker
               value={block.validation?.maxDate ?? ''}
-              onChange={(e) => update({ validation: { ...block.validation, maxDate: e.target.value || undefined } })}
+              onChange={(_, str) => update({ validation: { ...block.validation, maxDate: str || undefined } })}
+              placeholder="Max date"
             />
           </Field>
         </div>

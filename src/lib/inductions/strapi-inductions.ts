@@ -41,6 +41,8 @@ export function normalizeCycle(entry: any): InductionCycleSummary | null {
   const startDate = a.start_date ?? null;
   const endDate = a.end_date ?? null;
   const derivedStatus = getDerivedCycleStatus(rawStatus, startDate, endDate);
+  const stats = a.stats || PLACEHOLDER_CYCLE_STATS;
+  const deadlineExtension = a.deadline_extension ?? stats?.deadlineExtension ?? null;
 
   return {
     id: id.toString(),
@@ -48,8 +50,10 @@ export function normalizeCycle(entry: any): InductionCycleSummary | null {
     status: derivedStatus,
     startDate,
     endDate,
-    stats: a.stats || PLACEHOLDER_CYCLE_STATS,
+    description: a.description ?? null,
+    stats,
     createdAt: a.createdAt || new Date().toISOString(),
+    deadlineExtension,
   };
 }
 
@@ -135,6 +139,9 @@ export function normalizeApplicant(entry: any): ApplicantRow | null {
   const id = entry.id ?? a.id;
   if (id == null) return null;
 
+  // Never show draft form submissions to organisations
+  if (a.state === 'draft') return null;
+
   const respondent = a.respondent?.data?.attributes ?? a.respondent ?? {};
   const respondentEmail = a.respondent_email || respondent.email || '';
 
@@ -155,12 +162,12 @@ export function normalizeApplicant(entry: any): ApplicantRow | null {
   const respondentName = respondent.name || respondent.username || formName || fallbackName;
 
   let status: ApplicantStatus = 'submitted';
-  if (a.application_status === 'approved' || a.application_status === 'advanced') {
+  if (a.application_status === 'approved') {
+    status = 'approved';
+  } else if (a.application_status === 'advanced') {
     status = 'advanced';
   } else if (a.application_status === 'rejected') {
     status = 'rejected';
-  } else if (a.state === 'draft') {
-    status = 'draft';
   } else {
     status = 'submitted';
   }
@@ -303,6 +310,34 @@ export async function deleteCycle(cycleId: string | number): Promise<void> {
       status: 'archived',
     },
   });
+}
+
+/**
+ * Enforce the one-active-cycle-per-org rule.
+ * Sets all currently-active cycles for the given org (except `exceptCycleId`) to 'completed'.
+ * Call this before saving a cycle with status='active'.
+ */
+export async function deactivateOtherCycles(
+  organisationId: number,
+  exceptCycleId: string | number,
+): Promise<void> {
+  const res = await strapiGet('/induction-cycles', {
+    filters: {
+      organisation: { id: { $eq: organisationId } },
+      status: { $eq: 'active' },
+    },
+    fields: ['id', 'status'],
+    pagination: { pageSize: 100 },
+  });
+
+  const rows: any[] = res?.data ?? [];
+  await Promise.all(
+    rows
+      .filter((row: any) => String(row.id ?? row?.attributes?.id) !== String(exceptCycleId))
+      .map((row: any) =>
+        strapiPut(`/induction-cycles/${row.id}`, { data: { status: 'completed' } }),
+      ),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -697,7 +732,10 @@ export async function listApplicantsByRole(roleId: string | number): Promise<App
     // 1. Fetch by numeric form IDs directly (guaranteed to match foreign key)
     for (const formId of numericFormIds) {
       const res = await strapiGet('/form-responses', {
-        filters: { form: { id: { $eq: formId } } },
+        filters: {
+          form: { id: { $eq: formId } },
+          state: { $eq: 'submitted' },
+        },
         populate: {
           respondent: { fields: ['id', 'username', 'email', 'name'] },
           form: { fields: ['id', 'title', 'form_uid'] },
@@ -717,7 +755,10 @@ export async function listApplicantsByRole(roleId: string | number): Promise<App
 
     // 2. Fetch by direct role relation if any
     const roleRes = await strapiGet('/form-responses', {
-      filters: { role: { id: { $eq: Number(roleId) || roleId } } },
+      filters: {
+        role: { id: { $eq: Number(roleId) || roleId } },
+        state: { $eq: 'submitted' },
+      },
       populate: {
         respondent: { fields: ['id', 'username', 'email', 'name'] },
         form: { fields: ['id', 'title', 'form_uid'] },
@@ -765,6 +806,7 @@ export async function updateApplicantStatus(
 export async function getPipelineForForm(formId: number | string): Promise<{
   role: { id: string; name: string; tier: string; department?: string | null } | null;
   rounds: PipelineRound[];
+  cycle: InductionCycleSummary | null;
 } | null> {
   try {
     const isNum = !isNaN(Number(formId)) && !String(formId).includes('-');
@@ -778,6 +820,7 @@ export async function getPipelineForForm(formId: number | string): Promise<{
         role: {
           populate: {
             pipeline_rounds: true,
+            cycle: true,
           },
         },
       },
@@ -796,6 +839,9 @@ export async function getPipelineForForm(formId: number | string): Promise<{
     const roleId = roleEntry.id ?? roleAttrs?.id;
     if (!roleId) return null;
 
+    const cycleEntry = roleAttrs?.cycle?.data ?? roleAttrs?.cycle;
+    const cycle = cycleEntry ? normalizeCycle(cycleEntry) : null;
+
     const allRounds = await listPipelineByRole(roleId);
     return {
       role: {
@@ -805,6 +851,7 @@ export async function getPipelineForForm(formId: number | string): Promise<{
         department: roleAttrs?.department ?? null,
       },
       rounds: allRounds,
+      cycle,
     };
   } catch (err) {
     console.error('Error fetching pipeline for form:', formId, err);

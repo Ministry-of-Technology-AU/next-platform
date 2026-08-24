@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { PipelineNode } from './pipeline-node';
 import { InterviewSchedulerDialog } from './interview-scheduler-dialog';
 import type { PipelineRound, PipelineRoundType, InterviewConfig, ResultsConfig } from '../types';
@@ -694,11 +695,10 @@ export function PipelineBuilder({
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">Deadline (optional)</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={newDeadline}
-                onChange={(e) => setNewDeadline(e.target.value)}
-                className="text-xs"
+                onChange={(_, str) => setNewDeadline(str)}
+                placeholder="Select round deadline"
               />
             </div>
             <div className="space-y-1.5">
@@ -803,11 +803,10 @@ export function PipelineBuilder({
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">Deadline (optional)</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={editDeadline}
-                onChange={(e) => setEditDeadline(e.target.value)}
-                className="text-xs"
+                onChange={(_, str) => setEditDeadline(str)}
+                placeholder="Select round deadline"
               />
             </div>
             <div className="space-y-1.5">

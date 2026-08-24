@@ -62,6 +62,12 @@
           "href": "/organisations-catalog"
         },
         {
+          "title": "Inductions",
+          "icon": "FileUser",
+          "href": "/inductions",
+          "isNew": true
+        },
+        {
           "title": "When2meet",
           "icon": "CalendarSearch",
           "href": "/when2meet"

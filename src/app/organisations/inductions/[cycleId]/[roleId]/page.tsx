@@ -76,49 +76,12 @@ export default async function RolePage({ params }: PageProps) {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-4">
-        <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground -ml-2">
+        <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground -ml-2 rounded-xl">
           <Link href={`/organisations/inductions/${cycleId}`}>
             <ArrowLeft className="h-4 w-4" />
             Back to Cycle
           </Link>
         </Button>
-      </div>
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <PageTitle
-          icon={User}
-          text={role.name}
-          subheading={
-            <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
-              <span className="font-semibold text-foreground/80">{TIER_LABELS[role.tier] || 'Other'}</span>
-              {role.department && (
-                <>
-                  <span className="text-muted-foreground/40">·</span>
-                  <span>{role.department}</span>
-                </>
-              )}
-              {role.description && (
-                <>
-                  <span className="text-muted-foreground/40">·</span>
-                  <span className="text-muted-foreground/80 line-clamp-1 max-w-xl">{role.description}</span>
-                </>
-              )}
-              {role.accessEmails && role.accessEmails.length > 0 && (
-                <>
-                  <span className="text-muted-foreground/40">·</span>
-                  <span className="text-foreground/75 font-medium">{role.accessEmails.length} with access</span>
-                </>
-              )}
-            </div>
-          }
-        />
-        {roleForms[0] && (
-          <Button asChild size="sm" variant="outline" className="gap-1.5 mt-1 font-medium">
-            <Link href={`/organisations/inductions/forms/${roleForms[0].id}/responses?cycleId=${cycleId}&roleId=${roleId}`}>
-              <ClipboardList className="h-4 w-4" />
-              View Form Responses
-            </Link>
-          </Button>
-        )}
       </div>
       <RoleClient
         cycleId={cycleId}

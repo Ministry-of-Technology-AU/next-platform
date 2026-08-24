@@ -5,6 +5,7 @@ import { getUserIdByEmail } from '@/lib/userid';
 import {
   getFormByUid,
   getFormByUidCached,
+  getFormById,
   isFormActive,
   getResponseRow,
   createResponseRow,
@@ -48,7 +49,10 @@ export async function GET(_req: Request, ctx: RouteContext) {
     if (!email) return jsonError('User not authenticated', 401);
 
     const { formId } = await ctx.params;
-    const form = await getFormByUidCached(formId);
+    let form = await getFormByUidCached(formId);
+    if (!form && !isNaN(Number(formId)) && !formId.includes('-')) {
+      form = await getFormById(Number(formId));
+    }
     if (!form) return jsonError('Form not found', 404);
 
     const row = await getResponseRow(form.id, email);
@@ -88,7 +92,10 @@ export async function POST(request: Request, ctx: RouteContext) {
     }
     const data = (parsed as { data?: Record<string, unknown> })?.data ?? {};
 
-    const form = await getFormByUidCached(formId);
+    let form = await getFormByUidCached(formId);
+    if (!form && !isNaN(Number(formId)) && !formId.includes('-')) {
+      form = await getFormById(Number(formId));
+    }
     if (!form || !isFormActive(form)) return jsonError('Form not found', 404);
 
     const row = await getResponseRow(form.id, email);
@@ -142,7 +149,10 @@ export async function PUT(request: Request, ctx: RouteContext) {
     const data = (body as { data?: Record<string, unknown> })?.data ?? {};
 
     // Uncached read so an org's "set inactive" is honoured immediately.
-    const form = await getFormByUid(formId);
+    let form = await getFormByUid(formId);
+    if (!form && !isNaN(Number(formId)) && !formId.includes('-')) {
+      form = await getFormById(Number(formId));
+    }
     if (!form || !isFormActive(form)) return jsonError('Form not found', 404);
 
     const existing = await getResponseRow(form.id, email);

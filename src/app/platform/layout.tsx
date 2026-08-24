@@ -49,9 +49,9 @@ export default async function RootLayout({
           <SidebarProvider defaultOpen={false}>
             {!isAshokaAdmin && (
               <NewToolAlert
-                href="/platform/ashokan-around"
-                title="Ashokan Around"
-                checkSeenKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1"
+                href="/platform/inductions"
+                title="Inductions. Now on Platform!"
+                checkSeenKey="INDUCTIONS_PLATFORM_ALERT_SEEN_V1"
                 blockIfNewVersion={true}
               />
             )}

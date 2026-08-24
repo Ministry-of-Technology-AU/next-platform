@@ -1,4 +1,4 @@
-import { FileStack } from "lucide-react";
+import { FileUser } from "lucide-react";
 import PageTitle from "@/components/page-title";
 import { InductionClient } from "./client";
 import { cookies } from "next/headers";
@@ -37,9 +37,66 @@ async function fetchInductionData(): Promise<{
     ]);
 
     const allOrgs = orgsData?.success && orgsData.data?.organisations ? orgsData.data.organisations : (orgsData?.organisations || []);
-    const organizations = allOrgs.filter((org: Organization) => org.inductionsOpen === true);
+    const now = Date.now();
+    const rawOrganizations = allOrgs.filter((org: Organization) => {
+      if (!org.inductionsOpen) return false;
+      if (org.inductionEnd) {
+        const endTime = new Date(org.inductionEnd).getTime();
+        if (!isNaN(endTime) && endTime < now) return false; // Cycle has ended
+      }
+      return true;
+    });
     
-    const applications = appsData?.success && appsData.data?.applications ? appsData.data.applications : [];
+    // Sort organizations so closest upcoming deadline comes first
+    const organizations = [...rawOrganizations].sort((a, b) => {
+      const aTime = a.inductionEnd ? new Date(a.inductionEnd).getTime() : NaN;
+      const bTime = b.inductionEnd ? new Date(b.inductionEnd).getTime() : NaN;
+
+      const aValid = !isNaN(aTime);
+      const bValid = !isNaN(bTime);
+      const aUpcoming = aValid && aTime >= now;
+      const bUpcoming = bValid && bTime >= now;
+
+      if (aUpcoming && bUpcoming) return aTime - bTime;
+      if (aUpcoming && !bUpcoming) return -1;
+      if (!aUpcoming && bUpcoming) return 1;
+      if (aValid && !bValid) return -1;
+      if (!aValid && bValid) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    
+    let rawApplications = appsData?.success && appsData.data?.applications ? appsData.data.applications : [];
+    
+    // Map the organization's Google photo (logoUrl) directly to applications so it matches the catalogue page exactly
+    const orgMap = new Map<string, Organization>();
+    for (const org of allOrgs) {
+      if (org.id) orgMap.set(org.id.toString(), org);
+      if (org.name) orgMap.set(org.name.toLowerCase().trim(), org);
+    }
+
+    const applications = rawApplications.map((app: PopulatedResponseRecord) => {
+      if (!app.form?.organisation) return app;
+      const orgId = app.form.organisation.id?.toString();
+      const orgName = app.form.organisation.name?.toLowerCase().trim();
+      const matchedOrg = (orgId ? orgMap.get(orgId) : null) || (orgName ? orgMap.get(orgName) : null);
+      if (matchedOrg) {
+        return {
+          ...app,
+          deadlineExtension: app.deadlineExtension || matchedOrg.deadlineExtension || null,
+          form: {
+            ...app.form,
+            endDate: matchedOrg.inductionEnd || app.form.endDate,
+            organisation: {
+              ...app.form.organisation,
+              profile_url: matchedOrg.logoUrl || app.form.organisation.profile_url,
+              induction_end: matchedOrg.inductionEnd || app.form.organisation.induction_end,
+              deadlineExtension: matchedOrg.deadlineExtension || null,
+            },
+          },
+        };
+      }
+      return app;
+    });
     
     const error = (!orgsData?.success || !appsData?.success) ? 'Failed to fetch some induction data' : null;
     
@@ -76,12 +133,7 @@ export default async function InductionPage() {
   const { organizations, applications, error, trackedOrgIds, checklistItems, preferences } = await fetchInductionData();
 
   return (
-    <div className="pt-6 px-6">
-      <PageTitle 
-        icon={FileStack} 
-        text="Student Inductions" 
-        subheading="Track your ongoing applications and discover organizations currently recruiting." 
-      />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <InductionClient 
         initialOrganizations={organizations} 
         initialApplications={applications}

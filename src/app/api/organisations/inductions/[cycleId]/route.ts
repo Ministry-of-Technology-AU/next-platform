@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireOrgSession, jsonOk, jsonError } from '@/lib/forms/api-helpers';
-import { getCycleById, updateCycle, deleteCycle } from '@/lib/inductions/strapi-inductions';
+import { getCycleById, updateCycle, deleteCycle, deactivateOtherCycles } from '@/lib/inductions/strapi-inductions';
+import { getDerivedCycleStatus } from '@/app/organisations/inductions/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +33,44 @@ export async function PUT(req: Request, context: RouteContext) {
     const { cycleId } = await context.params;
     const body = await req.json().catch(() => ({}));
 
-    const updated = await updateCycle(cycleId, body);
+    // Derive the effective status that will be written
+    const derivedStatus = getDerivedCycleStatus(
+      body.status ?? 'draft',
+      body.startDate ?? null,
+      body.endDate ?? null,
+    );
+
+    // Enforce one-active-cycle rule: deactivate sibling active cycles before saving
+    if (derivedStatus === 'active') {
+      await deactivateOtherCycles(org.organisationId, cycleId);
+    }
+
+    const existingCycle = await getCycleById(cycleId);
+
+    let deadlineExtension = body.deadlineExtension;
+    if (!deadlineExtension && existingCycle?.endDate && body.endDate) {
+      const oldTime = new Date(existingCycle.endDate).getTime();
+      const newTime = new Date(body.endDate).getTime();
+      if (!isNaN(oldTime) && !isNaN(newTime) && newTime > oldTime) {
+        deadlineExtension = {
+          extendedAt: new Date().toISOString(),
+          previousDeadline: existingCycle.endDate,
+          newDeadline: body.endDate,
+          reason: body.deadlineExtensionReason || null,
+        };
+      }
+    }
+
+    const updatedStats = {
+      ...(existingCycle?.stats || {}),
+      ...(body.stats || {}),
+      ...(deadlineExtension ? { deadlineExtension } : {}),
+    };
+
+    const updated = await updateCycle(cycleId, {
+      ...body,
+      stats: updatedStats,
+    });
     if (!updated) return jsonError('Failed to update cycle', 500);
 
     return jsonOk(updated);

@@ -1,12 +1,20 @@
 export type RoleTier = 'tier-1' | 'tier-2' | 'other';
 export type CycleStatus = 'draft' | 'active' | 'completed' | 'archived';
 
+export interface DeadlineExtensionInfo {
+  extendedAt: string;
+  previousDeadline: string;
+  newDeadline: string;
+  reason?: string | null;
+}
+
 export interface CycleStats {
   totalOpens: number;
   totalFills: number;
   completionRate: number;
   rolesCount: number;
   applicantsCount: number;
+  deadlineExtension?: DeadlineExtensionInfo | null;
 }
 
 export interface InductionCycleSummary {
@@ -15,8 +23,10 @@ export interface InductionCycleSummary {
   status: CycleStatus;
   startDate: string | null;
   endDate: string | null;
+  description?: string | null;
   stats: CycleStats;
   createdAt: string;
+  deadlineExtension?: DeadlineExtensionInfo | null;
 }
 
 export interface RoleStats {
@@ -109,10 +119,12 @@ export const CYCLE_STATUS_STYLE: Record<CycleStatus, string> = {
 };
 
 export const TIER_LABELS: Record<RoleTier, string> = {
-  'tier-1': 'Tier 1',
-  'tier-2': 'Tier 2',
-  'other': 'Other',
+  'tier-1': 'Circle 1 (Leadership)',
+  'tier-2': 'Circle 2 (Core Team)',
+  'other': 'Circle 3 (General)',
 };
+
+export const CIRCLE_LABELS = TIER_LABELS;
 
 export function formatCycleDateRange(startDateStr?: string | null, endDateStr?: string | null): string {
   if (!startDateStr && !endDateStr) return 'Dates TBD';
