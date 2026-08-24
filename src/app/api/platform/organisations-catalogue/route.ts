@@ -5,10 +5,10 @@ import { getUserIdByEmail } from '@/lib/userid';
 
 const DEFAULT_BANNER = '/orgs_catalogue_default.png';
 
-// In-memory cache for organisations data (60s TTL)
+// In-memory cache for organisations data (30s TTL)
 let cachedOrgsData: any = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 60_000; // 60 seconds
+const CACHE_TTL = 30_000; // 30 seconds
 
 export async function GET() {
   try {
@@ -31,7 +31,6 @@ export async function GET() {
     let organisationsReq;
 
     if (cachedOrgsData && (now - cacheTimestamp) < CACHE_TTL) {
-      platform.log('Using cached organisations data (age:', Math.round((now - cacheTimestamp) / 1000), 's)');
       organisationsReq = cachedOrgsData;
     } else {
       // Fetch fresh from Strapi
@@ -55,6 +54,21 @@ export async function GET() {
             },
             banner: {
               fields: ['url']
+            },
+            induction_cycles: {
+              populate: {
+                roles: {
+                  populate: {
+                    pipeline_rounds: {
+                      populate: {
+                        form: {
+                          fields: ['id', 'form_uid', 'title', 'form_status']
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           },
           pagination: {
@@ -65,10 +79,8 @@ export async function GET() {
         // Update cache
         cachedOrgsData = organisationsReq;
         cacheTimestamp = now;
-        platform.log('Fetched fresh organisations data from Strapi and cached');
       } catch (strapiError) {
-        console.error('Strapi API error:', strapiError);
-        // Return empty data if Strapi endpoint doesn't exist or has issues
+        console.error('Strapi API error in organisations-catalogue:', strapiError);
         return NextResponse.json({
           success: true,
           data: {
@@ -85,13 +97,10 @@ export async function GET() {
     let organisationsData = [];
 
     if (Array.isArray(organisationsReq)) {
-      // Direct array response
       organisationsData = organisationsReq;
     } else if (organisationsReq && Array.isArray(organisationsReq.data)) {
-      // Wrapped in data property
       organisationsData = organisationsReq.data;
     } else if (organisationsReq && organisationsReq.data && Array.isArray(organisationsReq.data.data)) {
-      // Double wrapped (some Strapi versions)
       organisationsData = organisationsReq.data.data;
     } else {
       console.error('Unexpected Strapi response structure:', organisationsReq);
@@ -101,12 +110,10 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    platform.log('Processed organisations data:', organisationsData.length, 'items');
-
     // Transform the data to match frontend expectations
     const organisations = organisationsData.map((x: any) => {
       try {
-        const attrs = x.attributes || {};
+        const attrs = x.attributes || x || {};
 
         // Normalize type to lowercase for consistency
         const normalizedType = (attrs.type || 'other').toLowerCase();
@@ -131,6 +138,57 @@ export async function GET() {
           logoUrl = profileData?.attributes?.profile_url || null;
         }
 
+        const cyclesData = attrs.induction_cycles?.data || attrs.induction_cycles || [];
+
+        // Only consider truly active cycles for the student catalog
+        const activeCyclesOnly = cyclesData.filter((c: any) => {
+          const ca = c.attributes || c || {};
+          return ca.status === 'active';
+        });
+
+        // Open positions derived only from active induction cycles
+        const openPositions = activeCyclesOnly.flatMap((cycle: any) => {
+          const cycleAttrs = cycle.attributes || cycle || {};
+          const rolesData = cycleAttrs.roles?.data || cycleAttrs.roles || [];
+          return rolesData.map((role: any) => {
+            const roleAttrs = role.attributes || role || {};
+            const rounds = roleAttrs.pipeline_rounds?.data || roleAttrs.pipeline_rounds || [];
+
+            // Find the primary form round for candidates
+            const formRound = rounds.find((r: any) => {
+              const ra = r.attributes || r || {};
+              return ra.type === 'form';
+            });
+            const formObj = formRound?.attributes?.form?.data || formRound?.form?.data || formRound?.form;
+            const formAttrs = formObj?.attributes || formObj || {};
+            const isFormActive = formAttrs?.form_status === 'active';
+            const rawFormUid = formAttrs?.form_uid || formObj?.form_uid || (typeof formRound?.attributes?.form === 'string' ? formRound.attributes.form : null);
+            const formUid = isFormActive && rawFormUid ? rawFormUid : null;
+
+            return {
+              id: (role.id || '').toString(),
+              title: roleAttrs.name || 'Role Candidate',
+              department: roleAttrs.department || 'General',
+              description: roleAttrs.description || '',
+              tier: roleAttrs.tier || 'tier-1',
+              formUid: formUid || null,
+            };
+          });
+        });
+
+        // Pick the single active cycle for display metadata; no draft fallback
+        const activeCycle = activeCyclesOnly[0] ?? null;
+
+        const activeCycleAttrs = activeCycle?.attributes || activeCycle || {};
+        const cycleName = activeCycleAttrs.name || null;
+        const cycleDescription = activeCycleAttrs.description || '';
+        const cycleEndDate = activeCycleAttrs.end_date || attrs.induction_end || null;
+        const cycleStats = activeCycleAttrs.stats || {};
+        const deadlineExtension = activeCycleAttrs.deadline_extension ?? cycleStats?.deadlineExtension ?? null;
+
+        // hasActiveCycle is true only when there is a genuinely 'active' cycle
+        const hasActiveCycle = activeCyclesOnly.length > 0;
+
         return {
           id: x.id.toString(),
           name: attrs.name || 'Untitled Organization',
@@ -139,6 +197,7 @@ export async function GET() {
           fullDescription: attrs.description || attrs.short_description || '',
           bannerUrl: bannerUrl,
           logoUrl: logoUrl,
+          email: attrs.email || null,
 
           // Member relations
           circle1_humans: (attrs.circle1_humans?.data || []).map((member: any) => ({
@@ -163,9 +222,18 @@ export async function GET() {
           })),
 
           // Induction details
-          inductionsOpen: attrs.induction || false,
-          inductionEnd: attrs.induction_end || null,
-          inductionDescription: attrs.induction_description || '',
+          inductionsOpen: attrs.induction === true || hasActiveCycle,
+          inductionEnd: cycleEndDate,
+          inductionDescription: attrs.induction_description || cycleDescription || '',
+          cycleName: cycleName || undefined,
+          cycleDescription: cycleDescription || attrs.induction_description || '',
+          openPositions,
+          deadlineExtension: deadlineExtension ? {
+            extendedAt: deadlineExtension.extendedAt,
+            previousDeadline: deadlineExtension.previousDeadline,
+            newDeadline: deadlineExtension.newDeadline || cycleEndDate,
+            reason: deadlineExtension.reason || null,
+          } : null,
 
           // Social links with fallback to empty strings
           instagram: attrs.instagram || '',
@@ -186,8 +254,6 @@ export async function GET() {
       }
     }).filter(Boolean);
 
-    platform.log('Successfully transformed', organisations.length, 'organizations');
-
     // Get unique types for filtering
     const types = [...new Set(organisations.map((org: any) => org.type))];
 
@@ -201,20 +267,11 @@ export async function GET() {
       }
     });
 
-    // Add cache headers for downstream caching
-    response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
-
+    response.headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30');
     return response;
 
   } catch (error) {
     console.error('Error fetching organisations:', error);
-
-    // More detailed error logging
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-
     return NextResponse.json(
       { success: false, error: 'Failed to fetch organisations' },
       { status: 500 }

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { auth } from '@/auth';
-import { getFormByUidCached, isFormActive } from '@/lib/forms/strapi-forms';
+import { getFormByUidCached, getFormById, isFormActive } from '@/lib/forms/strapi-forms';
 import { buildFontHref } from '@/lib/forms/theme';
 import { FillerClient } from './client';
 
@@ -20,7 +20,10 @@ export default async function FormFillerPage({ params }: PageProps) {
   const session = await auth();
   const userEmail = session?.user?.email ?? '';
 
-  const form = await getFormByUidCached(formId);
+  let form = await getFormByUidCached(formId);
+  if (!form && !isNaN(Number(formId)) && !formId.includes('-')) {
+    form = await getFormById(Number(formId));
+  }
   if (!form || !isFormActive(form)) notFound();
 
   const fontHref = buildFontHref(form.schema.theme);

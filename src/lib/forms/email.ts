@@ -75,6 +75,7 @@ export function buildResponseEmailHtml(
   orgName: string,
   schema: FormSchema,
   data: FormResponseData,
+  applicantEmail?: string,
 ): string {
   const rows: InputBlock[] = [];
   for (const page of visiblePages(schema, data)) {
@@ -111,43 +112,111 @@ export function buildResponseEmailHtml(
       </tr>
       <tr>
         <td style="padding:24px 28px;">
-          <p style="margin:0 0 16px;color:${TEXT};font-size:15px;">Here is a copy of your response.</p>
+          <p style="margin:0 0 16px;color:${TEXT};font-size:15px;">Here is a copy of the response${applicantEmail ? ` submitted by <strong>${escapeHtml(applicantEmail)}</strong>` : ''}.</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml}</table>
         </td>
       </tr>
       <tr>
         <td style="padding:16px 28px;background:#faf7f2;color:${MUTED};font-size:12px;">
-          Submitted ${submittedAt} · This is a copy of your response.
+          Submitted ${submittedAt} · This is a copy of the response.
         </td>
       </tr>
     </table>
   </div>`;
 }
 
-async function getOrgName(organisationId: number | null): Promise<string> {
-  if (!organisationId) return 'Ashoka University';
+export interface OrgEmailDetails {
+  name: string;
+  emails: string[];
+}
+
+/** Fetches organisation name and associated notification email addresses. */
+export async function getOrgDetails(organisationId: number | null): Promise<OrgEmailDetails> {
+  if (!organisationId) return { name: 'Ashoka University', emails: [] };
   try {
-    const res = await strapiGet(`/organisations/${organisationId}`, { fields: ['name'] });
-    const entry = res?.data;
-    return entry?.attributes?.name ?? entry?.name ?? 'Ashoka University';
-  } catch {
-    return 'Ashoka University';
+    const res = await strapiGet(`/organisations/${organisationId}`, {
+      fields: ['name', 'email'],
+      populate: {
+        profile: { fields: ['email', 'username'] },
+        circle1_humans: { fields: ['email', 'username'] },
+      },
+    });
+    const entry = res?.data ?? res;
+    const a = entry?.attributes ?? entry ?? {};
+    const name = a.name ?? 'Ashoka University';
+    const emailSet = new Set<string>();
+
+    const addEmail = (raw: unknown) => {
+      if (typeof raw === 'string') {
+        const trimmed = raw.trim().toLowerCase();
+        if (trimmed.includes('@') && !emailSet.has(trimmed)) {
+          emailSet.add(trimmed);
+        }
+      }
+    };
+
+    // Direct email field on organisation record
+    addEmail(a.email);
+
+    // Profile relation (official club/org account)
+    const profileData = a.profile?.data ?? a.profile;
+    if (Array.isArray(profileData)) {
+      for (const p of profileData) {
+        addEmail(p?.attributes?.email ?? p?.email);
+      }
+    } else if (profileData) {
+      addEmail(profileData?.attributes?.email ?? profileData?.email);
+    }
+
+    // Circle 1 humans (leads / core team)
+    const circle1Data = a.circle1_humans?.data ?? a.circle1_humans;
+    if (Array.isArray(circle1Data)) {
+      for (const c of circle1Data) {
+        addEmail(c?.attributes?.email ?? c?.email);
+      }
+    } else if (circle1Data) {
+      addEmail(circle1Data?.attributes?.email ?? circle1Data?.email);
+    }
+
+    return {
+      name,
+      emails: Array.from(emailSet),
+    };
+  } catch (err) {
+    console.error('Failed to get organisation details for email:', err);
+    return { name: 'Ashoka University', emails: [] };
   }
 }
 
-/** Sends the respondent their formatted response copy. Throws on failure so the
- *  caller can log it — but the caller must not let it block the submit response. */
+/** Sends the response email to the organisation(s) associated with the form,
+ *  with the respondent/applicant CC'd. Falls back to sending directly to the
+ *  applicant if no org emails are found. */
 export async function sendResponseEmail(
   form: FormRecord,
   email: string,
   data: FormResponseData,
 ): Promise<void> {
-  const orgName = await getOrgName(form.organisationId);
-  const html = buildResponseEmailHtml(form.title, orgName, form.schema, data);
-  await sendMail({
-    to: email,
-    alias: orgName,
-    subject: `Your response: ${form.title}`,
-    html,
-  });
+  const orgDetails = await getOrgDetails(form.organisationId);
+  const orgName = orgDetails.name;
+  const orgEmails = orgDetails.emails;
+  const html = buildResponseEmailHtml(form.title, orgName, form.schema, data, email);
+
+  if (orgEmails.length > 0) {
+    await sendMail({
+      to: orgEmails,
+      cc: email,
+      replyTo: email,
+      alias: orgName,
+      subject: `Response: ${form.title} — ${email}`,
+      html,
+    });
+  } else {
+    // Fallback: If no organisation emails are resolved, deliver to the applicant directly.
+    await sendMail({
+      to: email,
+      alias: orgName,
+      subject: `Your response: ${form.title}`,
+      html,
+    });
+  }
 }

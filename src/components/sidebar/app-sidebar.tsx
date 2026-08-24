@@ -45,6 +45,8 @@ import {
   Trophy,
   MapPinned,
   Newspaper,
+  FileStack,
+  FileUser,
   BadgeInfo
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -78,6 +80,8 @@ const iconMap = {
   Trophy,
   MapPinned,
   Newspaper,
+  FileStack,
+  FileUser,
   BadgeInfo
 };
 
@@ -85,6 +89,7 @@ interface SidebarItem {
   title: string;
   icon: string;
   href: string;
+  isNew?: boolean;
 }
 
 interface SidebarCategory {
@@ -230,18 +235,33 @@ export function AppSidebar({
                         >
                           <div className="relative transition-all duration-500">
                             {IconComponent ? (
-                              <IconComponent className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0" />
+                              <IconComponent className={cn("size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0", item.isNew && !isActive && "text-primary dark:text-secondary-extradark animate-pulse")} />
                             ) : (
                               <div className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0 rounded-full bg-muted-foreground/35 animate-pulse" />
                             )}
-
+                            {item.isNew && (
+                              <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary dark:bg-secondary-extradark opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary dark:bg-secondary-extradark"></span>
+                              </span>
+                            )}
                           </div>
                           <span className={cn(
-                            "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0",
+                            "truncate text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ml-3 group-data-[state=collapsed]:ml-0 flex-1 text-left",
                             hideLabels && "w-0 opacity-0 ml-0"
                           )}>
                             {item.title}
                           </span>
+                          {item.isNew && !hideLabels && (
+                            <span className={cn(
+                              "ml-auto inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-all duration-200",
+                              isActive
+                                ? "bg-primary-foreground/20 text-primary-foreground"
+                                : "bg-primary/15 text-primary dark:bg-secondary-extradark/15 dark:text-secondary-extradark border border-primary/25 dark:border-secondary-extradark/30 shadow-xs"
+                            )}>
+                              New
+                            </span>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -256,7 +276,7 @@ export function AppSidebar({
       {!isCollapsed && (<SidebarFooter className="p-4">
         <div className="text-xs text-muted-foreground text-left transition-all duration-500 ease-in-out overflow-hidden group-data-[state=collapsed]:w-0 group-data-[state=collapsed]:opacity-0">
           <p>Developed & maintained by</p>
-          <p className="text-primary dark:text-primary-bright text-bold">the Ministry of Technology</p>
+          <p className="text-primary dark:text-secondary-extradark text-bold">the Ministry of Technology</p>
         </div>
       </SidebarFooter>)}
     </Sidebar>

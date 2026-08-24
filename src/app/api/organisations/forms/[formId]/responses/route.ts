@@ -100,7 +100,8 @@ export async function GET(request: Request, ctx: RouteContext) {
 
     const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
     const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get('pageSize')) || 25));
-    const { rows, total } = await getResponsesByForm(form.id, state, page, pageSize);
+    // Strictly return submitted responses only for the organisation side (never draft response contents)
+    const { rows, total } = await getResponsesByForm(form.id, 'submitted', page, pageSize);
 
     return jsonOk({
       responses: rows.map((r) => ({

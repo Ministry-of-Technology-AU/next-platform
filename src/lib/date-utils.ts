@@ -129,3 +129,25 @@ export function isOverdueIST(dueDateString: string): boolean {
   const dueDate = new Date(dueDateString + 'T23:59:59.999Z'); // End of the due date
   return currentIST > dueDate;
 }
+
+/**
+ * Normalizes a start date string (e.g. "2026-08-20" or ISO) to 12:00:00 AM (00:00:00.000) IST ISO string.
+ */
+export function normalizeStartDateToStartOfDay(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const dateOnly = value.includes('T') ? value.split('T')[0] : value;
+  // 12:00:00.000 AM IST (+05:30)
+  const d = new Date(`${dateOnly}T00:00:00.000+05:30`);
+  return Number.isNaN(d.getTime()) ? new Date(value).toISOString() : d.toISOString();
+}
+
+/**
+ * Normalizes an end date / deadline string (e.g. "2026-08-20" or ISO) to 11:59:59.999 PM (23:59:59.999) IST ISO string.
+ */
+export function normalizeEndDateToEndOfDay(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const dateOnly = value.includes('T') ? value.split('T')[0] : value;
+  // 11:59:59.999 PM IST (+05:30)
+  const d = new Date(`${dateOnly}T23:59:59.999+05:30`);
+  return Number.isNaN(d.getTime()) ? new Date(value).toISOString() : d.toISOString();
+}

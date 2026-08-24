@@ -13,3 +13,7 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+## Inductions Platform
+The SG-Inductions Platform is documented in `docs/INDUCTIONS_PLATFORM.md`. 
+If you are working on features related to student applications, organization recruitment, or admin induction tracking across `/admin`, `/organisations`, or `/platform`, **you MUST read `docs/INDUCTIONS_PLATFORM.md` first**.

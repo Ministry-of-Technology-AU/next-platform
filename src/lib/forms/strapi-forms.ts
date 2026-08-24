@@ -12,6 +12,7 @@ import { unstable_cache, revalidateTag } from 'next/cache';
 import { v4 as uuidv4 } from 'uuid';
 import { strapiGet, strapiPost, strapiPut, strapiDelete, type StrapiFilters } from '@/lib/apis/strapi';
 import { deleteImageFromCloudinary } from '@/lib/apis/cloudinary';
+import { normalizeStartDateToStartOfDay, normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 import { createDefaultSchema } from './defaults';
 import type { FileDescriptor, FormSchema } from './schema';
 
@@ -47,6 +48,9 @@ export interface ResponseRecord {
   visitedAt: string | null;
   lastSavedAt: string | null;
   submittedAt: string | null;
+  applicationStatus?: 'pending' | 'approved' | 'rejected' | 'advanced' | null;
+  statusMessage?: string | null;
+  currentRound?: number | null;
 }
 
 export const zeroStats: FormStats = {
@@ -109,6 +113,9 @@ function normalizeResponse(entry: any): ResponseRecord | null {
     visitedAt: a.visited_at ?? null,
     lastSavedAt: a.last_saved_at ?? null,
     submittedAt: a.submitted_at ?? null,
+    applicationStatus: (a.application_status as 'pending' | 'approved' | 'rejected' | 'advanced' | null) ?? null,
+    statusMessage: a.status_message ?? null,
+    currentRound: typeof a.current_round === 'number' ? a.current_round : null,
   };
 }
 
@@ -117,16 +124,20 @@ function normalizeResponse(entry: any): ResponseRecord | null {
 // ---------------------------------------------------------------------------
 
 export function isFormActive(form: Pick<FormRecord, 'status' | 'startDate' | 'endDate'>): boolean {
-  const start = form.startDate ? new Date(form.startDate) : null;
-  const end = form.endDate ? new Date(form.endDate) : null;
+  const startIso = form.startDate ? normalizeStartDateToStartOfDay(form.startDate) : null;
+  const endIso = form.endDate ? normalizeEndDateToEndOfDay(form.endDate) : null;
+  const start = startIso ? new Date(startIso) : null;
+  const end = endIso ? new Date(endIso) : null;
   const now = new Date();
-  return form.status === 'active' && (!start || start <= now) && (!end || end > now);
+  return form.status === 'active' && (!start || start <= now) && (!end || end >= now);
 }
 
 /** True when an active form's end date has elapsed (needs a lazy flip). */
 export function hasExpired(form: Pick<FormRecord, 'status' | 'endDate'>): boolean {
   if (form.status !== 'active' || !form.endDate) return false;
-  return new Date(form.endDate) <= new Date();
+  const endIso = normalizeEndDateToEndOfDay(form.endDate);
+  if (!endIso) return false;
+  return new Date(endIso) < new Date();
 }
 
 // ---------------------------------------------------------------------------
@@ -142,6 +153,16 @@ export async function getFormByUid(uid: string): Promise<FormRecord | null> {
   });
   const entry = res?.data?.[0];
   return normalizeForm(entry);
+}
+
+/** Fetch form by numeric database ID. */
+export async function getFormById(id: number | string): Promise<FormRecord | null> {
+  const numericId = typeof id === 'number' ? id : parseInt(id, 10);
+  if (isNaN(numericId)) return getFormByUid(id.toString());
+  const res = await strapiGet(`/forms/${numericId}`, {
+    populate: { organisation: { fields: ['id'] } },
+  });
+  return normalizeForm(res?.data);
 }
 
 /**
@@ -187,6 +208,37 @@ export async function createForm(title: string, organisationId: number): Promise
   return created;
 }
 
+export async function duplicateForm(
+  sourceFormIdOrUid: string | number,
+  organisationId: number,
+  titleOverride?: string,
+): Promise<FormRecord> {
+  const source =
+    typeof sourceFormIdOrUid === 'number' || (!isNaN(Number(sourceFormIdOrUid)) && !String(sourceFormIdOrUid).includes('-'))
+      ? await getFormById(sourceFormIdOrUid)
+      : await getFormByUid(String(sourceFormIdOrUid));
+
+  if (!source) throw new Error('Source form not found');
+
+  const uid = uuidv4();
+  const title = titleOverride || `${source.title} (Copy)`;
+
+  const res = await strapiPost('/forms', {
+    data: {
+      title,
+      form_uid: uid,
+      schema: source.schema ? JSON.parse(JSON.stringify(source.schema)) : createDefaultSchema(),
+      form_status: 'draft',
+      stats: zeroStats,
+      organisation: organisationId,
+    },
+  });
+
+  const created = normalizeForm(res?.data);
+  if (!created) throw new Error('Failed to duplicate form');
+  return created;
+}
+
 interface FormPatch {
   title?: string;
   schema?: FormSchema;
@@ -198,7 +250,15 @@ interface FormPatch {
 
 /** Persist a patch to a form by numeric id, then invalidate its cache tag. */
 export async function updateForm(id: number, uid: string, patch: FormPatch): Promise<FormRecord | null> {
-  const res = await strapiPut(`/forms/${id}`, { data: patch });
+  const data: Record<string, any> = { ...patch };
+  if (patch.start_date !== undefined) {
+    data.start_date = patch.start_date ? normalizeStartDateToStartOfDay(patch.start_date) : null;
+  }
+  if (patch.end_date !== undefined) {
+    data.end_date = patch.end_date ? normalizeEndDateToEndOfDay(patch.end_date) : null;
+  }
+
+  const res = await strapiPut(`/forms/${id}`, { data });
   revalidateTag(formTag(uid));
   return normalizeForm(res?.data);
 }
@@ -256,20 +316,76 @@ export async function deleteFormCascade(form: FormRecord): Promise<void> {
 // Responses
 // ---------------------------------------------------------------------------
 
-/** The caller's own row for a form (one per user, ever). */
+/** Helper to delete orphan duplicate responses in the background. */
+async function cleanupDuplicates(rows: ResponseRecord[]): Promise<ResponseRecord> {
+  if (rows.length <= 1) return rows[0];
+
+  // Sort rows: submitted first, then newest submitted_at, then newest last_saved_at/id
+  const sorted = [...rows].sort((a, b) => {
+    if (a.state === 'submitted' && b.state !== 'submitted') return -1;
+    if (b.state === 'submitted' && a.state !== 'submitted') return 1;
+
+    const timeA = new Date(a.submittedAt || a.lastSavedAt || 0).getTime();
+    const timeB = new Date(b.submittedAt || b.lastSavedAt || 0).getTime();
+    if (timeA !== timeB) return timeB - timeA;
+
+    return b.id - a.id;
+  });
+
+  const canonical = sorted[0];
+  const duplicates = sorted.slice(1);
+
+  // Delete all duplicate rows in Strapi
+  for (const dup of duplicates) {
+    try {
+      await strapiDelete(`/form-responses/${dup.id}`);
+      console.log(`[Form Responses] Cleaned up duplicate response row ID: ${dup.id} for ${canonical.respondentEmail}`);
+    } catch (err) {
+      console.error(`[Form Responses] Failed to delete duplicate row ID: ${dup.id}:`, err);
+    }
+  }
+
+  return canonical;
+}
+
+/** Get all response rows for a user (used for deduplication). */
+export async function getAllResponseRowsForUser(
+  formId: number,
+  email: string,
+): Promise<ResponseRecord[]> {
+  const normalized = email.trim().toLowerCase();
+  try {
+    const res = await strapiGet('/form-responses', {
+      filters: {
+        form: { id: { $eq: formId } },
+        $or: [
+          { respondent_email: { $eq: normalized } },
+          { respondent_email: { $eq: email.trim() } },
+          { respondent_email: { $containsi: normalized } },
+        ],
+      },
+      sort: 'createdAt:desc',
+      pagination: { pageSize: 50 },
+    });
+
+    const list = res?.data || (Array.isArray(res) ? res : []);
+    return list
+      .map(normalizeResponse)
+      .filter((r: ResponseRecord | null): r is ResponseRecord => r !== null && r.respondentEmail.trim().toLowerCase() === normalized);
+  } catch (err) {
+    console.error('getAllResponseRowsForUser failed:', err);
+    return [];
+  }
+}
+
+/** The caller's own row for a form (one per user, ever) with auto-deduplication. */
 export async function getResponseRow(
   formId: number,
   email: string,
 ): Promise<ResponseRecord | null> {
-  const res = await strapiGet('/form-responses', {
-    filters: {
-      form: { id: { $eq: formId } },
-      respondent_email: { $eq: email },
-    },
-    sort: 'createdAt:asc',
-    pagination: { pageSize: 1 },
-  });
-  return normalizeResponse(res?.data?.[0]);
+  const rows = await getAllResponseRowsForUser(formId, email);
+  if (rows.length === 0) return null;
+  return await cleanupDuplicates(rows);
 }
 
 export async function createResponseRow(input: {
@@ -281,12 +397,13 @@ export async function createResponseRow(input: {
   visitedAt?: string;
   submittedAt?: string;
 }): Promise<ResponseRecord | null> {
+  const normalizedEmail = input.email.trim().toLowerCase();
   const now = new Date().toISOString();
   const res = await strapiPost('/form-responses', {
     data: {
       form: input.formId,
       respondent: input.userId ?? undefined,
-      respondent_email: input.email,
+      respondent_email: normalizedEmail,
       data: input.data ?? {},
       state: input.state ?? 'draft',
       visited_at: input.visitedAt ?? now,
@@ -306,6 +423,46 @@ export async function updateResponseRow(
   return normalizeResponse(res?.data);
 }
 
+/**
+ * Upsert / patch response row — ensures no duplicate rows are ever created for the same user.
+ */
+export async function upsertResponseRow(input: {
+  formId: number;
+  userId: number | null;
+  email: string;
+  data?: Record<string, unknown>;
+  state?: 'draft' | 'submitted';
+  visitedAt?: string;
+  submittedAt?: string;
+  files?: FileDescriptor[];
+}): Promise<ResponseRecord | null> {
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const existing = await getResponseRow(input.formId, normalizedEmail);
+  const now = new Date().toISOString();
+
+  if (existing) {
+    // PATCH existing row
+    const patch: Record<string, unknown> = {
+      last_saved_at: now,
+      respondent_email: normalizedEmail,
+    };
+    if (input.data !== undefined) patch.data = input.data;
+    if (input.state !== undefined) patch.state = input.state;
+    if (input.submittedAt !== undefined) patch.submitted_at = input.submittedAt;
+    if (input.visitedAt !== undefined && !existing.visitedAt) patch.visited_at = input.visitedAt;
+    if (input.files !== undefined) patch.files = input.files;
+    if (input.userId != null) patch.respondent = input.userId;
+
+    return await updateResponseRow(existing.id, patch);
+  }
+
+  // Create single new row
+  return await createResponseRow({
+    ...input,
+    email: normalizedEmail,
+  });
+}
+
 export interface ResponsePage {
   rows: ResponseRecord[];
   total: number;
@@ -321,17 +478,158 @@ export async function getResponsesByForm(
   if (state !== 'all') filters.state = { $eq: state };
   const res = await strapiGet('/form-responses', {
     filters,
-    sort: 'submitted_at:desc',
-    pagination: { page, pageSize },
+    sort: 'submitted_at:desc,updatedAt:desc',
+    pagination: { page: 1, pageSize: 1000 },
   });
-  const rows = (res?.data ?? [])
+  const rawRows = (res?.data ?? [])
     .map(normalizeResponse)
     .filter((r: ResponseRecord | null): r is ResponseRecord => r !== null);
-  const total = res?.meta?.pagination?.total ?? rows.length;
-  return { rows, total };
+
+  // Group by respondent email to eliminate duplicates
+  const grouped = new Map<string, ResponseRecord[]>();
+  for (const r of rawRows) {
+    const emailKey = r.respondentEmail.trim().toLowerCase();
+    if (!grouped.has(emailKey)) grouped.set(emailKey, []);
+    grouped.get(emailKey)!.push(r);
+  }
+
+  const deduplicatedRows: ResponseRecord[] = [];
+  for (const [, userRows] of grouped.entries()) {
+    if (userRows.length === 1) {
+      deduplicatedRows.push(userRows[0]);
+    } else {
+      // Multiple rows found for this user — cleanup duplicates
+      const canonical = await cleanupDuplicates(userRows);
+      deduplicatedRows.push(canonical);
+    }
+  }
+
+  // Apply in-memory pagination on deduplicated results
+  const start = (page - 1) * pageSize;
+  const paginatedRows = deduplicatedRows.slice(start, start + pageSize);
+
+  return { rows: paginatedRows, total: deduplicatedRows.length };
 }
 
 /** completionRate is derived at read time — never stored (spec §13). */
 export function withCompletionRate(stats: FormStats): FormStats & { completionRate: number } {
   return { ...stats, completionRate: stats.submissionCount / Math.max(stats.uniqueVisits, 1) };
+}
+
+export interface InterviewDetailSummary {
+  roundId: string;
+  roundLabel: string;
+  deadline?: string | null;
+  location?: string | null;
+  slotDuration?: number;
+  isBooked: boolean;
+  booking?: {
+    slotKey: string;
+    candidateEmail: string;
+    candidateName?: string;
+    bookedAt?: string;
+  } | null;
+  bookingUrl: string;
+}
+
+export interface FormDetailSummary {
+  roundId: string;
+  roundLabel: string;
+  formUid: string;
+  deadline?: string | null;
+  description?: string | null;
+  isCompleted: boolean;
+  isDraft: boolean;
+  formUrl: string;
+}
+
+export interface PopulatedResponseRecord extends ResponseRecord {
+  form: Pick<FormRecord, 'id' | 'uid' | 'title' | 'endDate' | 'status' | 'organisationId'> & {
+    organisation?: any;
+  } | null;
+  role?: {
+    id: string;
+    name: string;
+    tier?: string;
+    department?: string | null;
+  } | null;
+  pipeline?: any[];
+  cycle?: any | null;
+  deadlineExtension?: {
+    extendedAt: string;
+    previousDeadline: string;
+    newDeadline: string;
+    reason?: string | null;
+  } | null;
+  interviewDetails?: InterviewDetailSummary | null;
+  formDetails?: FormDetailSummary | null;
+}
+
+export async function getResponsesByUserEmail(email: string): Promise<PopulatedResponseRecord[]> {
+  const res = await strapiGet('/form-responses', {
+    filters: { respondent_email: { $eq: email } },
+    populate: {
+      form: {
+        populate: {
+          organisation: {
+            populate: {
+              profile: {
+                fields: ['profile_url'],
+              },
+            },
+          },
+        },
+      },
+    },
+    sort: 'updatedAt:desc',
+    pagination: { pageSize: 100 },
+  });
+
+  const rows = res?.data ?? [];
+  return rows
+    .map((entry: any) => {
+      const base = normalizeResponse(entry);
+      if (!base) return null;
+
+      const a = attrs<any>(entry);
+      const formEntry = a.form?.data ?? a.form;
+      const formAttrs = formEntry?.attributes ?? formEntry;
+
+      let formObj = null;
+      if (formEntry) {
+        const formBase = normalizeForm(formEntry);
+        const orgEntry = formAttrs?.organisation?.data ?? formAttrs?.organisation;
+        const orgAttrs = orgEntry?.attributes ?? orgEntry;
+        const profileEntry = orgAttrs?.profile?.data ?? orgAttrs?.profile;
+        const profileItem = Array.isArray(profileEntry) ? profileEntry[0] : profileEntry;
+        const profileAttrs = profileItem?.attributes ?? profileItem;
+        const profileUrl = profileAttrs?.profile_url || profileItem?.profile_url || orgAttrs?.profile_url || null;
+
+        if (formBase) {
+          formObj = {
+            id: formBase.id,
+            uid: formBase.uid,
+            title: formBase.title,
+            endDate: formBase.endDate,
+            status: formBase.status,
+            organisationId: formBase.organisationId,
+            organisation: orgEntry
+              ? {
+                  id: orgEntry.id ?? orgAttrs?.id,
+                  name: orgAttrs?.name,
+                  induction: orgAttrs?.induction,
+                  induction_end: orgAttrs?.induction_end,
+                  profile_url: profileUrl,
+                }
+              : undefined,
+          };
+        }
+      }
+
+      return {
+        ...base,
+        form: formObj,
+      };
+    })
+    .filter((r: PopulatedResponseRecord | null): r is PopulatedResponseRecord => r !== null);
 }

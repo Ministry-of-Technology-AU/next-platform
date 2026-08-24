@@ -10,6 +10,11 @@
           "href": "/"
         },
         {
+          "title": "Organizations",
+          "icon": "Library",
+          "href": "/organizations"
+        },
+        {
           "title": "Games and Puzzles",
           "icon": "Puzzle",
           "href": "/games"
@@ -50,6 +55,12 @@
           "title": "Organisations Catalogue",
           "icon": "GalleryHorizontalEnd",
           "href": "/organisations-catalog"
+        },
+        {
+          "title": "Inductions",
+          "icon": "FileUser",
+          "href": "/inductions",
+          "isNew": true
         },
         {
           "title": "When2meet",

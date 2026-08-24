@@ -1,26 +1,35 @@
-"use client";
-import PageTitle from "@/components/page-title";
-import { Hammer } from "lucide-react";
-import Image from "next/image";
+import { FileUser } from 'lucide-react';
+import { NextResponse } from 'next/server';
+import PageTitle from '@/components/page-title';
+import { requireOrgSession } from '@/lib/forms/api-helpers';
+import { listCyclesByOrg } from '@/lib/inductions/strapi-inductions';
+import { InductionsClient } from './client';
+import type { InductionCycleSummary } from './types';
 
-export default function InductionsPage() {
-    return (
-        <div className="container pt-12 px-8 flex flex-col items-center">
-            <PageTitle text="This page is under construction" icon={Hammer} subheading="We're working hard to get this page ready for you. Stay tuned!" />
-            <Image
-                src="/mascot-construction.png"
-                alt="Mascot Under Construction"
-                width={400}
-                height={900}
-                className="mx-auto"
-            />
-            <div className="flex flex-col items-center">
+export const dynamic = 'force-dynamic';
 
-                <p className="text-center">We're cooking up something you're gonna absolutely love. Stay tuned to find out!</p>
-            </div>
-            <p className="text-center pt-10 text-muted-foreground">We're revamping the SG Website too! Stay tuned!</p>
+async function getCycles(): Promise<InductionCycleSummary[]> {
+  try {
+    const org = await requireOrgSession();
+    if (org instanceof NextResponse) return [];
+    return await listCyclesByOrg(org.organisationId);
+  } catch (err) {
+    console.error('Error fetching induction cycles:', err);
+    return [];
+  }
+}
 
-        </div>
+export default async function InductionsPage() {
+  const cycles = await getCycles();
 
-    );
+  return (
+    <div className="container mx-auto max-w-6xl px-4 py-8">
+      <PageTitle
+        text="Inductions"
+        icon={FileUser}
+        subheading="Manage your inductions end to end. Multiple cycles, roles and forms. Inductions, completely your way!"
+      />
+      <InductionsClient initialCycles={cycles} />
+    </div>
+  );
 }
