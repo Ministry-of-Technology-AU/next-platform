@@ -34,6 +34,7 @@ export async function GET() {
         if (!organisationId) {
             return NextResponse.json({
                 success: true,
+                hasOrganisation: false,
                 data: []
             });
         }
@@ -55,6 +56,7 @@ export async function GET() {
 
         return NextResponse.json({
             success: true,
+            hasOrganisation: true,
             data: ads
         });
 
