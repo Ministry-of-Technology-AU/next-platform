@@ -33,7 +33,6 @@ export async function POST(req: Request, context: RouteContext) {
     const actor = await requireRoleAccess(roleId);
     if (actor instanceof NextResponse) return actor;
 
-    const { roleId } = await context.params;
     const body = await req.json().catch(() => ({}));
     const { responseId, status, currentRound, statusMessage, rejectionReason, sendEmail } = body;
 
