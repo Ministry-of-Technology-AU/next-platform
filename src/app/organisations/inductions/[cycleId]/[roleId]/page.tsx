@@ -6,7 +6,7 @@ import PageTitle from '@/components/page-title';
 import { Button } from '@/components/ui/button';
 import { requireOrgSession } from '@/lib/forms/api-helpers';
 import { listFormsByOrg, withCompletionRate } from '@/lib/forms/strapi-forms';
-import { getRoleById, listPipelineByRole, listApplicantsByRole, isOrganisationAccount } from '@/lib/inductions/strapi-inductions';
+import { getRoleById, listPipelineByRole, listApplicantsByRole, isOrganisationAccount, getOrganisationEmails } from '@/lib/inductions/strapi-inductions';
 import { RoleClient } from './client';
 import type { InductionRole, PipelineRound } from '../../types';
 import { TIER_LABELS } from '../../types';
@@ -33,11 +33,12 @@ export default async function RolePage({ params }: PageProps) {
     notFound();
   }
 
-  const [role, pipeline, allOrgFormsRaw, applicants] = await Promise.all([
+  const [role, pipeline, allOrgFormsRaw, applicants, orgEmails] = await Promise.all([
     getRole(roleId),
     listPipelineByRole(roleId),
     listFormsByOrg(org.organisationId),
     listApplicantsByRole(roleId),
+    getOrganisationEmails(org.organisationId),
   ]);
 
   if (!role) notFound();
@@ -92,6 +93,7 @@ export default async function RolePage({ params }: PageProps) {
         initialForms={roleForms}
         allOrgForms={allOrgForms}
         initialApplicants={applicants}
+        orgEmails={orgEmails}
       />
     </div>
   );

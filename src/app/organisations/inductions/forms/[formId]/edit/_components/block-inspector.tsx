@@ -423,7 +423,13 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
   'website',
   'youtube',
   'discord',
+  'custom',
 ];
+
+/** `custom` is the catch-all — it needs a name, the rest label themselves. */
+const PLATFORM_LABELS: Partial<Record<SocialPlatform, string>> = {
+  custom: 'Custom link',
+};
 
 function SocialLinksEditor({
   block,
@@ -438,40 +444,63 @@ function SocialLinksEditor({
     <Field label="Links">
       <div className="space-y-1.5">
         {links.map((link, i) => (
-          <div key={i} className="flex items-center gap-1">
-            <Select
-              value={link.platform}
-              onValueChange={(v) =>
-                set(links.map((l, idx) => (idx === i ? { ...l, platform: v as SocialPlatform } : l)))
-              }
-            >
-              <SelectTrigger className="h-8 w-32 capitalize">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SOCIAL_PLATFORMS.map((p) => (
-                  <SelectItem key={p} value={p} className="capitalize">
-                    {p}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              className="h-8 flex-1"
-              placeholder="https://…"
-              value={link.url}
-              onChange={(e) => set(links.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)))}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-7 text-muted-foreground hover:text-destructive"
-              aria-label="Remove link"
-              onClick={() => set(links.filter((_, idx) => idx !== i))}
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
+          <div key={i} className="space-y-1">
+            <div className="flex items-center gap-1">
+              <Select
+                value={link.platform}
+                onValueChange={(v) =>
+                  set(
+                    links.map((l, idx) =>
+                      idx === i
+                        ? {
+                            ...l,
+                            platform: v as SocialPlatform,
+                            // A label only means something for a custom link.
+                            label: v === 'custom' ? l.label ?? '' : undefined,
+                          }
+                        : l,
+                    ),
+                  )
+                }
+              >
+                <SelectTrigger className="h-8 w-32 capitalize">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SOCIAL_PLATFORMS.map((p) => (
+                    <SelectItem key={p} value={p} className="capitalize">
+                      {PLATFORM_LABELS[p] ?? p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                className="h-8 flex-1"
+                placeholder="https://…"
+                value={link.url}
+                onChange={(e) => set(links.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)))}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-7 text-muted-foreground hover:text-destructive"
+                aria-label="Remove link"
+                onClick={() => set(links.filter((_, idx) => idx !== i))}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            {link.platform === 'custom' && (
+              <Input
+                className="h-8 text-xs"
+                placeholder="Link name (e.g. Our Handbook)"
+                value={link.label ?? ''}
+                onChange={(e) =>
+                  set(links.map((l, idx) => (idx === i ? { ...l, label: e.target.value } : l)))
+                }
+              />
+            )}
           </div>
         ))}
         <Button

@@ -7,7 +7,7 @@
  * feed unsanitized HTML here.
  */
 
-import { Instagram, Linkedin, Twitter, Youtube, Globe, MessageCircle } from 'lucide-react';
+import { Instagram, Linkedin, Twitter, Youtube, Globe, MessageCircle, Link2 } from 'lucide-react';
 import type {
   TitleBlock,
   ParagraphBlock,
@@ -70,6 +70,7 @@ const SOCIAL_ICON: Record<SocialPlatform, typeof Instagram> = {
   youtube: Youtube,
   website: Globe,
   discord: MessageCircle,
+  custom: Link2,
 };
 
 export function SocialLinksDisplay({ block }: { block: SocialLinksBlock }) {
@@ -79,16 +80,30 @@ export function SocialLinksDisplay({ block }: { block: SocialLinksBlock }) {
     <div className="flex flex-wrap gap-3">
       {links.map((link, i) => {
         const Icon = SOCIAL_ICON[link.platform] ?? Globe;
+        // A custom link has no recognisable icon, so it carries its own name.
+        const isCustom = link.platform === 'custom';
+        const name = link.label?.trim() || (isCustom ? 'Link' : link.platform);
         return (
           <a
             key={`${link.platform}-${i}`}
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={link.platform}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--form-border)] text-[var(--form-text)] transition-colors hover:bg-[var(--form-primary)] hover:text-[var(--form-primary-text)]"
+            aria-label={name}
+            title={name}
+            className={`flex h-10 items-center justify-center gap-2 rounded-full border border-[var(--form-border)] text-[var(--form-text)] transition-colors hover:bg-[var(--form-primary)] hover:text-[var(--form-primary-text)] ${
+              isCustom ? 'px-4' : 'w-10'
+            }`}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-5 w-5 shrink-0" />
+            {isCustom && (
+              <span
+                className="max-w-[12rem] truncate text-sm font-medium"
+                style={{ fontFamily: 'var(--form-font-body)' }}
+              >
+                {name}
+              </span>
+            )}
           </a>
         );
       })}

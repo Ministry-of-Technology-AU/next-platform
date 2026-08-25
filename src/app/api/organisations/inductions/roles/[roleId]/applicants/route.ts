@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireOrgSession, jsonOk, jsonError } from '@/lib/forms/api-helpers';
-import { listApplicantsByRole, updateApplicantStatus } from '@/lib/inductions/strapi-inductions';
+import { listApplicantsByRole, updateApplicantStatus, getRoleById } from '@/lib/inductions/strapi-inductions';
+import { sendApplicantStatusEmail } from '@/lib/inductions/applicant-email';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,15 +24,22 @@ export async function GET(_req: Request, context: RouteContext) {
 }
 
 /** POST /api/organisations/inductions/roles/:roleId/applicants — update status / advance / reject */
-export async function POST(req: Request, _context: RouteContext) {
+export async function POST(req: Request, context: RouteContext) {
   try {
     const org = await requireOrgSession();
     if (org instanceof NextResponse) return org;
 
+    const { roleId } = await context.params;
     const body = await req.json().catch(() => ({}));
     const { responseId, status, currentRound, statusMessage, rejectionReason, sendEmail, email } = body;
 
     if (!responseId) return jsonError('Response ID is required', 400);
+
+    // The accept/reject dialog is the only caller that asks for an email, and
+    // it must carry the org's message. Quick stage moves send neither.
+    if (sendEmail && !String(statusMessage ?? '').trim()) {
+      return jsonError('An acceptance or rejection message is required', 400);
+    }
 
     const updated = await updateApplicantStatus(responseId, {
       application_status: status,
@@ -42,12 +50,29 @@ export async function POST(req: Request, _context: RouteContext) {
 
     if (!updated) return jsonError('Failed to update applicant status', 500);
 
-    // If sendEmail is requested, we can log / handle email delivery
-    if (sendEmail && email) {
-      console.log(`[Inductions] Notification email sent to ${email} with message: ${statusMessage}`);
+    // The status change is already persisted — report a mail failure back to
+    // the org without pretending the whole action failed.
+    let emailed = false;
+    let emailError: string | null = null;
+
+    if (sendEmail && email && statusMessage) {
+      try {
+        const role = await getRoleById(roleId).catch(() => null);
+        await sendApplicantStatusEmail({
+          to: email,
+          organisationId: org.organisationId,
+          status,
+          roleName: role?.name ?? null,
+          messageHtml: statusMessage,
+        });
+        emailed = true;
+      } catch (mailErr) {
+        console.error('[Inductions] Applicant notification email failed:', mailErr);
+        emailError = mailErr instanceof Error ? mailErr.message : 'Failed to send email';
+      }
     }
 
-    return jsonOk(updated);
+    return jsonOk({ ...updated, emailed, emailError });
   } catch (err) {
     console.error('POST /api/organisations/inductions/roles/:roleId/applicants failed:', err);
     return jsonError('Failed to update applicant', 500);

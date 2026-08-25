@@ -121,6 +121,13 @@
       "title": "My Resources",
       "items": [
         {
+          "title": "Organisations",
+          "icon": "Library",
+          "href": "/organisations",
+          "absolute": true,
+          "requiresAccess": "organization"
+        },
+        {
           "title": "Ashokan Around",
           "icon": "MapPinned",
           "href": "/ashokan-around"

@@ -26,7 +26,7 @@ export const defaultSettings: FormSettings = {
 };
 
 /** Human-friendly default question label per input type. */
-const DEFAULT_TITLES: Partial<Record<FormBlockType, string>> = {
+export const DEFAULT_INPUT_TITLES: Partial<Record<FormBlockType, string>> = {
   'short-text': 'Short answer',
   'long-text': 'Long answer',
   'rich-text': 'Rich text answer',
@@ -58,24 +58,24 @@ export function createBlock(type: FormBlockType): FormBlock {
 
     // --- Input blocks ---
     case 'short-text':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false };
     case 'long-text':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false };
     case 'rich-text':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false };
     case 'email':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false };
     case 'phone':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false, defaultCountryCode: '+91' };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false, defaultCountryCode: '+91' };
     case 'number':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false };
     case 'checkbox':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false };
     case 'select':
       return {
         id,
         type,
-        title: DEFAULT_TITLES[type]!,
+        title: DEFAULT_INPUT_TITLES[type]!,
         required: false,
         options: [
           { value: 'option-1', label: 'Option 1' },
@@ -86,7 +86,7 @@ export function createBlock(type: FormBlockType): FormBlock {
       return {
         id,
         type,
-        title: DEFAULT_TITLES[type]!,
+        title: DEFAULT_INPUT_TITLES[type]!,
         required: false,
         style: 'checkboxes',
         options: [
@@ -95,14 +95,14 @@ export function createBlock(type: FormBlockType): FormBlock {
         ],
       };
     case 'date':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false };
     case 'datetime':
-      return { id, type, title: DEFAULT_TITLES[type]!, required: false };
+      return { id, type, title: DEFAULT_INPUT_TITLES[type]!, required: false };
     case 'file-upload':
       return {
         id,
         type,
-        title: DEFAULT_TITLES[type]!,
+        title: DEFAULT_INPUT_TITLES[type]!,
         required: false,
         accept: 'both',
         multiple: false,

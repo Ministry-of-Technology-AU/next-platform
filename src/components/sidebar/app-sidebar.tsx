@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSession } from "next-auth/react";
 import { useIsMac } from "@/hooks/useIsMac";
 import Image from "next/image";
 import Link from "next/link";
@@ -90,6 +91,17 @@ interface SidebarItem {
   icon: string;
   href: string;
   isNew?: boolean;
+  /**
+   * Resolve `href` from the site root instead of prefixing `basePath`. Used to
+   * link across sections, e.g. from /platform to the /organisations dashboard.
+   */
+  absolute?: boolean;
+  /**
+   * Only render for sessions carrying this access grant (see `ROUTE_ACCESS` in
+   * middleware.ts). Keeps the sidebar from offering links that would bounce the
+   * user to /unauthorized.
+   */
+  requiresAccess?: string;
 }
 
 interface SidebarCategory {
@@ -114,6 +126,7 @@ export function AppSidebar({
   title = "Platform"
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
   const { state, open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const isDrawerOpen = isMobile ? openMobile : open;
   const isCollapsed = state === "collapsed";
@@ -155,6 +168,26 @@ export function AppSidebar({
 
   const isMac = useIsMac();
 
+  // Hide access-gated entries from anyone middleware would turn away. While the
+  // session is still loading we withhold them rather than flash a dead link.
+  const userAccess = React.useMemo(
+    () => (status === "authenticated" ? session?.user?.access ?? [] : []),
+    [status, session?.user?.access],
+  );
+
+  const visibleCategories = React.useMemo(
+    () =>
+      data.categories
+        .map((category) => ({
+          ...category,
+          items: category.items.filter(
+            (item) => !item.requiresAccess || userAccess.includes(item.requiresAccess),
+          ),
+        }))
+        .filter((category) => category.items.length > 0),
+    [data.categories, userAccess],
+  );
+
   return (
     <Sidebar className="border-r border-border flex flex-col h-screen bg-background xoverflow-y-auto" collapsible="icon">
       <SidebarHeader className="p-4">
@@ -189,7 +222,7 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent className="p-2 overflow-y-auto min-h-0">
-        {data.categories.map((category: SidebarCategory) => (
+        {visibleCategories.map((category: SidebarCategory) => (
           <SidebarGroup key={category.id}>
             {!isCollapsed && (
               <SidebarGroupLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2 py-1">
@@ -205,9 +238,15 @@ export function AppSidebar({
                   // Ensure basePath doesn't end with / and item.href starts with / unless it's just /
                   const normalizedBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
                   const normalizedItemHref = item.href === '/' ? '' : (item.href.startsWith('/') ? item.href : `/${item.href}`);
-                  const fullHref = normalizedItemHref === '' ? normalizedBasePath : `${normalizedBasePath}${normalizedItemHref}`;
+                  // Absolute entries link across sections, so they skip basePath.
+                  const fullHref = item.absolute
+                    ? (normalizedItemHref || '/')
+                    : normalizedItemHref === '' ? normalizedBasePath : `${normalizedBasePath}${normalizedItemHref}`;
 
-                  const isActive = pathname === fullHref || (normalizedItemHref !== "" && pathname.startsWith(`${fullHref}/`));
+                  // A section root (href "/") must not light up for its children.
+                  const isSectionRoot = !item.absolute && normalizedItemHref === "";
+                  const isActive =
+                    pathname === fullHref || (!isSectionRoot && pathname.startsWith(`${fullHref}/`));
 
                   return (
                     <SidebarMenuItem key={item.href}>

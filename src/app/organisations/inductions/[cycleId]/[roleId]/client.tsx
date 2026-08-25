@@ -25,6 +25,8 @@ interface RoleClientProps {
   initialForms: RoleFormSummary[];
   allOrgForms: RoleFormSummary[];
   initialApplicants: ApplicantRow[];
+  /** Organisation contact addresses, pre-filled as interview invitees. */
+  orgEmails?: string[];
 }
 
 export function RoleClient({
@@ -36,6 +38,7 @@ export function RoleClient({
   initialForms,
   allOrgForms,
   initialApplicants,
+  orgEmails = [],
 }: RoleClientProps) {
   const [role, setRole] = useState<InductionRole>(initialRole);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -203,6 +206,7 @@ export function RoleClient({
         forms={availableForms}
         applicants={initialApplicants}
         roleName={role.name}
+        orgEmails={orgEmails}
         onChange={handlePipelineChange}
         onFormCreated={handleFormCreated}
       />

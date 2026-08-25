@@ -74,7 +74,11 @@ interface InterviewSchedulerDialogProps {
   onOpenChange: (open: boolean) => void;
   round: PipelineRound | null;
   defaultRoleName?: string;
-  defaultOrgEmail?: string;
+  /**
+   * Organisation contact addresses. The org running the cycle is always an
+   * invitee on candidate calendar invites, so it seeds the invitee list here.
+   */
+  defaultOrgEmails?: string[];
   onSave: (config: InterviewConfig, label?: string, description?: string) => void;
 }
 
@@ -83,10 +87,21 @@ export function InterviewSchedulerDialog({
   onOpenChange,
   round,
   defaultRoleName = 'Role',
-  defaultOrgEmail,
+  defaultOrgEmails = [],
   onSave,
 }: InterviewSchedulerDialogProps) {
   const existingConfig = round?.interviewConfig;
+
+  // Normalised + referentially stable, so the hydrate effect below does not
+  // re-run (and wipe in-progress edits) on every parent render.
+  const orgEmails = useMemo(
+    () =>
+      Array.from(
+        new Set(defaultOrgEmails.map((e) => e.trim().toLowerCase()).filter((e) => e.includes('@'))),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [defaultOrgEmails.join(',')],
+  );
 
   // Multi-step state: 1 = Details, 2 = Availability Grid, 3 = Review & Share
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
@@ -132,12 +147,14 @@ export function InterviewSchedulerDialog({
           'Congratulations on advancing! Please select an interview time slot from the available options.',
       );
       setLocation(cfg?.location || 'Google Meet');
+      // Org addresses are always present; saved panelists are merged in after.
       setInvitees(
-        cfg?.invitees && cfg.invitees.length > 0
-          ? cfg.invitees
-          : defaultOrgEmail
-            ? [defaultOrgEmail]
-            : [],
+        Array.from(
+          new Set([
+            ...orgEmails,
+            ...(cfg?.invitees ?? []).map((e) => e.trim().toLowerCase()).filter(Boolean),
+          ]),
+        ),
       );
       setDateMode(cfg?.dateMode || 'dates');
       setStartDate(cfg?.startDate || format(new Date(), 'yyyy-MM-dd'));
@@ -147,7 +164,7 @@ export function InterviewSchedulerDialog({
       setSelectedSlots(new Set(cfg?.selectedSlots || []));
       setNewInvitee('');
     }
-  }, [open, round, defaultRoleName, defaultOrgEmail]);
+  }, [open, round, defaultRoleName, orgEmails]);
 
   // Compute Columns
   const dateColumns = useMemo(() => {
@@ -530,6 +547,7 @@ export function InterviewSchedulerDialog({
                 </div>
                 <p className="text-[11px] text-muted-foreground">
                   These emails will automatically be invited to the calendar event when candidates schedule a slot.
+                  Your organisation is always invited, even if removed from this list.
                 </p>
               </div>
             </div>

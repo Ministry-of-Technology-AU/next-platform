@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Send, BarChart3, CalendarDays, Trash2, ArrowRight, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { htmlToPlainText } from '@/lib/utils';
 import { CycleFormDialog } from './new-cycle-dialog';
 import type { InductionCycleSummary } from '../types';
 import { CYCLE_STATUS_STYLE, formatCycleDateRange, getDerivedCycleStatus } from '../types';
@@ -24,6 +25,7 @@ export function CycleCard({
 
   const rolesCount = cycle.stats.rolesCount || 0;
   const appsCount = cycle.stats.applicantsCount || cycle.stats.totalFills || 0;
+  const descriptionText = htmlToPlainText(cycle.description);
 
   return (
     <div className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-all">
@@ -54,9 +56,9 @@ export function CycleCard({
         </div>
 
         {/* Cycle Description preview */}
-        {cycle.description ? (
+        {descriptionText ? (
           <p className="mt-2.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed !text-left text-left" style={{ textAlign: 'left' }}>
-            {cycle.description}
+            {descriptionText}
           </p>
         ) : null}
       </div>

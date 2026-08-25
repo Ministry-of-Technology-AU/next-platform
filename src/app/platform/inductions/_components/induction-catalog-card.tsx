@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Organization, OpenPosition } from '../../organisations-catalog/types';
+import { htmlToPlainText } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -71,7 +72,11 @@ export function InductionCatalogCard({
   const isEndingSoon = hasValidDeadline && (daysLeft !== null && daysLeft <= 3);
 
   const logoUrl = organization.logoUrl || '';
-  const descriptionText = organization.cycleDescription || organization.inductionDescription || organization.description || '';
+  // Cycle/induction descriptions are authored as rich text — flatten to plain
+  // text so the clamped preview never shows raw markup.
+  const descriptionText = htmlToPlainText(
+    organization.cycleDescription || organization.inductionDescription || organization.description,
+  );
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -210,14 +215,14 @@ export function InductionCatalogCard({
         </div>
 
         {/* Induction & Description text directly like before - only if present */}
-        {descriptionText.trim() ? (
+        {descriptionText ? (
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed !text-left text-left" style={{ textAlign: 'left' }}>
             {descriptionText}
           </p>
         ) : null}
 
         {/* Open Positions List with Name, 1-Line Description + Read More, Department, and Apply CTA */}
-        <div className="pt-1 flex-1 flex flex-col justify-end text-left space-y-2.5" style={{ textAlign: 'left' }}>
+        <div className="pt-1 flex flex-col text-left space-y-2.5" style={{ textAlign: 'left' }}>
           <div className="flex items-center justify-between text-left" style={{ textAlign: 'left' }}>
             <h4
               className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-muted-foreground !text-left text-left"
@@ -231,7 +236,7 @@ export function InductionCatalogCard({
             {positions.map((pos, idx) => {
               const roleKey = pos.id || `${idx}`;
               const isExpanded = expandedRoleIds.has(roleKey);
-              const desc = (pos.description || '').trim();
+              const desc = htmlToPlainText(pos.description);
               const isLong = desc.length > 55;
 
               return (

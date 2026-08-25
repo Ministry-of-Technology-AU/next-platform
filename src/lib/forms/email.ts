@@ -69,6 +69,42 @@ function formatAnswer(block: InputBlock, value: unknown): string {
   }
 }
 
+/**
+ * The shared inline-styled shell every form/induction email uses: accent
+ * header with the form or round name, the organisation underneath, body, and a
+ * muted footer strip.
+ */
+export function buildBrandedEmailHtml(options: {
+  heading: string;
+  subheading: string;
+  bodyHtml: string;
+  footer?: string;
+}): string {
+  return `
+  <div style="background:#faf7f2;padding:24px 0;font-family:${FONT};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
+      <tr>
+        <td style="background:${ACCENT};padding:20px 28px;">
+          <div style="color:#ffffff;font-size:18px;font-weight:bold;">${escapeHtml(options.heading)}</div>
+          <div style="color:#f7d9d3;font-size:13px;margin-top:2px;">${escapeHtml(options.subheading)}</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:24px 28px;color:${TEXT};font-size:15px;line-height:1.6;">${options.bodyHtml}</td>
+      </tr>${
+        options.footer
+          ? `
+      <tr>
+        <td style="padding:16px 28px;background:#faf7f2;color:${MUTED};font-size:12px;">
+          ${escapeHtml(options.footer)}
+        </td>
+      </tr>`
+          : ''
+      }
+    </table>
+  </div>`;
+}
+
 /** Builds the full inline-styled HTML email body. */
 export function buildResponseEmailHtml(
   formTitle: string,
@@ -101,122 +137,92 @@ export function buildResponseEmailHtml(
 
   const submittedAt = format(new Date(), 'PPP p');
 
-  return `
-  <div style="background:#faf7f2;padding:24px 0;font-family:${FONT};">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
-      <tr>
-        <td style="background:${ACCENT};padding:20px 28px;">
-          <div style="color:#ffffff;font-size:18px;font-weight:bold;">${escapeHtml(formTitle)}</div>
-          <div style="color:#f7d9d3;font-size:13px;margin-top:2px;">${escapeHtml(orgName)}</div>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:24px 28px;">
+  return buildBrandedEmailHtml({
+    heading: formTitle,
+    subheading: orgName,
+    bodyHtml: `
           <p style="margin:0 0 16px;color:${TEXT};font-size:15px;">Here is a copy of the response${applicantEmail ? ` submitted by <strong>${escapeHtml(applicantEmail)}</strong>` : ''}.</p>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml}</table>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:16px 28px;background:#faf7f2;color:${MUTED};font-size:12px;">
-          Submitted ${submittedAt} · This is a copy of the response.
-        </td>
-      </tr>
-    </table>
-  </div>`;
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml}</table>`,
+    footer: `Submitted ${submittedAt} · This is a copy of the response.`,
+  });
 }
 
 export interface OrgEmailDetails {
   name: string;
-  emails: string[];
+  /**
+   * The organisation's OWN address, taken from its `profile` account relation.
+   * Deliberately a single address rather than a list: `circle1_humans` /
+   * `circle2_humans` are individual leads, not the organisation, and must never
+   * be copied on applicant mail.
+   */
+  email: string | null;
 }
 
-/** Fetches organisation name and associated notification email addresses. */
+/** First valid-looking address in the organisation's profile relation. */
+function profileEmail(orgAttrs: any): string | null {
+  const rel = orgAttrs?.profile?.data ?? orgAttrs?.profile;
+  const entries = Array.isArray(rel) ? rel : rel ? [rel] : [];
+  for (const entry of entries) {
+    const raw = entry?.attributes?.email ?? entry?.email;
+    if (typeof raw !== 'string') continue;
+    const trimmed = raw.trim().toLowerCase();
+    if (trimmed.includes('@')) return trimmed;
+  }
+  return null;
+}
+
+/** Fetches the organisation's display name and its own notification address. */
 export async function getOrgDetails(organisationId: number | null): Promise<OrgEmailDetails> {
-  if (!organisationId) return { name: 'Ashoka University', emails: [] };
+  if (!organisationId) {
+    console.warn('[forms/email] No organisationId on the form — cannot CC the organisation.');
+    return { name: 'Ashoka University', email: null };
+  }
   try {
+    // NOTE: do not add a top-level `fields` here. The organisation type has no
+    // `email` attribute (the address lives on `profile`), and asking for one
+    // makes Strapi reject the whole request with 400 "Invalid parameter email"
+    // — which previously threw into the catch below and silently dropped the CC.
     const res = await strapiGet(`/organisations/${organisationId}`, {
-      fields: ['name', 'email'],
-      populate: {
-        profile: { fields: ['email', 'username'] },
-        circle1_humans: { fields: ['email', 'username'] },
-      },
+      populate: { profile: { fields: ['email', 'username'] } },
     });
     const entry = res?.data ?? res;
     const a = entry?.attributes ?? entry ?? {};
     const name = a.name ?? 'Ashoka University';
-    const emailSet = new Set<string>();
+    const email = profileEmail(a);
 
-    const addEmail = (raw: unknown) => {
-      if (typeof raw === 'string') {
-        const trimmed = raw.trim().toLowerCase();
-        if (trimmed.includes('@') && !emailSet.has(trimmed)) {
-          emailSet.add(trimmed);
-        }
-      }
-    };
-
-    // Direct email field on organisation record
-    addEmail(a.email);
-
-    // Profile relation (official club/org account)
-    const profileData = a.profile?.data ?? a.profile;
-    if (Array.isArray(profileData)) {
-      for (const p of profileData) {
-        addEmail(p?.attributes?.email ?? p?.email);
-      }
-    } else if (profileData) {
-      addEmail(profileData?.attributes?.email ?? profileData?.email);
+    if (!email) {
+      console.warn(
+        `[forms/email] Organisation ${organisationId} (${name}) has no profile account with an email — nothing to CC.`,
+      );
     }
 
-    // Circle 1 humans (leads / core team)
-    const circle1Data = a.circle1_humans?.data ?? a.circle1_humans;
-    if (Array.isArray(circle1Data)) {
-      for (const c of circle1Data) {
-        addEmail(c?.attributes?.email ?? c?.email);
-      }
-    } else if (circle1Data) {
-      addEmail(circle1Data?.attributes?.email ?? circle1Data?.email);
-    }
-
-    return {
-      name,
-      emails: Array.from(emailSet),
-    };
+    return { name, email };
   } catch (err) {
-    console.error('Failed to get organisation details for email:', err);
-    return { name: 'Ashoka University', emails: [] };
+    console.error('Failed to get organisation details for email:', organisationId, err);
+    return { name: 'Ashoka University', email: null };
   }
 }
 
-/** Sends the response email to the organisation(s) associated with the form,
- *  with the respondent/applicant CC'd. Falls back to sending directly to the
- *  applicant if no org emails are found. */
+/**
+ * Sends the submitted response to the applicant, with the organisation that
+ * owns the form CC'd so it receives every application as it comes in.
+ */
 export async function sendResponseEmail(
   form: FormRecord,
   email: string,
   data: FormResponseData,
 ): Promise<void> {
-  const orgDetails = await getOrgDetails(form.organisationId);
-  const orgName = orgDetails.name;
-  const orgEmails = orgDetails.emails;
+  const { name: orgName, email: orgEmail } = await getOrgDetails(form.organisationId);
+  // Never CC the respondent's own address back to them.
+  const cc = orgEmail && orgEmail !== email.trim().toLowerCase() ? orgEmail : undefined;
   const html = buildResponseEmailHtml(form.title, orgName, form.schema, data, email);
 
-  if (orgEmails.length > 0) {
-    await sendMail({
-      to: orgEmails,
-      cc: email,
-      replyTo: email,
-      alias: orgName,
-      subject: `Response: ${form.title} — ${email}`,
-      html,
-    });
-  } else {
-    // Fallback: If no organisation emails are resolved, deliver to the applicant directly.
-    await sendMail({
-      to: email,
-      alias: orgName,
-      subject: `Your response: ${form.title}`,
-      html,
-    });
-  }
+  await sendMail({
+    to: email,
+    cc,
+    replyTo: orgEmail ?? undefined,
+    alias: orgName,
+    subject: `Your response: ${form.title}`,
+    html,
+  });
 }
