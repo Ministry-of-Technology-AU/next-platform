@@ -1,7 +1,9 @@
 import { ArrowLeft, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { NextResponse } from 'next/server';
 import PageTitle from '@/components/page-title';
+import { requireCycleAccess } from '@/lib/inductions/access';
 import { Button } from '@/components/ui/button';
 import { getCycleById, listRolesByCycle } from '@/lib/inductions/strapi-inductions';
 import { CycleClient } from './client';
@@ -32,6 +34,14 @@ async function getRoles(cycleId: string): Promise<InductionRole[]> {
 
 export default async function CyclePage({ params }: PageProps) {
   const { cycleId } = await params;
+
+  // Cycles are the organisation account's own workspace. Role delegates and
+  // circle leads have no business here, and are not told the cycle exists.
+  const org = await requireCycleAccess(cycleId);
+  if (org instanceof NextResponse) {
+    notFound();
+  }
+
   const cycle = await getCycle(cycleId);
 
   if (!cycle) {

@@ -98,8 +98,18 @@ async function getOrganizationAnalytics(orgId: number, orgAttrs: any) {
   let timeline: any[] = [];
   try {
     const cycles = await listCyclesByOrg(orgId);
-    if (cycles.length > 0) {
-      const activeCycle = await getCycleById(cycles[0].id);
+    // An org can run several cycles at once; the timeline shows the live one
+    // closing soonest, falling back to the most recently created cycle.
+    const live = cycles
+      .filter((c) => c.status === 'active')
+      .sort((a, b) => {
+        const at = a.endDate ? new Date(a.endDate).getTime() : Infinity;
+        const bt = b.endDate ? new Date(b.endDate).getTime() : Infinity;
+        return at - bt;
+      });
+    const chosen = live[0] ?? cycles[0] ?? null;
+    if (chosen) {
+      const activeCycle = await getCycleById(chosen.id);
       if (activeCycle?.startDate || activeCycle?.endDate) {
         timeline = [
           {

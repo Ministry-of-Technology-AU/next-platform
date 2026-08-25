@@ -312,34 +312,6 @@ export async function deleteCycle(cycleId: string | number): Promise<void> {
   });
 }
 
-/**
- * Enforce the one-active-cycle-per-org rule.
- * Sets all currently-active cycles for the given org (except `exceptCycleId`) to 'completed'.
- * Call this before saving a cycle with status='active'.
- */
-export async function deactivateOtherCycles(
-  organisationId: number,
-  exceptCycleId: string | number,
-): Promise<void> {
-  const res = await strapiGet('/induction-cycles', {
-    filters: {
-      organisation: { id: { $eq: organisationId } },
-      status: { $eq: 'active' },
-    },
-    fields: ['id', 'status'],
-    pagination: { pageSize: 100 },
-  });
-
-  const rows: any[] = res?.data ?? [];
-  await Promise.all(
-    rows
-      .filter((row: any) => String(row.id ?? row?.attributes?.id) !== String(exceptCycleId))
-      .map((row: any) =>
-        strapiPut(`/induction-cycles/${row.id}`, { data: { status: 'completed' } }),
-      ),
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Induction Roles
 // ---------------------------------------------------------------------------
@@ -873,7 +845,10 @@ export async function getPipelineForForm(formId: number | string): Promise<{
         role: {
           populate: {
             pipeline_rounds: true,
-            cycle: true,
+            // The relation is `induction_cycle` everywhere else in this file;
+            // populating `cycle` silently returned nothing, so every
+            // application resolved with a null cycle (and no deadline).
+            induction_cycle: true,
           },
         },
       },
@@ -892,7 +867,11 @@ export async function getPipelineForForm(formId: number | string): Promise<{
     const roleId = roleEntry.id ?? roleAttrs?.id;
     if (!roleId) return null;
 
-    const cycleEntry = roleAttrs?.cycle?.data ?? roleAttrs?.cycle;
+    const cycleEntry =
+      roleAttrs?.induction_cycle?.data ??
+      roleAttrs?.induction_cycle ??
+      roleAttrs?.cycle?.data ??
+      roleAttrs?.cycle;
     const cycle = cycleEntry ? normalizeCycle(cycleEntry) : null;
 
     const allRounds = await listPipelineByRole(roleId);
@@ -909,6 +888,180 @@ export async function getPipelineForForm(formId: number | string): Promise<{
   } catch (err) {
     console.error('Error fetching pipeline for form:', formId, err);
     return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ownership lookups (see lib/inductions/access.ts for the guards that use them)
+// ---------------------------------------------------------------------------
+
+/** Reads a relation that may arrive as `{ data: … }` (v4) or inline (v5). */
+function relation(value: any): any {
+  const rel = value?.data ?? value;
+  return Array.isArray(rel) ? rel[0] : rel;
+}
+
+/**
+ * The id of the organisation that owns a cycle, or null if the cycle is gone.
+ * Every cycle-scoped guard funnels through this — a cycle whose organisation
+ * relation is missing is treated as owned by nobody, so nothing can reach it.
+ */
+export async function getCycleOwnerOrgId(cycleId: string | number): Promise<number | null> {
+  try {
+    const res = await strapiGet(`/induction-cycles/${cycleId}`, {
+      populate: { organisation: { fields: ['id', 'name'] } },
+    });
+    const a = attrs<any>(res?.data);
+    const org = relation(a.organisation);
+    const id = org?.id ?? org?.attributes?.id;
+    return id == null ? null : Number(id);
+  } catch (err) {
+    console.error('[inductions] Failed to resolve owner org for cycle', cycleId, err);
+    return null;
+  }
+}
+
+export interface RoleOwnership {
+  roleId: string;
+  cycleId: string | null;
+  organisationId: number | null;
+  /** Lower-cased emails the organisation has explicitly shared this role with. */
+  accessEmails: string[];
+}
+
+/**
+ * Resolves a role to its cycle, owning organisation, and shared-with emails in
+ * a single request, so role guards never need a second round trip.
+ */
+export async function getRoleOwnership(roleId: string | number): Promise<RoleOwnership | null> {
+  try {
+    const res = await strapiGet(`/induction-roles/${roleId}`, {
+      populate: {
+        induction_cycle: {
+          fields: ['id', 'name'],
+          populate: { organisation: { fields: ['id', 'name'] } },
+        },
+      },
+    });
+    const entry = res?.data;
+    if (!entry) return null;
+    const a = attrs<any>(entry);
+    const id = entry.id ?? a.id;
+    if (id == null) return null;
+
+    const cycle = relation(a.induction_cycle);
+    const cycleAttrs = cycle?.attributes ?? cycle;
+    const cycleId = cycle?.id ?? cycleAttrs?.id ?? null;
+    const org = relation(cycleAttrs?.organisation);
+    const orgId = org?.id ?? org?.attributes?.id ?? null;
+
+    const rawEmails = a.access_emails ?? a.accessEmails ?? [];
+    const accessEmails = (Array.isArray(rawEmails) ? rawEmails : [])
+      .filter((e: unknown): e is string => typeof e === 'string')
+      .map((e: string) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    return {
+      roleId: String(id),
+      cycleId: cycleId == null ? null : String(cycleId),
+      organisationId: orgId == null ? null : Number(orgId),
+      accessEmails,
+    };
+  } catch (err) {
+    console.error('[inductions] Failed to resolve ownership for role', roleId, err);
+    return null;
+  }
+}
+
+/**
+ * The organisation whose `profile` account is this email — i.e. the org the
+ * caller *is*, not one they merely lead.
+ *
+ * `getOrganisationIdByUserId` also matches circle-1/circle-2 membership, so it
+ * can hand back a different organisation than the one the account owns. Cycle
+ * management resolves through here instead.
+ */
+export async function getOrganisationIdForAccount(email: string): Promise<number | null> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return null;
+
+  try {
+    const res = await strapiGet('/organisations', {
+      filters: { profile: { email: { $eq: normalized } } },
+      fields: ['name'],
+      pagination: { pageSize: 1 },
+    });
+    const row = (res?.data ?? [])[0];
+    const id = row?.id ?? row?.attributes?.id;
+    return id == null ? null : Number(id);
+  } catch (err) {
+    console.error('[inductions] Failed to resolve organisation for account', normalized, err);
+    return null;
+  }
+}
+
+export interface SharedRoleSummary {
+  roleId: string;
+  roleName: string;
+  cycleId: string | null;
+  cycleName: string | null;
+  organisationName: string | null;
+}
+
+/**
+ * Every role an organisation has explicitly shared with `email`.
+ *
+ * `access_emails` is a JSON column, which Strapi cannot filter on reliably, so
+ * this pulls the (small, campus-sized) role table and matches in memory. If the
+ * number of roles ever grows past the page size below, move the access list to
+ * a real relation and filter server-side instead.
+ */
+export async function listRolesSharedWith(email: string): Promise<SharedRoleSummary[]> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return [];
+
+  try {
+    const res = await strapiGet('/induction-roles', {
+      populate: {
+        induction_cycle: {
+          fields: ['id', 'name', 'status'],
+          populate: { organisation: { fields: ['id', 'name'] } },
+        },
+      },
+      pagination: { pageSize: 500 },
+    });
+
+    const rows: any[] = res?.data ?? [];
+    const shared: SharedRoleSummary[] = [];
+
+    for (const row of rows) {
+      const a = attrs<any>(row);
+      const rawEmails = a.access_emails ?? a.accessEmails ?? [];
+      const emails = (Array.isArray(rawEmails) ? rawEmails : [])
+        .filter((e: unknown): e is string => typeof e === 'string')
+        .map((e: string) => e.trim().toLowerCase());
+      if (!emails.includes(normalized)) continue;
+
+      const cycle = relation(a.induction_cycle);
+      const cycleAttrs = cycle?.attributes ?? cycle;
+      // Archived cycles are hidden from the org's own list, so hide them here too.
+      if (cycleAttrs?.status === 'archived') continue;
+      const org = relation(cycleAttrs?.organisation);
+      const orgAttrs = org?.attributes ?? org;
+
+      shared.push({
+        roleId: String(row.id ?? a.id),
+        roleName: a.name || 'Untitled Role',
+        cycleId: cycle?.id != null ? String(cycle.id) : null,
+        cycleName: cycleAttrs?.name ?? null,
+        organisationName: orgAttrs?.name ?? null,
+      });
+    }
+
+    return shared;
+  } catch (err) {
+    console.error('[inductions] Failed to list roles shared with', normalized, err);
+    return [];
   }
 }
 
@@ -932,7 +1085,9 @@ export async function isOrganisationAccount(
     return true;
   }
 
-  // 2. Special organization emails list
+  // 2. Platform-governance accounts. NOTE: these pass the ownership check for
+  // *every* organisation, not just their own — a deliberate escape hatch, and
+  // the one exception to "only the organisation account gets in".
   const orgAdminEmails = [
     'technology.ministry@ashoka.edu.in',
     'sg@ashoka.edu.in',
@@ -962,6 +1117,9 @@ export async function isOrganisationAccount(
 
     const orgs = directMatch?.data || (Array.isArray(directMatch) ? directMatch : []);
     if (Array.isArray(orgs) && orgs.length > 0) {
+      // Being *an* organisation account is not the question — being *this*
+      // organisation's account is. Without the id comparison every org account
+      // would pass every other org's ownership check.
       if (!organisationId) return true;
       const matched = orgs.find(
         (o: any) =>
@@ -970,7 +1128,7 @@ export async function isOrganisationAccount(
           String(o.id) === String(organisationId),
       );
       if (matched) return true;
-      return true;
+      return false;
     }
   } catch (err) {
     console.error('[isOrganisationAccount] Direct query failed:', err);

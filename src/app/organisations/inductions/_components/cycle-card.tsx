@@ -11,12 +11,10 @@ import { CYCLE_STATUS_STYLE, formatCycleDateRange, getDerivedCycleStatus } from 
 
 export function CycleCard({
   cycle,
-  activeCycle,
   onDelete,
   onUpdate,
 }: {
   cycle: InductionCycleSummary;
-  activeCycle?: InductionCycleSummary | null;
   onDelete: (cycle: InductionCycleSummary) => void;
   onUpdate?: (updatedCycle: InductionCycleSummary) => void;
 }) {
@@ -109,7 +107,6 @@ export function CycleCard({
           {/* Settings Dialog (CycleFormDialog) */}
           <CycleFormDialog
             cycle={cycle}
-            activeCycle={activeCycle}
             open={editOpen}
             onOpenChange={setEditOpen}
             onUpdated={(updated) => {

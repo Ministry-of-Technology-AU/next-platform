@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireOrgSession, jsonOk, jsonError } from '@/lib/forms/api-helpers';
+import { jsonOk, jsonError } from '@/lib/forms/api-helpers';
+import { requireRoleAccess } from '@/lib/inductions/access';
 import { listPipelineByRole, syncPipeline } from '@/lib/inductions/strapi-inductions';
 import type { PipelineRound } from '@/app/organisations/inductions/types';
 
@@ -10,10 +11,11 @@ type RouteContext = { params: Promise<{ roleId: string }> };
 /** GET /api/organisations/inductions/roles/:roleId/pipeline */
 export async function GET(_req: Request, context: RouteContext) {
   try {
-    const org = await requireOrgSession();
-    if (org instanceof NextResponse) return org;
-
     const { roleId } = await context.params;
+
+    const actor = await requireRoleAccess(roleId);
+    if (actor instanceof NextResponse) return actor;
+
     const pipeline = await listPipelineByRole(roleId);
 
     return jsonOk(pipeline);
@@ -26,10 +28,11 @@ export async function GET(_req: Request, context: RouteContext) {
 /** PUT /api/organisations/inductions/roles/:roleId/pipeline */
 export async function PUT(req: Request, context: RouteContext) {
   try {
-    const org = await requireOrgSession();
-    if (org instanceof NextResponse) return org;
-
     const { roleId } = await context.params;
+
+    const actor = await requireRoleAccess(roleId);
+    if (actor instanceof NextResponse) return actor;
+
     const body = await req.json().catch(() => ({}));
     const rounds = Array.isArray(body?.rounds) ? (body.rounds as PipelineRound[]) : [];
 

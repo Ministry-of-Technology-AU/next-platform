@@ -30,14 +30,25 @@ export function InductionSidebar({
 }: InductionSidebarProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
+  // `organizations` arrives as one entry per open cycle, so an org running two
+  // drives appears twice. Everything in this panel is about organisations, not
+  // cycles — collapse the duplicates before counting or listing them.
+  const uniqueOrganizations = React.useMemo(() => {
+    const byId = new Map<string, Organization>();
+    for (const org of organizations) {
+      if (!byId.has(org.id)) byId.set(org.id, org);
+    }
+    return Array.from(byId.values());
+  }, [organizations]);
+
   // Group organizations by type with counts
   const typeCounts = React.useMemo(() => {
     const counts = new Map<OrganizationType, number>();
-    for (const org of organizations) {
+    for (const org of uniqueOrganizations) {
       counts.set(org.type, (counts.get(org.type) || 0) + 1);
     }
     return counts;
-  }, [organizations]);
+  }, [uniqueOrganizations]);
 
   const types = React.useMemo(() => Array.from(typeCounts.keys()), [typeCounts]);
 
@@ -55,7 +66,7 @@ export function InductionSidebar({
     onFilterChange(new Set());
   };
 
-  const trackedOrgsList = organizations.filter((org) => trackedOrgIds.has(org.id));
+  const trackedOrgsList = uniqueOrganizations.filter((org) => trackedOrgIds.has(org.id));
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>

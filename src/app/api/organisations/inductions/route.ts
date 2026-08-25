@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireOrgSession, jsonOk, jsonError } from '@/lib/forms/api-helpers';
+import { jsonOk, jsonError } from '@/lib/forms/api-helpers';
+import { requireInductionOrg } from '@/lib/inductions/access';
 import { listCyclesByOrg, createCycle } from '@/lib/inductions/strapi-inductions';
 
 export const dynamic = 'force-dynamic';
@@ -7,7 +8,7 @@ export const dynamic = 'force-dynamic';
 /** GET /api/organisations/inductions — list cycles for the org */
 export async function GET() {
   try {
-    const org = await requireOrgSession();
+    const org = await requireInductionOrg();
     if (org instanceof NextResponse) return org;
 
     const cycles = await listCyclesByOrg(org.organisationId);
@@ -21,7 +22,7 @@ export async function GET() {
 /** POST /api/organisations/inductions — create a new induction cycle */
 export async function POST(request: Request) {
   try {
-    const org = await requireOrgSession();
+    const org = await requireInductionOrg();
     if (org instanceof NextResponse) return org;
 
     const body = await request.json().catch(() => ({}));
