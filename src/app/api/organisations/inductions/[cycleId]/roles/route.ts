@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireOrgSession, jsonOk, jsonError } from '@/lib/forms/api-helpers';
+import { jsonOk, jsonError } from '@/lib/forms/api-helpers';
+import { requireCycleAccess } from '@/lib/inductions/access';
 import { listRolesByCycle, createRole } from '@/lib/inductions/strapi-inductions';
 import type { RoleTier } from '@/app/organisations/inductions/types';
 
@@ -10,10 +11,11 @@ type RouteContext = { params: Promise<{ cycleId: string }> };
 /** GET /api/organisations/inductions/:cycleId/roles */
 export async function GET(_req: Request, context: RouteContext) {
   try {
-    const org = await requireOrgSession();
+    const { cycleId } = await context.params;
+
+    const org = await requireCycleAccess(cycleId);
     if (org instanceof NextResponse) return org;
 
-    const { cycleId } = await context.params;
     const roles = await listRolesByCycle(cycleId);
 
     return jsonOk(roles);
@@ -26,10 +28,11 @@ export async function GET(_req: Request, context: RouteContext) {
 /** POST /api/organisations/inductions/:cycleId/roles */
 export async function POST(req: Request, context: RouteContext) {
   try {
-    const org = await requireOrgSession();
+    const { cycleId } = await context.params;
+
+    const org = await requireCycleAccess(cycleId);
     if (org instanceof NextResponse) return org;
 
-    const { cycleId } = await context.params;
     const body = await req.json().catch(() => ({}));
 
     const name = typeof body?.name === 'string' ? body.name.trim() : '';

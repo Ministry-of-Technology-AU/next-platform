@@ -56,15 +56,8 @@ export function InductionsClient({
   };
 
   const handleUpdated = (updatedCycle: InductionCycleSummary) => {
-    setCycles((prev) => {
-      // If the updated cycle is now active, optimistically mark previous active cycles as completed
-      const wasActivated = updatedCycle.status === 'active';
-      return prev.map((c) => {
-        if (c.id === updatedCycle.id) return updatedCycle;
-        if (wasActivated && c.status === 'active') return { ...c, status: 'completed' as const };
-        return c;
-      });
-    });
+    // Cycles run independently — activating one leaves its siblings untouched.
+    setCycles((prev) => prev.map((c) => (c.id === updatedCycle.id ? updatedCycle : c)));
   };
 
   const confirmDelete = async () => {
@@ -91,8 +84,6 @@ export function InductionsClient({
 
   const visibleCycles = cycles.filter((c) => c.status !== 'archived');
   const aggregated = aggregateStats(visibleCycles);
-  // The currently-active cycle (at most one at a time)
-  const activeCycle = visibleCycles.find((c) => c.status === 'active') ?? null;
 
   return (
     <div className="mt-6 space-y-6">
@@ -130,7 +121,6 @@ export function InductionsClient({
             <CycleCard
               key={cycle.id}
               cycle={cycle}
-              activeCycle={activeCycle}
               onDelete={setPendingDelete}
               onUpdate={handleUpdated}
             />

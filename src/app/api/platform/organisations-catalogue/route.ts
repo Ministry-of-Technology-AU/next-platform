@@ -146,8 +146,8 @@ export async function GET() {
           return ca.status === 'active';
         });
 
-        // Open positions derived only from active induction cycles
-        const openPositions = activeCyclesOnly.flatMap((cycle: any) => {
+        // Roles on offer in one cycle, with the live form to apply through.
+        const positionsForCycle = (cycle: any) => {
           const cycleAttrs = cycle.attributes || cycle || {};
           const rolesData = cycleAttrs.roles?.data || cycleAttrs.roles || [];
           return rolesData.map((role: any) => {
@@ -174,17 +174,50 @@ export async function GET() {
               formUid: formUid || null,
             };
           });
+        };
+
+        // An organisation may run several cycles at once. Each one is described
+        // in full here so the inductions catalogue can show them as separate
+        // drives; the flat fields below stay one-per-org for the directory.
+        const inductionCycles = activeCyclesOnly.map((cycle: any) => {
+          const ca = cycle.attributes || cycle || {};
+          const stats = ca.stats || {};
+          const ext = ca.deadline_extension ?? stats?.deadlineExtension ?? null;
+          const endDate = ca.end_date || attrs.induction_end || null;
+          return {
+            id: (cycle.id ?? ca.id ?? '').toString(),
+            name: ca.name || null,
+            description: ca.description || '',
+            endDate,
+            openPositions: positionsForCycle(cycle),
+            deadlineExtension: ext
+              ? {
+                  extendedAt: ext.extendedAt,
+                  previousDeadline: ext.previousDeadline,
+                  newDeadline: ext.newDeadline || endDate,
+                  reason: ext.reason || null,
+                }
+              : null,
+          };
         });
 
-        // Pick the single active cycle for display metadata; no draft fallback
-        const activeCycle = activeCyclesOnly[0] ?? null;
+        // Sort so the flat fields below describe the cycle closing soonest.
+        const sortedCycles = [...inductionCycles].sort((a: any, b: any) => {
+          const at = a.endDate ? new Date(a.endDate).getTime() : NaN;
+          const bt = b.endDate ? new Date(b.endDate).getTime() : NaN;
+          if (isNaN(at) && isNaN(bt)) return 0;
+          if (isNaN(at)) return 1;
+          if (isNaN(bt)) return -1;
+          return at - bt;
+        });
 
-        const activeCycleAttrs = activeCycle?.attributes || activeCycle || {};
-        const cycleName = activeCycleAttrs.name || null;
-        const cycleDescription = activeCycleAttrs.description || '';
-        const cycleEndDate = activeCycleAttrs.end_date || attrs.induction_end || null;
-        const cycleStats = activeCycleAttrs.stats || {};
-        const deadlineExtension = activeCycleAttrs.deadline_extension ?? cycleStats?.deadlineExtension ?? null;
+        const openPositions = inductionCycles.flatMap((c: any) => c.openPositions);
+
+        const primaryCycle = sortedCycles[0] ?? null;
+        const cycleName = primaryCycle?.name || null;
+        const cycleDescription = primaryCycle?.description || '';
+        const cycleEndDate = primaryCycle?.endDate || attrs.induction_end || null;
+        const deadlineExtension = primaryCycle?.deadlineExtension ?? null;
 
         // hasActiveCycle is true only when there is a genuinely 'active' cycle
         const hasActiveCycle = activeCyclesOnly.length > 0;
@@ -228,12 +261,8 @@ export async function GET() {
           cycleName: cycleName || undefined,
           cycleDescription: cycleDescription || attrs.induction_description || '',
           openPositions,
-          deadlineExtension: deadlineExtension ? {
-            extendedAt: deadlineExtension.extendedAt,
-            previousDeadline: deadlineExtension.previousDeadline,
-            newDeadline: deadlineExtension.newDeadline || cycleEndDate,
-            reason: deadlineExtension.reason || null,
-          } : null,
+          inductionCycles,
+          deadlineExtension: deadlineExtension,
 
           // Social links with fallback to empty strings
           instagram: attrs.instagram || '',

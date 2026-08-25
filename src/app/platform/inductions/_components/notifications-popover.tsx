@@ -76,11 +76,12 @@ export function NotificationsPopover({ applications, organizations = [] }: Notif
           day: 'numeric',
           year: 'numeric',
         });
-        const notifId = `deadline-ext-${org.id}-${ext.extendedAt || ext.newDeadline}`;
+        // Keyed per cycle: an org running two drives can extend either one.
+        const notifId = `deadline-ext-${org.id}-${org.cycleId ?? 'org'}-${ext.extendedAt || ext.newDeadline}`;
         
         notifMap.set(notifId, {
           id: notifId,
-          title: `Deadline Extended · ${org.name}`,
+          title: `Deadline Extended · ${org.name}${org.cycleName ? ` (${org.cycleName})` : ''}`,
           message: `${org.name} has extended the induction application deadline to ${formattedDate}.${
             ext.reason ? ` Reason: "${ext.reason}"` : " Don't miss your chance to apply!"
           }`,

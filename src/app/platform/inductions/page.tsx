@@ -13,32 +13,50 @@ async function fetchInductionData(): Promise<{
   error: string | null;
   trackedOrgIds: string[];
   checklistItems: any[];
-  preferences: any | null;
 }> {
   try {
     const cookieStore = await cookies();
     const headers = { 'Cookie': cookieStore.toString() };
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-    const [orgsRes, appsRes, trackingRes, checklistRes, prefsRes] = await Promise.all([
+    const [orgsRes, appsRes, trackingRes, checklistRes] = await Promise.all([
       fetch(`${baseUrl}/api/platform/organisations-catalogue`, { headers, next: { revalidate: 30 } }),
       fetch(`${baseUrl}/api/platform/inductions/applications`, { headers, cache: 'no-store' }),
       fetch(`${baseUrl}/api/platform/organisations-catalogue/tracking-status`, { headers, cache: 'no-store' }),
       fetch(`${baseUrl}/api/platform/organisations-catalogue/checklist`, { headers, cache: 'no-store' }),
-      fetch(`${baseUrl}/api/platform/organisations-catalogue/preferences`, { headers, cache: 'no-store' })
     ]);
 
-    const [orgsData, appsData, trackingData, checklistData, prefsData] = await Promise.all([
+    const [orgsData, appsData, trackingData, checklistData] = await Promise.all([
       orgsRes.ok ? orgsRes.json() : null,
       appsRes.ok ? appsRes.json() : null,
       trackingRes.ok ? trackingRes.json() : null,
       checklistRes.ok ? checklistRes.json() : null,
-      prefsRes.ok ? prefsRes.json() : null,
     ]);
 
     const allOrgs = orgsData?.success && orgsData.data?.organisations ? orgsData.data.organisations : (orgsData?.organisations || []);
     const now = Date.now();
-    const rawOrganizations = allOrgs.filter((org: Organization) => {
+
+    // An org can run several cycles at once, and each is its own recruitment
+    // drive with its own roles and deadline — so each becomes its own card
+    // rather than being merged into one entry per organisation.
+    const cycleEntries: Organization[] = allOrgs.flatMap((org: Organization) => {
+      const cycles = org.inductionCycles ?? [];
+      if (cycles.length === 0) {
+        return org.inductionsOpen ? [org] : [];
+      }
+      return cycles.map((cycle) => ({
+        ...org,
+        cycleId: cycle.id,
+        cycleName: cycle.name ?? undefined,
+        cycleDescription: cycle.description,
+        inductionEnd: cycle.endDate,
+        openPositions: cycle.openPositions,
+        deadlineExtension: cycle.deadlineExtension,
+        inductionsOpen: true,
+      }));
+    });
+
+    const rawOrganizations = cycleEntries.filter((org: Organization) => {
       if (!org.inductionsOpen) return false;
       if (org.inductionEnd) {
         const endTime = new Date(org.inductionEnd).getTime();
@@ -79,23 +97,32 @@ async function fetchInductionData(): Promise<{
       const orgId = app.form.organisation.id?.toString();
       const orgName = app.form.organisation.name?.toLowerCase().trim();
       const matchedOrg = (orgId ? orgMap.get(orgId) : null) || (orgName ? orgMap.get(orgName) : null);
-      if (matchedOrg) {
-        return {
-          ...app,
-          deadlineExtension: app.deadlineExtension || matchedOrg.deadlineExtension || null,
-          form: {
-            ...app.form,
-            endDate: matchedOrg.inductionEnd || app.form.endDate,
-            organisation: {
-              ...app.form.organisation,
-              profile_url: matchedOrg.logoUrl || app.form.organisation.profile_url,
-              induction_end: matchedOrg.inductionEnd || app.form.organisation.induction_end,
-              deadlineExtension: matchedOrg.deadlineExtension || null,
-            },
+      if (!matchedOrg) return app;
+
+      // With several cycles running there is no single org-level deadline to
+      // borrow, and guessing would show applicants the wrong date — so the
+      // form's own dates stand unless the org has exactly one open cycle. The
+      // logo is org-wide either way.
+      const borrowCycleDates = (matchedOrg.inductionCycles?.length ?? 0) <= 1;
+
+      return {
+        ...app,
+        deadlineExtension: borrowCycleDates
+          ? app.deadlineExtension || matchedOrg.deadlineExtension || null
+          : app.deadlineExtension,
+        form: {
+          ...app.form,
+          endDate: (borrowCycleDates && matchedOrg.inductionEnd) || app.form.endDate,
+          organisation: {
+            ...app.form.organisation,
+            profile_url: matchedOrg.logoUrl || app.form.organisation.profile_url,
+            induction_end: borrowCycleDates
+              ? matchedOrg.inductionEnd || app.form.organisation.induction_end
+              : app.form.organisation.induction_end,
+            deadlineExtension: borrowCycleDates ? matchedOrg.deadlineExtension || null : null,
           },
-        };
-      }
-      return app;
+        },
+      };
     });
     
     const error = (!orgsData?.success || !appsData?.success) ? 'Failed to fetch some induction data' : null;
@@ -113,9 +140,7 @@ async function fetchInductionData(): Promise<{
       }));
     }
 
-    const preferences = prefsData?.success && prefsData.preferences ? prefsData.preferences : null;
-
-    return { organizations, applications, error, trackedOrgIds, checklistItems, preferences };
+    return { organizations, applications, error, trackedOrgIds, checklistItems };
   } catch (err) {
     console.error('Error fetching induction data:', err);
     return { 
@@ -124,13 +149,12 @@ async function fetchInductionData(): Promise<{
       error: err instanceof Error ? err.message : 'An error occurred',
       trackedOrgIds: [],
       checklistItems: [],
-      preferences: null
     };
   }
 }
 
 export default async function InductionPage() {
-  const { organizations, applications, error, trackedOrgIds, checklistItems, preferences } = await fetchInductionData();
+  const { organizations, applications, error, trackedOrgIds, checklistItems } = await fetchInductionData();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -140,7 +164,6 @@ export default async function InductionPage() {
         initialError={error} 
         initialTrackedOrgIds={trackedOrgIds}
         initialChecklist={checklistItems}
-        initialPreferences={preferences}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { requireOrgSession, jsonOk, jsonError } from '@/lib/forms/api-helpers';
-import { getCycleById, updateCycle, deleteCycle, deactivateOtherCycles } from '@/lib/inductions/strapi-inductions';
-import { getDerivedCycleStatus } from '@/app/organisations/inductions/types';
+import { jsonOk, jsonError } from '@/lib/forms/api-helpers';
+import { requireCycleAccess } from '@/lib/inductions/access';
+import { getCycleById, updateCycle, deleteCycle } from '@/lib/inductions/strapi-inductions';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,10 +10,11 @@ type RouteContext = { params: Promise<{ cycleId: string }> };
 /** GET /api/organisations/inductions/:cycleId */
 export async function GET(_req: Request, context: RouteContext) {
   try {
-    const org = await requireOrgSession();
+    const { cycleId } = await context.params;
+
+    const org = await requireCycleAccess(cycleId);
     if (org instanceof NextResponse) return org;
 
-    const { cycleId } = await context.params;
     const cycle = await getCycleById(cycleId);
     if (!cycle) return jsonError('Cycle not found', 404);
 
@@ -27,24 +28,15 @@ export async function GET(_req: Request, context: RouteContext) {
 /** PUT /api/organisations/inductions/:cycleId */
 export async function PUT(req: Request, context: RouteContext) {
   try {
-    const org = await requireOrgSession();
+    const { cycleId } = await context.params;
+
+    const org = await requireCycleAccess(cycleId);
     if (org instanceof NextResponse) return org;
 
-    const { cycleId } = await context.params;
     const body = await req.json().catch(() => ({}));
 
-    // Derive the effective status that will be written
-    const derivedStatus = getDerivedCycleStatus(
-      body.status ?? 'draft',
-      body.startDate ?? null,
-      body.endDate ?? null,
-    );
-
-    // Enforce one-active-cycle rule: deactivate sibling active cycles before saving
-    if (derivedStatus === 'active') {
-      await deactivateOtherCycles(org.organisationId, cycleId);
-    }
-
+    // An org may run several cycles at once, so activating one leaves its
+    // siblings alone — each cycle's own dates decide whether it is live.
     const existingCycle = await getCycleById(cycleId);
 
     let deadlineExtension = body.deadlineExtension;
@@ -83,10 +75,11 @@ export async function PUT(req: Request, context: RouteContext) {
 /** DELETE /api/organisations/inductions/:cycleId */
 export async function DELETE(_req: Request, context: RouteContext) {
   try {
-    const org = await requireOrgSession();
+    const { cycleId } = await context.params;
+
+    const org = await requireCycleAccess(cycleId);
     if (org instanceof NextResponse) return org;
 
-    const { cycleId } = await context.params;
     await deleteCycle(cycleId);
 
     return jsonOk({ deleted: true });

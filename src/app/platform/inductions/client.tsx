@@ -27,19 +27,12 @@ import { NotificationsPopover } from './_components/notifications-popover';
 import { InductionCatalogCard } from './_components/induction-catalog-card';
 import { InductionSidebar } from './_components/induction-sidebar';
 
-interface UserPreferences {
-  selectedOrganizations: string[];
-  selectedCategories: string[];
-  categoryColors: Record<string, string>;
-}
-
 interface InductionClientProps {
   initialOrganizations: Organization[];
   initialApplications: PopulatedResponseRecord[];
   initialError: string | null;
   initialTrackedOrgIds: string[];
   initialChecklist: any[];
-  initialPreferences: UserPreferences | null;
 }
 
 type ApplicationFilter = 'all' | 'action_needed' | 'in_review' | 'decided';
@@ -50,7 +43,6 @@ export function InductionClient({
   initialError,
   initialTrackedOrgIds,
   initialChecklist,
-  initialPreferences,
 }: InductionClientProps) {
   const [activeTab, setActiveTab] = React.useState<'applications' | 'catalog'>('applications');
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -62,7 +54,7 @@ export function InductionClient({
   const [organizations] = React.useState<Organization[]>(initialOrganizations);
   const [applications] = React.useState<PopulatedResponseRecord[]>(initialApplications);
   const [error] = React.useState<string | null>(initialError);
-  const [userPreferences] = React.useState<UserPreferences | null>(initialPreferences);
+
 
   // Tracking state
   const [trackedOrgIds, setTrackedOrgIds] = React.useState<Set<string>>(new Set(initialTrackedOrgIds));
@@ -204,18 +196,11 @@ export function InductionClient({
 
       const matchesTrackedOnly = !onlyTracked || trackedOrgIds.has(org.id);
 
-      const matchesPreferences =
-        !userPreferences ||
-        userPreferences.selectedOrganizations.length === 0 ||
-        userPreferences.selectedOrganizations.includes(org.id);
-
-      return (
-        matchesSearch &&
-        matchesCategoryPill &&
-        matchesSheetFilter &&
-        matchesTrackedOnly &&
-        matchesPreferences
-      );
+      // NOTE: `orgs_catalogue_filter_preferences` is deliberately not applied
+      // here. It is set by the checkbox list on the organisations catalogue and
+      // has no equivalent UI on this page, so honouring it hid open drives with
+      // no way for the reader to see why, or to turn it off.
+      return matchesSearch && matchesCategoryPill && matchesSheetFilter && matchesTrackedOnly;
     });
 
     // Sort by deadline: closest upcoming deadline comes highest up
@@ -244,9 +229,10 @@ export function InductionClient({
       // 4. Alphabetical tie breaker
       return a.name.localeCompare(b.name);
     });
-  }, [searchQuery, selectedType, filters, onlyTracked, trackedOrgIds, userPreferences, organizations]);
+  }, [searchQuery, selectedType, filters, onlyTracked, trackedOrgIds, organizations]);
 
-  const activeRecruitingOrgs = React.useMemo(() => {
+  // One entry per open cycle — an org running two drives contributes two.
+  const activeRecruitingCycles = React.useMemo(() => {
     const now = Date.now();
     return organizations.filter((org) => {
       if (!org.inductionsOpen) return false;
@@ -258,9 +244,15 @@ export function InductionClient({
     });
   }, [organizations]);
 
+  // ...and the headline stat counts the organisations behind those cycles.
+  const activeRecruitingOrgCount = React.useMemo(
+    () => new Set(activeRecruitingCycles.map((org) => org.id)).size,
+    [activeRecruitingCycles],
+  );
+
   const uniqueOrgTypes = React.useMemo(() => {
-    return Array.from(new Set(activeRecruitingOrgs.map((o) => o.type)));
-  }, [activeRecruitingOrgs]);
+    return Array.from(new Set(activeRecruitingCycles.map((o) => o.type)));
+  }, [activeRecruitingCycles]);
 
   const handleOpenApplicationsTab = React.useCallback(() => {
     setActiveTab('applications');
@@ -351,7 +343,7 @@ export function InductionClient({
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider !text-left text-left">
                 Recruiting Orgs
               </span>
-              <p className="text-2xl font-bold text-foreground !text-left text-left" style={{ textAlign: 'left' }}>{activeRecruitingOrgs.length}</p>
+              <p className="text-2xl font-bold text-foreground !text-left text-left" style={{ textAlign: 'left' }}>{activeRecruitingOrgCount}</p>
               <p className="text-[11px] text-muted-foreground !text-left text-left">Active inductions currently open</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center font-bold">
@@ -408,7 +400,7 @@ export function InductionClient({
                   variant="secondary"
                   className="text-[11px] h-5 px-1.5 font-bold bg-muted-foreground/15 text-foreground"
                 >
-                  {activeRecruitingOrgs.length} Open
+                  {activeRecruitingCycles.length} Open
                 </Badge>
               </TabsTrigger>
             </TourStep>
@@ -631,7 +623,7 @@ export function InductionClient({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredOrganizations.map((org: Organization) => (
                   <InductionCatalogCard
-                    key={org.id}
+                    key={org.cycleId ? `${org.id}:${org.cycleId}` : org.id}
                     organization={org}
                     isTracking={trackedOrgIds.has(org.id)}
                     trackLoading={trackingLoading.has(org.id)}

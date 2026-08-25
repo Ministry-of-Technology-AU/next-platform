@@ -4,9 +4,9 @@ import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import PageTitle from '@/components/page-title';
 import { Button } from '@/components/ui/button';
-import { requireOrgSession } from '@/lib/forms/api-helpers';
+import { requireRoleAccess } from '@/lib/inductions/access';
 import { listFormsByOrg, withCompletionRate } from '@/lib/forms/strapi-forms';
-import { getRoleById, listPipelineByRole, listApplicantsByRole, isOrganisationAccount, getOrganisationEmails } from '@/lib/inductions/strapi-inductions';
+import { getRoleById, listPipelineByRole, listApplicantsByRole, getOrganisationEmails } from '@/lib/inductions/strapi-inductions';
 import { RoleClient } from './client';
 import type { InductionRole, PipelineRound } from '../../types';
 import { TIER_LABELS } from '../../types';
@@ -28,17 +28,23 @@ async function getRole(roleId: string): Promise<InductionRole | null> {
 
 export default async function RolePage({ params }: PageProps) {
   const { cycleId, roleId } = await params;
-  const org = await requireOrgSession();
-  if (org instanceof NextResponse) {
+
+  // The organisation account, or an individual the org shared this role with.
+  // Anyone else — circle-1/circle-2 leads included — gets a 404.
+  const actor = await requireRoleAccess(roleId);
+  if (actor instanceof NextResponse) {
     notFound();
   }
+  const isOrgAccount = actor.isOrgAccount;
 
   const [role, pipeline, allOrgFormsRaw, applicants, orgEmails] = await Promise.all([
     getRole(roleId),
     listPipelineByRole(roleId),
-    listFormsByOrg(org.organisationId),
+    // A delegate's reach stops at this role, so they never see the org's whole
+    // form library — only the forms already attached to the role's pipeline.
+    isOrgAccount ? listFormsByOrg(actor.organisationId) : Promise.resolve([]),
     listApplicantsByRole(roleId),
-    getOrganisationEmails(org.organisationId),
+    getOrganisationEmails(actor.organisationId),
   ]);
 
   if (!role) notFound();
@@ -69,18 +75,13 @@ export default async function RolePage({ params }: PageProps) {
     (f) => linkedFormIds.has(f.id) || linkedFormIds.has(String(f.id)),
   );
 
-  const isOrgAccount = await isOrganisationAccount(
-    org.email,
-    org.organisationId,
-  );
-
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-4">
         <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground -ml-2 rounded-xl">
-          <Link href={`/organisations/inductions/${cycleId}`}>
+          <Link href={isOrgAccount ? `/organisations/inductions/${cycleId}` : '/organisations/inductions'}>
             <ArrowLeft className="h-4 w-4" />
-            Back to Cycle
+            {isOrgAccount ? 'Back to Cycle' : 'Back to your roles'}
           </Link>
         </Button>
       </div>
@@ -91,7 +92,7 @@ export default async function RolePage({ params }: PageProps) {
         isOrgAccount={isOrgAccount}
         initialPipeline={pipeline}
         initialForms={roleForms}
-        allOrgForms={allOrgForms}
+        allOrgForms={isOrgAccount ? allOrgForms : roleForms}
         initialApplicants={applicants}
         orgEmails={orgEmails}
       />

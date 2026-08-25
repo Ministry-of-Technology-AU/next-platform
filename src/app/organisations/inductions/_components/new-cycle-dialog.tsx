@@ -31,8 +31,6 @@ import { getDerivedCycleStatus } from '../types';
 export interface CycleFormDialogProps {
   /** If provided, editing existing cycle; otherwise creating a new one */
   cycle?: InductionCycleSummary | null;
-  /** The currently-active cycle for this org (if any). Used to warn before displacing it. */
-  activeCycle?: InductionCycleSummary | null;
   /** Custom trigger element */
   trigger?: React.ReactNode;
   /** Controlled open state */
@@ -50,7 +48,6 @@ export function NewCycleDialog(props: CycleFormDialogProps) {
 
 export function CycleFormDialog({
   cycle,
-  activeCycle,
   trigger,
   open: controlledOpen,
   onOpenChange: setControlledOpen,
@@ -129,18 +126,6 @@ export function CycleFormDialog({
     }
 
     const calculatedStatus = getDerivedCycleStatus(status, startDate, endDate);
-
-    // Warn the user if activating this cycle will displace another active cycle
-    if (
-      calculatedStatus === 'active' &&
-      activeCycle &&
-      activeCycle.id !== cycle?.id
-    ) {
-      toast.info(
-        `"${activeCycle.name}" will be set to Completed since only one cycle can be active at a time.`,
-        { duration: 5000 },
-      );
-    }
 
     setLoading(true);
     try {
