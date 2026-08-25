@@ -342,7 +342,7 @@ export const FORM_LIMITS = {
   maxHtmlChars: 20000,
   maxRulesPerGroup: 10,
   maxPatternChars: 200,
-  maxTitleChars: 200,
+  maxTitleChars: 5000,
   /** Hard ceiling on uploads regardless of per-block config. */
   fileMaxSizeMB: 10,
   fileMaxFiles: 5,

@@ -121,8 +121,13 @@ function CommonInputFields({ block, update }: { block: InputBlock; update: Patch
   const hasPlaceholder = !['checkbox', 'rich-text', 'file-upload'].includes(block.type);
   return (
     <>
-      <TextField label="Question" value={block.title} onChange={(title) => update({ title })} />
-      <TextField
+      <TextAreaField
+        label="Question"
+        value={block.title}
+        onChange={(title) => update({ title })}
+        placeholder="Enter question prompt..."
+      />
+      <TextAreaField
         label="Helper text"
         value={block.subtitle ?? ''}
         onChange={(subtitle) => update({ subtitle })}
