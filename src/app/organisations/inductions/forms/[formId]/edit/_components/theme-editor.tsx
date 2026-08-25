@@ -1,6 +1,6 @@
 'use client';
 
-import { Palette, Type, Sparkles, Sliders } from 'lucide-react';
+import { Palette, Type, Sliders, PaintBucket } from 'lucide-react';
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -124,7 +124,7 @@ export function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
           {/* Quick Presets */}
           <section className="space-y-2.5">
             <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              <Sparkles className="h-3.5 w-3.5" />
+              <PaintBucket className="h-3.5 w-3.5" />
               <span>Theme Presets</span>
             </div>
             <div className="grid grid-cols-2 gap-2">

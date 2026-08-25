@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Lock, Sparkles, Layers } from 'lucide-react';
+import { Plus, Lock, Layers, ListChecks } from 'lucide-react';
 import type { FormBlockType } from '@/lib/forms/schema';
 import { BLOCK_META, PALETTE_GROUPS } from './block-meta';
 
@@ -39,7 +39,7 @@ export function BlockPalette({ onAdd, isFormActive = false }: BlockPaletteProps)
               {group.title === 'Content' ? (
                 <Layers className="h-3 w-3" />
               ) : (
-                <Sparkles className="h-3 w-3" />
+                <ListChecks className="h-3 w-3" />
               )}
               {group.title}
             </h3>

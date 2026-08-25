@@ -8,6 +8,7 @@ import {
   type FormStatus,
 } from '@/lib/forms/strapi-forms';
 import { safeParseFormSchema } from '@/lib/forms/validator';
+import { normalizeFormSchema } from '@/lib/forms/normalize';
 import { sanitizeFormSchema } from '@/lib/forms/sanitize';
 import { isInputBlock, type FormSchema } from '@/lib/forms/schema';
 
@@ -77,8 +78,14 @@ async function saveForm(request: Request, ctx: RouteContext) {
   let nextSchema = form.schema;
 
   if (body.schema !== undefined) {
-    const parsed = safeParseFormSchema(body.schema);
-    if (!parsed.ok) return jsonError(`Invalid form schema: ${parsed.error}`, 400);
+    // Back-fill blanks left by an in-progress edit before validating, so a
+    // half-typed question label never blocks the autosave.
+    const normalized =
+      body.schema && typeof body.schema === 'object'
+        ? normalizeFormSchema(body.schema as FormSchema)
+        : body.schema;
+    const parsed = safeParseFormSchema(normalized);
+    if (!parsed.ok) return jsonError(`Invalid form schema — ${parsed.error}`, 400);
     nextSchema = sanitizeFormSchema(parsed.schema);
     patch.schema = nextSchema;
   }

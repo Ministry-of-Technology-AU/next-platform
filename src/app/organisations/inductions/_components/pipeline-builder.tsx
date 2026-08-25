@@ -48,7 +48,8 @@ interface PipelineBuilderProps {
   forms?: RoleFormSummary[];
   applicants?: ApplicantRow[];
   roleName?: string;
-  orgEmail?: string;
+  /** Organisation contact addresses, pre-filled as default interview invitees. */
+  orgEmails?: string[];
   onChange: (rounds: PipelineRound[]) => void;
   onFormCreated?: (newForm: RoleFormSummary) => void;
 }
@@ -75,7 +76,7 @@ export function PipelineBuilder({
   forms = [],
   applicants = [],
   roleName = 'Role',
-  orgEmail,
+  orgEmails = [],
   onChange,
   onFormCreated,
 }: PipelineBuilderProps) {
@@ -840,7 +841,7 @@ export function PipelineBuilder({
         }}
         round={interviewSchedulerTarget}
         defaultRoleName={roleName}
-        defaultOrgEmail={orgEmail}
+        defaultOrgEmails={orgEmails}
         onSave={(config, label, desc) => {
           if (interviewSchedulerTarget?.id === 'new-interview-temp') {
             setNewInterviewConfig(config);

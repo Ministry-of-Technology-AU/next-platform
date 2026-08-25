@@ -10,9 +10,11 @@
           "href": "/"
         },
         {
-          "title": "Organizations",
+          "title": "Organisations",
           "icon": "Library",
-          "href": "/organizations"
+          "href": "/organisations",
+          "absolute": true,
+          "requiresAccess": "organization"
         },
         {
           "title": "Games and Puzzles",

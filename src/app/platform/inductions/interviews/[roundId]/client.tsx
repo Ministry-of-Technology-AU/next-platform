@@ -19,12 +19,11 @@ import {
   Building2,
   Loader2,
   Share2,
-  Sparkles,
 } from 'lucide-react';
 import { format, parseISO, addDays, isAfter } from 'date-fns';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
-import { TourStep, useTour } from '@/components/guided-tour';
+import { TourStep } from '@/components/guided-tour';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +75,28 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
   const [bookedSuccess, setBookedSuccess] = useState<InterviewBooking | null>(null);
   const [generatedGcalUrl, setGeneratedGcalUrl] = useState<string | null>(null);
   const [isCopiedGcal, setIsCopiedGcal] = useState(false);
+
+  /**
+   * Everyone invited to the generated calendar event alongside the candidate.
+   * The organisation that owns this cycle is always first — panelists the org
+   * added in the scheduler follow, de-duped case-insensitively.
+   */
+  const orgInvitees = useMemo(() => {
+    const seen = new Set<string>();
+    const list: string[] = [];
+    const add = (raw: string | null | undefined) => {
+      const email = raw?.trim().toLowerCase();
+      if (!email || !email.includes('@') || seen.has(email)) return;
+      seen.add(email);
+      list.push(email);
+    };
+
+    for (const email of org?.emails ?? []) add(email);
+    add(org?.email);
+    for (const email of config.invitees ?? []) add(email);
+
+    return list;
+  }, [org?.emails, org?.email, config.invitees]);
 
   // Existing Bookings
   const existingBookings = useMemo(() => {
@@ -221,12 +242,7 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
     const eventTitle = config.eventTitle || round.label || 'Induction Interview';
     const loc = config.location || 'Google Meet';
 
-    // Build invitee list: org emails + candidate email
-    const allInvitees = [...(config.invitees || [])];
-    if (org?.email && !allInvitees.includes(org.email)) {
-      allInvitees.unshift(org.email);
-    }
-    const addParam = allInvitees.filter(Boolean).join(',');
+    const addParam = orgInvitees.join(',');
 
     // Rich Details with strict disclaimer
     const details = `${config.eventDescription || 'Interview for ' + (role?.name || 'Inductions')}\n\n📍 Location: ${loc}\n🏢 Organisation: ${org?.name || 'Organisation'}\n💼 Role: ${role?.name || 'Candidate'}\n👤 Candidate: ${candidateName || 'Applicant'} (${candidateEmail})\n\n⚠️ IMPORTANT APPLICATION NOTICE:\n${config.disclaimer || 'Do not modify the event title, timings, or host invitees when saving to Google Calendar. Any alterations may invalidate your interview booking.'}`;
@@ -382,8 +398,6 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
     }
   };
 
-  const { startTour } = useTour();
-
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Top Breadcrumb & Status */}
@@ -396,15 +410,7 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
           Back to Applications
         </Link>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => startTour()}
-            className="h-8 px-3 rounded-lg text-xs font-semibold gap-1.5 border-border/80 hover:bg-muted/80 shadow-2xs text-foreground cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            <span>Booking Guide</span>
-          </Button>
+          {/* The booking tour is reachable from the global help button. */}
           <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-primary/5 gap-1.5 py-1 px-3">
             <Clock className="h-3.5 w-3.5" />
             Live Slot Scheduling
@@ -492,7 +498,7 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
                   </div>
                 </div>
 
-                {config.invitees && config.invitees.length > 0 && (
+                {orgInvitees.length > 0 && (
                   <div className="flex items-start gap-2.5">
                     <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
                       <Mail className="h-4 w-4" />
@@ -500,7 +506,7 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
                     <div>
                       <span className="font-medium text-foreground">Host Panelists:</span>{' '}
                       <span className="text-muted-foreground">
-                        {config.invitees.join(', ')}
+                        {orgInvitees.join(', ')}
                       </span>
                     </div>
                   </div>

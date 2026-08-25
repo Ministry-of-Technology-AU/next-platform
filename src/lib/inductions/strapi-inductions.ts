@@ -560,7 +560,51 @@ export interface PopulatedPipelineRound extends PipelineRound {
     name: string;
     logoUrl?: string | null;
     email?: string | null;
+    /**
+     * Every address that can represent the organisation running this cycle
+     * (org record, official profile account, circle-1 leads). The candidate's
+     * calendar invite always includes these.
+     */
+    emails?: string[];
   } | null;
+}
+
+/**
+ * The organisation's own addresses, from its `profile` account relation.
+ *
+ * The organisation type has no `email` attribute — the address lives on the
+ * linked profile account. Circle-1/circle-2 members are individual leads, not
+ * the organisation, so they are deliberately excluded.
+ */
+function collectOrgEmails(orgAttrs: any): string[] {
+  const seen = new Set<string>();
+  const rel = orgAttrs?.profile?.data ?? orgAttrs?.profile;
+  const entries = Array.isArray(rel) ? rel : rel ? [rel] : [];
+  for (const entry of entries) {
+    const raw = entry?.attributes?.email ?? entry?.email;
+    if (typeof raw !== 'string') continue;
+    const trimmed = raw.trim().toLowerCase();
+    if (trimmed.includes('@')) seen.add(trimmed);
+  }
+  return Array.from(seen);
+}
+
+/**
+ * The organisation's own contact addresses. Used to pre-fill interview
+ * invitees so the org running a cycle is always on its candidates' invites.
+ */
+export async function getOrganisationEmails(organisationId: number | string): Promise<string[]> {
+  try {
+    // No top-level `fields`: the organisation type has no `email` attribute and
+    // asking for it makes Strapi reject the request with 400.
+    const res = await strapiGet(`/organisations/${organisationId}`, {
+      populate: { profile: { fields: ['email', 'username'] } },
+    });
+    return collectOrgEmails(attrs<any>(res?.data ?? res));
+  } catch (err) {
+    console.error('Failed to resolve organisation emails for:', organisationId, err);
+    return [];
+  }
 }
 
 export async function getPipelineRoundDetails(roundId: string | number): Promise<PopulatedPipelineRound | null> {
@@ -573,7 +617,11 @@ export async function getPipelineRoundDetails(roundId: string | number): Promise
             induction_cycle: {
               populate: {
                 organisation: {
-                  fields: ['id', 'name', 'profile_url', 'email', 'induction_mail_sender'],
+                  fields: ['id', 'name'],
+                  // Logo and contact address both live on the profile account.
+                  populate: {
+                    profile: { fields: ['email', 'username', 'profile_url'] },
+                  },
                 },
               },
             },
@@ -597,6 +645,10 @@ export async function getPipelineRoundDetails(roundId: string | number): Promise
 
     const orgEntry = cycleAttrs?.organisation?.data ?? cycleAttrs?.organisation;
     const orgAttrs = orgEntry?.attributes ?? orgEntry;
+    const orgProfileRel = orgAttrs?.profile?.data ?? orgAttrs?.profile;
+    const orgProfileEntry = Array.isArray(orgProfileRel) ? orgProfileRel[0] : orgProfileRel;
+    const orgProfile = orgProfileEntry?.attributes ?? orgProfileEntry;
+    const orgEmails = collectOrgEmails(orgAttrs);
 
     return {
       ...baseRound,
@@ -618,8 +670,9 @@ export async function getPipelineRoundDetails(roundId: string | number): Promise
         ? {
             id: orgEntry.id.toString(),
             name: orgAttrs?.name || 'Organisation',
-            logoUrl: orgAttrs?.profile_url || null,
-            email: orgAttrs?.email || orgAttrs?.induction_mail_sender || null,
+            logoUrl: orgProfile?.profile_url || null,
+            email: orgEmails[0] ?? null,
+            emails: orgEmails,
           }
         : null,
     };

@@ -49,7 +49,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import type { PipelineRound, InterviewBooking } from '../types';
+import { htmlToPlainText } from '@/lib/utils';
+import type { PipelineRound, InterviewBooking, ResultsConfig } from '../types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -154,11 +155,13 @@ interface ActionDialogProps {
   type: 'proceed' | 'reject';
   isLastRound?: boolean;
   nextRound?: PipelineRound | null;
+  /** Template + default configured on the pipeline's results round, if any. */
+  resultsConfig?: ResultsConfig | null;
   onClose: () => void;
-  onConfirm: (applicant: ApplicantRow, sendEmail: boolean, content: string) => void;
+  onConfirm: (applicant: ApplicantRow, sendEmail: boolean, content: string) => void | Promise<void>;
 }
 
-function ActionDialog({ applicant, type, isLastRound = false, nextRound, onClose, onConfirm }: ActionDialogProps) {
+function ActionDialog({ applicant, type, isLastRound = false, nextRound, resultsConfig, onClose, onConfirm }: ActionDialogProps) {
   const [editorContent, setEditorContent] = useState('');
   const [sendEmail, setSendEmail] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -166,6 +169,11 @@ function ActionDialog({ applicant, type, isLastRound = false, nextRound, onClose
   const isProceed = type === 'proceed';
 
   const defaultContent = useMemo(() => {
+    // A results round carries the org's own template — prefer it over the
+    // generic copy whenever this decision is the final outcome.
+    const template = resultsConfig?.emailTemplate?.trim();
+    if (template && (isLastRound || nextRound?.type === 'results')) return template;
+
     if (!isProceed) {
       return `<p>Dear ${applicant?.name || 'Applicant'},</p><p>Thank you for your interest and time in applying. After careful consideration, we regret to inform you that you have not been selected to proceed further at this time.</p><p>We appreciate your effort and encourage you to apply again in the future.</p><p>Best regards,<br/>The Inductions Team</p>`;
     }
@@ -185,22 +193,31 @@ function ActionDialog({ applicant, type, isLastRound = false, nextRound, onClose
     }
 
     return `<p>Dear ${applicant?.name || 'Applicant'},</p><p>Congratulations! We are pleased to inform you that you have been selected to proceed to <strong>${roundName}</strong> in our induction process.</p>${bookingUrlHtml}<p>We look forward to meeting you.</p><p>Warm regards,<br/>The Inductions Team</p>`;
-  }, [isProceed, isLastRound, applicant, nextRound]);
+  }, [isProceed, isLastRound, applicant, nextRound, resultsConfig]);
 
   const handleOpen = () => {
     setEditorContent(defaultContent);
-    setSendEmail(true);
+    setSendEmail(resultsConfig?.sendEmail ?? true);
   };
+
+  // The editor emits HTML, so "<p></p>" and "<p><br></p>" both read as empty.
+  const hasMessage = htmlToPlainText(editorContent).length > 0;
 
   const handleConfirm = async () => {
     if (!applicant) return;
+    if (!hasMessage) {
+      toast.error(
+        isProceed
+          ? 'Write an acceptance message before confirming'
+          : 'Write a rejection message before confirming',
+      );
+      return;
+    }
     setLoading(true);
     try {
-      if (sendEmail) {
-        await new Promise((r) => setTimeout(r, 600)); // simulate
-        toast.success(`Email sent to ${applicant.email}`);
-      }
-      onConfirm(applicant, sendEmail, editorContent);
+      // Delivery happens server-side as part of the status update; the toast
+      // there reflects whether the mail actually went out.
+      await onConfirm(applicant, sendEmail, editorContent);
       onClose();
     } catch {
       toast.error('Something went wrong.');
@@ -262,7 +279,10 @@ function ActionDialog({ applicant, type, isLastRound = false, nextRound, onClose
 
           {/* Rich text editor */}
           <div className="space-y-2">
-            <Label>{isProceed ? (isLastRound ? 'Acceptance Email / Message Content' : 'Email / Message Content') : 'Rejection Reason / Email Content'}</Label>
+            <Label>
+              {isProceed ? (isLastRound ? 'Acceptance Email / Message Content' : 'Email / Message Content') : 'Rejection Reason / Email Content'}
+              <span className="text-destructive"> *</span>
+            </Label>
             <RichTextEditor
               value={editorContent}
               onChange={setEditorContent}
@@ -275,6 +295,13 @@ function ActionDialog({ applicant, type, isLastRound = false, nextRound, onClose
               }
               className="min-h-[180px]"
             />
+            {!hasMessage && (
+              <p className="text-xs text-destructive">
+                {isProceed
+                  ? 'An acceptance message is required before you can confirm.'
+                  : 'A rejection message is required before you can confirm.'}
+              </p>
+            )}
           </div>
 
           {/* Send email checkbox */}
@@ -290,7 +317,7 @@ function ActionDialog({ applicant, type, isLastRound = false, nextRound, onClose
               </Label>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {sendEmail
-                  ? `An email will be sent to ${applicant?.email}`
+                  ? `An email will be sent to ${applicant?.email}, with your organisation CC'd`
                   : 'The applicant will not receive an email notification'}
               </p>
             </div>
@@ -304,7 +331,7 @@ function ActionDialog({ applicant, type, isLastRound = false, nextRound, onClose
           </Button>
           <Button
             onClick={() => void handleConfirm()}
-            disabled={loading}
+            disabled={loading || !hasMessage}
             className={`gap-1.5 ${
               isProceed
                 ? isLastRound
@@ -415,8 +442,9 @@ export function RoleApplicants({
     }
 
     try {
+      let result: { emailed?: boolean; emailError?: string | null } = {};
       if (roleId) {
-        await fetch(`/api/organisations/inductions/roles/${roleId}/applicants`, {
+        const res = await fetch(`/api/organisations/inductions/roles/${roleId}/applicants`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -429,6 +457,11 @@ export function RoleApplicants({
             email: applicant.email,
           }),
         });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json?.success) {
+          throw new Error(json?.error || 'Failed to update applicant status');
+        }
+        result = json.data ?? {};
       }
       setApplicants((prev) =>
         prev.map((a) => {
@@ -443,8 +476,16 @@ export function RoleApplicants({
             : `${applicant.name || applicant.email} advanced to next round`
           : `${applicant.name || applicant.email} rejected`,
       );
-    } catch {
-      toast.error('Failed to update applicant status');
+
+      if (sendEmail) {
+        if (result.emailed) {
+          toast.success(`Email sent to ${applicant.email}`);
+        } else {
+          toast.error(result.emailError || `Could not email ${applicant.email}`);
+        }
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update applicant status');
     }
   };
 
@@ -815,6 +856,7 @@ export function RoleApplicants({
             ? pipeline[actionTarget.currentRound + 1] ?? null
             : null
         }
+        resultsConfig={pipeline.find((r) => r.type === 'results')?.resultsConfig ?? null}
         onClose={() => setActionTarget(null)}
         onConfirm={handleActionConfirm}
       />

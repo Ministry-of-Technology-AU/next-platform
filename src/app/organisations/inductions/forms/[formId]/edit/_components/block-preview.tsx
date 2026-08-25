@@ -72,7 +72,12 @@ export function BlockPreview({ block }: { block: FormBlock }) {
               key={i}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-[10px] capitalize text-muted-foreground"
             >
-              {('platform' in l ? l.platform : 'link').slice(0, 2)}
+              {('platform' in l && l.platform === 'custom'
+                ? ('label' in l && l.label) || 'link'
+                : 'platform' in l
+                  ? l.platform
+                  : 'link'
+              ).slice(0, 2)}
             </span>
           ))}
         </div>

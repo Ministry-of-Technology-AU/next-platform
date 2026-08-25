@@ -11,7 +11,6 @@ import {
   Clock,
   Inbox,
   AlertCircle,
-  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import PageTitle from '@/components/page-title';
-import { TourStep, useTour } from '@/components/guided-tour';
+import { TourStep } from '@/components/guided-tour';
 import { TourManager } from './_components/tour-manager';
 import { OrganizationType, Organization } from '../organisations-catalog/types';
 import { PopulatedResponseRecord } from '@/lib/forms/strapi-forms';
@@ -271,13 +270,11 @@ export function InductionClient({
     setActiveTab('catalog');
   }, []);
 
-  const { startTour } = useTour();
-
   return (
     <div className="space-y-6 pb-12">
       <TourManager />
 
-      {/* Header with Title, Tour button and Notifications */}
+      {/* Header with Title and Notifications */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <TourStep
           id="inductions-header"
@@ -294,16 +291,7 @@ export function InductionClient({
         </TourStep>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => startTour()}
-            className="h-10 px-3.5 rounded-xl text-xs font-semibold gap-1.5 border-border/80 hover:bg-muted/80 shadow-2xs text-foreground cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            <span>Guided Tour</span>
-          </Button>
-
+          {/* The tour is reachable from the global help button in the navbar. */}
           <TourStep
             id="inductions-notifications"
             order={2}

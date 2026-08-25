@@ -29,6 +29,7 @@ import { ThemeEditor } from './_components/theme-editor';
 import { FormSettingsSheet } from './_components/form-settings';
 import { BuilderPreview } from './_components/builder-preview';
 import { isInputBlock, type FormBlock, type FormBlockType, type FormSchema } from '@/lib/forms/schema';
+import { normalizeFormSchema } from '@/lib/forms/normalize';
 import type { FormStatus } from '@/lib/forms/strapi-forms';
 
 interface BuilderClientProps {
@@ -111,8 +112,12 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
   const buildPayload = useCallback(() => {
     const s = stateRef.current;
     return {
-      schema: s.schema,
-      title: s.title,
+      // Cleared-but-not-yet-refilled fields would fail schema validation and
+      // stall every subsequent autosave; normalise them away first.
+      schema: normalizeFormSchema(s.schema),
+      // A blank title is rejected server-side; omit it rather than stalling
+      // the save while the org is mid-rename.
+      title: s.title.trim() || undefined,
       form_status: s.status,
       start_date: s.startDate,
       end_date: s.endDate,
@@ -177,14 +182,7 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
     setSaveState('saving');
     dispatch({ type: 'SET_META', patch: { status: 'active' } });
 
-    const s = stateRef.current;
-    const payload = {
-      schema: s.schema,
-      title: s.title,
-      form_status: 'active',
-      start_date: s.startDate,
-      end_date: s.endDate,
-    };
+    const payload = { ...buildPayload(), form_status: 'active' };
 
     try {
       const res = await fetch(apiUrl, {
@@ -217,14 +215,7 @@ export function BuilderClient({ uid, initial }: BuilderClientProps) {
     setSaveState('saving');
     dispatch({ type: 'SET_META', patch: { status: 'draft' } });
 
-    const s = stateRef.current;
-    const payload = {
-      schema: s.schema,
-      title: s.title,
-      form_status: 'draft',
-      start_date: s.startDate,
-      end_date: s.endDate,
-    };
+    const payload = { ...buildPayload(), form_status: 'draft' };
 
     try {
       const res = await fetch(apiUrl, {
