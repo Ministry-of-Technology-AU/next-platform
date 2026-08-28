@@ -5,10 +5,12 @@ import { getUserIdByEmail } from '@/lib/userid';
 import {
   getFormByUid,
   getFormByUidCached,
+  getFormById,
   isFormActive,
   getResponseRow,
   createResponseRow,
   updateResponseRow,
+  upsertResponseRow,
   bumpStats,
 } from '@/lib/forms/strapi-forms';
 import { buildResponseValidator } from '@/lib/forms/validator';
@@ -47,7 +49,10 @@ export async function GET(_req: Request, ctx: RouteContext) {
     if (!email) return jsonError('User not authenticated', 401);
 
     const { formId } = await ctx.params;
-    const form = await getFormByUidCached(formId);
+    let form = await getFormByUidCached(formId);
+    if (!form && !isNaN(Number(formId)) && !formId.includes('-')) {
+      form = await getFormById(Number(formId));
+    }
     if (!form) return jsonError('Form not found', 404);
 
     const row = await getResponseRow(form.id, email);
@@ -87,7 +92,10 @@ export async function POST(request: Request, ctx: RouteContext) {
     }
     const data = (parsed as { data?: Record<string, unknown> })?.data ?? {};
 
-    const form = await getFormByUidCached(formId);
+    let form = await getFormByUidCached(formId);
+    if (!form && !isNaN(Number(formId)) && !formId.includes('-')) {
+      form = await getFormById(Number(formId));
+    }
     if (!form || !isFormActive(form)) return jsonError('Form not found', 404);
 
     const row = await getResponseRow(form.id, email);
@@ -95,17 +103,23 @@ export async function POST(request: Request, ctx: RouteContext) {
 
     const clean = stripToInputBlocks(form.schema, data);
     const now = new Date().toISOString();
+    const userId = await getUserIdByEmail(email);
+    const isNew = !row;
 
-    if (!row) {
-      const userId = await getUserIdByEmail(email);
-      await createResponseRow({ formId: form.id, userId, email, data: clean });
+    await upsertResponseRow({
+      formId: form.id,
+      userId,
+      email,
+      data: clean,
+      state: 'draft',
+    });
+
+    if (isNew) {
       await bumpStats(form, (s) => ({
         ...s,
         uniqueVisits: s.uniqueVisits + 1,
         draftCount: s.draftCount + 1,
       }));
-    } else {
-      await updateResponseRow(row.id, { data: clean, last_saved_at: now });
     }
 
     return jsonOk({ saved: true, lastSavedAt: now });
@@ -135,7 +149,10 @@ export async function PUT(request: Request, ctx: RouteContext) {
     const data = (body as { data?: Record<string, unknown> })?.data ?? {};
 
     // Uncached read so an org's "set inactive" is honoured immediately.
-    const form = await getFormByUid(formId);
+    let form = await getFormByUid(formId);
+    if (!form && !isNaN(Number(formId)) && !formId.includes('-')) {
+      form = await getFormById(Number(formId));
+    }
     if (!form || !isFormActive(form)) return jsonError('Form not found', 404);
 
     const existing = await getResponseRow(form.id, email);
@@ -155,17 +172,19 @@ export async function PUT(request: Request, ctx: RouteContext) {
 
     const cleanData = sanitizeResponseRichText(form.schema, result.data);
     const now = new Date().toISOString();
+    const userId = await getUserIdByEmail(email);
+    const isNew = !existing;
 
-    if (!existing) {
-      const userId = await getUserIdByEmail(email);
-      await createResponseRow({
-        formId: form.id,
-        userId,
-        email,
-        data: cleanData,
-        state: 'submitted',
-        submittedAt: now,
-      });
+    await upsertResponseRow({
+      formId: form.id,
+      userId,
+      email,
+      data: cleanData,
+      state: 'submitted',
+      submittedAt: now,
+    });
+
+    if (isNew) {
       await bumpStats(form, (s) => ({
         ...s,
         uniqueVisits: s.uniqueVisits + 1,
@@ -173,12 +192,6 @@ export async function PUT(request: Request, ctx: RouteContext) {
         lastSubmissionAt: now,
       }));
     } else {
-      await updateResponseRow(existing.id, {
-        data: cleanData,
-        state: 'submitted',
-        submitted_at: now,
-        last_saved_at: now,
-      });
       await bumpStats(form, (s) => ({
         ...s,
         draftCount: Math.max(0, s.draftCount - 1),

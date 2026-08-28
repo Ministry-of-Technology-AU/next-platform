@@ -11,6 +11,17 @@ const ROUTE_ACCESS = {
   '/organisations': ['organization'],
 }
 
+// Induction surfaces an organisation can share with individuals who are not
+// organisation accounts (see lib/inductions/access.ts). The middleware only
+// checks that they are signed in — the page itself resolves the role's access
+// list and 404s anyone who is not on it.
+const INDUCTION_SHARED_ROUTES = [
+  // The landing page, which lists just the roles shared with the viewer.
+  /^\/organisations\/inductions\/?$/,
+  // A single role workspace: /organisations/inductions/<cycleId>/<roleId>
+  /^\/organisations\/inductions\/(?!forms(?:\/|$))[^/]+\/[^/]+\/?$/,
+]
+
 // Tools that ashoka_admin users are NOT allowed to access directly by URL.
 // Keep in sync with admin-sidebar-entries.json.
 const ASHOKA_ADMIN_BLOCKED_ROUTES = [
@@ -117,6 +128,12 @@ export default auth(async function middleware(req) {
       return NextResponse.redirect(new URL('/unauthorized', req.url))
     }
     // Allow access to everything else in /platform (dashboard, profile, allowed tools)
+    return NextResponse.next()
+  }
+
+  // Shared induction roles: signed in is enough to reach the page, which then
+  // enforces the organisation's own access list.
+  if (INDUCTION_SHARED_ROUTES.some(pattern => pattern.test(pathname))) {
     return NextResponse.next()
   }
 

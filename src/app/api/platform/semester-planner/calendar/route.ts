@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { HOLIDAYS_2025_2026, isHoliday, isAfterApril2026 } from "@/app/platform/semester-planner/holidays";
+import { HOLIDAYS, ACADEMIC_YEAR_LABEL, ACADEMIC_YEAR_BOUNDS, shouldDeleteEvent } from "@/app/platform/semester-planner/holidays";
 
 interface TimeSlot {
     day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
@@ -21,7 +21,7 @@ interface ScheduledCourse {
 }
 
 // Unique identifier for events created by this app
-const EVENT_IDENTIFIER = "TIMETABLE_SYNC_2025_2026";
+const EVENT_IDENTIFIER = `TIMETABLE_SYNC_${ACADEMIC_YEAR_LABEL}`;
 
 // Timezone for the university (Ashoka is in India)
 const UNIVERSITY_TIMEZONE = "Asia/Kolkata";
@@ -77,8 +77,8 @@ async function getAllExistingEvents(accessToken: string): Promise<Set<string>> {
     const existingCourseIds = new Set<string>();
 
     // Get time range for the academic year
-    const timeMin = new Date('2025-08-25T00:00:00Z').toISOString();
-    const timeMax = new Date('2026-05-31T23:59:59Z').toISOString();
+    const timeMin = new Date(`${ACADEMIC_YEAR_BOUNDS.start}T00:00:00Z`).toISOString();
+    const timeMax = new Date(`${ACADEMIC_YEAR_BOUNDS.end}T23:59:59Z`).toISOString();
 
     try {
         const response = await fetch(
@@ -99,10 +99,10 @@ async function getAllExistingEvents(accessToken: string): Promise<Set<string>> {
         const events = data.items || [];
 
         // Extract course IDs from existing events
+        const regex = new RegExp(`\\[${EVENT_IDENTIFIER}:([^\\]]+)\\]`);
         for (const event of events) {
             if (event.description?.includes(EVENT_IDENTIFIER)) {
-                // Extract course ID from description: [TIMETABLE_SYNC_2025_2026:COURSE_ID]
-                const match = event.description.match(/\[TIMETABLE_SYNC_2025_2026:([^\]]+)\]/);
+                const match = event.description.match(regex);
                 if (match && match[1]) {
                     existingCourseIds.add(match[1]);
                 }
@@ -195,8 +195,8 @@ async function getEventsOnHolidays(
     const eventsOnHolidays: Array<{ id: string; start: string; summary: string }> = [];
 
     // Get time range for the academic year
-    const timeMin = new Date('2025-08-25T00:00:00Z').toISOString();
-    const timeMax = new Date('2026-05-31T23:59:59Z').toISOString();
+    const timeMin = new Date(`${ACADEMIC_YEAR_BOUNDS.start}T00:00:00Z`).toISOString();
+    const timeMax = new Date(`${ACADEMIC_YEAR_BOUNDS.end}T23:59:59Z`).toISOString();
 
     try {
         const response = await fetch(
@@ -223,7 +223,7 @@ async function getEventsOnHolidays(
                 event.start?.dateTime
             ) {
                 const eventDate = new Date(event.start.dateTime);
-                if (isHoliday(eventDate) || isAfterApril2026(eventDate)) {
+                if (shouldDeleteEvent(eventDate)) {
                     eventsOnHolidays.push({
                         id: event.id,
                         start: event.start.dateTime,
@@ -376,7 +376,7 @@ export async function POST(request: NextRequest) {
             skipped: skippedCount,
             total: courses.length,
             deletedOnHolidays: deletedCount,
-            holidays: HOLIDAYS_2025_2026.length,
+            holidays: HOLIDAYS.length,
         });
     } catch (error) {
         console.error("Error syncing calendar:", error);

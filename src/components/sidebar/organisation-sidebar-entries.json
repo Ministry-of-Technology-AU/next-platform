@@ -16,8 +16,15 @@
                 },
                 {
                     "title": "Inductions",
-                    "icon": "Newspaper",
-                    "href": "/forms"
+                    "icon": "FileUser",
+                    "href": "/inductions",
+                    "isNew": true
+                },
+                {
+                    "title": "When2meet",
+                    "icon": "CalendarSearch",
+                    "href": "/platform/when2meet",
+                    "absolute": true
                 }
             ]
         },
@@ -33,7 +40,8 @@
                 {
                     "title": "Go to Platform",
                     "icon": "ArrowDownRight",
-                    "href": "../platform"
+                    "href": "/platform",
+                    "absolute": true
                 }
             ]
         }

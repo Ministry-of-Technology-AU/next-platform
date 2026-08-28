@@ -42,7 +42,9 @@ function processRecipients(recipients: string[]): string {
     "ug2022": "ug2022@ashoka.edu.in",
     "ug2023": "ug2023@ashoka.edu.in",
     "ug2024": "ug2024@ashoka.edu.in",
-    "ug2025": "ug2025@ashoka.edu.in"
+    "ug2025": "ug2025@ashoka.edu.in",
+    "ug2026": "ug2026@ashoka.edu.in",
+    "ug26": "ug26@ashoka.edu.in"
   }
 
   // Convert recipient IDs to email addresses
@@ -270,11 +272,10 @@ export async function GET() {
           label: "All Students",
           email: "students@ashoka.edu.in",
         },
-        { id: "asp25", label: "ASP25", email: "asp25@ashoka.edu.in" },
-        { id: "ug26", label: "UG26", email: "ug26@ashoka.edu.in" },
         { id: "ug2023", label: "UG2023", email: "ug2023@ashoka.edu.in" },
         { id: "ug2024", label: "UG2024", email: "ug2024@ashoka.edu.in" },
-        { id: "ug2025", label: "UG2025", email: "ug2025@ashoka.edu.in" }
+        { id: "ug2025", label: "UG2025", email: "ug2025@ashoka.edu.in" },
+        { id: "ug2026", label: "UG2026", email: "ug2026@ashoka.edu.in" }
       ],
       maxSubjectLength: 255,
       maxFileSize: 10 * 1024 * 1024, // 10MB

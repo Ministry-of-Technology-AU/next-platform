@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Save, Check } from 'lucide-react';
+import { Save, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FormThemeRoot } from '@/components/forms/form-theme-root';
 import { FormBlocks } from '@/components/forms/form-renderer';
@@ -23,7 +23,8 @@ interface FillerClientProps {
   userEmail: string;
 }
 
-const AUTOSAVE_MS = 60_000;
+const AUTOSAVE_DEBOUNCE_MS = 2_000;
+const AUTO_SYNC_INTERVAL_MS = 20_000;
 
 function initialAnswers(schema: FormSchema): Answers {
   const a: Answers = {};
@@ -43,6 +44,7 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentPageId, setCurrentPageId] = useState(schema.pages[0]?.id ?? '');
   const [submitting, setSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [confirmation, setConfirmation] = useState({
     title: schema.settings.confirmationTitle,
@@ -74,10 +76,11 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
   );
 
   const saveDraft = useCallback(
-    async (opts?: { silent?: boolean }) => {
+    async (opts?: { silent?: boolean; isAutoSave?: boolean }) => {
       if (!dirtyRef.current) return;
       const data = answersRef.current;
       persistLocal(data);
+      setIsSavingDraft(true);
       try {
         const res = await fetch(responseUrl, {
           method: 'POST',
@@ -87,12 +90,18 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
         if (res.ok) {
           dirtyRef.current = false;
           setSavedAt(Date.now());
-          if (!opts?.silent) toast.success('Draft saved');
+          if (opts?.isAutoSave) {
+            toast.success('Draft auto-saved', { duration: 2000 });
+          } else if (!opts?.silent) {
+            toast.success('Draft saved');
+          }
         } else if (!opts?.silent) {
           toast.error('Could not save draft');
         }
       } catch {
         if (!opts?.silent) toast.error('Could not save draft');
+      } finally {
+        setIsSavingDraft(false);
       }
     },
     [persistLocal, responseUrl],
@@ -158,16 +167,36 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid]);
 
-  // Debounced autosave (60s), reset on every change while dirty.
+  // Debounced autosave (2s), reset on every change while dirty.
   useEffect(() => {
     if (phase !== 'filling' && phase !== 'previewing') return;
     if (!dirtyRef.current) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => void saveDraft({ silent: true }), AUTOSAVE_MS);
+    debounceRef.current = setTimeout(() => {
+      if (dirtyRef.current) {
+        void saveDraft({ isAutoSave: true });
+      }
+    }, AUTOSAVE_DEBOUNCE_MS);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [answers, phase, saveDraft]);
+
+  // Periodic Auto-sync interval (every 20s, mirroring Semester Planner)
+  const saveDraftRef = useRef(saveDraft);
+  useEffect(() => {
+    saveDraftRef.current = saveDraft;
+  }, [saveDraft]);
+
+  useEffect(() => {
+    if (phase !== 'filling' && phase !== 'previewing') return;
+    const interval = setInterval(() => {
+      if (dirtyRef.current) {
+        void saveDraftRef.current({ isAutoSave: true });
+      }
+    }, AUTO_SYNC_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [phase]);
 
   // Flush on tab hide (sendBeacon) + unmount (keepalive fetch).
   useEffect(() => {
@@ -206,11 +235,18 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
 
   // ----- Editing -----
 
-  const handleChange = useCallback((blockId: string, value: unknown) => {
-    dirtyRef.current = true;
-    setAnswers((prev) => ({ ...prev, [blockId]: value }));
-    setErrors((prev) => (prev[blockId] ? { ...prev, [blockId]: '' } : prev));
-  }, []);
+  const handleChange = useCallback(
+    (blockId: string, value: unknown) => {
+      dirtyRef.current = true;
+      setAnswers((prev) => {
+        const updated = { ...prev, [blockId]: value };
+        persistLocal(updated);
+        return updated;
+      });
+      setErrors((prev) => (prev[blockId] ? { ...prev, [blockId]: '' } : prev));
+    },
+    [persistLocal],
+  );
 
   const uploadFile = useCallback(
     async (file: File, blockId: string): Promise<FileDescriptor> => {
@@ -270,6 +306,9 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
 
   const goNext = () => {
     if (!validatePage()) return;
+    if (dirtyRef.current) {
+      void saveDraft({ silent: true });
+    }
     if (isLastPage) {
       setPhase('previewing');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -280,6 +319,9 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
   };
 
   const goBack = () => {
+    if (dirtyRef.current) {
+      void saveDraft({ silent: true });
+    }
     if (phase === 'previewing') {
       setPhase('filling');
       return;
@@ -309,6 +351,8 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
       return;
     }
 
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    dirtyRef.current = false;
     setSubmitting(true);
     try {
       const res = await fetch(responseUrl, {
@@ -375,6 +419,7 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
         title={confirmation.title}
         html={confirmation.html}
         alreadyResponded={phase === 'already'}
+        primaryOutline={schema.theme.buttonStyle === 'outline'}
       />,
     );
   }
@@ -415,11 +460,18 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
           type="button"
           variant="ghost"
           size="sm"
+          disabled={isSavingDraft}
           onClick={() => saveDraft()}
           className="gap-1.5 text-[var(--form-text-muted)]"
         >
-          {savedAt ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
-          {savedAt ? 'Saved' : 'Save draft'}
+          {isSavingDraft ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : savedAt ? (
+            <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <Save className="h-3.5 w-3.5" />
+          )}
+          {isSavingDraft ? 'Saving...' : savedAt ? 'Draft saved' : 'Save draft'}
         </Button>
       </div>
 

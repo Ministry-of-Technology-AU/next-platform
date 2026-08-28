@@ -69,12 +69,49 @@ function formatAnswer(block: InputBlock, value: unknown): string {
   }
 }
 
+/**
+ * The shared inline-styled shell every form/induction email uses: accent
+ * header with the form or round name, the organisation underneath, body, and a
+ * muted footer strip.
+ */
+export function buildBrandedEmailHtml(options: {
+  heading: string;
+  subheading: string;
+  bodyHtml: string;
+  footer?: string;
+}): string {
+  return `
+  <div style="background:#faf7f2;padding:24px 0;font-family:${FONT};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
+      <tr>
+        <td style="background:${ACCENT};padding:20px 28px;">
+          <div style="color:#ffffff;font-size:18px;font-weight:bold;">${escapeHtml(options.heading)}</div>
+          <div style="color:#f7d9d3;font-size:13px;margin-top:2px;">${escapeHtml(options.subheading)}</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:24px 28px;color:${TEXT};font-size:15px;line-height:1.6;">${options.bodyHtml}</td>
+      </tr>${
+        options.footer
+          ? `
+      <tr>
+        <td style="padding:16px 28px;background:#faf7f2;color:${MUTED};font-size:12px;">
+          ${escapeHtml(options.footer)}
+        </td>
+      </tr>`
+          : ''
+      }
+    </table>
+  </div>`;
+}
+
 /** Builds the full inline-styled HTML email body. */
 export function buildResponseEmailHtml(
   formTitle: string,
   orgName: string,
   schema: FormSchema,
   data: FormResponseData,
+  applicantEmail?: string,
 ): string {
   const rows: InputBlock[] = [];
   for (const page of visiblePages(schema, data)) {
@@ -100,52 +137,90 @@ export function buildResponseEmailHtml(
 
   const submittedAt = format(new Date(), 'PPP p');
 
-  return `
-  <div style="background:#faf7f2;padding:24px 0;font-family:${FONT};">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
-      <tr>
-        <td style="background:${ACCENT};padding:20px 28px;">
-          <div style="color:#ffffff;font-size:18px;font-weight:bold;">${escapeHtml(formTitle)}</div>
-          <div style="color:#f7d9d3;font-size:13px;margin-top:2px;">${escapeHtml(orgName)}</div>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:24px 28px;">
-          <p style="margin:0 0 16px;color:${TEXT};font-size:15px;">Here is a copy of your response.</p>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml}</table>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:16px 28px;background:#faf7f2;color:${MUTED};font-size:12px;">
-          Submitted ${submittedAt} · This is a copy of your response.
-        </td>
-      </tr>
-    </table>
-  </div>`;
+  return buildBrandedEmailHtml({
+    heading: formTitle,
+    subheading: orgName,
+    bodyHtml: `
+          <p style="margin:0 0 16px;color:${TEXT};font-size:15px;">Here is a copy of the response${applicantEmail ? ` submitted by <strong>${escapeHtml(applicantEmail)}</strong>` : ''}.</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml}</table>`,
+    footer: `Submitted ${submittedAt} · This is a copy of the response.`,
+  });
 }
 
-async function getOrgName(organisationId: number | null): Promise<string> {
-  if (!organisationId) return 'Ashoka University';
+export interface OrgEmailDetails {
+  name: string;
+  /**
+   * The organisation's OWN address, taken from its `profile` account relation.
+   * Deliberately a single address rather than a list: `circle1_humans` /
+   * `circle2_humans` are individual leads, not the organisation, and must never
+   * be copied on applicant mail.
+   */
+  email: string | null;
+}
+
+/** First valid-looking address in the organisation's profile relation. */
+function profileEmail(orgAttrs: any): string | null {
+  const rel = orgAttrs?.profile?.data ?? orgAttrs?.profile;
+  const entries = Array.isArray(rel) ? rel : rel ? [rel] : [];
+  for (const entry of entries) {
+    const raw = entry?.attributes?.email ?? entry?.email;
+    if (typeof raw !== 'string') continue;
+    const trimmed = raw.trim().toLowerCase();
+    if (trimmed.includes('@')) return trimmed;
+  }
+  return null;
+}
+
+/** Fetches the organisation's display name and its own notification address. */
+export async function getOrgDetails(organisationId: number | null): Promise<OrgEmailDetails> {
+  if (!organisationId) {
+    console.warn('[forms/email] No organisationId on the form — cannot CC the organisation.');
+    return { name: 'Ashoka University', email: null };
+  }
   try {
-    const res = await strapiGet(`/organisations/${organisationId}`, { fields: ['name'] });
-    const entry = res?.data;
-    return entry?.attributes?.name ?? entry?.name ?? 'Ashoka University';
-  } catch {
-    return 'Ashoka University';
+    // NOTE: do not add a top-level `fields` here. The organisation type has no
+    // `email` attribute (the address lives on `profile`), and asking for one
+    // makes Strapi reject the whole request with 400 "Invalid parameter email"
+    // — which previously threw into the catch below and silently dropped the CC.
+    const res = await strapiGet(`/organisations/${organisationId}`, {
+      populate: { profile: { fields: ['email', 'username'] } },
+    });
+    const entry = res?.data ?? res;
+    const a = entry?.attributes ?? entry ?? {};
+    const name = a.name ?? 'Ashoka University';
+    const email = profileEmail(a);
+
+    if (!email) {
+      console.warn(
+        `[forms/email] Organisation ${organisationId} (${name}) has no profile account with an email — nothing to CC.`,
+      );
+    }
+
+    return { name, email };
+  } catch (err) {
+    console.error('Failed to get organisation details for email:', organisationId, err);
+    return { name: 'Ashoka University', email: null };
   }
 }
 
-/** Sends the respondent their formatted response copy. Throws on failure so the
- *  caller can log it — but the caller must not let it block the submit response. */
+/**
+ * Sends the submitted response to the applicant, with the organisation that
+ * owns the form CC'd so it receives every application as it comes in.
+ */
 export async function sendResponseEmail(
   form: FormRecord,
   email: string,
   data: FormResponseData,
 ): Promise<void> {
-  const orgName = await getOrgName(form.organisationId);
-  const html = buildResponseEmailHtml(form.title, orgName, form.schema, data);
+  const { name: orgName, email: orgEmail } = await getOrgDetails(form.organisationId);
+  // Never CC the respondent's own address back to them.
+  const cc = orgEmail && orgEmail !== email.trim().toLowerCase() ? orgEmail : undefined;
+  const html = buildResponseEmailHtml(form.title, orgName, form.schema, data, email);
+
   await sendMail({
     to: email,
+    cc,
+    replyTo: orgEmail ?? undefined,
     alias: orgName,
     subject: `Your response: ${form.title}`,
     html,

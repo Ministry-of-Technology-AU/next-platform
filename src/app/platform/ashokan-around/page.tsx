@@ -8,6 +8,8 @@ import { AccommodationData } from "./types";
 
 import { headers } from "next/headers";
 
+export const dynamic = 'force-dynamic';
+
 async function existAccommodationRequest(): Promise<{ success: boolean; userAccommodation: AccommodationData } | null> {
   try {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

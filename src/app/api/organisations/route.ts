@@ -6,6 +6,13 @@ export async function GET(request: Request) {
   try {
     // Fetch organizations from Strapi
     const strapiResponse = await strapiGet('organisations', {
+      populate: {
+        profile: { fields: ['id', 'username', 'email', 'profile_url'] },
+        circle1_humans: { fields: ['id', 'username', 'email'] },
+        circle2_humans: { fields: ['id', 'username', 'email'] },
+        members: { fields: ['id', 'username', 'email'] },
+        banner: { fields: ['url'] }
+      },
       pagination: { page: 1, pageSize: 200 },
     });
 

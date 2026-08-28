@@ -25,7 +25,6 @@ import { toast } from "sonner";
 import { TourStep } from "@/components/guided-tour";
 import type { TimetableDraft } from "../types";
 import { useIsMac } from "@/hooks/useIsMac";
-import { ScheduledCourse } from "../types";
 
 interface DraftTabsProps {
   drafts: TimetableDraft[];
@@ -37,6 +36,8 @@ interface DraftTabsProps {
   onDownloadTimetable: (draftId: string) => void;
   onRenameDraft: (draftId: string, newName: string) => void;
   onToggleFullScreen: () => void;
+  onSaveDraft: () => Promise<void>;
+  isSaving: boolean;
   // syncCalendar: () => Promise<void>;
   isFullScreenMode?: boolean;
   children: React.ReactNode;
@@ -52,6 +53,8 @@ export function DraftTabs({
   onDownloadTimetable,
   onRenameDraft,
   onToggleFullScreen,
+  onSaveDraft,
+  isSaving: isSavingProp,
   isFullScreenMode = false,
   children,
 }: DraftTabsProps) {
@@ -62,7 +65,6 @@ export function DraftTabs({
   const [isDuplicateOpen, setIsDuplicateOpen] = useState(false);
   const [isCalendarSyncOpen, setIsCalendarSyncOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [duplicateSourceId, setDuplicateSourceId] = useState("");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -84,37 +86,6 @@ export function DraftTabs({
     }
   };
 
-  const handleSaveDraft = useCallback(async () => {
-    const activeDraft = drafts.find(d => d.id === activeDraftId);
-    if (!activeDraft) {
-      toast.error("Active draft not found");
-      return;
-    }
-    if (activeDraft.courses.length === 0) {
-      toast.error("No courses to save in the current draft");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      const updatedDrafts = drafts.map(d => d.id === activeDraft.id ? { ...activeDraft, updatedAt: new Date().toISOString() } : d);
-      const response = await fetch(`/api/platform/semester-planner/drafts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ drafts: updatedDrafts }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        toast.success(`Draft "${activeDraft.name}" saved successfully!`);
-      } else {
-        toast.error(result.error || 'Failed to save draft');
-      }
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      toast.error('Failed to save draft. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [drafts, activeDraftId]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -132,7 +103,7 @@ export function DraftTabs({
             break;
           case 's':
             e.preventDefault();
-            handleSaveDraft();
+            onSaveDraft();
             break;
           case 'l':
             e.preventDefault();
@@ -143,7 +114,7 @@ export function DraftTabs({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeDraftId, onDownloadTimetable, handleSaveDraft]);
+  }, [activeDraftId, onDownloadTimetable, onSaveDraft]);
 
   const startEditing = (draftId: string, currentName: string) => {
     setEditingDraftId(draftId);
@@ -458,11 +429,11 @@ export function DraftTabs({
                   size="sm"
                   variant="outline"
                   className="h-8 px-2.5 text-xs flex-1 sm:flex-none dark:bg-neutral-light dark:border-border "
-                  onClick={handleSaveDraft}
-                  disabled={isSaving}
+                  onClick={onSaveDraft}
+                  disabled={isSavingProp}
                 >
                   <Save className="h-3.5 w-3.5 xl:mr-1.5" />
-                  {isSaving ? 'Saving...' : <span className="hidden xl:inline">Save Draft</span>}
+                  {isSavingProp ? 'Saving...' : <span className="hidden xl:inline">Save Draft</span>}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

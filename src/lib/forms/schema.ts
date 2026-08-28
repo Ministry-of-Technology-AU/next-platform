@@ -81,11 +81,23 @@ export type SocialPlatform =
   | 'twitter'
   | 'website'
   | 'youtube'
-  | 'discord';
+  | 'discord'
+  /** Any link the org wants that isn't one of the known platforms. */
+  | 'custom';
+
+export interface SocialLink {
+  platform: SocialPlatform;
+  url: string;
+  /**
+   * Display name for the link. Required in practice only for `custom`, where
+   * there is no platform name to fall back on.
+   */
+  label?: string;
+}
 
 export interface SocialLinksBlock extends BlockBase {
   type: 'social-links';
-  links: { platform: SocialPlatform; url: string }[];
+  links: SocialLink[];
 }
 
 // --- Input blocks (produce an answer keyed by block id) ---
@@ -330,7 +342,7 @@ export const FORM_LIMITS = {
   maxHtmlChars: 20000,
   maxRulesPerGroup: 10,
   maxPatternChars: 200,
-  maxTitleChars: 200,
+  maxTitleChars: 5000,
   /** Hard ceiling on uploads regardless of per-block config. */
   fileMaxSizeMB: 10,
   fileMaxFiles: 5,

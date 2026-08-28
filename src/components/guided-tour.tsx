@@ -601,16 +601,25 @@ export const TourStep: React.FC<{
   content: string;
   order: number;
   position?: "top" | "bottom" | "left" | "right";
-  onOpen?: () => void; // New prop for step-specific open actions
+  onOpen?: () => void;
   children: ReactNode;
   className?: string;
 }> = ({ children, id, title, content, order, position, onOpen, className }) => {
   const { registerStep, unregisterStep, isActive, currentStepId } = useTour();
   const elementRef = useRef<HTMLDivElement>(null);
+  const onOpenRef = useRef(onOpen);
+  onOpenRef.current = onOpen;
 
   useEffect(() => {
     if (elementRef.current) {
-      const stepConfig = { id, title, content, order, position, onOpen };
+      const stepConfig = {
+        id,
+        title,
+        content,
+        order,
+        position,
+        onOpen: () => onOpenRef.current?.(),
+      };
       registerStep(stepConfig, elementRef.current);
     }
     return () => {
@@ -622,7 +631,6 @@ export const TourStep: React.FC<{
     content,
     order,
     position,
-    onOpen,
     registerStep,
     unregisterStep,
   ]);

@@ -136,6 +136,7 @@ const socialLinksBlock = z.object({
           'website',
           'youtube',
           'discord',
+          'custom',
         ]),
         url: z.string().refine((u) => {
           try {
@@ -144,6 +145,7 @@ const socialLinksBlock = z.object({
             return false;
           }
         }, 'Must be an https URL'),
+        label: z.string().max(FORM_LIMITS.maxTitleChars).optional(),
       }),
     )
     .max(12),
@@ -412,6 +414,73 @@ export function parseFormSchema(input: unknown): FormSchema {
   return formSchemaValidator.parse(input) as FormSchema;
 }
 
+/** Label for the field a zod path ends on, e.g. `title` → "question label". */
+const FIELD_LABELS: Record<string, string> = {
+  title: 'question label',
+  subtitle: 'helper text',
+  placeholder: 'placeholder',
+  text: 'text',
+  html: 'content',
+  url: 'URL',
+  alt: 'alt text',
+  options: 'options',
+  label: 'option label',
+  value: 'option value',
+  pattern: 'pattern',
+  submitButtonText: 'submit button text',
+  confirmationTitle: 'confirmation title',
+  confirmationHtml: 'confirmation message',
+};
+
+/**
+ * Turns a zod path such as `pages.0.blocks.9.title` into something an org can
+ * act on: "Page 1 → question 10 (question label)". Falls back to the raw path
+ * for anything it does not recognise.
+ */
+function describePath(path: readonly (string | number | symbol)[], input: unknown): string {
+  const parts = path.map(String);
+  if (parts[0] !== 'pages' || parts.length < 2) {
+    const field = FIELD_LABELS[parts[parts.length - 1] ?? ''];
+    return field ? `the ${field}` : parts.join('.');
+  }
+
+  const pageIndex = Number(parts[1]);
+  const segments = [`Page ${pageIndex + 1}`];
+
+  if (parts[2] === 'blocks') {
+    const blockIndex = Number(parts[3]);
+    // Name the block by its own label/type when we can still read the payload.
+    const block = (input as FormSchema | undefined)?.pages?.[pageIndex]?.blocks?.[blockIndex] as
+      | { title?: string; type?: string }
+      | undefined;
+    const title = block?.title?.trim();
+    const truncatedTitle = title ? (title.length > 30 ? `${title.slice(0, 30)}…` : title) : undefined;
+    // Fall back to a readable form of the block type, e.g. "short text".
+    const name = truncatedTitle ? `"${truncatedTitle}"` : block?.type?.replace(/-/g, ' ');
+    segments.push(name ? `question ${blockIndex + 1} (${name})` : `question ${blockIndex + 1}`);
+  }
+
+  const field = FIELD_LABELS[parts[parts.length - 1] ?? ''];
+  if (field) segments.push(field);
+  return segments.join(' → ');
+}
+
+function formatZodIssueMessage(issue: z.ZodIssue): string {
+  if (issue.code === 'too_small') {
+    const min = (issue as unknown as { minimum?: number }).minimum;
+    if (min === 1 || Number(min) === 1) return "can't be empty";
+    return min !== undefined ? `must contain at least ${min} characters` : "can't be empty";
+  }
+  if (issue.code === 'too_big') {
+    const max = (issue as unknown as { maximum?: number }).maximum;
+    return max !== undefined ? `must contain at most ${max} characters` : 'is too long';
+  }
+  if (/invalid input/i.test(issue.message)) {
+    return 'is invalid';
+  }
+  return issue.message;
+}
+
 /** Safe parse returning a flat, human-readable error string on failure. */
 export function safeParseFormSchema(
   input: unknown,
@@ -419,8 +488,12 @@ export function safeParseFormSchema(
   const result = formSchemaValidator.safeParse(input);
   if (result.success) return { ok: true, schema: result.data as FormSchema };
   const first = result.error.issues[0];
-  const where = first?.path?.length ? ` (${first.path.join('.')})` : '';
-  return { ok: false, error: `${first?.message ?? 'Invalid form schema'}${where}` };
+  if (!first) return { ok: false, error: 'Invalid form schema' };
+
+  const where = first.path?.length ? describePath(first.path, input) : '';
+  const message = formatZodIssueMessage(first);
+
+  return { ok: false, error: where ? `${where}: ${message}` : message };
 }
 
 // ============================================================================
