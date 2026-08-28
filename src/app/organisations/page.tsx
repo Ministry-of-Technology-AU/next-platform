@@ -1,113 +1,148 @@
 "use client";
-import PageTitle from "@/components/page-title";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Megaphone, UserCog, Clock, ArrowRight, LayoutDashboard, UserCheck } from "lucide-react";
+
 import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Megaphone,
+  UserCog,
+  FileUser,
+  CalendarSearch,
+  ArrowRight,
+} from "lucide-react";
 
-export default function LandingPage() {
-    return (
-        <div className="container max-w-6xl mx-auto pt-8 px-4 sm:px-6 lg:px-8 space-y-8">
-            <PageTitle
-                text="Organisation Portal"
-                icon={LayoutDashboard}
-                subheading="Welcome! Manage your club's presence, advertise events, and update catalog information for the student body."
-            />
+const FEATURES = [
+  {
+    title: "Inductions",
+    description:
+      "Run multi-stage recruitment cycles. Track applicants through form rounds and interviews. Dispatch decisions in real-time.",
+    icon: FileUser,
+    href: "/organisations/inductions",
+    iconClass: "text-primary dark:text-primary-bright",
+    gradientFrom: "from-primary/8 dark:from-primary/15",
+    badge: "New",
+  },
+  {
+    title: "Advertisements",
+    description:
+      "Publish banners on the student platform home feed. Promote events, fests, and recruitment drives to the entire campus.",
+    icon: Megaphone,
+    href: "/organisations/ads",
+    iconClass: "text-amber-600 dark:text-amber-400",
+    gradientFrom: "from-amber-500/8 dark:from-amber-500/15",
+    badge: null,
+  },
+  {
+    title: "Organisation Profile",
+    description:
+      "Own your public listing in the Organisations Catalogue. Update your logo, description, social links, and induction status.",
+    icon: UserCog,
+    href: "/organisations/profile",
+    iconClass: "text-emerald-700 dark:text-emerald-400",
+    gradientFrom: "from-emerald-500/8 dark:from-emerald-500/15",
+    badge: null,
+  },
+  {
+    title: "When2meet",
+    description:
+      "Coordinate interview panels and team schedules without back-and-forth. Find overlapping windows with interactive heatmaps.",
+    icon: CalendarSearch,
+    href: "/platform/when2meet",
+    iconClass: "text-blue dark:text-blue-light",
+    gradientFrom: "from-blue-500/8 dark:from-blue-500/15",
+    badge: null,
+  },
+];
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                {/* Advertisements Card */}
-                <Card className="flex flex-col h-full border border-border/80 bg-white/50 dark:bg-black/50 backdrop-blur-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                    <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-6">
-                        <div className="p-3 rounded-2xl bg-primary/10 text-primary dark:text-primary-bright">
-                            <Megaphone className="h-8 w-8" />
-                        </div>
-                        <div className="flex-1">
-                            <CardTitle className="text-xl font-bold !text-left">Advertisements</CardTitle>
-                            <CardDescription className="text-sm text-muted-foreground !text-left">Live now</CardDescription>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex flex-1 flex-col justify-between p-6 pt-0 space-y-6">
-                        <p className="text-sm text-muted-foreground text-left sm:pl-[72px]">
-                            Design and publish advertisements to display across the student platform. Promote your upcoming events, recruitment drives, and initiatives directly to the student body.
-                        </p>
-                        <Button asChild className="w-full mt-auto">
-                            <Link href="/organisations/ads" className="flex items-center justify-center gap-2">
-                                Go to Ads Manager <ArrowRight className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                    </CardContent>
-                </Card>
+export default function OrganisationsPage() {
+  return (
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10">
 
-                {/* Organisation Profile Card */}
-                <Card className="flex flex-col h-full border border-border/80 bg-white/50 dark:bg-black/50 backdrop-blur-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                    <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-6">
-                        <div className="p-3 rounded-2xl bg-primary/10 text-primary dark:text-primary-bright">
-                            <UserCog className="h-8 w-8" />
-                        </div>
-                        <div className="flex-1">
-                            <CardTitle className="text-xl font-bold !text-left">Organisation Profile</CardTitle>
-                            <CardDescription className="text-sm text-muted-foreground !text-left">Live now</CardDescription>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex flex-1 flex-col justify-between p-6 pt-0 space-y-6">
-                        <p className="text-sm text-muted-foreground text-left sm:pl-[72px]">
-                            Manage your organisation's identity. Update your description, logo, banner, tagline, and details displayed publicly in the Organisations Catalogue.
-                        </p>
-                        <Button asChild className="w-full mt-auto">
-                            <Link href="/organisations/profile" className="flex items-center justify-center gap-2">
-                                Manage Profile <ArrowRight className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+      {/* ── Hero ── */}
+      <div className="space-y-3">
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground text-left">
+          Techmin presents
+        </p>
 
-            {/* Inductions Tracker Card */}
-            <div className="pt-4">
-                <Card className="border border-border/80 bg-white/50 dark:bg-black/50 backdrop-blur-md p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-primary/10 text-primary dark:text-primary-bright">
-                            <UserCheck className="h-6 w-6" />
-                        </div>
-                        <div className="text-left">
-                            <h4 className="font-bold text-lg !text-left">Inductions Tracker</h4>
-                            <p className="text-sm text-muted-foreground">Monitor candidate registration progress, verify profile requirements, and oversee your recruitment pipeline.</p>
-                        </div>
-                    </div>
-                    <Button asChild className="w-full md:w-auto shrink-0">
-                        <Link href="/organisations/profile" className="flex items-center justify-center gap-2">
-                            Go to Tracker <ArrowRight className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                </Card>
-            </div>
-
-            {/* Coming Soon Card */}
-            <div className="pt-4">
-                <Card className="border border-border/60 bg-white/30 dark:bg-black/30 backdrop-blur-sm p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gray-200 dark:bg-neutral-800 text-gray-500">
-                            <Clock className="h-6 w-6" />
-                        </div>
-                        <div className="text-left">
-                            <h4 className="font-bold text-lg !text-left">Inductions Platform</h4>
-                            <p className="text-sm text-muted-foreground">Coming Soon • SG-Inductions portal is currently in development.</p>
-                        </div>
-                    </div>
-                    <Button variant="outline" disabled className="w-full md:w-auto">
-                        Coming Soon
-                    </Button>
-                </Card>
-            </div>
-
-            <div className="pt-8 text-center space-y-2">
-                <p className="text-sm text-muted-foreground">Looking for the student-facing dashboard?</p>
-                <Button variant="link" asChild>
-                    <Link href="/platform">
-                        Go to Platform
-                    </Link>
-                </Button>
-            </div>
+        <div className="space-y-1 text-left">
+          <p className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1] text-foreground">
+            Platform,
+          </p>
+          <p
+            className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]"
+            style={{
+              background: "linear-gradient(135deg, #C1121F 0%, #e05a1a 55%, #d97706 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            for orgs.
+          </p>
         </div>
-    );
+
+        <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-left max-w-xl">
+          The unified workspace for Ashoka&apos;s clubs, societies, and collectives.
+          Recruit, broadcast, and own your campus presence - all in one place.
+        </p>
+      </div>
+
+      {/* ── Feature Cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {FEATURES.map((feature) => {
+          const Icon = feature.icon;
+          return (
+            <Link key={feature.title} href={feature.href} className="group block h-full">
+              <Card
+                className={`
+                  h-full border border-border/80 transition-all duration-300
+                  hover:shadow-xl hover:-translate-y-1 hover:border-border
+                  bg-gradient-to-br ${feature.gradientFrom} to-transparent
+                `}
+              >
+                <CardContent className="p-6 flex flex-col gap-4">
+                  {/* Top row: icon + title + badge + arrow */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2.5 rounded-xl bg-background/80 dark:bg-background/40 border border-border/60 shadow-sm shrink-0">
+                        <Icon className={`h-5 w-5 ${feature.iconClass}`} />
+                      </div>
+                      <span className="font-bold text-base text-foreground group-hover:text-primary dark:group-hover:text-primary-bright transition-colors truncate">
+                        {feature.title}
+                      </span>
+                      {feature.badge && (
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary dark:text-primary-bright shrink-0">
+                          {feature.badge}
+                        </span>
+                      )}
+                    </div>
+                    <ArrowRight
+                      className="h-4 w-4 text-muted-foreground group-hover:text-primary dark:group-hover:text-primary-bright
+                        transition-all duration-200 group-hover:translate-x-1 shrink-0"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {feature.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* ── Footer link ── */}
+      <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        Looking for the student-facing dashboard?
+        <Button variant="link" asChild className="p-0 h-auto text-sm font-medium">
+          <Link href="/platform" className="flex items-center gap-1">
+            Go to Platform <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </Button>
+      </div>
+
+    </div>
+  );
 }
