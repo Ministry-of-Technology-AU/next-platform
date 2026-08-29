@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Organization, OpenPosition } from '../../organisations-catalog/types';
 import { htmlToPlainText } from '@/lib/utils';
+import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -65,11 +66,12 @@ export function InductionCatalogCard({
         },
       ];
 
-  const deadline = organization.inductionEnd ? new Date(organization.inductionEnd) : null;
+  const deadlineIso = organization.inductionEnd ? normalizeEndDateToEndOfDay(organization.inductionEnd) : null;
+  const deadline = deadlineIso ? new Date(deadlineIso) : null;
   const now = new Date();
   const hasValidDeadline = deadline && !isNaN(deadline.getTime());
   const daysLeft = hasValidDeadline ? Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
-  const isEndingSoon = hasValidDeadline && (daysLeft !== null && daysLeft <= 3);
+  const isEndingSoon = hasValidDeadline && (daysLeft !== null && daysLeft <= 3 && daysLeft >= 0);
 
   const logoUrl = organization.logoUrl || '';
   // Cycle/induction descriptions are authored as rich text — flatten to plain

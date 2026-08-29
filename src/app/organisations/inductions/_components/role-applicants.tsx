@@ -349,6 +349,163 @@ function ActionDialog({ applicant, type, isLastRound = false, nextRound, results
   );
 }
 
+// ─── Bulk Action Dialog ────────────────────────────────────────────────────────
+
+interface BulkActionDialogProps {
+  selectedApplicants: ApplicantRow[];
+  type: 'proceed' | 'reject' | null;
+  pipeline?: PipelineRound[];
+  roundLabels?: string[];
+  resultsConfig?: ResultsConfig | null;
+  onClose: () => void;
+  onConfirm: (sendEmail: boolean, content: string) => Promise<void>;
+}
+
+function BulkActionDialog({
+  selectedApplicants,
+  type,
+  resultsConfig,
+  onClose,
+  onConfirm,
+}: BulkActionDialogProps) {
+  const [editorContent, setEditorContent] = useState('');
+  const [sendEmail, setSendEmail] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const isProceed = type === 'proceed';
+
+  const defaultContent = useMemo(() => {
+    const template = resultsConfig?.emailTemplate?.trim();
+    if (template) return template;
+
+    if (!isProceed) {
+      return `<p>Dear Applicant,</p><p>Thank you for your interest and time in applying. After careful consideration, we regret to inform you that you have not been selected to proceed further at this time.</p><p>We appreciate your effort and encourage you to apply again in the future.</p><p>Best regards,<br/>The Inductions Team</p>`;
+    }
+
+    return `<p>Dear Applicant,</p><p>Congratulations! We are pleased to inform you that your application has been selected to proceed in our induction process.</p><p>We look forward to connecting with you soon.</p><p>Warm regards,<br/>The Inductions Team</p>`;
+  }, [isProceed, resultsConfig]);
+
+  const handleOpen = () => {
+    setEditorContent(defaultContent);
+    setSendEmail(resultsConfig?.sendEmail ?? true);
+  };
+
+  const hasMessage = htmlToPlainText(editorContent).length > 0;
+
+  const handleConfirm = async () => {
+    if (!hasMessage) {
+      toast.error('Write a message/reason before confirming bulk action.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await onConfirm(sendEmail, editorContent);
+      onClose();
+    } catch {
+      toast.error('Bulk action failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={selectedApplicants.length > 0 && !!type}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+        else handleOpen();
+      }}
+    >
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {isProceed ? (
+              <>
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                Bulk Accept / Advance ({selectedApplicants.length} Applicants)
+              </>
+            ) : (
+              <>
+                <XCircle className="h-5 w-5 text-destructive" />
+                Bulk Reject ({selectedApplicants.length} Applicants)
+              </>
+            )}
+          </DialogTitle>
+          <DialogDescription>
+            {isProceed
+              ? `You are advancing/selecting ${selectedApplicants.length} applicants.`
+              : `You are rejecting ${selectedApplicants.length} applicants. The reason below will be saved and sent to all selected applicants.`}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="p-3 rounded-lg bg-muted/40 text-xs space-y-1">
+            <p className="font-semibold text-foreground">Selected Applicants:</p>
+            <p className="text-muted-foreground line-clamp-2">
+              {selectedApplicants.map((a) => a.name || a.email).join(', ')}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>
+              {isProceed ? 'Acceptance Message / Email Content' : 'Rejection Reason / Email Content'}
+              <span className="text-destructive"> *</span>
+            </Label>
+            <RichTextEditor
+              value={editorContent}
+              onChange={setEditorContent}
+              placeholder={isProceed ? 'Write an acceptance message...' : 'Provide a reason for rejection...'}
+              className="min-h-[180px]"
+            />
+            {!hasMessage && (
+              <p className="text-xs text-destructive">
+                A message/reason is required before you can confirm bulk action.
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+            <Checkbox
+              id="bulk-send-email-checkbox"
+              checked={sendEmail}
+              onCheckedChange={(checked) => setSendEmail(!!checked)}
+            />
+            <div>
+              <Label htmlFor="bulk-send-email-checkbox" className="cursor-pointer text-sm font-medium">
+                Send email to all selected applicants
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {sendEmail
+                  ? `Emails will be sent to all ${selectedApplicants.length} applicants with your organisation CC'd`
+                  : 'Applicants will not receive email notifications'}
+              </p>
+            </div>
+            <Mail className="ml-auto h-4 w-4 text-muted-foreground flex-shrink-0" />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => void handleConfirm()}
+            disabled={loading || !hasMessage}
+            className={`gap-1.5 ${
+              isProceed
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+            }`}
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isProceed ? `Confirm & Advance (${selectedApplicants.length})` : `Confirm & Reject (${selectedApplicants.length})`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function RoleApplicants({
@@ -370,6 +527,8 @@ export function RoleApplicants({
   const [roundFilter, setRoundFilter] = useState<number | 'all'>('all');
   const [actionTarget, setActionTarget] = useState<ApplicantRow | null>(null);
   const [actionType, setActionType] = useState<'proceed' | 'reject'>('proceed');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkActionType, setBulkActionType] = useState<'proceed' | 'reject' | null>(null);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -489,6 +648,66 @@ export function RoleApplicants({
     }
   };
 
+  const handleBulkActionConfirm = async (sendEmail: boolean, content: string) => {
+    const selectedApplicants = filtered.filter((a) => selectedIds.has(a.id));
+    if (selectedApplicants.length === 0) return;
+
+    const totalRounds = pipeline?.length || roundLabels?.length || 1;
+    let successCount = 0;
+
+    for (const applicant of selectedApplicants) {
+      const isLastRound = applicant.currentRound >= totalRounds - 1;
+      let nextStatus: ApplicantStatus = 'rejected';
+      let nextRound = applicant.currentRound;
+
+      if (bulkActionType === 'proceed') {
+        if (isLastRound) {
+          nextStatus = 'approved';
+        } else {
+          nextStatus = 'advanced';
+          nextRound = applicant.currentRound + 1;
+        }
+      } else {
+        nextStatus = 'rejected';
+      }
+
+      try {
+        if (roleId) {
+          await fetch(`/api/organisations/inductions/roles/${roleId}/applicants`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              responseId: applicant.id,
+              status: nextStatus,
+              currentRound: nextRound,
+              statusMessage: content,
+              rejectionReason: bulkActionType === 'reject' ? content : undefined,
+              sendEmail,
+              email: applicant.email,
+            }),
+          });
+        }
+        setApplicants((prev) =>
+          prev.map((a) => {
+            if (a.id !== applicant.id) return a;
+            return { ...a, status: nextStatus, currentRound: nextRound };
+          }),
+        );
+        successCount++;
+      } catch (err) {
+        console.error(`Failed bulk update for ${applicant.email}:`, err);
+      }
+    }
+
+    toast.success(
+      bulkActionType === 'proceed'
+        ? `Bulk proceed completed for ${successCount} applicant(s)`
+        : `Bulk rejection completed for ${successCount} applicant(s)`,
+    );
+    setSelectedIds(new Set());
+    setBulkActionType(null);
+  };
+
   const handleQuickMoveRound = async (applicant: ApplicantRow, targetRoundIdx: number) => {
     try {
       if (roleId) {
@@ -537,8 +756,6 @@ export function RoleApplicants({
   };
 
   const totalCount = applicants.length;
-  const advancedCount = applicants.filter((a) => a.status === 'advanced').length;
-  const rejectedCount = applicants.filter((a) => a.status === 'rejected').length;
 
   return (
     <div className="space-y-4">
@@ -607,11 +824,60 @@ export function RoleApplicants({
         ))}
       </div>
 
+      {/* Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+          <span className="font-semibold text-primary">
+            {selectedIds.size} applicant{selectedIds.size > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="h-7 px-3 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() => setBulkActionType('proceed')}
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Bulk Proceed / Select
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-xs gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+              onClick={() => setBulkActionType('reject')}
+            >
+              <XCircle className="h-3.5 w-3.5" />
+              Bulk Reject
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs text-muted-foreground"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Deselect All
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="rounded-xl border border-border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10 pl-4">
+                <Checkbox
+                  checked={filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id))}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedIds(new Set(filtered.map((a) => a.id)));
+                    } else {
+                      setSelectedIds(new Set());
+                    }
+                  }}
+                  aria-label="Select all applicants"
+                />
+              </TableHead>
               <TableHead className="!text-left">Applicant</TableHead>
               <TableHead className="!text-left">Current Round &amp; Schedule</TableHead>
               <TableHead className="!text-left">Submitted</TableHead>
@@ -622,7 +888,7 @@ export function RoleApplicants({
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
                   No applicants in this round.
                 </TableCell>
               </TableRow>
@@ -646,6 +912,20 @@ export function RoleApplicants({
 
                 return (
                   <TableRow key={applicant.id}>
+                    {/* Checkbox */}
+                    <TableCell className="pl-4">
+                      <Checkbox
+                        checked={selectedIds.has(applicant.id)}
+                        onCheckedChange={(checked) => {
+                          const next = new Set(selectedIds);
+                          if (checked) next.add(applicant.id);
+                          else next.delete(applicant.id);
+                          setSelectedIds(next);
+                        }}
+                        aria-label={`Select ${applicant.name || applicant.email}`}
+                      />
+                    </TableCell>
+
                     {/* Applicant */}
                     <TableCell>
                       <div className="flex items-center gap-2.5">
@@ -859,6 +1139,17 @@ export function RoleApplicants({
         resultsConfig={pipeline.find((r) => r.type === 'results')?.resultsConfig ?? null}
         onClose={() => setActionTarget(null)}
         onConfirm={handleActionConfirm}
+      />
+
+      {/* Bulk Action Dialog */}
+      <BulkActionDialog
+        selectedApplicants={filtered.filter((a) => selectedIds.has(a.id))}
+        type={bulkActionType}
+        pipeline={pipeline}
+        roundLabels={roundLabels}
+        resultsConfig={pipeline.find((r) => r.type === 'results')?.resultsConfig ?? null}
+        onClose={() => setBulkActionType(null)}
+        onConfirm={handleBulkActionConfirm}
       />
     </div>
   );

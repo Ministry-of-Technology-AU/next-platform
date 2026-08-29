@@ -115,3 +115,62 @@ export async function GET() {
     );
   }
 }
+
+/**
+ * DELETE /api/platform/inductions/applications
+ * Deletes a draft application for the authenticated user.
+ */
+export async function DELETE(request: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const body = await request.json().catch(() => ({}));
+    const responseId = body?.responseId || body?.id || searchParams.get('id') || searchParams.get('responseId');
+
+    if (!responseId) {
+      return NextResponse.json(
+        { success: false, error: 'Response ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const userEmail = session.user.email;
+    const allResponses = await getResponsesByUserEmail(userEmail);
+    const targetResponse = allResponses.find((r) => String(r.id) === String(responseId));
+
+    if (!targetResponse) {
+      return NextResponse.json(
+        { success: false, error: 'Application draft not found or not owned by user' },
+        { status: 404 }
+      );
+    }
+
+    const { deleteResponseRow } = await import('@/lib/forms/strapi-forms');
+    const success = await deleteResponseRow(targetResponse.id);
+
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to delete application draft' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Draft application deleted successfully',
+    });
+  } catch (error) {
+    console.error('DELETE /api/platform/inductions/applications failed:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete application draft' },
+      { status: 500 }
+    );
+  }
+}

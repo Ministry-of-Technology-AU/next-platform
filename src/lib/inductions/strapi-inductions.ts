@@ -115,6 +115,7 @@ export function normalizeRole(entry: any): InductionRole | null {
     accessEmails: a.access_emails || a.accessEmails || [],
     formIds,
     primaryFormId: formIds[0] ?? null,
+    sendResponseNotifications: a.send_response_notifications ?? a.sendResponseNotifications ?? true,
     stats: roleStats,
     createdAt: a.createdAt || new Date().toISOString(),
   };
@@ -355,6 +356,9 @@ export async function updateCycle(
     stats: any;
   }>,
 ): Promise<InductionCycleSummary | null> {
+  const existingRes = await strapiGet(`/induction-cycles/${cycleId}`);
+  const existingAttrs = attrs<any>(existingRes?.data);
+
   const data: Record<string, any> = {};
   if (patch.name !== undefined) data.name = patch.name;
   if (patch.startDate !== undefined) data.start_date = patch.startDate ? normalizeStartDateToStartOfDay(patch.startDate) : null;
@@ -362,16 +366,20 @@ export async function updateCycle(
   if (patch.description !== undefined) data.description = patch.description;
   if (patch.stats !== undefined) data.stats = patch.stats;
 
-  const rawStatus = patch.status !== undefined ? patch.status : 'draft';
-  const effectiveStart = patch.startDate !== undefined ? patch.startDate : null;
-  const effectiveEnd = patch.endDate !== undefined ? patch.endDate : null;
+  const rawStatus = patch.status !== undefined ? patch.status : (existingAttrs?.status as CycleStatus) || 'draft';
+  const effectiveStart = patch.startDate !== undefined ? patch.startDate : (existingAttrs?.start_date ?? null);
+  const effectiveEnd = patch.endDate !== undefined ? patch.endDate : (existingAttrs?.end_date ?? null);
   data.status = getDerivedCycleStatus(rawStatus, effectiveStart, effectiveEnd);
 
   const res = await strapiPut(`/induction-cycles/${cycleId}`, { data });
   const updated = normalizeCycle(res?.data);
   if (updated) {
     revalidateTag(`cycle-stats:${cycleId}`);
-    const orgId = res?.data?.attributes?.organisation?.data?.id ?? res?.data?.organisation?.id;
+    const orgId =
+      res?.data?.attributes?.organisation?.data?.id ??
+      res?.data?.organisation?.id ??
+      existingAttrs?.organisation?.data?.id ??
+      existingAttrs?.organisation?.id;
     if (orgId) {
       revalidateTag(`org-cycles:${orgId}`);
     }
@@ -450,6 +458,7 @@ export async function createRole(input: {
   department?: string | null;
   description?: string | null;
   accessEmails?: string[];
+  sendResponseNotifications?: boolean;
 }): Promise<InductionRole | null> {
   const res = await strapiPost('/induction-roles', {
     data: {
@@ -458,6 +467,7 @@ export async function createRole(input: {
       department: input.department || undefined,
       description: input.description || undefined,
       access_emails: input.accessEmails || [],
+      send_response_notifications: input.sendResponseNotifications ?? true,
       stats: PLACEHOLDER_ROLE_STATS,
       induction_cycle: input.cycleId,
     },
@@ -477,7 +487,7 @@ export async function createRole(input: {
         cycleRaw?.data?.organisation;
 
       if (orgId) {
-        const formRecord = await createForm(`${input.name} Application Form`, Number(orgId));
+        const formRecord = await createForm(`${input.name} Application Form`, Number(orgId), 'active');
         if (formRecord?.id) {
           formDbId = formRecord.id;
         }
@@ -513,6 +523,7 @@ export async function updateRole(
     department: string | null;
     description: string | null;
     accessEmails: string[];
+    sendResponseNotifications: boolean;
     stats: any;
   }>,
 ): Promise<InductionRole | null> {
@@ -522,6 +533,7 @@ export async function updateRole(
   if (patch.department !== undefined) data.department = patch.department;
   if (patch.description !== undefined) data.description = patch.description;
   if (patch.accessEmails !== undefined) data.access_emails = patch.accessEmails;
+  if (patch.sendResponseNotifications !== undefined) data.send_response_notifications = patch.sendResponseNotifications;
   if (patch.stats !== undefined) data.stats = patch.stats;
 
   const res = await strapiPut(`/induction-roles/${roleId}`, { data });
@@ -781,6 +793,9 @@ export async function getPipelineRoundDetails(roundId: string | number): Promise
   }
 }
 
+// Mutex map for atomic interview slot reservations per round
+const bookingLockMap = new Map<string, Promise<any>>();
+
 export async function bookInterviewSlot(
   roundId: string | number,
   booking: {
@@ -789,66 +804,87 @@ export async function bookInterviewSlot(
     candidateName?: string;
   },
 ): Promise<{ success: boolean; round?: PipelineRound | null; error?: string }> {
-  try {
-    const roundDetails = await getPipelineRoundDetails(roundId);
-    if (!roundDetails) {
-      return { success: false, error: 'Interview round not found' };
+  const roundKey = String(roundId);
+  const currentLock = bookingLockMap.get(roundKey) || Promise.resolve();
+
+  const nextLock = currentLock.then(async () => {
+    try {
+      // Direct raw Strapi fetch to bypass any cached response state
+      const resRound = await strapiGet(`/pipeline-rounds/${roundId}`, {
+        populate: { interview_config: true },
+      });
+      const rawRound = resRound?.data;
+      if (!rawRound) {
+        return { success: false, error: 'Interview round not found' };
+      }
+
+      const normalized = normalizePipelineRound(rawRound);
+      if (!normalized || normalized.type !== 'interview') {
+        return { success: false, error: 'This round is not configured for interview scheduling' };
+      }
+
+      const currentConfig = normalized.interviewConfig || {
+        eventTitle: normalized.label,
+        eventDescription: normalized.description || '',
+        invitees: [],
+        dateMode: 'dates',
+        slotMode: 'default',
+        slotDuration: 30,
+        selectedSlots: [],
+        bookings: [],
+      };
+
+      const existingBookings = currentConfig.bookings || [];
+
+      // Concurrency Check: Check if slot is already booked by another candidate
+      const isAlreadyBooked = existingBookings.some(
+        (b) =>
+          b.slotKey === booking.slotKey &&
+          b.candidateEmail.toLowerCase() !== booking.candidateEmail.toLowerCase(),
+      );
+
+      if (isAlreadyBooked) {
+        return {
+          success: false,
+          error: 'This time slot has already been booked by another candidate. Please select a different time slot.',
+        };
+      }
+
+      // Add booking (or update if candidate is re-scheduling in this round)
+      const filteredBookings = existingBookings.filter(
+        (b) => b.candidateEmail.toLowerCase() !== booking.candidateEmail.toLowerCase(),
+      );
+
+      const newBooking = {
+        slotKey: booking.slotKey,
+        candidateEmail: booking.candidateEmail,
+        candidateName: booking.candidateName || undefined,
+        bookedAt: new Date().toISOString(),
+      };
+
+      const updatedConfig = {
+        ...currentConfig,
+        bookings: [...filteredBookings, newBooking],
+      };
+
+      const putRes = await strapiPut(`/pipeline-rounds/${roundId}`, {
+        data: {
+          interview_config: updatedConfig,
+        },
+      });
+
+      return {
+        success: true,
+        round: normalizePipelineRound(putRes?.data),
+      };
+    } catch (err: any) {
+      console.error('Error booking interview slot for round:', roundId, err);
+      return { success: false, error: err.message || 'Failed to book slot' };
     }
+  });
 
-    if (roundDetails.type !== 'interview') {
-      return { success: false, error: 'This round is not configured for interview scheduling' };
-    }
-
-    const currentConfig = roundDetails.interviewConfig || {
-      eventTitle: roundDetails.label,
-      eventDescription: roundDetails.description || '',
-      invitees: [],
-      dateMode: 'dates',
-      slotMode: 'default',
-      slotDuration: 30,
-      selectedSlots: [],
-      bookings: [],
-    };
-
-    const existingBookings = currentConfig.bookings || [];
-
-    // Check if slot is already booked
-    const isAlreadyBooked = existingBookings.some((b) => b.slotKey === booking.slotKey);
-    if (isAlreadyBooked) {
-      return { success: false, error: 'This time slot has already been booked by another candidate.' };
-    }
-
-    // Add booking (or update if this candidate already booked another slot in this round)
-    const filteredBookings = existingBookings.filter(
-      (b) => b.candidateEmail.toLowerCase() !== booking.candidateEmail.toLowerCase(),
-    );
-
-    const newBooking = {
-      slotKey: booking.slotKey,
-      candidateEmail: booking.candidateEmail,
-      candidateName: booking.candidateName || undefined,
-      bookedAt: new Date().toISOString(),
-    };
-
-    const updatedConfig = {
-      ...currentConfig,
-      bookings: [...filteredBookings, newBooking],
-    };
-
-    const res = await strapiPut(`/pipeline-rounds/${roundId}`, {
-      data: {
-        interview_config: updatedConfig,
-      },
-    });
-
-    return {
-      success: true,
-      round: normalizePipelineRound(res?.data),
-    };
-  } catch (err: any) {
-    console.error('Error booking interview slot for round:', roundId, err);
-    return { success: false, error: err.message || 'Failed to book slot' };
-  }
+  bookingLockMap.set(roundKey, nextLock);
+  return nextLock;
 }
 
 // ---------------------------------------------------------------------------

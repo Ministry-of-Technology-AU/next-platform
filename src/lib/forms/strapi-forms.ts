@@ -191,14 +191,18 @@ export async function listFormsByOrg(organisationId: number): Promise<FormRecord
 // Writes
 // ---------------------------------------------------------------------------
 
-export async function createForm(title: string, organisationId: number): Promise<FormRecord> {
+export async function createForm(
+  title: string,
+  organisationId: number,
+  status: FormStatus = 'active',
+): Promise<FormRecord> {
   const uid = uuidv4();
   const res = await strapiPost('/forms', {
     data: {
       title,
       form_uid: uid,
       schema: createDefaultSchema(),
-      form_status: 'draft',
+      form_status: status,
       stats: zeroStats,
       organisation: organisationId,
     },
@@ -421,6 +425,16 @@ export async function updateResponseRow(
 ): Promise<ResponseRecord | null> {
   const res = await strapiPut(`/form-responses/${id}`, { data: patch });
   return normalizeResponse(res?.data);
+}
+
+export async function deleteResponseRow(id: number | string): Promise<boolean> {
+  try {
+    await strapiDelete(`/form-responses/${id}`);
+    return true;
+  } catch (err) {
+    console.error('deleteResponseRow failed for', id, err);
+    return false;
+  }
 }
 
 /**

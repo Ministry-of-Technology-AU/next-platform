@@ -26,6 +26,7 @@ import { ApplicationCard } from './_components/application-card';
 import { NotificationsPopover } from './_components/notifications-popover';
 import { InductionCatalogCard } from './_components/induction-catalog-card';
 import { InductionSidebar } from './_components/induction-sidebar';
+import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 
 interface InductionClientProps {
   initialOrganizations: Organization[];
@@ -171,7 +172,8 @@ export function InductionClient({
     const filtered = organizations.filter((org: Organization) => {
       // Exclude ended cycles
       if (org.inductionEnd) {
-        const endTime = new Date(org.inductionEnd).getTime();
+        const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
+        const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
         if (!isNaN(endTime) && endTime < now) return false;
       }
 
@@ -206,8 +208,10 @@ export function InductionClient({
     // Sort: rolling inductions (no valid deadline) first, then by deadline (closest upcoming first)
     return [...filtered].sort((a, b) => {
       const now = Date.now();
-      const aTime = a.inductionEnd ? new Date(a.inductionEnd).getTime() : NaN;
-      const bTime = b.inductionEnd ? new Date(b.inductionEnd).getTime() : NaN;
+      const aIso = a.inductionEnd ? normalizeEndDateToEndOfDay(a.inductionEnd) : null;
+      const bIso = b.inductionEnd ? normalizeEndDateToEndOfDay(b.inductionEnd) : null;
+      const aTime = aIso ? new Date(aIso).getTime() : NaN;
+      const bTime = bIso ? new Date(bIso).getTime() : NaN;
 
       const aValid = !isNaN(aTime);
       const bValid = !isNaN(bTime);
@@ -242,7 +246,8 @@ export function InductionClient({
     return organizations.filter((org) => {
       if (!org.inductionsOpen) return false;
       if (org.inductionEnd) {
-        const endTime = new Date(org.inductionEnd).getTime();
+        const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
+        const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
         if (!isNaN(endTime) && endTime < now) return false;
       }
       return true;

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { strapiGet } from '@/lib/apis/strapi';
 import { getUserIdByEmail } from '@/lib/userid';
+import { getDerivedCycleStatus, type CycleStatus } from '@/app/organisations/inductions/types';
+import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 
 const DEFAULT_BANNER = '/orgs_catalogue_default.png';
 
@@ -140,10 +142,12 @@ export async function GET() {
 
         const cyclesData = attrs.induction_cycles?.data || attrs.induction_cycles || [];
 
-        // Only consider truly active cycles for the student catalog
+        // Only consider truly active cycles for the student catalog using derived status
         const activeCyclesOnly = cyclesData.filter((c: any) => {
           const ca = c.attributes || c || {};
-          return ca.status === 'active';
+          const rawStatus = (ca.status as CycleStatus) || 'draft';
+          const derivedStatus = getDerivedCycleStatus(rawStatus, ca.start_date, ca.end_date);
+          return derivedStatus === 'active';
         });
 
         // Roles on offer in one cycle, with the live form to apply through.
@@ -161,9 +165,9 @@ export async function GET() {
             });
             const formObj = formRound?.attributes?.form?.data || formRound?.form?.data || formRound?.form;
             const formAttrs = formObj?.attributes || formObj || {};
-            const isFormActive = formAttrs?.form_status === 'active';
             const rawFormUid = formAttrs?.form_uid || formObj?.form_uid || (typeof formRound?.attributes?.form === 'string' ? formRound.attributes.form : null);
-            const formUid = isFormActive && rawFormUid ? rawFormUid : null;
+            const isFormUsable = formAttrs?.form_status !== 'inactive';
+            const formUid = isFormUsable && rawFormUid ? rawFormUid : null;
 
             return {
               id: (role.id || '').toString(),
@@ -203,8 +207,10 @@ export async function GET() {
 
         // Sort so the flat fields below describe the cycle closing soonest.
         const sortedCycles = [...inductionCycles].sort((a: any, b: any) => {
-          const at = a.endDate ? new Date(a.endDate).getTime() : NaN;
-          const bt = b.endDate ? new Date(b.endDate).getTime() : NaN;
+          const aIso = a.endDate ? normalizeEndDateToEndOfDay(a.endDate) : null;
+          const bIso = b.endDate ? normalizeEndDateToEndOfDay(b.endDate) : null;
+          const at = aIso ? new Date(aIso).getTime() : NaN;
+          const bt = bIso ? new Date(bIso).getTime() : NaN;
           if (isNaN(at) && isNaN(bt)) return 0;
           if (isNaN(at)) return 1;
           if (isNaN(bt)) return -1;
@@ -221,6 +227,10 @@ export async function GET() {
 
         // hasActiveCycle is true only when there is a genuinely 'active' cycle
         const hasActiveCycle = activeCyclesOnly.length > 0;
+        const isLegacyOpen =
+          attrs.induction === true &&
+          (!attrs.induction_end ||
+            new Date(normalizeEndDateToEndOfDay(attrs.induction_end) || attrs.induction_end).getTime() >= Date.now());
 
         return {
           id: x.id.toString(),
@@ -255,7 +265,7 @@ export async function GET() {
           })),
 
           // Induction details
-          inductionsOpen: attrs.induction === true || hasActiveCycle,
+          inductionsOpen: hasActiveCycle || isLegacyOpen,
           inductionEnd: cycleEndDate,
           inductionDescription: attrs.induction_description || cycleDescription || '',
           cycleName: cycleName || undefined,

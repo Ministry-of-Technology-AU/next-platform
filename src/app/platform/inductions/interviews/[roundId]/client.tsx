@@ -98,10 +98,24 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
     return list;
   }, [org?.emails, org?.email, config.invitees]);
 
+  const [liveBookings, setLiveBookings] = useState<InterviewBooking[]>(config.bookings || []);
+
+  const refreshSlots = async () => {
+    try {
+      const res = await fetch(`/api/platform/inductions/interviews/${round.id}`, { cache: 'no-store' });
+      const json = await res.json();
+      if (json?.success && json.data?.interviewConfig?.bookings) {
+        setLiveBookings(json.data.interviewConfig.bookings);
+      }
+    } catch {
+      // silent fallback
+    }
+  };
+
   // Existing Bookings
   const existingBookings = useMemo(() => {
-    return config.bookings || [];
-  }, [config.bookings]);
+    return liveBookings;
+  }, [liveBookings]);
 
   // Booked Slot Keys set
   const bookedSlotKeys = useMemo(() => {
@@ -331,6 +345,8 @@ export function InterviewBookingClient({ round, currentUser }: InterviewBookingC
 
       const json = await res.json();
       if (!res.ok || !json.success) {
+        await refreshSlots();
+        setSelectedSlotKey(null);
         throw new Error(json.error || 'Failed to reserve interview slot');
       }
 

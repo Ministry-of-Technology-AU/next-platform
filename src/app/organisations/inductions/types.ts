@@ -47,6 +47,7 @@ export interface InductionRole {
   accessEmails?: string[];
   formIds?: string[];
   primaryFormId?: string | null;
+  sendResponseNotifications?: boolean; // default true
   stats: RoleStats;
   createdAt: string;
 }
@@ -148,6 +149,8 @@ export function formatCycleDateRange(startDateStr?: string | null, endDateStr?: 
   return `${start} - ${end}`;
 }
 
+import { normalizeStartDateToStartOfDay, normalizeEndDateToEndOfDay } from '@/lib/date-utils';
+
 export function getDerivedCycleStatus(
   status: CycleStatus = 'draft',
   startDateStr?: string | null,
@@ -160,7 +163,8 @@ export function getDerivedCycleStatus(
 
   let start: Date | null = null;
   if (startDateStr) {
-    const s = new Date(startDateStr);
+    const startIso = normalizeStartDateToStartOfDay(startDateStr);
+    const s = startIso ? new Date(startIso) : new Date(startDateStr);
     if (!isNaN(s.getTime())) {
       start = s;
     }
@@ -168,12 +172,10 @@ export function getDerivedCycleStatus(
 
   let end: Date | null = null;
   if (endDateStr) {
-    const e = new Date(endDateStr);
+    const endIso = normalizeEndDateToEndOfDay(endDateStr);
+    const e = endIso ? new Date(endIso) : new Date(endDateStr);
     if (!isNaN(e.getTime())) {
       end = e;
-      if (endDateStr.length <= 10) {
-        end.setHours(23, 59, 59, 999);
-      }
     }
   }
 

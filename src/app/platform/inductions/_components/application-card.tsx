@@ -19,7 +19,9 @@ import {
   AlertTriangle,
   Send,
   Loader2,
+  Trash2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -42,16 +44,43 @@ import {
 
 interface ApplicationCardProps {
   application: PopulatedResponseRecord;
+  onDeleted?: (id: number | string) => void;
 }
 
-export function ApplicationCard({ application }: ApplicationCardProps) {
+export function ApplicationCard({ application, onDeleted }: ApplicationCardProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isDeleted, setIsDeleted] = React.useState(false);
   const [logoError, setLogoError] = React.useState(false);
   const [grievanceOpen, setGrievanceOpen] = React.useState(false);
   const [grievanceSubject, setGrievanceSubject] = React.useState('');
   const [grievanceBody, setGrievanceBody] = React.useState('');
   const [grievanceLoading, setGrievanceLoading] = React.useState(false);
   const [grievanceError, setGrievanceError] = React.useState<string | null>(null);
+
+  async function handleDeleteDraft() {
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/platform/inductions/applications', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ responseId: application.id }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to delete draft');
+      }
+      toast.success('Draft application permanently deleted');
+      setIsDeleted(true);
+      setDeleteDialogOpen(false);
+      onDeleted?.(application.id);
+    } catch (err: any) {
+      toast.error(err.message || 'Could not delete draft');
+    } finally {
+      setIsDeleting(false);
+    }
+  }
   
   // Initialize immediately from fast-tier cache (LocalStorage / Cookies)
   const [grievanceSent, setGrievanceSent] = React.useState(() =>
@@ -104,7 +133,7 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
   }
 
   const form = application.form;
-  if (!form) return null;
+  if (!form || isDeleted) return null;
 
   const org = form.organisation;
   const role = application.role;
@@ -419,20 +448,73 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
       {/* Footer Actions: Strictly tailored to state */}
       <div className="px-5 py-3.5 bg-muted/30 border-t border-border/70 flex items-center justify-between gap-3">
         {isDraft ? (
-          form.status === 'active' ? (
-            <Button asChild className="w-full h-9 gap-2 text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xs">
-              <Link href={`/platform/forms/${form.uid}`}>
+          <div className="flex items-center gap-2 w-full">
+            {form.status === 'active' ? (
+              <Button asChild className="flex-1 h-9 gap-2 text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xs">
+                <Link href={`/platform/forms/${form.uid}`}>
+                  <FileEdit className="w-3.5 h-3.5" />
+                  Resume Application
+                  <ArrowRight className="w-3.5 h-3.5 ml-auto" />
+                </Link>
+              </Button>
+            ) : (
+              <Button disabled variant="outline" className="flex-1 h-9 gap-2 text-xs font-semibold text-muted-foreground opacity-60 cursor-not-allowed">
                 <FileEdit className="w-3.5 h-3.5" />
-                Resume Application
-                <ArrowRight className="w-3.5 h-3.5 ml-auto" />
-              </Link>
-            </Button>
-          ) : (
-            <Button disabled variant="outline" className="w-full h-9 gap-2 text-xs font-semibold text-muted-foreground opacity-60 cursor-not-allowed">
-              <FileEdit className="w-3.5 h-3.5" />
-              Form Not Active
-            </Button>
-          )
+                Form Not Active
+              </Button>
+            )}
+
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 shrink-0 text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive rounded-xl"
+                  title="Delete Draft Application"
+                  aria-label="Delete draft application"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md rounded-2xl text-left">
+                <DialogHeader className="text-left">
+                  <DialogTitle className="text-left font-bold text-base flex items-center gap-2 text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                    Delete Draft Application?
+                  </DialogTitle>
+                  <DialogDescription className="text-left text-xs pt-1">
+                    Are you sure you want to delete your draft application for <span className="font-semibold text-foreground">{form.organisation?.name || 'this organization'}</span>? This will permanently delete your saved answers from Strapi and cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-end gap-2 pt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setDeleteDialogOpen(false)}
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="text-xs gap-1.5"
+                    onClick={handleDeleteDraft}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Deleting…
+                      </>
+                    ) : (
+                      'Yes, Delete Draft'
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         ) : (
           /* ── Submitted footer ─────────────────────────────────────────── */
           <div className="flex flex-col gap-2 w-full">
