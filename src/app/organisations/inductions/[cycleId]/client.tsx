@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { BarChart3, Users2, Loader2 } from 'lucide-react';
+import { BarChart3, Users2, Loader2, Settings } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -24,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RoleCard } from '../_components/role-card';
 import { NewRoleDialog } from '../_components/new-role-dialog';
+import { CycleFormDialog } from '../_components/new-cycle-dialog';
 import { SingleCycleStatsBar } from '../_components/cycle-stats';
 import type { InductionCycleSummary, InductionRole } from '../types';
 import { PLACEHOLDER_ROLE_STATS } from '../types';
@@ -37,10 +39,17 @@ export function CycleClient({
   cycle: InductionCycleSummary;
   initialRoles: InductionRole[];
 }) {
+  const router = useRouter();
+  const [currentCycle, setCurrentCycle] = useState<InductionCycleSummary>(cycle);
+  const [cycleSettingsOpen, setCycleSettingsOpen] = useState(false);
   const [roles, setRoles] = useState<InductionRole[]>(initialRoles);
   const [pendingDelete, setPendingDelete] = useState<InductionRole | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [hashAdd, setHashAdd] = useState(false);
+
+  useEffect(() => {
+    setCurrentCycle(cycle);
+  }, [cycle]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash === '#add') {
@@ -89,11 +98,11 @@ export function CycleClient({
   return (
     <div className="mt-6 space-y-8">
       {/* Stats overview */}
-      <SingleCycleStatsBar stats={cycle.stats} rolesCount={roles.length} />
+      <SingleCycleStatsBar stats={currentCycle.stats} rolesCount={roles.length} />
 
       {/* Roles section */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Users2 className="h-5 w-5 text-primary" />
             <h3 className="text-lg font-semibold !text-left">Roles</h3>
@@ -101,8 +110,29 @@ export function CycleClient({
               {roles.length === 0 ? 'No roles yet.' : `${roles.length} role${roles.length === 1 ? '' : 's'}`}
             </p>
           </div>
-          <NewRoleDialog cycleId={cycleId} autoOpen={hashAdd} onCreated={handleRoleCreated} />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCycleSettingsOpen(true)}
+              className="gap-1.5 rounded-xl font-medium"
+            >
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              Cycle Settings
+            </Button>
+            <NewRoleDialog cycleId={cycleId} autoOpen={hashAdd} onCreated={handleRoleCreated} />
+          </div>
         </div>
+
+        <CycleFormDialog
+          cycle={currentCycle}
+          open={cycleSettingsOpen}
+          onOpenChange={setCycleSettingsOpen}
+          onUpdated={(updated) => {
+            setCurrentCycle(updated);
+            router.refresh();
+          }}
+        />
 
         {roles.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-16 text-center">

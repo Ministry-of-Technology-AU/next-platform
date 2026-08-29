@@ -24,6 +24,7 @@ import {
 import type { ApplicantRow, ApplicantStatus } from '@/app/organisations/inductions/_components/role-applicants';
 import { createForm, getFormByUid } from '@/lib/forms/strapi-forms';
 import { normalizeStartDateToStartOfDay, normalizeEndDateToEndOfDay } from '@/lib/date-utils';
+import { syncOrganisationInductionCalendarEvent } from './calendar-sync';
 
 // ---------------------------------------------------------------------------
 // Normalizers
@@ -325,13 +326,15 @@ export async function createCycle(input: {
   description?: string | null;
 }): Promise<InductionCycleSummary | null> {
   const derivedStatus = getDerivedCycleStatus('draft', input.startDate, input.endDate);
+  const cleanStartDate = input.startDate ? (input.startDate.includes('T') ? input.startDate.split('T')[0] : input.startDate) : undefined;
+  const cleanEndDate = input.endDate ? (input.endDate.includes('T') ? input.endDate.split('T')[0] : input.endDate) : undefined;
 
   const res = await strapiPost('/induction-cycles', {
     data: {
       name: input.name,
       status: derivedStatus,
-      start_date: input.startDate ? normalizeStartDateToStartOfDay(input.startDate) : undefined,
-      end_date: input.endDate ? normalizeEndDateToEndOfDay(input.endDate) : undefined,
+      start_date: cleanStartDate,
+      end_date: cleanEndDate,
       description: input.description || undefined,
       stats: PLACEHOLDER_CYCLE_STATS,
       organisation: input.organisationId,
@@ -341,6 +344,9 @@ export async function createCycle(input: {
   const created = normalizeCycle(res?.data);
   if (created) {
     revalidateTag(`org-cycles:${input.organisationId}`);
+    syncOrganisationInductionCalendarEvent(input.organisationId).catch((e) =>
+      console.error('Calendar sync error on createCycle:', e)
+    );
   }
   return created;
 }
@@ -359,16 +365,23 @@ export async function updateCycle(
   const existingRes = await strapiGet(`/induction-cycles/${cycleId}`);
   const existingAttrs = attrs<any>(existingRes?.data);
 
+  const cleanStartDate = patch.startDate !== undefined
+    ? (patch.startDate ? (patch.startDate.includes('T') ? patch.startDate.split('T')[0] : patch.startDate) : null)
+    : undefined;
+  const cleanEndDate = patch.endDate !== undefined
+    ? (patch.endDate ? (patch.endDate.includes('T') ? patch.endDate.split('T')[0] : patch.endDate) : null)
+    : undefined;
+
   const data: Record<string, any> = {};
   if (patch.name !== undefined) data.name = patch.name;
-  if (patch.startDate !== undefined) data.start_date = patch.startDate ? normalizeStartDateToStartOfDay(patch.startDate) : null;
-  if (patch.endDate !== undefined) data.end_date = patch.endDate ? normalizeEndDateToEndOfDay(patch.endDate) : null;
+  if (cleanStartDate !== undefined) data.start_date = cleanStartDate;
+  if (cleanEndDate !== undefined) data.end_date = cleanEndDate;
   if (patch.description !== undefined) data.description = patch.description;
   if (patch.stats !== undefined) data.stats = patch.stats;
 
   const rawStatus = patch.status !== undefined ? patch.status : (existingAttrs?.status as CycleStatus) || 'draft';
-  const effectiveStart = patch.startDate !== undefined ? patch.startDate : (existingAttrs?.start_date ?? null);
-  const effectiveEnd = patch.endDate !== undefined ? patch.endDate : (existingAttrs?.end_date ?? null);
+  const effectiveStart = cleanStartDate !== undefined ? cleanStartDate : (existingAttrs?.start_date ?? null);
+  const effectiveEnd = cleanEndDate !== undefined ? cleanEndDate : (existingAttrs?.end_date ?? null);
   data.status = getDerivedCycleStatus(rawStatus, effectiveStart, effectiveEnd);
 
   const res = await strapiPut(`/induction-cycles/${cycleId}`, { data });
@@ -382,6 +395,9 @@ export async function updateCycle(
       existingAttrs?.organisation?.id;
     if (orgId) {
       revalidateTag(`org-cycles:${orgId}`);
+      syncOrganisationInductionCalendarEvent(orgId).catch((e) =>
+        console.error('Calendar sync error on updateCycle:', e)
+      );
     }
   }
   return updated;
@@ -510,6 +526,15 @@ export async function createRole(input: {
 
     revalidateTag(`cycle-roles:${input.cycleId}`);
     revalidateTag(`cycle-stats:${input.cycleId}`);
+
+    // Sync updated roles to Google Calendar event
+    getCycleOwnerOrgId(input.cycleId).then((ownerOrgId) => {
+      if (ownerOrgId) {
+        syncOrganisationInductionCalendarEvent(ownerOrgId).catch((e) =>
+          console.error('Calendar sync error on createRole:', e)
+        );
+      }
+    }).catch(console.error);
   }
 
   return created;

@@ -152,6 +152,7 @@ export function CycleFormDialog({
         onUpdated?.(updated);
         toast.success('Cycle updated');
         setOpen(false);
+        router.refresh();
       } else {
         // POST create cycle
         const res = await fetch('/api/organisations/inductions', {

@@ -122,7 +122,7 @@ async function getEvents(
         timeMax: endTime,
         singleEvents: true,
         orderBy: "startTime",
-        // Ensure we get all fields for each event
+        // Ensure we get all fields
         fields: "items(*),nextPageToken,nextSyncToken"
       });
       platform.log('Fetched events:', response.data);
@@ -139,16 +139,19 @@ async function getEvents(
  *
  * @param calId The calendar ID. Defaults to the ID from .env.
  * @param event The event object to be added.
+ * @param sendUpdates Whether to send email notifications. Defaults to 'all'.
  * @returns A promise that resolves to the created event.
  */
 async function addEvent(
   calId: string = process.env.GOOGLE_CALENDAR_ID!,
-  event: GoogleEvent
+  event: GoogleEvent,
+  sendUpdates: 'none' | 'all' | 'externalOnly' = 'all'
 ) {
   try {
     const response = await calendar.events.insert({
       calendarId: calId,
       requestBody: event as calendar_v3.Schema$Event,
+      sendUpdates,
       // Ensure we get all fields
       fields: "*"
     });
@@ -165,18 +168,21 @@ async function addEvent(
  * @param calId The calendar ID. Defaults to the ID from .env.
  * @param eventId The ID of the event to update.
  * @param event The updated event data.
+ * @param sendUpdates Whether to send email notifications. Defaults to 'all'.
  * @returns A promise that resolves to the updated event.
  */
 async function updateEvent(
   calId: string = process.env.GOOGLE_CALENDAR_ID!,
   eventId: string,
-  event: GoogleEvent
+  event: GoogleEvent,
+  sendUpdates: 'none' | 'all' | 'externalOnly' = 'all'
 ) {
   try {
     const response = await calendar.events.update({
       calendarId: calId,
       eventId: eventId,
       requestBody: event as calendar_v3.Schema$Event,
+      sendUpdates,
       // Ensure we get all fields
       fields: "*"
     });
@@ -192,16 +198,19 @@ async function updateEvent(
  *
  * @param calId The calendar ID. Defaults to the ID from .env.
  * @param eventId The ID of the event to delete.
+ * @param sendUpdates Whether to send email notifications. Defaults to 'all'.
  * @returns A promise that resolves when the event is deleted.
  */
 async function deleteEvent(
   calId: string = process.env.GOOGLE_CALENDAR_ID!,
-  eventId: string
+  eventId: string,
+  sendUpdates: 'none' | 'all' | 'externalOnly' = 'all'
 ) {
   try {
     await calendar.events.delete({
       calendarId: calId,
       eventId: eventId,
+      sendUpdates,
     });
     return { success: true, message: `Event ${eventId} deleted successfully` };
   } catch (error) {

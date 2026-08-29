@@ -47,6 +47,11 @@ export function DatePicker({
     if (date instanceof Date) return date;
     if (value instanceof Date) return value;
     if (typeof value === 'string' && value.trim()) {
+      const dateOnly = value.includes('T') ? value.split('T')[0] : value;
+      const [y, m, d] = dateOnly.split('-').map(Number);
+      if (y && m && d) {
+        return new Date(y, m - 1, d);
+      }
       const parsed = new Date(value);
       if (!isNaN(parsed.getTime())) return parsed;
     }
@@ -116,8 +121,20 @@ export function DatePicker({
           onSelect={handleSelect}
           initialFocus
           disabled={(d) => {
-            if (minDate && d < minDate) return true;
-            if (maxDate && d > maxDate) return true;
+            if (minDate) {
+              const min = new Date(minDate);
+              min.setHours(0, 0, 0, 0);
+              const cur = new Date(d);
+              cur.setHours(0, 0, 0, 0);
+              if (cur < min) return true;
+            }
+            if (maxDate) {
+              const max = new Date(maxDate);
+              max.setHours(23, 59, 59, 999);
+              const cur = new Date(d);
+              cur.setHours(0, 0, 0, 0);
+              if (cur > max) return true;
+            }
             return false;
           }}
         />

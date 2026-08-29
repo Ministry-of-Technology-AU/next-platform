@@ -39,15 +39,22 @@ export async function PUT(req: Request, context: RouteContext) {
     // siblings alone — each cycle's own dates decide whether it is live.
     const existingCycle = await getCycleById(cycleId);
 
+    const cleanStartDate = body.startDate !== undefined
+      ? (body.startDate ? (body.startDate.includes('T') ? body.startDate.split('T')[0] : body.startDate) : null)
+      : undefined;
+    const cleanEndDate = body.endDate !== undefined
+      ? (body.endDate ? (body.endDate.includes('T') ? body.endDate.split('T')[0] : body.endDate) : null)
+      : undefined;
+
     let deadlineExtension = body.deadlineExtension;
-    if (!deadlineExtension && existingCycle?.endDate && body.endDate) {
+    if (!deadlineExtension && existingCycle?.endDate && cleanEndDate) {
       const oldTime = new Date(existingCycle.endDate).getTime();
-      const newTime = new Date(body.endDate).getTime();
+      const newTime = new Date(cleanEndDate).getTime();
       if (!isNaN(oldTime) && !isNaN(newTime) && newTime > oldTime) {
         deadlineExtension = {
           extendedAt: new Date().toISOString(),
           previousDeadline: existingCycle.endDate,
-          newDeadline: body.endDate,
+          newDeadline: cleanEndDate,
           reason: body.deadlineExtensionReason || null,
         };
       }
@@ -59,8 +66,16 @@ export async function PUT(req: Request, context: RouteContext) {
       ...(deadlineExtension ? { deadlineExtension } : {}),
     };
 
+    if (cleanEndDate && updatedStats.deadlineExtension) {
+      updatedStats.deadlineExtension.newDeadline = cleanEndDate;
+    }
+
     const updated = await updateCycle(cycleId, {
-      ...body,
+      name: body.name,
+      description: body.description,
+      status: body.status,
+      startDate: cleanStartDate,
+      endDate: cleanEndDate,
       stats: updatedStats,
     });
     if (!updated) return jsonError('Failed to update cycle', 500);
