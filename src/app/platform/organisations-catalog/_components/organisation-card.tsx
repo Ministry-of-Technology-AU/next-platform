@@ -1,7 +1,28 @@
 'use client';
 
 import * as React from 'react';
-import { Megaphone, Smartphone, Globe, Instagram, Twitter, Linkedin, Youtube, ChevronDown, X, Bell, BellRing, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import {
+  Megaphone,
+  Smartphone,
+  Globe,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Youtube,
+  ChevronDown,
+  X,
+  Bell,
+  BellRing,
+  Loader2,
+  Briefcase,
+  Calendar,
+  Building2,
+  ArrowRight,
+  Clock,
+  ClockPlus,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   MorphingDialog,
@@ -24,7 +45,8 @@ import {
 } from '@/components/ui/tooltip';
 import { CopyButton } from '@/components/ui/shadcn-io/copy-button';
 import { Organization } from '../types';
-import { cn } from '@/lib/utils';
+import { cn, htmlToPlainText } from '@/lib/utils';
+import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 import { useCategoryColors } from './category-colors-context';
 import { Disclosure, DisclosureTrigger, DisclosureContent } from '@/components/ui/disclosure';
 interface OrganizationCardProps {
@@ -576,31 +598,107 @@ export function OrganizationCard({ organization, isTracking = false, trackLoadin
               </div>
             </div>
 
-                                        {/* Induction Information moved to top-right in a Disclosure */}
-                  {organization.inductionsOpen && (<Disclosure className="mx-6 mt-6 rounded-lg bg-gray-light/70 dark:bg-gray-dark/60 border border-neutral-200 dark:border-neutral-700">
-                    <DisclosureTrigger className="w-full">
-                      <div className="flex items-center justify-between w-full p-4 rounded-lg cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
-                        <h4 className="text-lg font-bold">
-                          Induction Information
-                        </h4>
-                        <ChevronDown className="w-5 h-5" />
-                      </div>
-                    </DisclosureTrigger>
-                    <DisclosureContent>
-                      <div className="p-4 rounded-lg">
-                        <h4 className="mb-2 text-base font-semibold text-amber-900 dark:text-amber-100">
-                          {`Inductions Open${organization.inductionEnd ? ' | ' + formatDate(organization.inductionEnd) : ''}`}
-                        </h4>
-                        {organization.inductionDescription ? (
-                          <RichTextRenderer html={organization.inductionDescription} />
-                        ) : (
-                          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                            No induction details provided.
-                          </p>
-                        )}
-                      </div>
-                    </DisclosureContent>
-                  </Disclosure>)}
+                  {/* Induction Information in an organic clean Disclosure */}
+                  {organization.inductionsOpen && (
+                    <Disclosure className="mx-6 mt-6 rounded-lg bg-gray-light/70 dark:bg-gray-dark/60 border border-neutral-200 dark:border-neutral-700">
+                      <DisclosureTrigger className="w-full">
+                        <div className="flex items-center justify-between w-full p-4 rounded-lg cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                          <h4 className="text-lg font-bold text-neutral-900 dark:text-white">
+                            Induction Information
+                          </h4>
+                          <ChevronDown className="w-5 h-5 text-neutral-600 dark:text-neutral-300" />
+                        </div>
+                      </DisclosureTrigger>
+                      <DisclosureContent>
+                        <div className="p-4 rounded-lg space-y-4 text-left">
+                          <h4 className="text-base font-semibold text-amber-900 dark:text-amber-100">
+                            {`Inductions Open${organization.inductionEnd ? ' | Deadline: ' + formatDate(organization.inductionEnd) : ''}`}
+                          </h4>
+
+                          {organization.inductionCycles && organization.inductionCycles.length > 0 ? (
+                            organization.inductionCycles.map((cycle, cIdx) => (
+                              <div key={cycle.id || cIdx} className="space-y-3 pt-1">
+                                {cycle.name && (
+                                  <h5 className="text-sm font-bold text-neutral-900 dark:text-white">
+                                    {cycle.name}
+                                    {cycle.endDate && (
+                                      <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400 ml-2">
+                                        (Deadline: {formatDate(cycle.endDate)})
+                                      </span>
+                                    )}
+                                  </h5>
+                                )}
+
+                                {cycle.description && (
+                                  <div className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+                                    <RichTextRenderer html={cycle.description} />
+                                  </div>
+                                )}
+
+                                {cycle.openPositions && cycle.openPositions.length > 0 && (
+                                  <div className="space-y-2.5 pt-2">
+                                    <h6 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                                      Open Positions ({cycle.openPositions.length})
+                                    </h6>
+                                    <div className="space-y-2.5">
+                                      {cycle.openPositions.map((pos, pIdx) => (
+                                        <div
+                                          key={pos.id || `${cIdx}-${pIdx}`}
+                                          className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 py-2 border-b border-neutral-200/60 dark:border-neutral-700/60 last:border-0"
+                                        >
+                                          <div className="space-y-1">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                              <span className="font-semibold text-sm text-neutral-900 dark:text-white">
+                                                {pos.title}
+                                              </span>
+                                              {pos.department && (
+                                                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                                  ({pos.department})
+                                                </span>
+                                              )}
+                                            </div>
+                                            {pos.description && (
+                                              <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                                <RichTextRenderer html={pos.description} />
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          <div className="shrink-0 pt-1 sm:pt-0">
+                                            {pos.formUid ? (
+                                              <Link
+                                                href={`/platform/forms/${pos.formUid}`}
+                                                className="inline-flex items-center gap-1 text-xs font-semibold text-red-900 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:underline transition-colors"
+                                              >
+                                                Apply Now
+                                                <ArrowRight className="w-3.5 h-3.5" />
+                                              </Link>
+                                            ) : (
+                                              <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                                                Opening Soon
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          ) : organization.inductionDescription ? (
+                            <div className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+                              <RichTextRenderer html={organization.inductionDescription} />
+                            </div>
+                          ) : (
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                              No induction details provided.
+                            </p>
+                          )}
+                        </div>
+                      </DisclosureContent>
+                    </Disclosure>
+                  )}
 
             <div className="p-6">
 

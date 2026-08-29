@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { unstable_cache, revalidateTag } from 'next/cache';
+
 /**
  * Server-only data access for induction cycles, roles, pipeline rounds, and applicants.
  * All Strapi API calls using STRAPI_API_TOKEN live here or in route handlers.
@@ -22,6 +24,7 @@ import {
 import type { ApplicantRow, ApplicantStatus } from '@/app/organisations/inductions/_components/role-applicants';
 import { createForm, getFormByUid } from '@/lib/forms/strapi-forms';
 import { normalizeStartDateToStartOfDay, normalizeEndDateToEndOfDay } from '@/lib/date-utils';
+import { syncOrganisationInductionCalendarEvent } from './calendar-sync';
 
 // ---------------------------------------------------------------------------
 // Normalizers
@@ -69,6 +72,34 @@ export function normalizeRole(entry: any): InductionRole | null {
     : Array.isArray(a.pipeline_rounds)
       ? a.pipeline_rounds
       : [];
+
+  const sortedRounds = [...rounds].sort((x: any, y: any) => {
+    const xAttrs = x?.attributes ?? x;
+    const yAttrs = y?.attributes ?? y;
+    return (xAttrs.order ?? 0) - (yAttrs.order ?? 0);
+  });
+
+  const firstRound = sortedRounds[0];
+  let roleStats = a.stats || PLACEHOLDER_ROLE_STATS;
+  if (firstRound) {
+    const rAttrs = firstRound?.attributes ?? firstRound;
+    const formEntry = rAttrs?.form?.data ?? rAttrs?.form;
+    const formAttrs = formEntry?.attributes ?? formEntry;
+    if (formAttrs?.stats) {
+      const fs = formAttrs.stats;
+      const opens = fs.uniqueVisits ?? 0;
+      const fills = fs.submissionCount ?? 0;
+      const drafts = fs.draftCount ?? 0;
+      roleStats = {
+        opens,
+        fills,
+        drafts,
+        completionRate: opens > 0 ? fills / opens : 0,
+        topUtm: null,
+      };
+    }
+  }
+
   const formIds = rounds
     .flatMap((r: any) => {
       const rAttrs = r?.attributes ?? r;
@@ -85,7 +116,8 @@ export function normalizeRole(entry: any): InductionRole | null {
     accessEmails: a.access_emails || a.accessEmails || [],
     formIds,
     primaryFormId: formIds[0] ?? null,
-    stats: a.stats || PLACEHOLDER_ROLE_STATS,
+    sendResponseNotifications: a.send_response_notifications ?? a.sendResponseNotifications ?? true,
+    stats: roleStats,
     createdAt: a.createdAt || new Date().toISOString(),
   };
 }
@@ -187,6 +219,17 @@ export function normalizeApplicant(entry: any): ApplicantRow | null {
 // ---------------------------------------------------------------------------
 
 export async function listCyclesByOrg(organisationId: number): Promise<InductionCycleSummary[]> {
+  return unstable_cache(
+    () => listCyclesByOrgRaw(organisationId),
+    [`org-cycles-${organisationId}`],
+    {
+      revalidate: 15,
+      tags: [`org-cycles:${organisationId}`],
+    }
+  )();
+}
+
+async function listCyclesByOrgRaw(organisationId: number): Promise<InductionCycleSummary[]> {
   const res = await strapiGet('/induction-cycles', {
     filters: {
       organisation: { id: { $eq: organisationId } },
@@ -210,13 +253,19 @@ export async function listCyclesByOrg(organisationId: number): Promise<Induction
     try {
       const roles = await listRolesByCycle(cycle.id);
       cycle.stats.rolesCount = roles.length;
-      let totalApps = 0;
+      let totalOpens = 0;
+      let totalFills = 0;
+      let totalDrafts = 0;
       for (const r of roles) {
-        const apps = await listApplicantsByRole(r.id);
-        totalApps += apps.length;
+        totalOpens += r.stats?.opens || 0;
+        totalFills += r.stats?.fills || 0;
+        totalDrafts += r.stats?.drafts || 0;
       }
-      cycle.stats.applicantsCount = totalApps;
-      cycle.stats.totalFills = totalApps;
+      cycle.stats.totalOpens = totalOpens;
+      cycle.stats.totalFills = totalFills;
+      cycle.stats.totalDrafts = totalDrafts;
+      cycle.stats.applicantsCount = totalFills;
+      cycle.stats.completionRate = totalOpens > 0 ? totalFills / totalOpens : 0;
     } catch (err) {
       console.error(`Error computing backend stats for cycle ${cycle.id}:`, err);
     }
@@ -226,6 +275,17 @@ export async function listCyclesByOrg(organisationId: number): Promise<Induction
 }
 
 export async function getCycleById(cycleId: string | number): Promise<InductionCycleSummary | null> {
+  return unstable_cache(
+    () => getCycleByIdRaw(cycleId),
+    [`cycle-stats-${cycleId}`],
+    {
+      revalidate: 15,
+      tags: [`cycle-stats:${cycleId}`],
+    }
+  )();
+}
+
+async function getCycleByIdRaw(cycleId: string | number): Promise<InductionCycleSummary | null> {
   const res = await strapiGet(`/induction-cycles/${cycleId}`, {
     populate: {
       organisation: { fields: ['id', 'name'] },
@@ -238,13 +298,19 @@ export async function getCycleById(cycleId: string | number): Promise<InductionC
     try {
       const roles = await listRolesByCycle(cycle.id);
       cycle.stats.rolesCount = roles.length;
-      let totalApps = 0;
+      let totalOpens = 0;
+      let totalFills = 0;
+      let totalDrafts = 0;
       for (const r of roles) {
-        const apps = await listApplicantsByRole(r.id);
-        totalApps += apps.length;
+        totalOpens += r.stats?.opens || 0;
+        totalFills += r.stats?.fills || 0;
+        totalDrafts += r.stats?.drafts || 0;
       }
-      cycle.stats.applicantsCount = totalApps;
-      cycle.stats.totalFills = totalApps;
+      cycle.stats.totalOpens = totalOpens;
+      cycle.stats.totalFills = totalFills;
+      cycle.stats.totalDrafts = totalDrafts;
+      cycle.stats.applicantsCount = totalFills;
+      cycle.stats.completionRate = totalOpens > 0 ? totalFills / totalOpens : 0;
     } catch (err) {
       console.error(`Error computing backend stats for cycle ${cycleId}:`, err);
     }
@@ -260,20 +326,29 @@ export async function createCycle(input: {
   description?: string | null;
 }): Promise<InductionCycleSummary | null> {
   const derivedStatus = getDerivedCycleStatus('draft', input.startDate, input.endDate);
+  const cleanStartDate = input.startDate ? (input.startDate.includes('T') ? input.startDate.split('T')[0] : input.startDate) : undefined;
+  const cleanEndDate = input.endDate ? (input.endDate.includes('T') ? input.endDate.split('T')[0] : input.endDate) : undefined;
 
   const res = await strapiPost('/induction-cycles', {
     data: {
       name: input.name,
       status: derivedStatus,
-      start_date: input.startDate ? normalizeStartDateToStartOfDay(input.startDate) : undefined,
-      end_date: input.endDate ? normalizeEndDateToEndOfDay(input.endDate) : undefined,
+      start_date: cleanStartDate,
+      end_date: cleanEndDate,
       description: input.description || undefined,
       stats: PLACEHOLDER_CYCLE_STATS,
       organisation: input.organisationId,
     },
   });
 
-  return normalizeCycle(res?.data);
+  const created = normalizeCycle(res?.data);
+  if (created) {
+    revalidateTag(`org-cycles:${input.organisationId}`);
+    syncOrganisationInductionCalendarEvent(input.organisationId).catch((e) =>
+      console.error('Calendar sync error on createCycle:', e)
+    );
+  }
+  return created;
 }
 
 export async function updateCycle(
@@ -287,29 +362,62 @@ export async function updateCycle(
     stats: any;
   }>,
 ): Promise<InductionCycleSummary | null> {
+  const existingRes = await strapiGet(`/induction-cycles/${cycleId}`);
+  const existingAttrs = attrs<any>(existingRes?.data);
+
+  const cleanStartDate = patch.startDate !== undefined
+    ? (patch.startDate ? (patch.startDate.includes('T') ? patch.startDate.split('T')[0] : patch.startDate) : null)
+    : undefined;
+  const cleanEndDate = patch.endDate !== undefined
+    ? (patch.endDate ? (patch.endDate.includes('T') ? patch.endDate.split('T')[0] : patch.endDate) : null)
+    : undefined;
+
   const data: Record<string, any> = {};
   if (patch.name !== undefined) data.name = patch.name;
-  if (patch.startDate !== undefined) data.start_date = patch.startDate ? normalizeStartDateToStartOfDay(patch.startDate) : null;
-  if (patch.endDate !== undefined) data.end_date = patch.endDate ? normalizeEndDateToEndOfDay(patch.endDate) : null;
+  if (cleanStartDate !== undefined) data.start_date = cleanStartDate;
+  if (cleanEndDate !== undefined) data.end_date = cleanEndDate;
   if (patch.description !== undefined) data.description = patch.description;
   if (patch.stats !== undefined) data.stats = patch.stats;
 
-  const rawStatus = patch.status !== undefined ? patch.status : 'draft';
-  const effectiveStart = patch.startDate !== undefined ? patch.startDate : null;
-  const effectiveEnd = patch.endDate !== undefined ? patch.endDate : null;
+  const rawStatus = patch.status !== undefined ? patch.status : (existingAttrs?.status as CycleStatus) || 'draft';
+  const effectiveStart = cleanStartDate !== undefined ? cleanStartDate : (existingAttrs?.start_date ?? null);
+  const effectiveEnd = cleanEndDate !== undefined ? cleanEndDate : (existingAttrs?.end_date ?? null);
   data.status = getDerivedCycleStatus(rawStatus, effectiveStart, effectiveEnd);
 
   const res = await strapiPut(`/induction-cycles/${cycleId}`, { data });
-  return normalizeCycle(res?.data);
+  const updated = normalizeCycle(res?.data);
+  if (updated) {
+    revalidateTag(`cycle-stats:${cycleId}`);
+    const orgId =
+      res?.data?.attributes?.organisation?.data?.id ??
+      res?.data?.organisation?.id ??
+      existingAttrs?.organisation?.data?.id ??
+      existingAttrs?.organisation?.id;
+    if (orgId) {
+      revalidateTag(`org-cycles:${orgId}`);
+      syncOrganisationInductionCalendarEvent(orgId).catch((e) =>
+        console.error('Calendar sync error on updateCycle:', e)
+      );
+    }
+  }
+  return updated;
 }
 
 export async function deleteCycle(cycleId: string | number): Promise<void> {
   // Soft-delete: set status to 'archived' so all roles, rounds, and applicant data remain in Strapi
-  await strapiPut(`/induction-cycles/${cycleId}`, {
+  const res = await strapiPut(`/induction-cycles/${cycleId}`, {
     data: {
       status: 'archived',
     },
   });
+  revalidateTag(`cycle-stats:${cycleId}`);
+  const orgId = res?.data?.attributes?.organisation?.data?.id ?? res?.data?.organisation?.id;
+  if (orgId) {
+    revalidateTag(`org-cycles:${orgId}`);
+    syncOrganisationInductionCalendarEvent(orgId).catch((e) =>
+      console.error('Calendar sync error on deleteCycle:', e)
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -317,12 +425,27 @@ export async function deleteCycle(cycleId: string | number): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function listRolesByCycle(cycleId: string | number): Promise<InductionRole[]> {
+  return unstable_cache(
+    () => listRolesByCycleRaw(cycleId),
+    [`cycle-roles-${cycleId}`],
+    {
+      revalidate: 15,
+      tags: [`cycle-roles:${cycleId}`],
+    }
+  )();
+}
+
+async function listRolesByCycleRaw(cycleId: string | number): Promise<InductionRole[]> {
   const res = await strapiGet('/induction-roles', {
     filters: {
       induction_cycle: { id: { $eq: cycleId } },
     },
     populate: {
-      pipeline_rounds: true,
+      pipeline_rounds: {
+        populate: {
+          form: true,
+        },
+      },
     },
     sort: 'createdAt:asc',
     pagination: { pageSize: 100 },
@@ -336,7 +459,11 @@ export async function getRoleById(roleId: string | number): Promise<InductionRol
   const res = await strapiGet(`/induction-roles/${roleId}`, {
     populate: {
       induction_cycle: { fields: ['id', 'name'] },
-      pipeline_rounds: true,
+      pipeline_rounds: {
+        populate: {
+          form: true,
+        },
+      },
     },
   });
 
@@ -350,6 +477,7 @@ export async function createRole(input: {
   department?: string | null;
   description?: string | null;
   accessEmails?: string[];
+  sendResponseNotifications?: boolean;
 }): Promise<InductionRole | null> {
   const res = await strapiPost('/induction-roles', {
     data: {
@@ -358,6 +486,7 @@ export async function createRole(input: {
       department: input.department || undefined,
       description: input.description || undefined,
       access_emails: input.accessEmails || [],
+      send_response_notifications: input.sendResponseNotifications ?? true,
       stats: PLACEHOLDER_ROLE_STATS,
       induction_cycle: input.cycleId,
     },
@@ -377,7 +506,7 @@ export async function createRole(input: {
         cycleRaw?.data?.organisation;
 
       if (orgId) {
-        const formRecord = await createForm(`${input.name} Application Form`, Number(orgId));
+        const formRecord = await createForm(`${input.name} Application Form`, Number(orgId), 'active');
         if (formRecord?.id) {
           formDbId = formRecord.id;
         }
@@ -397,6 +526,18 @@ export async function createRole(input: {
         role: created.id,
       },
     });
+
+    revalidateTag(`cycle-roles:${input.cycleId}`);
+    revalidateTag(`cycle-stats:${input.cycleId}`);
+
+    // Sync updated roles to Google Calendar event
+    getCycleOwnerOrgId(input.cycleId).then((ownerOrgId) => {
+      if (ownerOrgId) {
+        syncOrganisationInductionCalendarEvent(ownerOrgId).catch((e) =>
+          console.error('Calendar sync error on createRole:', e)
+        );
+      }
+    }).catch(console.error);
   }
 
   return created;
@@ -410,6 +551,7 @@ export async function updateRole(
     department: string | null;
     description: string | null;
     accessEmails: string[];
+    sendResponseNotifications: boolean;
     stats: any;
   }>,
 ): Promise<InductionRole | null> {
@@ -419,19 +561,62 @@ export async function updateRole(
   if (patch.department !== undefined) data.department = patch.department;
   if (patch.description !== undefined) data.description = patch.description;
   if (patch.accessEmails !== undefined) data.access_emails = patch.accessEmails;
+  if (patch.sendResponseNotifications !== undefined) data.send_response_notifications = patch.sendResponseNotifications;
   if (patch.stats !== undefined) data.stats = patch.stats;
 
   const res = await strapiPut(`/induction-roles/${roleId}`, { data });
-  return normalizeRole(res?.data);
+  const updated = normalizeRole(res?.data);
+  if (updated) {
+    const cycleId = res?.data?.attributes?.induction_cycle?.data?.id ?? res?.data?.induction_cycle?.id;
+    if (cycleId) {
+      revalidateTag(`cycle-roles:${cycleId}`);
+      revalidateTag(`cycle-stats:${cycleId}`);
+      getCycleOwnerOrgId(cycleId).then((ownerOrgId) => {
+        if (ownerOrgId) {
+          syncOrganisationInductionCalendarEvent(ownerOrgId).catch((e) =>
+            console.error('Calendar sync error on updateRole:', e)
+          );
+        }
+      }).catch(console.error);
+    }
+  }
+  return updated;
 }
 
 export async function deleteRole(roleId: string | number): Promise<void> {
+  let cycleId: string | number | null = null;
+  try {
+    const roleRaw = await strapiGet(`/induction-roles/${roleId}`, {
+      populate: { induction_cycle: { fields: ['id'] } },
+    });
+    cycleId =
+      roleRaw?.data?.attributes?.induction_cycle?.data?.id ??
+      roleRaw?.data?.induction_cycle?.id ??
+      roleRaw?.data?.induction_cycle;
+    if (cycleId) {
+      revalidateTag(`cycle-roles:${cycleId}`);
+      revalidateTag(`cycle-stats:${cycleId}`);
+    }
+  } catch (err) {
+    console.error('Failed to resolve cycleId during role delete:', err);
+  }
+
   // Clean up pipeline rounds
   const rounds = await listPipelineByRole(roleId);
   for (const r of rounds) {
     await strapiDelete(`/pipeline-rounds/${r.id}`);
   }
   await strapiDelete(`/induction-roles/${roleId}`);
+  
+  if (cycleId) {
+    getCycleOwnerOrgId(cycleId).then((ownerOrgId) => {
+      if (ownerOrgId) {
+        syncOrganisationInductionCalendarEvent(ownerOrgId).catch((e) =>
+          console.error('Calendar sync error on deleteRole:', e)
+        );
+      }
+    }).catch(console.error);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -654,6 +839,9 @@ export async function getPipelineRoundDetails(roundId: string | number): Promise
   }
 }
 
+// Mutex map for atomic interview slot reservations per round
+const bookingLockMap = new Map<string, Promise<any>>();
+
 export async function bookInterviewSlot(
   roundId: string | number,
   booking: {
@@ -662,66 +850,87 @@ export async function bookInterviewSlot(
     candidateName?: string;
   },
 ): Promise<{ success: boolean; round?: PipelineRound | null; error?: string }> {
-  try {
-    const roundDetails = await getPipelineRoundDetails(roundId);
-    if (!roundDetails) {
-      return { success: false, error: 'Interview round not found' };
+  const roundKey = String(roundId);
+  const currentLock = bookingLockMap.get(roundKey) || Promise.resolve();
+
+  const nextLock = currentLock.then(async () => {
+    try {
+      // Direct raw Strapi fetch to bypass any cached response state
+      const resRound = await strapiGet(`/pipeline-rounds/${roundId}`, {
+        populate: { interview_config: true },
+      });
+      const rawRound = resRound?.data;
+      if (!rawRound) {
+        return { success: false, error: 'Interview round not found' };
+      }
+
+      const normalized = normalizePipelineRound(rawRound);
+      if (!normalized || normalized.type !== 'interview') {
+        return { success: false, error: 'This round is not configured for interview scheduling' };
+      }
+
+      const currentConfig = normalized.interviewConfig || {
+        eventTitle: normalized.label,
+        eventDescription: normalized.description || '',
+        invitees: [],
+        dateMode: 'dates',
+        slotMode: 'default',
+        slotDuration: 30,
+        selectedSlots: [],
+        bookings: [],
+      };
+
+      const existingBookings = currentConfig.bookings || [];
+
+      // Concurrency Check: Check if slot is already booked by another candidate
+      const isAlreadyBooked = existingBookings.some(
+        (b) =>
+          b.slotKey === booking.slotKey &&
+          b.candidateEmail.toLowerCase() !== booking.candidateEmail.toLowerCase(),
+      );
+
+      if (isAlreadyBooked) {
+        return {
+          success: false,
+          error: 'This time slot has already been booked by another candidate. Please select a different time slot.',
+        };
+      }
+
+      // Add booking (or update if candidate is re-scheduling in this round)
+      const filteredBookings = existingBookings.filter(
+        (b) => b.candidateEmail.toLowerCase() !== booking.candidateEmail.toLowerCase(),
+      );
+
+      const newBooking = {
+        slotKey: booking.slotKey,
+        candidateEmail: booking.candidateEmail,
+        candidateName: booking.candidateName || undefined,
+        bookedAt: new Date().toISOString(),
+      };
+
+      const updatedConfig = {
+        ...currentConfig,
+        bookings: [...filteredBookings, newBooking],
+      };
+
+      const putRes = await strapiPut(`/pipeline-rounds/${roundId}`, {
+        data: {
+          interview_config: updatedConfig,
+        },
+      });
+
+      return {
+        success: true,
+        round: normalizePipelineRound(putRes?.data),
+      };
+    } catch (err: any) {
+      console.error('Error booking interview slot for round:', roundId, err);
+      return { success: false, error: err.message || 'Failed to book slot' };
     }
+  });
 
-    if (roundDetails.type !== 'interview') {
-      return { success: false, error: 'This round is not configured for interview scheduling' };
-    }
-
-    const currentConfig = roundDetails.interviewConfig || {
-      eventTitle: roundDetails.label,
-      eventDescription: roundDetails.description || '',
-      invitees: [],
-      dateMode: 'dates',
-      slotMode: 'default',
-      slotDuration: 30,
-      selectedSlots: [],
-      bookings: [],
-    };
-
-    const existingBookings = currentConfig.bookings || [];
-
-    // Check if slot is already booked
-    const isAlreadyBooked = existingBookings.some((b) => b.slotKey === booking.slotKey);
-    if (isAlreadyBooked) {
-      return { success: false, error: 'This time slot has already been booked by another candidate.' };
-    }
-
-    // Add booking (or update if this candidate already booked another slot in this round)
-    const filteredBookings = existingBookings.filter(
-      (b) => b.candidateEmail.toLowerCase() !== booking.candidateEmail.toLowerCase(),
-    );
-
-    const newBooking = {
-      slotKey: booking.slotKey,
-      candidateEmail: booking.candidateEmail,
-      candidateName: booking.candidateName || undefined,
-      bookedAt: new Date().toISOString(),
-    };
-
-    const updatedConfig = {
-      ...currentConfig,
-      bookings: [...filteredBookings, newBooking],
-    };
-
-    const res = await strapiPut(`/pipeline-rounds/${roundId}`, {
-      data: {
-        interview_config: updatedConfig,
-      },
-    });
-
-    return {
-      success: true,
-      round: normalizePipelineRound(res?.data),
-    };
-  } catch (err: any) {
-    console.error('Error booking interview slot for round:', roundId, err);
-    return { success: false, error: err.message || 'Failed to book slot' };
-  }
+  bookingLockMap.set(roundKey, nextLock);
+  return nextLock;
 }
 
 // ---------------------------------------------------------------------------
@@ -731,11 +940,14 @@ export async function bookInterviewSlot(
 export async function listApplicantsByRole(roleId: string | number): Promise<ApplicantRow[]> {
   try {
     const rounds = await listPipelineByRole(roleId);
+    const sortedRounds = [...rounds].sort((x, y) => (x.order ?? 0) - (y.order ?? 0));
+    const firstRound = sortedRounds[0];
+
     const numericFormIds: number[] = [];
     const uidFormIds: string[] = [];
 
-    for (const round of rounds) {
-      const allFormIds = round.formIds ?? (round.formId ? [round.formId] : []);
+    if (firstRound) {
+      const allFormIds = firstRound.formIds ?? (firstRound.formId ? [firstRound.formId] : []);
       for (const fid of allFormIds) {
         if (fid && fid !== 'none' && fid !== '[object Object]') {
           if (!isNaN(Number(fid)) && !String(fid).includes('-')) {
@@ -795,8 +1007,13 @@ export async function listApplicantsByRole(roleId: string | number): Promise<App
     for (const item of roleData) {
       const id = item.id ?? item.attributes?.id;
       if (id && !seenIds.has(id)) {
-        seenIds.add(id);
-        allEntries.push(item);
+        const formEntry = item.attributes?.form?.data ?? item.form;
+        const formAttrs = formEntry?.attributes ?? formEntry;
+        const formDbId = formEntry?.id ?? formAttrs?.id;
+        if (!formDbId || numericFormIds.includes(Number(formDbId))) {
+          seenIds.add(id);
+          allEntries.push(item);
+        }
       }
     }
 

@@ -69,8 +69,14 @@ async function SharedRolesView({ email }: { email: string }) {
   );
 }
 
+import { syncOrganisationInductionCalendarEvent } from '@/lib/inductions/calendar-sync';
+
 async function getCycles(organisationId: number): Promise<InductionCycleSummary[]> {
   try {
+    // Automatically ensure the Google Calendar event is synced/created
+    syncOrganisationInductionCalendarEvent(organisationId).catch((e) =>
+      console.error('Background calendar sync error:', e)
+    );
     return await listCyclesByOrg(organisationId);
   } catch (err) {
     console.error('Error fetching induction cycles:', err);

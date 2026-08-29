@@ -26,6 +26,7 @@ import { ApplicationCard } from './_components/application-card';
 import { NotificationsPopover } from './_components/notifications-popover';
 import { InductionCatalogCard } from './_components/induction-catalog-card';
 import { InductionSidebar } from './_components/induction-sidebar';
+import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 
 interface InductionClientProps {
   initialOrganizations: Organization[];
@@ -171,7 +172,8 @@ export function InductionClient({
     const filtered = organizations.filter((org: Organization) => {
       // Exclude ended cycles
       if (org.inductionEnd) {
-        const endTime = new Date(org.inductionEnd).getTime();
+        const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
+        const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
         if (!isNaN(endTime) && endTime < now) return false;
       }
 
@@ -203,31 +205,38 @@ export function InductionClient({
       return matchesSearch && matchesCategoryPill && matchesSheetFilter && matchesTrackedOnly;
     });
 
-    // Sort by deadline: closest upcoming deadline comes highest up
+    // Sort: rolling inductions (no valid deadline) first, then by deadline (closest upcoming first)
     return [...filtered].sort((a, b) => {
       const now = Date.now();
-      const aTime = a.inductionEnd ? new Date(a.inductionEnd).getTime() : NaN;
-      const bTime = b.inductionEnd ? new Date(b.inductionEnd).getTime() : NaN;
+      const aIso = a.inductionEnd ? normalizeEndDateToEndOfDay(a.inductionEnd) : null;
+      const bIso = b.inductionEnd ? normalizeEndDateToEndOfDay(b.inductionEnd) : null;
+      const aTime = aIso ? new Date(aIso).getTime() : NaN;
+      const bTime = bIso ? new Date(bIso).getTime() : NaN;
 
       const aValid = !isNaN(aTime);
       const bValid = !isNaN(bTime);
-      const aUpcoming = aValid && aTime >= now;
-      const bUpcoming = bValid && bTime >= now;
 
-      // 1. Both have upcoming deadlines -> closest deadline first (ascending)
+      // 1. Rolling inductions come first
+      if (!aValid && bValid) return -1;
+      if (aValid && !bValid) return 1;
+      if (!aValid && !bValid) {
+        return a.name.localeCompare(b.name);
+      }
+
+      // 2. Both have valid deadlines
+      const aUpcoming = aTime >= now;
+      const bUpcoming = bTime >= now;
+
+      // Both upcoming -> closest deadline first
       if (aUpcoming && bUpcoming) {
         return aTime - bTime;
       }
-      // 2. Upcoming deadline comes before non-upcoming or no deadline
+      // Upcoming deadline comes before ended deadline
       if (aUpcoming && !bUpcoming) return -1;
       if (!aUpcoming && bUpcoming) return 1;
 
-      // 3. If neither is upcoming, compare whether one has a deadline vs none
-      if (aValid && !bValid) return -1;
-      if (!aValid && bValid) return 1;
-
-      // 4. Alphabetical tie breaker
-      return a.name.localeCompare(b.name);
+      // Both ended
+      return aTime - bTime;
     });
   }, [searchQuery, selectedType, filters, onlyTracked, trackedOrgIds, organizations]);
 
@@ -237,7 +246,8 @@ export function InductionClient({
     return organizations.filter((org) => {
       if (!org.inductionsOpen) return false;
       if (org.inductionEnd) {
-        const endTime = new Date(org.inductionEnd).getTime();
+        const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
+        const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
         if (!isNaN(endTime) && endTime < now) return false;
       }
       return true;

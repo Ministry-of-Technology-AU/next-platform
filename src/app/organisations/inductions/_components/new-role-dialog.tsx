@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -68,6 +69,7 @@ export function RoleFormDialog({
   const [tier, setTier] = useState<RoleTier>('tier-1');
   const [department, setDepartment] = useState('');
   const [description, setDescription] = useState('');
+  const [sendResponseNotifications, setSendResponseNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
 
   // Sync initial state when editing role or opening dialog
@@ -77,11 +79,13 @@ export function RoleFormDialog({
       setTier(role.tier || 'tier-1');
       setDepartment(role.department || '');
       setDescription(role.description || '');
+      setSendResponseNotifications(role.sendResponseNotifications ?? true);
     } else {
       setName('');
       setTier('tier-1');
       setDepartment('');
       setDescription('');
+      setSendResponseNotifications(true);
     }
   }, [role, open]);
 
@@ -108,6 +112,7 @@ export function RoleFormDialog({
             tier,
             department: department.trim() || null,
             description: description.trim() || null,
+            sendResponseNotifications,
           }),
         });
 
@@ -130,6 +135,7 @@ export function RoleFormDialog({
             tier,
             department: department.trim() || null,
             description: description.trim() || null,
+            sendResponseNotifications,
           }),
         });
 
@@ -154,7 +160,7 @@ export function RoleFormDialog({
           tier,
           department: department.trim() || null,
           description: description.trim() || null,
-          stats: { opens: 0, fills: 0, completionRate: 0, topUtm: null },
+          stats: { opens: 0, fills: 0, drafts: 0, completionRate: 0, topUtm: null },
           createdAt: new Date().toISOString(),
         };
         onCreated?.(newRole);
@@ -256,6 +262,22 @@ export function RoleFormDialog({
             <p className="text-[11px] text-muted-foreground/80">
               Displayed as the role overview on the student induction catalog.
             </p>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3.5 bg-muted/20">
+            <div className="space-y-0.5">
+              <Label htmlFor="role-form-notifications" className="cursor-pointer text-xs font-semibold">
+                Send Email Notifications for Every Response
+              </Label>
+              <p className="text-[11px] text-muted-foreground">
+                Receive an email notification whenever an applicant submits a response for this role.
+              </p>
+            </div>
+            <Checkbox
+              id="role-form-notifications"
+              checked={sendResponseNotifications}
+              onCheckedChange={(checked) => setSendResponseNotifications(!!checked)}
+            />
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-0 pt-2">

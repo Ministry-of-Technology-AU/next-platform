@@ -11,6 +11,7 @@ export interface DeadlineExtensionInfo {
 export interface CycleStats {
   totalOpens: number;
   totalFills: number;
+  totalDrafts: number;
   completionRate: number;
   rolesCount: number;
   applicantsCount: number;
@@ -32,6 +33,7 @@ export interface InductionCycleSummary {
 export interface RoleStats {
   opens: number;
   fills: number;
+  drafts: number;
   completionRate: number;
   topUtm: string | null; // "Coming Soon"
 }
@@ -45,6 +47,7 @@ export interface InductionRole {
   accessEmails?: string[];
   formIds?: string[];
   primaryFormId?: string | null;
+  sendResponseNotifications?: boolean; // default true
   stats: RoleStats;
   createdAt: string;
 }
@@ -99,6 +102,7 @@ export interface PipelineRound {
 export const PLACEHOLDER_CYCLE_STATS: CycleStats = {
   totalOpens: 0,
   totalFills: 0,
+  totalDrafts: 0,
   completionRate: 0,
   rolesCount: 0,
   applicantsCount: 0,
@@ -107,6 +111,7 @@ export const PLACEHOLDER_CYCLE_STATS: CycleStats = {
 export const PLACEHOLDER_ROLE_STATS: RoleStats = {
   opens: 0,
   fills: 0,
+  drafts: 0,
   completionRate: 0,
   topUtm: null,
 };
@@ -144,6 +149,8 @@ export function formatCycleDateRange(startDateStr?: string | null, endDateStr?: 
   return `${start} - ${end}`;
 }
 
+import { normalizeStartDateToStartOfDay, normalizeEndDateToEndOfDay } from '@/lib/date-utils';
+
 export function getDerivedCycleStatus(
   status: CycleStatus = 'draft',
   startDateStr?: string | null,
@@ -156,7 +163,8 @@ export function getDerivedCycleStatus(
 
   let start: Date | null = null;
   if (startDateStr) {
-    const s = new Date(startDateStr);
+    const startIso = normalizeStartDateToStartOfDay(startDateStr);
+    const s = startIso ? new Date(startIso) : new Date(startDateStr);
     if (!isNaN(s.getTime())) {
       start = s;
     }
@@ -164,12 +172,10 @@ export function getDerivedCycleStatus(
 
   let end: Date | null = null;
   if (endDateStr) {
-    const e = new Date(endDateStr);
+    const endIso = normalizeEndDateToEndOfDay(endDateStr);
+    const e = endIso ? new Date(endIso) : new Date(endDateStr);
     if (!isNaN(e.getTime())) {
       end = e;
-      if (endDateStr.length <= 10) {
-        end.setHours(23, 59, 59, 999);
-      }
     }
   }
 

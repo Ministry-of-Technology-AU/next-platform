@@ -36,12 +36,9 @@ export async function POST(_req: Request, ctx: RouteContext) {
     const existing = await getResponseRow(form.id, email);
     if (existing) return jsonOk({ visited: true });
 
-    const userId = await getUserIdByEmail(email);
-    await createResponseRow({ formId: form.id, userId, email });
     await bumpStats(form, (s) => ({
       ...s,
       uniqueVisits: s.uniqueVisits + 1,
-      draftCount: s.draftCount + 1,
     }));
 
     return jsonOk({ visited: true });

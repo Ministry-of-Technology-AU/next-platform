@@ -11,7 +11,8 @@ export async function GET(request: Request) {
         circle1_humans: { fields: ['id', 'username', 'email'] },
         circle2_humans: { fields: ['id', 'username', 'email'] },
         members: { fields: ['id', 'username', 'email'] },
-        banner: { fields: ['url'] }
+        banner: { fields: ['url'] },
+        induction_cycles: { fields: ['id', 'name', 'status', 'start_date', 'end_date'] },
       },
       pagination: { page: 1, pageSize: 200 },
     });

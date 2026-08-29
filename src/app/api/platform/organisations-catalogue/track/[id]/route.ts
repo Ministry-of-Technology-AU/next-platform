@@ -4,13 +4,16 @@ import { strapiGet, strapiPut } from '@/lib/apis/strapi';
 import { getUserIdByEmail } from '@/lib/userid';
 import { addEvent, getEvents, updateEvent } from '@/lib/apis/calendar';
 import type { GoogleEvent } from '@/lib/apis/calendar';
+import { getDerivedCycleStatus, type CycleStatus } from '@/app/organisations/inductions/types';
+import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
+import { htmlToPlainText } from '@/lib/utils';
 
 /**
  * POST /api/platform/organisations-catalogue/track/[id]
  * Track an organisation's inductions.
  * - Adds to user's track_deadline_fors relation
- * - Adds to user's orgs_checklist JSON
- * - Creates/updates Google Calendar event
+ * - Adds to user's orgs_checklist JSON with accurate active cycle deadline
+ * - Creates/updates Google Calendar event with role details and application links
  */
 export async function POST(
   _request: Request,
@@ -44,19 +47,89 @@ export async function POST(
       );
     }
 
-    // Fetch the organisation from Strapi
+    // Fetch the organisation from Strapi with its induction_cycles, roles, and forms
     const orgResponse = await strapiGet(`/organisations/${orgId}`, {
-      fields: ['id', 'name', 'induction', 'induction_end', 'calendar_event_id'],
+      populate: {
+        induction_cycles: {
+          populate: {
+            roles: {
+              populate: {
+                pipeline_rounds: {
+                  populate: {
+                    form: {
+                      fields: ['id', 'form_uid', 'title', 'form_status']
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      fields: ['id', 'name', 'induction', 'induction_end', 'induction_description', 'calendar_event_id'],
     });
 
     const orgData = orgResponse?.data?.attributes || orgResponse?.data || orgResponse?.attributes || orgResponse;
     const orgName = orgData?.name || 'Unknown Organisation';
-    const inductionEnd = orgData?.induction_end || null;
     let calendarEventId = orgData?.calendar_event_id || null;
 
+    // Determine active cycles and effective deadline
+    const cyclesData = orgData?.induction_cycles?.data || orgData?.induction_cycles || [];
+    const activeCycles = cyclesData.filter((c: any) => {
+      const ca = c.attributes || c || {};
+      const rawStatus = (ca.status as CycleStatus) || 'draft';
+      return getDerivedCycleStatus(rawStatus, ca.start_date, ca.end_date) === 'active';
+    });
+
+    // Sort active cycles to find the one closing soonest
+    const sortedCycles = [...activeCycles].sort((a: any, b: any) => {
+      const ca = a.attributes || a || {};
+      const cb = b.attributes || b || {};
+      const aIso = ca.end_date ? normalizeEndDateToEndOfDay(ca.end_date) : null;
+      const bIso = cb.end_date ? normalizeEndDateToEndOfDay(cb.end_date) : null;
+      const at = aIso ? new Date(aIso).getTime() : NaN;
+      const bt = bIso ? new Date(bIso).getTime() : NaN;
+      if (isNaN(at) && isNaN(bt)) return 0;
+      if (isNaN(at)) return 1;
+      if (isNaN(bt)) return -1;
+      return at - bt;
+    });
+
+    const primaryCycle = sortedCycles[0] ? (sortedCycles[0].attributes || sortedCycles[0]) : null;
+    const stats = primaryCycle?.stats || {};
+    const ext = primaryCycle?.deadline_extension ?? stats?.deadlineExtension ?? null;
+    const effectiveDeadline = ext?.newDeadline || primaryCycle?.end_date || orgData?.induction_end || null;
+    const primaryCycleName = primaryCycle?.name || null;
+    const primaryCycleDesc = primaryCycle?.description || orgData?.induction_description || '';
+
+    const hasActiveCycle = activeCycles.length > 0;
+    const isLegacyOpen =
+      orgData?.induction === true &&
+      (!orgData?.induction_end ||
+        new Date(normalizeEndDateToEndOfDay(orgData?.induction_end) || orgData?.induction_end).getTime() >= Date.now());
+
+    // Extract roles and application links ONLY from active cycles
+    const rolesList: { title: string; department?: string; formUrl?: string }[] = [];
+    for (const c of sortedCycles) {
+      const ca = c.attributes || c || {};
+      const rolesData = ca.roles?.data || ca.roles || [];
+      for (const r of rolesData) {
+        const ra = r.attributes || r || {};
+        const rounds = ra.pipeline_rounds?.data || ra.pipeline_rounds || [];
+        const formRound = rounds.find((rnd: any) => (rnd.attributes || rnd || {}).type === 'form');
+        const formObj = formRound?.attributes?.form?.data || formRound?.form?.data || formRound?.form;
+        const formAttrs = formObj?.attributes || formObj || {};
+        const isFormUsable = formAttrs?.form_status !== 'inactive';
+        const formUid = formAttrs?.form_uid || formObj?.form_uid;
+        rolesList.push({
+          title: ra.name || 'Role Candidate',
+          department: ra.department || undefined,
+          formUrl: isFormUsable && formUid ? `/platform/forms/${formUid}` : undefined,
+        });
+      }
+    }
+
     // 1. Update user's track_deadline_fors relation (connect the org)
-    // For Strapi v4 users-permissions, we update via PUT /users/:id
-    // We need to fetch existing relations first to avoid overwriting
     const currentUserData = await strapiGet(`/users/${userId}`, {
       populate: {
         track_deadline_fors: { fields: ['id'] },
@@ -83,16 +156,19 @@ export async function POST(
       }
     }
 
-    // Avoid duplicate entries
-    const alreadyInChecklist = checklist.some(
+    // Avoid duplicate entries / update existing entry with latest deadline
+    const checklistItem = {
+      name: orgName,
+      deadline: effectiveDeadline || '',
+      isDone: false,
+    };
+    const existingChecklistIdx = checklist.findIndex(
       (item: any) => item.name === orgName
     );
-    if (!alreadyInChecklist) {
-      checklist.push({
-        name: orgName,
-        deadline: inductionEnd || '',
-        isDone: false,
-      });
+    if (existingChecklistIdx >= 0) {
+      checklist[existingChecklistIdx] = checklistItem;
+    } else {
+      checklist.push(checklistItem);
     }
 
     // Save both relation and checklist to Strapi
@@ -101,40 +177,68 @@ export async function POST(
       orgs_checklist: checklist,
     });
 
-    // 3. Google Calendar integration
+    // 3. Google Calendar integration: ONLY publish if the induction cycle is genuinely active
+    if (!hasActiveCycle && !isLegacyOpen) {
+      return NextResponse.json({
+        success: true,
+        tracked: true,
+        calendar: {
+          action: 'skipped',
+          reason: 'Induction cycle is not active yet; event will be published when cycle becomes active',
+        },
+      });
+    }
+
     let calendarResult = null;
     try {
-      if (inductionEnd) {
-        if (!calendarEventId) {
-          // Create a new all-day event on the induction deadline
-          const deadlineDate = new Date(inductionEnd);
-          const dateStr = deadlineDate.toISOString().split('T')[0]; // YYYY-MM-DD
+      if (effectiveDeadline) {
+        const endIso = normalizeEndDateToEndOfDay(effectiveDeadline);
+        const deadlineDate = endIso ? new Date(endIso) : new Date(effectiveDeadline);
+        const dateStr = deadlineDate.toISOString().split('T')[0]; // YYYY-MM-DD
 
-          const event: GoogleEvent = {
-            summary: `${orgName} — Induction Deadline`,
-            description: `Induction deadline for ${orgName}. You are tracking this organisation's inductions.`,
-            start: {
-              date: dateStr,
-            },
-            end: {
-              date: dateStr,
-            },
-            attendees: [
-              { email: userEmail },
+        const baseUrl =
+          process.env.NEXT_PUBLIC_APP_URL ||
+          (process.env.NEXT_PUBLIC_BASE_URL && !process.env.NEXT_PUBLIC_BASE_URL.includes('localhost')
+            ? process.env.NEXT_PUBLIC_BASE_URL
+            : 'https://sg.ashoka.edu.in');
+        const eventSummary = primaryCycleName
+          ? `${orgName} (${primaryCycleName}) — Induction Deadline`
+          : `${orgName} — Induction Deadline`;
+
+        let eventDescription = `Induction deadline for ${orgName}${primaryCycleName ? ` (${primaryCycleName})` : ''}.\nYou are tracking this organisation's inductions.\n`;
+        if (primaryCycleDesc) {
+          eventDescription += `\nOverview: ${htmlToPlainText(primaryCycleDesc)}\n`;
+        }
+        if (rolesList.length > 0) {
+          eventDescription += `\nOpen Positions (${rolesList.length}):\n` +
+            rolesList.map(r => `• ${r.title}${r.department ? ` [${r.department}]` : ''}${r.formUrl ? ` - Apply: ${baseUrl}${r.formUrl}` : ''}`).join('\n') + '\n';
+        }
+        eventDescription += `\nTracked via Ashoka Student Government Platform: ${baseUrl}/platform/inductions`;
+
+        const eventPayload: GoogleEvent = {
+          summary: eventSummary,
+          description: eventDescription,
+          start: {
+            date: dateStr,
+          },
+          end: {
+            date: dateStr,
+          },
+          attendees: [
+            { email: userEmail },
+          ],
+          guestsCanSeeOtherGuests: false,
+          reminders: {
+            useDefault: false,
+            overrides: [
+              { method: 'popup', minutes: 2880 }, // 48 hours before (popup)
+              { method: 'popup', minutes: 1440 }, // 24 hours before (popup)
             ],
-            guestsCanSeeOtherGuests: false,
-            reminders: {
-              useDefault: false,
-              overrides: [
-                // { method: 'email', minutes: 2880 }, // 48 hours before (email)
-                { method: 'popup', minutes: 2880 }, // 48 hours before (popup)
-                // { method: 'email', minutes: 1440 }, // 24 hours before (email)
-                { method: 'popup', minutes: 1440 }, // 24 hours before (popup)
-              ],
-            },
-          };
+          },
+        };
 
-          const createdEvent = await addEvent(process.env.INDUCTIONS_CALENDAR_ID || undefined, event);
+        if (!calendarEventId) {
+          const createdEvent = await addEvent(process.env.INDUCTIONS_CALENDAR_ID || undefined, eventPayload, 'none');
           calendarEventId = createdEvent?.id || null;
 
           // Save calendar_event_id back to the organisation in Strapi
@@ -148,12 +252,12 @@ export async function POST(
 
           calendarResult = { action: 'created', eventId: calendarEventId };
         } else {
-          // Event already exists — add this user as an attendee
+          // Event already exists — add this user as an attendee and update details
           try {
             const existingEvent = await getEvents(
               process.env.INDUCTIONS_CALENDAR_ID || undefined,
-              '', // unused when eventId is provided
-              '', // unused when eventId is provided
+              '',
+              '',
               calendarEventId
             );
 
@@ -165,13 +269,22 @@ export async function POST(
 
               if (!alreadyAttendee) {
                 existingAttendees.push({ email: userEmail });
+              }
 
-                await updateEvent(process.env.INDUCTIONS_CALENDAR_ID || undefined, calendarEventId, {
+              await updateEvent(
+                process.env.INDUCTIONS_CALENDAR_ID || undefined,
+                calendarEventId,
+                {
                   ...(existingEvent as GoogleEvent),
+                  summary: eventSummary,
+                  description: eventDescription,
+                  start: { date: dateStr },
+                  end: { date: dateStr },
                   attendees: existingAttendees,
                   guestsCanSeeOtherGuests: false,
-                });
-              }
+                },
+                'none'
+              );
 
               calendarResult = { action: 'attendee_added', eventId: calendarEventId };
             }

@@ -38,6 +38,28 @@ function initialAnswers(schema: FormSchema): Answers {
   return a;
 }
 
+function hasAtLeastOneWord(answers: Answers): boolean {
+  for (const key in answers) {
+    const val = answers[key];
+    if (typeof val === 'string' && val.trim().split(/\s+/).filter(Boolean).length >= 1) {
+      return true;
+    }
+    if (Array.isArray(val) && val.length > 0) {
+      return true;
+    }
+    if (typeof val === 'boolean' && val === true) {
+      return true;
+    }
+    if (typeof val === 'number') {
+      return true;
+    }
+    if (typeof val === 'object' && val !== null) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function FillerClient({ uid, title, schema, userEmail }: FillerClientProps) {
   const [phase, setPhase] = useState<Phase>('loading');
   const [answers, setAnswers] = useState<Answers>(() => initialAnswers(schema));
@@ -79,6 +101,7 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
     async (opts?: { silent?: boolean; isAutoSave?: boolean }) => {
       if (!dirtyRef.current) return;
       const data = answersRef.current;
+      if (!hasAtLeastOneWord(data)) return;
       persistLocal(data);
       setIsSavingDraft(true);
       try {
@@ -112,7 +135,17 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
     let cancelled = false;
     (async () => {
       // Fire-and-forget visit tracking.
-      fetch(`/api/platform/forms/${uid}/visit`, { method: 'POST' }).catch(() => {});
+      const visitKey = `form-visited:${uid}:${userEmail}`;
+      const hasVisitedLocal = localStorage.getItem(visitKey);
+      if (!hasVisitedLocal) {
+        fetch(`/api/platform/forms/${uid}/visit`, { method: 'POST' })
+          .then((res) => {
+            if (res.ok) {
+              localStorage.setItem(visitKey, 'true');
+            }
+          })
+          .catch(() => {});
+      }
 
       let serverData: Answers | null = null;
       let serverSavedAt = 0;
@@ -198,12 +231,14 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
     return () => clearInterval(interval);
   }, [phase]);
 
-  // Flush on tab hide (sendBeacon) + unmount (keepalive fetch).
+  // Flush on tab hide (sendBeacon) + unmount (keepalive fetch) + beforeunload.
   useEffect(() => {
     const flushBeacon = () => {
       if (!dirtyRef.current) return;
-      const body = JSON.stringify({ data: answersRef.current });
-      persistLocal(answersRef.current);
+      const data = answersRef.current;
+      if (!hasAtLeastOneWord(data)) return;
+      const body = JSON.stringify({ data });
+      persistLocal(data);
       try {
         const blob = new Blob([body], { type: 'text/plain' });
         navigator.sendBeacon(responseUrl, blob);
@@ -215,19 +250,27 @@ export function FillerClient({ uid, title, schema, userEmail }: FillerClientProp
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') flushBeacon();
     };
+    const onBeforeUnload = () => {
+      flushBeacon();
+    };
     document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('beforeunload', onBeforeUnload);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', onBeforeUnload);
       if (dirtyRef.current) {
-        try {
-          fetch(responseUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: answersRef.current }),
-            keepalive: true,
-          }).catch(() => {});
-        } catch {
-          /* ignore */
+        const data = answersRef.current;
+        if (hasAtLeastOneWord(data)) {
+          try {
+            fetch(responseUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ data }),
+              keepalive: true,
+            }).catch(() => {});
+          } catch {
+            /* ignore */
+          }
         }
       }
     };

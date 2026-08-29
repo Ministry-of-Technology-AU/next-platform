@@ -17,6 +17,7 @@ import {
   X,
   Image as ImageIcon,
   ChevronDown,
+  ChevronUp,
   Calendar as CalendarIcon,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -175,6 +176,14 @@ export function TextInput({
   onChange,
   type = "text",
 }: TextInputProps) {
+  const isNumber = type === "number" && !isParagraph;
+
+  const handleStep = (delta: number) => {
+    const num = parseFloat(value) || 0;
+    const nextVal = num + delta;
+    onChange?.(String(nextVal));
+  };
+
   const InputComponent = isParagraph ? Textarea : Input;
 
   return (
@@ -188,20 +197,57 @@ export function TextInput({
       {description && (
         <p className="text-sm text-muted-foreground">{description}</p>
       )}
-      <InputComponent
-        id={title.toLowerCase().replace(/\s+/g, "-")}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-        className={errorMessage ? "border-destructive" : " dark:text-white"}
-        {...(isParagraph && {
-          className: `min-h-[100px]${
+
+      {isNumber ? (
+        <div className="relative flex items-center">
+          <Input
+            id={title.toLowerCase().replace(/\s+/g, "-")}
+            type="number"
+            placeholder={placeholder}
+            value={value}
+            onChange={(e) => onChange?.(e.target.value)}
+            className={`pr-10 text-foreground bg-background font-medium ${
+              errorMessage ? "border-destructive" : ""
+            }`}
+            disabled={isDisabled}
+          />
+          <div className="absolute right-1 flex flex-col items-center justify-center pr-1 border-l border-border pl-1 select-none">
+            <button
+              type="button"
+              tabIndex={-1}
+              disabled={isDisabled}
+              onClick={() => handleStep(1)}
+              className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted transition-colors disabled:opacity-50"
+              aria-label="Increment value"
+            >
+              <ChevronUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              tabIndex={-1}
+              disabled={isDisabled}
+              onClick={() => handleStep(-1)}
+              className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted transition-colors disabled:opacity-50"
+              aria-label="Decrement value"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <InputComponent
+          id={title.toLowerCase().replace(/\s+/g, "-")}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className={`text-foreground bg-background font-normal ${
             errorMessage ? "border-destructive" : ""
-          }`,
-        })}
-        disabled={isDisabled}
-      />
+          } ${isParagraph ? "min-h-[100px]" : ""}`}
+          disabled={isDisabled}
+        />
+      )}
+
       {errorMessage && (
         <p className="text-sm text-destructive">{errorMessage}</p>
       )}

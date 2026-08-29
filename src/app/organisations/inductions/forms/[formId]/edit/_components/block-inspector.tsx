@@ -26,6 +26,7 @@ import {
   OptionsEditor,
 } from './inspector-fields';
 import { ConditionEditor } from './condition-editor';
+import { ImageBlockEditor } from './image-block-editor';
 import { BLOCK_META } from './block-meta';
 import {
   isInputBlock,
@@ -394,26 +395,7 @@ function renderDisplayFields(block: FormBlock, update: Patch) {
     case 'divider':
       return <p className="text-sm text-muted-foreground">A horizontal divider. Nothing to configure.</p>;
     case 'image':
-      return (
-        <>
-          <TextField
-            label="Image URL (Cloudinary)"
-            value={block.url}
-            onChange={(url) => update({ url })}
-            placeholder="https://res.cloudinary.com/…"
-          />
-          <TextField label="Alt text" value={block.alt} onChange={(alt) => update({ alt })} />
-          <SelectField
-            label="Width"
-            value={block.width}
-            onChange={(width) => update({ width })}
-            options={[
-              { value: 'full', label: 'Full width' },
-              { value: 'half', label: 'Half width' },
-            ]}
-          />
-        </>
-      );
+      return <ImageBlockEditor block={block} update={update} />;
     case 'social-links':
       return <SocialLinksEditor block={block} update={update} />;
     default:
