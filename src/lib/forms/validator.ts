@@ -454,14 +454,31 @@ function describePath(path: readonly (string | number | symbol)[], input: unknow
       | { title?: string; type?: string }
       | undefined;
     const title = block?.title?.trim();
+    const truncatedTitle = title ? (title.length > 30 ? `${title.slice(0, 30)}…` : title) : undefined;
     // Fall back to a readable form of the block type, e.g. "short text".
-    const name = title ? `"${title}"` : block?.type?.replace(/-/g, ' ');
+    const name = truncatedTitle ? `"${truncatedTitle}"` : block?.type?.replace(/-/g, ' ');
     segments.push(name ? `question ${blockIndex + 1} (${name})` : `question ${blockIndex + 1}`);
   }
 
   const field = FIELD_LABELS[parts[parts.length - 1] ?? ''];
   if (field) segments.push(field);
   return segments.join(' → ');
+}
+
+function formatZodIssueMessage(issue: z.ZodIssue): string {
+  if (issue.code === 'too_small') {
+    const min = (issue as unknown as { minimum?: number }).minimum;
+    if (min === 1 || Number(min) === 1) return "can't be empty";
+    return min !== undefined ? `must contain at least ${min} characters` : "can't be empty";
+  }
+  if (issue.code === 'too_big') {
+    const max = (issue as unknown as { maximum?: number }).maximum;
+    return max !== undefined ? `must contain at most ${max} characters` : 'is too long';
+  }
+  if (/invalid input/i.test(issue.message)) {
+    return 'is invalid';
+  }
+  return issue.message;
 }
 
 /** Safe parse returning a flat, human-readable error string on failure. */
@@ -474,11 +491,7 @@ export function safeParseFormSchema(
   if (!first) return { ok: false, error: 'Invalid form schema' };
 
   const where = first.path?.length ? describePath(first.path, input) : '';
-  // Zod's own "Invalid input" is meaningless to an org; say what is wrong.
-  const message =
-    first.code === 'too_small' || /invalid input/i.test(first.message)
-      ? "can't be empty"
-      : first.message;
+  const message = formatZodIssueMessage(first);
 
   return { ok: false, error: where ? `${where}: ${message}` : message };
 }

@@ -7,7 +7,6 @@ import { Plus, X, MousePointerClick } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectTrigger,
@@ -46,60 +45,36 @@ interface BlockInspectorProps {
 export function BlockInspector({ block, schema, currentPageId, onUpdate }: BlockInspectorProps) {
   if (!block) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-8 text-center text-muted-foreground">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/30">
-          <MousePointerClick className="h-5 w-5 text-muted-foreground/70" />
-        </div>
-        <p className="mt-3 text-xs font-semibold text-foreground">No block selected</p>
-        <p className="mt-1 max-w-[200px] text-[11px] leading-relaxed text-muted-foreground">
-          Click any block on the canvas to configure its options and visibility logic.
-        </p>
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center text-sm text-muted-foreground">
+        <MousePointerClick className="mb-2 h-6 w-6" />
+        Select a block to edit its settings.
       </div>
     );
   }
 
   const meta = BLOCK_META[block.type];
   const Icon = meta.icon;
-  const isInput = isInputBlock(block);
-  const hasCondition = !!block.visibleWhen && block.visibleWhen.rules.length > 0;
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-border/80 px-4 py-3 bg-card/50">
-        <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-xs">
-            <Icon className="h-4 w-4" />
-          </span>
-          <div>
-            <span className="block text-xs font-bold text-foreground leading-none">{meta.label}</span>
-            <span className="text-[10px] text-muted-foreground">{isInput ? 'Question block' : 'Content block'}</span>
-          </div>
-        </div>
-
-        {hasCondition && (
-          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-            Logic attached
-          </span>
-        )}
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="text-sm font-semibold">{meta.label}</span>
       </div>
 
       <Tabs defaultValue="content" className="flex min-h-0 flex-1 flex-col">
-        <div className="px-4 pt-3 pb-1">
-          <TabsList className="grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
-            <TabsTrigger value="content" className="rounded-lg text-xs font-semibold data-[state=active]:shadow-xs">
-              Content
-            </TabsTrigger>
-            <TabsTrigger value="logic" className="rounded-lg text-xs font-semibold data-[state=active]:shadow-xs">
-              Logic {hasCondition && '•'}
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="mx-4 mt-3 grid grid-cols-2">
+          <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="logic">Logic</TabsTrigger>
+        </TabsList>
 
-        <TabsContent value="content" className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        <TabsContent value="content" className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-4">{renderTypeFields(block, onUpdate)}</div>
         </TabsContent>
 
-        <TabsContent value="logic" className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        <TabsContent value="logic" className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <ConditionEditor
             schema={schema}
             currentPageId={currentPageId}
@@ -121,13 +96,8 @@ function CommonInputFields({ block, update }: { block: InputBlock; update: Patch
   const hasPlaceholder = !['checkbox', 'rich-text', 'file-upload'].includes(block.type);
   return (
     <>
-      <TextAreaField
-        label="Question"
-        value={block.title}
-        onChange={(title) => update({ title })}
-        placeholder="Enter question prompt..."
-      />
-      <TextAreaField
+      <TextField label="Question" value={block.title} onChange={(title) => update({ title })} />
+      <TextField
         label="Helper text"
         value={block.subtitle ?? ''}
         onChange={(subtitle) => update({ subtitle })}
@@ -303,17 +273,17 @@ function renderInputExtras(block: InputBlock, update: Patch) {
       return (
         <div className="grid grid-cols-2 gap-2">
           <Field label="Earliest">
-            <DatePicker
+            <Input
+              type="date"
               value={block.validation?.minDate ?? ''}
-              onChange={(_, str) => update({ validation: { ...block.validation, minDate: str || undefined } })}
-              placeholder="Min date"
+              onChange={(e) => update({ validation: { ...block.validation, minDate: e.target.value || undefined } })}
             />
           </Field>
           <Field label="Latest">
-            <DatePicker
+            <Input
+              type="date"
               value={block.validation?.maxDate ?? ''}
-              onChange={(_, str) => update({ validation: { ...block.validation, maxDate: str || undefined } })}
-              placeholder="Max date"
+              onChange={(e) => update({ validation: { ...block.validation, maxDate: e.target.value || undefined } })}
             />
           </Field>
         </div>
@@ -428,13 +398,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
   'website',
   'youtube',
   'discord',
-  'custom',
 ];
-
-/** `custom` is the catch-all — it needs a name, the rest label themselves. */
-const PLATFORM_LABELS: Partial<Record<SocialPlatform, string>> = {
-  custom: 'Custom link',
-};
 
 function SocialLinksEditor({
   block,
@@ -449,63 +413,40 @@ function SocialLinksEditor({
     <Field label="Links">
       <div className="space-y-1.5">
         {links.map((link, i) => (
-          <div key={i} className="space-y-1">
-            <div className="flex items-center gap-1">
-              <Select
-                value={link.platform}
-                onValueChange={(v) =>
-                  set(
-                    links.map((l, idx) =>
-                      idx === i
-                        ? {
-                            ...l,
-                            platform: v as SocialPlatform,
-                            // A label only means something for a custom link.
-                            label: v === 'custom' ? l.label ?? '' : undefined,
-                          }
-                        : l,
-                    ),
-                  )
-                }
-              >
-                <SelectTrigger className="h-8 w-32 capitalize">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SOCIAL_PLATFORMS.map((p) => (
-                    <SelectItem key={p} value={p} className="capitalize">
-                      {PLATFORM_LABELS[p] ?? p}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input
-                className="h-8 flex-1"
-                placeholder="https://…"
-                value={link.url}
-                onChange={(e) => set(links.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)))}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-8 w-7 text-muted-foreground hover:text-destructive"
-                aria-label="Remove link"
-                onClick={() => set(links.filter((_, idx) => idx !== i))}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-            {link.platform === 'custom' && (
-              <Input
-                className="h-8 text-xs"
-                placeholder="Link name (e.g. Our Handbook)"
-                value={link.label ?? ''}
-                onChange={(e) =>
-                  set(links.map((l, idx) => (idx === i ? { ...l, label: e.target.value } : l)))
-                }
-              />
-            )}
+          <div key={i} className="flex items-center gap-1">
+            <Select
+              value={link.platform}
+              onValueChange={(v) =>
+                set(links.map((l, idx) => (idx === i ? { ...l, platform: v as SocialPlatform } : l)))
+              }
+            >
+              <SelectTrigger className="h-8 w-32 capitalize">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SOCIAL_PLATFORMS.map((p) => (
+                  <SelectItem key={p} value={p} className="capitalize">
+                    {p}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              className="h-8 flex-1"
+              placeholder="https://…"
+              value={link.url}
+              onChange={(e) => set(links.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)))}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-7 text-muted-foreground hover:text-destructive"
+              aria-label="Remove link"
+              onClick={() => set(links.filter((_, idx) => idx !== i))}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
           </div>
         ))}
         <Button
