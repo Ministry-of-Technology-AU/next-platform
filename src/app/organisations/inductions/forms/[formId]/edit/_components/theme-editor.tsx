@@ -1,6 +1,77 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Palette, Type, Sliders, PaintBucket } from 'lucide-react';
+
+function ColorInput({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  label: string;
+}) {
+  const [localVal, setLocalVal] = useState(value);
+
+  useEffect(() => {
+    setLocalVal(value);
+  }, [value]);
+
+  const isValidHex = (hex: string) => {
+    return /^#[0-9A-Fa-f]{6}$/.test(hex);
+  };
+
+  const handleTextChange = (newVal: string) => {
+    setLocalVal(newVal);
+    if (isValidHex(newVal)) {
+      onChange(newVal);
+    } else if (/^[0-9A-Fa-f]{6}$/.test(newVal)) {
+      onChange('#' + newVal);
+    }
+  };
+
+  const handleBlur = () => {
+    let normalized = localVal.trim();
+    if (normalized && !normalized.startsWith('#')) {
+      normalized = '#' + normalized;
+    }
+    if (isValidHex(normalized)) {
+      onChange(normalized);
+      setLocalVal(normalized);
+    } else {
+      setLocalVal(value);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 flex-shrink-0">
+      <input
+        type="text"
+        className="w-20 rounded-md border border-border bg-background px-1.5 py-0.5 text-center font-mono text-xs uppercase text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        value={localVal}
+        onChange={(e) => handleTextChange(e.target.value)}
+        onBlur={handleBlur}
+      />
+      <label className="relative flex h-7 w-8 cursor-pointer items-center justify-center rounded-lg border border-border/80 overflow-hidden shadow-2xs">
+        <input
+          type="color"
+          aria-label={label}
+          value={isValidHex(value) ? value : '#000000'}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setLocalVal(e.target.value);
+          }}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        />
+        <span
+          className="h-full w-full"
+          style={{ backgroundColor: isValidHex(value) ? value : '#000000' }}
+        />
+      </label>
+    </div>
+  );
+}
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -163,24 +234,11 @@ export function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
                     <span className="block text-xs font-semibold text-foreground">{label}</span>
                     <span className="block truncate text-[10px] text-muted-foreground">{desc}</span>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="font-mono text-xs uppercase text-muted-foreground">
-                      {theme.colors[key]}
-                    </span>
-                    <label className="relative flex h-7 w-8 cursor-pointer items-center justify-center rounded-lg border border-border/80 overflow-hidden shadow-2xs">
-                      <input
-                        type="color"
-                        aria-label={label}
-                        value={theme.colors[key]}
-                        onChange={(e) => setColor(key, e.target.value)}
-                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                      />
-                      <span
-                        className="h-full w-full"
-                        style={{ backgroundColor: theme.colors[key] }}
-                      />
-                    </label>
-                  </div>
+                  <ColorInput
+                    value={theme.colors[key]}
+                    onChange={(val) => setColor(key, val)}
+                    label={label}
+                  />
                 </div>
               ))}
             </div>

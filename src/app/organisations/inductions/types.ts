@@ -11,6 +11,7 @@ export interface DeadlineExtensionInfo {
 export interface CycleStats {
   totalOpens: number;
   totalFills: number;
+  totalDrafts: number;
   completionRate: number;
   rolesCount: number;
   applicantsCount: number;
@@ -32,6 +33,7 @@ export interface InductionCycleSummary {
 export interface RoleStats {
   opens: number;
   fills: number;
+  drafts: number;
   completionRate: number;
   topUtm: string | null; // "Coming Soon"
 }
@@ -99,6 +101,7 @@ export interface PipelineRound {
 export const PLACEHOLDER_CYCLE_STATS: CycleStats = {
   totalOpens: 0,
   totalFills: 0,
+  totalDrafts: 0,
   completionRate: 0,
   rolesCount: 0,
   applicantsCount: 0,
@@ -107,6 +110,7 @@ export const PLACEHOLDER_CYCLE_STATS: CycleStats = {
 export const PLACEHOLDER_ROLE_STATS: RoleStats = {
   opens: 0,
   fills: 0,
+  drafts: 0,
   completionRate: 0,
   topUtm: null,
 };

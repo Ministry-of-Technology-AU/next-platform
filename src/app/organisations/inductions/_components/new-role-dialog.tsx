@@ -154,7 +154,7 @@ export function RoleFormDialog({
           tier,
           department: department.trim() || null,
           description: description.trim() || null,
-          stats: { opens: 0, fills: 0, completionRate: 0, topUtm: null },
+          stats: { opens: 0, fills: 0, drafts: 0, completionRate: 0, topUtm: null },
           createdAt: new Date().toISOString(),
         };
         onCreated?.(newRole);

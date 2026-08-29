@@ -83,6 +83,7 @@ export function CycleClient({
     name: r.name.length > 12 ? r.name.slice(0, 12) + '…' : r.name,
     applications: r.stats?.fills || 0,
     opens: r.stats?.opens || 0,
+    drafts: r.stats?.drafts || 0,
   }));
 
   return (
@@ -135,14 +136,19 @@ export function CycleClient({
       {/* Role-wise distribution chart */}
       {chartData.length > 0 && (
         <div className="bg-white dark:bg-gray-dark/15 rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <BarChart3 className="w-5 h-5 text-primary dark:text-secondary-extradark" />
-            <h3 className="text-lg font-semibold text-primary dark:text-secondary-extradark !text-left">
-              Role-wise Application Distribution
-            </h3>
-            <Badge className="bg-primary/10 text-primary border border-primary/20 dark:bg-secondary-dark/20 dark:text-secondary-light dark:border-secondary-dark/30 px-2.5 py-0.5 rounded text-xs font-semibold">
-              {roles.length} role{roles.length === 1 ? '' : 's'}
-            </Badge>
+          <div className="mb-6">
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-5 h-5 text-primary dark:text-secondary-extradark" />
+              <h3 className="text-lg font-semibold text-primary dark:text-secondary-extradark !text-left">
+                Role-wise Application Distribution
+              </h3>
+              <Badge className="bg-primary/10 text-primary border border-primary/20 dark:bg-secondary-dark/20 dark:text-secondary-light dark:border-secondary-dark/30 px-2.5 py-0.5 rounded text-xs font-semibold">
+                {roles.length} role{roles.length === 1 ? '' : 's'}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5 !text-left">
+              Statistics are sourced from the first step of the pipeline (views, drafts, and submissions).
+            </p>
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -154,8 +160,9 @@ export function CycleClient({
                   cursor={{ fill: 'transparent' }}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5' }}
                 />
-                <Bar dataKey="applications" name="Applications" fill="#87281b" radius={[4, 4, 0, 0]} barSize={40} />
-                <Bar dataKey="opens" name="Opens" fill="#ffcd74" radius={[4, 4, 0, 0]} barSize={40} />
+                <Bar dataKey="opens" name="Opens" fill="#ffcd74" radius={[4, 4, 0, 0]} barSize={25} />
+                <Bar dataKey="drafts" name="Drafts" fill="#10b981" radius={[4, 4, 0, 0]} barSize={25} />
+                <Bar dataKey="applications" name="Applications" fill="#87281b" radius={[4, 4, 0, 0]} barSize={25} />
               </BarChart>
             </ResponsiveContainer>
           </div>

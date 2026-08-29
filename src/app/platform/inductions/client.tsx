@@ -203,7 +203,7 @@ export function InductionClient({
       return matchesSearch && matchesCategoryPill && matchesSheetFilter && matchesTrackedOnly;
     });
 
-    // Sort by deadline: closest upcoming deadline comes highest up
+    // Sort: rolling inductions (no valid deadline) first, then by deadline (closest upcoming first)
     return [...filtered].sort((a, b) => {
       const now = Date.now();
       const aTime = a.inductionEnd ? new Date(a.inductionEnd).getTime() : NaN;
@@ -211,23 +211,28 @@ export function InductionClient({
 
       const aValid = !isNaN(aTime);
       const bValid = !isNaN(bTime);
-      const aUpcoming = aValid && aTime >= now;
-      const bUpcoming = bValid && bTime >= now;
 
-      // 1. Both have upcoming deadlines -> closest deadline first (ascending)
+      // 1. Rolling inductions come first
+      if (!aValid && bValid) return -1;
+      if (aValid && !bValid) return 1;
+      if (!aValid && !bValid) {
+        return a.name.localeCompare(b.name);
+      }
+
+      // 2. Both have valid deadlines
+      const aUpcoming = aTime >= now;
+      const bUpcoming = bTime >= now;
+
+      // Both upcoming -> closest deadline first
       if (aUpcoming && bUpcoming) {
         return aTime - bTime;
       }
-      // 2. Upcoming deadline comes before non-upcoming or no deadline
+      // Upcoming deadline comes before ended deadline
       if (aUpcoming && !bUpcoming) return -1;
       if (!aUpcoming && bUpcoming) return 1;
 
-      // 3. If neither is upcoming, compare whether one has a deadline vs none
-      if (aValid && !bValid) return -1;
-      if (!aValid && bValid) return 1;
-
-      // 4. Alphabetical tie breaker
-      return a.name.localeCompare(b.name);
+      // Both ended
+      return aTime - bTime;
     });
   }, [searchQuery, selectedType, filters, onlyTracked, trackedOrgIds, organizations]);
 

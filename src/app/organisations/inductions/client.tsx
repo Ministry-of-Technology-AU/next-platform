@@ -23,13 +23,16 @@ function aggregateStats(cycles: InductionCycleSummary[]): CycleStats & { activeC
   const activeCount = cycles.filter(
     (c) => getDerivedCycleStatus(c.status, c.startDate, c.endDate) === 'active'
   ).length;
+  const totalOpens = cycles.reduce((a, c) => a + (c.stats?.totalOpens || 0), 0);
+  const totalFills = cycles.reduce((a, c) => a + (c.stats?.totalFills || 0), 0);
+  const totalDrafts = cycles.reduce((a, c) => a + (c.stats?.totalDrafts || 0), 0);
   return {
-    totalOpens: cycles.reduce((a, c) => a + (c.stats?.totalOpens || 0), 0),
-    totalFills: cycles.reduce((a, c) => a + (c.stats?.totalFills || 0), 0),
-    completionRate:
-      cycles.reduce((a, c) => a + (c.stats?.completionRate || 0), 0) / Math.max(cycles.length, 1),
+    totalOpens,
+    totalFills,
+    totalDrafts,
+    completionRate: totalOpens > 0 ? totalFills / totalOpens : 0,
     rolesCount: cycles.reduce((a, c) => a + (c.stats?.rolesCount || 0), 0),
-    applicantsCount: cycles.reduce((a, c) => a + (c.stats?.applicantsCount || c.stats?.totalFills || 0), 0),
+    applicantsCount: totalFills,
     activeCyclesCount: activeCount,
   };
 }

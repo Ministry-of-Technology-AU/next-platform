@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { unstable_cache, revalidateTag } from 'next/cache';
+
 /**
  * Server-only data access for induction cycles, roles, pipeline rounds, and applicants.
  * All Strapi API calls using STRAPI_API_TOKEN live here or in route handlers.
@@ -69,6 +71,34 @@ export function normalizeRole(entry: any): InductionRole | null {
     : Array.isArray(a.pipeline_rounds)
       ? a.pipeline_rounds
       : [];
+
+  const sortedRounds = [...rounds].sort((x: any, y: any) => {
+    const xAttrs = x?.attributes ?? x;
+    const yAttrs = y?.attributes ?? y;
+    return (xAttrs.order ?? 0) - (yAttrs.order ?? 0);
+  });
+
+  const firstRound = sortedRounds[0];
+  let roleStats = a.stats || PLACEHOLDER_ROLE_STATS;
+  if (firstRound) {
+    const rAttrs = firstRound?.attributes ?? firstRound;
+    const formEntry = rAttrs?.form?.data ?? rAttrs?.form;
+    const formAttrs = formEntry?.attributes ?? formEntry;
+    if (formAttrs?.stats) {
+      const fs = formAttrs.stats;
+      const opens = fs.uniqueVisits ?? 0;
+      const fills = fs.submissionCount ?? 0;
+      const drafts = fs.draftCount ?? 0;
+      roleStats = {
+        opens,
+        fills,
+        drafts,
+        completionRate: opens > 0 ? fills / opens : 0,
+        topUtm: null,
+      };
+    }
+  }
+
   const formIds = rounds
     .flatMap((r: any) => {
       const rAttrs = r?.attributes ?? r;
@@ -85,7 +115,7 @@ export function normalizeRole(entry: any): InductionRole | null {
     accessEmails: a.access_emails || a.accessEmails || [],
     formIds,
     primaryFormId: formIds[0] ?? null,
-    stats: a.stats || PLACEHOLDER_ROLE_STATS,
+    stats: roleStats,
     createdAt: a.createdAt || new Date().toISOString(),
   };
 }
@@ -187,6 +217,17 @@ export function normalizeApplicant(entry: any): ApplicantRow | null {
 // ---------------------------------------------------------------------------
 
 export async function listCyclesByOrg(organisationId: number): Promise<InductionCycleSummary[]> {
+  return unstable_cache(
+    () => listCyclesByOrgRaw(organisationId),
+    [`org-cycles-${organisationId}`],
+    {
+      revalidate: 15,
+      tags: [`org-cycles:${organisationId}`],
+    }
+  )();
+}
+
+async function listCyclesByOrgRaw(organisationId: number): Promise<InductionCycleSummary[]> {
   const res = await strapiGet('/induction-cycles', {
     filters: {
       organisation: { id: { $eq: organisationId } },
@@ -210,13 +251,19 @@ export async function listCyclesByOrg(organisationId: number): Promise<Induction
     try {
       const roles = await listRolesByCycle(cycle.id);
       cycle.stats.rolesCount = roles.length;
-      let totalApps = 0;
+      let totalOpens = 0;
+      let totalFills = 0;
+      let totalDrafts = 0;
       for (const r of roles) {
-        const apps = await listApplicantsByRole(r.id);
-        totalApps += apps.length;
+        totalOpens += r.stats?.opens || 0;
+        totalFills += r.stats?.fills || 0;
+        totalDrafts += r.stats?.drafts || 0;
       }
-      cycle.stats.applicantsCount = totalApps;
-      cycle.stats.totalFills = totalApps;
+      cycle.stats.totalOpens = totalOpens;
+      cycle.stats.totalFills = totalFills;
+      cycle.stats.totalDrafts = totalDrafts;
+      cycle.stats.applicantsCount = totalFills;
+      cycle.stats.completionRate = totalOpens > 0 ? totalFills / totalOpens : 0;
     } catch (err) {
       console.error(`Error computing backend stats for cycle ${cycle.id}:`, err);
     }
@@ -226,6 +273,17 @@ export async function listCyclesByOrg(organisationId: number): Promise<Induction
 }
 
 export async function getCycleById(cycleId: string | number): Promise<InductionCycleSummary | null> {
+  return unstable_cache(
+    () => getCycleByIdRaw(cycleId),
+    [`cycle-stats-${cycleId}`],
+    {
+      revalidate: 15,
+      tags: [`cycle-stats:${cycleId}`],
+    }
+  )();
+}
+
+async function getCycleByIdRaw(cycleId: string | number): Promise<InductionCycleSummary | null> {
   const res = await strapiGet(`/induction-cycles/${cycleId}`, {
     populate: {
       organisation: { fields: ['id', 'name'] },
@@ -238,13 +296,19 @@ export async function getCycleById(cycleId: string | number): Promise<InductionC
     try {
       const roles = await listRolesByCycle(cycle.id);
       cycle.stats.rolesCount = roles.length;
-      let totalApps = 0;
+      let totalOpens = 0;
+      let totalFills = 0;
+      let totalDrafts = 0;
       for (const r of roles) {
-        const apps = await listApplicantsByRole(r.id);
-        totalApps += apps.length;
+        totalOpens += r.stats?.opens || 0;
+        totalFills += r.stats?.fills || 0;
+        totalDrafts += r.stats?.drafts || 0;
       }
-      cycle.stats.applicantsCount = totalApps;
-      cycle.stats.totalFills = totalApps;
+      cycle.stats.totalOpens = totalOpens;
+      cycle.stats.totalFills = totalFills;
+      cycle.stats.totalDrafts = totalDrafts;
+      cycle.stats.applicantsCount = totalFills;
+      cycle.stats.completionRate = totalOpens > 0 ? totalFills / totalOpens : 0;
     } catch (err) {
       console.error(`Error computing backend stats for cycle ${cycleId}:`, err);
     }
@@ -273,7 +337,11 @@ export async function createCycle(input: {
     },
   });
 
-  return normalizeCycle(res?.data);
+  const created = normalizeCycle(res?.data);
+  if (created) {
+    revalidateTag(`org-cycles:${input.organisationId}`);
+  }
+  return created;
 }
 
 export async function updateCycle(
@@ -300,16 +368,29 @@ export async function updateCycle(
   data.status = getDerivedCycleStatus(rawStatus, effectiveStart, effectiveEnd);
 
   const res = await strapiPut(`/induction-cycles/${cycleId}`, { data });
-  return normalizeCycle(res?.data);
+  const updated = normalizeCycle(res?.data);
+  if (updated) {
+    revalidateTag(`cycle-stats:${cycleId}`);
+    const orgId = res?.data?.attributes?.organisation?.data?.id ?? res?.data?.organisation?.id;
+    if (orgId) {
+      revalidateTag(`org-cycles:${orgId}`);
+    }
+  }
+  return updated;
 }
 
 export async function deleteCycle(cycleId: string | number): Promise<void> {
   // Soft-delete: set status to 'archived' so all roles, rounds, and applicant data remain in Strapi
-  await strapiPut(`/induction-cycles/${cycleId}`, {
+  const res = await strapiPut(`/induction-cycles/${cycleId}`, {
     data: {
       status: 'archived',
     },
   });
+  revalidateTag(`cycle-stats:${cycleId}`);
+  const orgId = res?.data?.attributes?.organisation?.data?.id ?? res?.data?.organisation?.id;
+  if (orgId) {
+    revalidateTag(`org-cycles:${orgId}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -317,12 +398,27 @@ export async function deleteCycle(cycleId: string | number): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function listRolesByCycle(cycleId: string | number): Promise<InductionRole[]> {
+  return unstable_cache(
+    () => listRolesByCycleRaw(cycleId),
+    [`cycle-roles-${cycleId}`],
+    {
+      revalidate: 15,
+      tags: [`cycle-roles:${cycleId}`],
+    }
+  )();
+}
+
+async function listRolesByCycleRaw(cycleId: string | number): Promise<InductionRole[]> {
   const res = await strapiGet('/induction-roles', {
     filters: {
       induction_cycle: { id: { $eq: cycleId } },
     },
     populate: {
-      pipeline_rounds: true,
+      pipeline_rounds: {
+        populate: {
+          form: true,
+        },
+      },
     },
     sort: 'createdAt:asc',
     pagination: { pageSize: 100 },
@@ -336,7 +432,11 @@ export async function getRoleById(roleId: string | number): Promise<InductionRol
   const res = await strapiGet(`/induction-roles/${roleId}`, {
     populate: {
       induction_cycle: { fields: ['id', 'name'] },
-      pipeline_rounds: true,
+      pipeline_rounds: {
+        populate: {
+          form: true,
+        },
+      },
     },
   });
 
@@ -397,6 +497,9 @@ export async function createRole(input: {
         role: created.id,
       },
     });
+
+    revalidateTag(`cycle-roles:${input.cycleId}`);
+    revalidateTag(`cycle-stats:${input.cycleId}`);
   }
 
   return created;
@@ -422,10 +525,34 @@ export async function updateRole(
   if (patch.stats !== undefined) data.stats = patch.stats;
 
   const res = await strapiPut(`/induction-roles/${roleId}`, { data });
-  return normalizeRole(res?.data);
+  const updated = normalizeRole(res?.data);
+  if (updated) {
+    const cycleId = res?.data?.attributes?.induction_cycle?.data?.id ?? res?.data?.induction_cycle?.id;
+    if (cycleId) {
+      revalidateTag(`cycle-roles:${cycleId}`);
+      revalidateTag(`cycle-stats:${cycleId}`);
+    }
+  }
+  return updated;
 }
 
 export async function deleteRole(roleId: string | number): Promise<void> {
+  try {
+    const roleRaw = await strapiGet(`/induction-roles/${roleId}`, {
+      populate: { induction_cycle: { fields: ['id'] } },
+    });
+    const cycleId =
+      roleRaw?.data?.attributes?.induction_cycle?.data?.id ??
+      roleRaw?.data?.induction_cycle?.id ??
+      roleRaw?.data?.induction_cycle;
+    if (cycleId) {
+      revalidateTag(`cycle-roles:${cycleId}`);
+      revalidateTag(`cycle-stats:${cycleId}`);
+    }
+  } catch (err) {
+    console.error('Failed to resolve cycleId during role delete:', err);
+  }
+
   // Clean up pipeline rounds
   const rounds = await listPipelineByRole(roleId);
   for (const r of rounds) {
@@ -731,11 +858,14 @@ export async function bookInterviewSlot(
 export async function listApplicantsByRole(roleId: string | number): Promise<ApplicantRow[]> {
   try {
     const rounds = await listPipelineByRole(roleId);
+    const sortedRounds = [...rounds].sort((x, y) => (x.order ?? 0) - (y.order ?? 0));
+    const firstRound = sortedRounds[0];
+
     const numericFormIds: number[] = [];
     const uidFormIds: string[] = [];
 
-    for (const round of rounds) {
-      const allFormIds = round.formIds ?? (round.formId ? [round.formId] : []);
+    if (firstRound) {
+      const allFormIds = firstRound.formIds ?? (firstRound.formId ? [firstRound.formId] : []);
       for (const fid of allFormIds) {
         if (fid && fid !== 'none' && fid !== '[object Object]') {
           if (!isNaN(Number(fid)) && !String(fid).includes('-')) {
@@ -795,8 +925,13 @@ export async function listApplicantsByRole(roleId: string | number): Promise<App
     for (const item of roleData) {
       const id = item.id ?? item.attributes?.id;
       if (id && !seenIds.has(id)) {
-        seenIds.add(id);
-        allEntries.push(item);
+        const formEntry = item.attributes?.form?.data ?? item.form;
+        const formAttrs = formEntry?.attributes ?? formEntry;
+        const formDbId = formEntry?.id ?? formAttrs?.id;
+        if (!formDbId || numericFormIds.includes(Number(formDbId))) {
+          seenIds.add(id);
+          allEntries.push(item);
+        }
       }
     }
 
