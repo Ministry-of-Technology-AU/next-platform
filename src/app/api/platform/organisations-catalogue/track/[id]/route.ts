@@ -102,9 +102,15 @@ export async function POST(
     const primaryCycleName = primaryCycle?.name || null;
     const primaryCycleDesc = primaryCycle?.description || orgData?.induction_description || '';
 
-    // Extract roles and application links across cycles
+    const hasActiveCycle = activeCycles.length > 0;
+    const isLegacyOpen =
+      orgData?.induction === true &&
+      (!orgData?.induction_end ||
+        new Date(normalizeEndDateToEndOfDay(orgData?.induction_end) || orgData?.induction_end).getTime() >= Date.now());
+
+    // Extract roles and application links ONLY from active cycles
     const rolesList: { title: string; department?: string; formUrl?: string }[] = [];
-    for (const c of (sortedCycles.length > 0 ? sortedCycles : cyclesData)) {
+    for (const c of sortedCycles) {
       const ca = c.attributes || c || {};
       const rolesData = ca.roles?.data || ca.roles || [];
       for (const r of rolesData) {
@@ -113,11 +119,12 @@ export async function POST(
         const formRound = rounds.find((rnd: any) => (rnd.attributes || rnd || {}).type === 'form');
         const formObj = formRound?.attributes?.form?.data || formRound?.form?.data || formRound?.form;
         const formAttrs = formObj?.attributes || formObj || {};
+        const isFormUsable = formAttrs?.form_status !== 'inactive';
         const formUid = formAttrs?.form_uid || formObj?.form_uid;
         rolesList.push({
           title: ra.name || 'Role Candidate',
           department: ra.department || undefined,
-          formUrl: formUid ? `/platform/forms/${formUid}` : undefined,
+          formUrl: isFormUsable && formUid ? `/platform/forms/${formUid}` : undefined,
         });
       }
     }
@@ -170,7 +177,18 @@ export async function POST(
       orgs_checklist: checklist,
     });
 
-    // 3. Google Calendar integration
+    // 3. Google Calendar integration: ONLY publish if the induction cycle is genuinely active
+    if (!hasActiveCycle && !isLegacyOpen) {
+      return NextResponse.json({
+        success: true,
+        tracked: true,
+        calendar: {
+          action: 'skipped',
+          reason: 'Induction cycle is not active yet; event will be published when cycle becomes active',
+        },
+      });
+    }
+
     let calendarResult = null;
     try {
       if (effectiveDeadline) {
@@ -178,7 +196,11 @@ export async function POST(
         const deadlineDate = endIso ? new Date(endIso) : new Date(effectiveDeadline);
         const dateStr = deadlineDate.toISOString().split('T')[0]; // YYYY-MM-DD
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ashoka-sg.com';
+        const baseUrl =
+          process.env.NEXT_PUBLIC_APP_URL ||
+          (process.env.NEXT_PUBLIC_BASE_URL && !process.env.NEXT_PUBLIC_BASE_URL.includes('localhost')
+            ? process.env.NEXT_PUBLIC_BASE_URL
+            : 'https://sg.ashoka.edu.in');
         const eventSummary = primaryCycleName
           ? `${orgName} (${primaryCycleName}) — Induction Deadline`
           : `${orgName} — Induction Deadline`;
@@ -216,7 +238,7 @@ export async function POST(
         };
 
         if (!calendarEventId) {
-          const createdEvent = await addEvent(process.env.INDUCTIONS_CALENDAR_ID || undefined, eventPayload);
+          const createdEvent = await addEvent(process.env.INDUCTIONS_CALENDAR_ID || undefined, eventPayload, 'none');
           calendarEventId = createdEvent?.id || null;
 
           // Save calendar_event_id back to the organisation in Strapi
@@ -249,15 +271,20 @@ export async function POST(
                 existingAttendees.push({ email: userEmail });
               }
 
-              await updateEvent(process.env.INDUCTIONS_CALENDAR_ID || undefined, calendarEventId, {
-                ...(existingEvent as GoogleEvent),
-                summary: eventSummary,
-                description: eventDescription,
-                start: { date: dateStr },
-                end: { date: dateStr },
-                attendees: existingAttendees,
-                guestsCanSeeOtherGuests: false,
-              });
+              await updateEvent(
+                process.env.INDUCTIONS_CALENDAR_ID || undefined,
+                calendarEventId,
+                {
+                  ...(existingEvent as GoogleEvent),
+                  summary: eventSummary,
+                  description: eventDescription,
+                  start: { date: dateStr },
+                  end: { date: dateStr },
+                  attendees: existingAttendees,
+                  guestsCanSeeOtherGuests: false,
+                },
+                'none'
+              );
 
               calendarResult = { action: 'attendee_added', eventId: calendarEventId };
             }

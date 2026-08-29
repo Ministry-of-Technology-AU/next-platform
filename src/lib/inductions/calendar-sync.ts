@@ -1,5 +1,5 @@
 import { strapiGet, strapiPut } from '@/lib/apis/strapi';
-import { addEvent, getEvents, updateEvent, type GoogleEvent } from '@/lib/apis/calendar';
+import { addEvent, getEvents, updateEvent, deleteEvent, type GoogleEvent } from '@/lib/apis/calendar';
 import { getDerivedCycleStatus, type CycleStatus } from '@/app/organisations/inductions/types';
 import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 import { htmlToPlainText } from '@/lib/utils';
@@ -49,7 +49,7 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
     const orgName = orgData.name || 'Unknown Organisation';
     let calendarEventId = orgData.calendar_event_id || null;
 
-    // Determine active/upcoming cycles
+    // Determine active cycles ONLY (cycles whose derived status is 'active')
     const cyclesData = orgData.induction_cycles?.data || orgData.induction_cycles || [];
     const activeCycles = cyclesData.filter((c: any) => {
       const ca = c.attributes || c || {};
@@ -58,31 +58,44 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
       return derived === 'active';
     });
 
-    // Also check upcoming cycles (draft with future start_date/end_date)
-    const upcomingCycles = cyclesData.filter((c: any) => {
-      const ca = c.attributes || c || {};
-      const rawStatus = (ca.status as CycleStatus) || 'draft';
-      const derived = getDerivedCycleStatus(rawStatus, ca.start_date, ca.end_date);
-      return (
-        derived === 'draft' &&
-        ca.end_date &&
-        new Date(normalizeEndDateToEndOfDay(ca.end_date) || ca.end_date).getTime() >= Date.now()
-      );
-    });
-
-    const relevantCycles = activeCycles.length > 0 ? activeCycles : upcomingCycles;
-
     // Check if legacy induction is open
     const isLegacyOpen =
       orgData.induction === true &&
       (!orgData.induction_end ||
         new Date(normalizeEndDateToEndOfDay(orgData.induction_end) || orgData.induction_end).getTime() >= Date.now());
 
-    if (relevantCycles.length === 0 && !isLegacyOpen) {
-      return { synced: false, reason: 'No active or upcoming induction cycles found' };
+    const hasActiveCycle = activeCycles.length > 0;
+
+    // If there are NO active cycles and legacy induction is not open, do not publish to Google Calendar.
+    // If a calendar event was created previously, remove it and clear the ID so unreleased info is not exposed.
+    if (!hasActiveCycle && !isLegacyOpen) {
+      if (calendarEventId) {
+        const calId = process.env.INDUCTIONS_CALENDAR_ID || undefined;
+        try {
+          await deleteEvent(calId, calendarEventId);
+        } catch (delErr) {
+          console.error(`Error deleting calendar event ${calendarEventId} for inactive org ${orgId}:`, delErr);
+        }
+        try {
+          await strapiPut(`/organisations/${orgId}`, {
+            data: { calendar_event_id: null },
+          });
+        } catch (strapiErr) {
+          console.error('Failed to clear calendar_event_id in Strapi:', strapiErr);
+        }
+        return {
+          synced: true,
+          action: 'none',
+          eventId: null,
+          reason: 'No active induction cycles found; removed existing calendar event',
+        };
+      }
+      return { synced: false, reason: 'No active induction cycles found; event will be created when cycle becomes active' };
     }
 
-    // Sort relevant cycles to find the one closing soonest
+    const relevantCycles = activeCycles;
+
+    // Sort relevant active cycles to find the one closing soonest
     const sortedCycles = [...relevantCycles].sort((a: any, b: any) => {
       const ca = a.attributes || a || {};
       const cb = b.attributes || b || {};
@@ -107,9 +120,9 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
       return { synced: false, reason: 'No deadline specified for induction' };
     }
 
-    // Extract roles and application links across cycles
+    // Extract roles and application links ONLY from active cycles
     const rolesList: { title: string; department?: string; formUrl?: string }[] = [];
-    for (const c of sortedCycles.length > 0 ? sortedCycles : cyclesData) {
+    for (const c of sortedCycles) {
       const ca = c.attributes || c || {};
       const rolesData = ca.roles?.data || ca.roles || [];
       for (const r of rolesData) {
@@ -118,11 +131,12 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
         const formRound = rounds.find((rnd: any) => (rnd.attributes || rnd || {}).type === 'form');
         const formObj = formRound?.attributes?.form?.data || formRound?.form?.data || formRound?.form;
         const formAttrs = formObj?.attributes || formObj || {};
+        const isFormUsable = formAttrs?.form_status !== 'inactive';
         const formUid = formAttrs?.form_uid || formObj?.form_uid;
         rolesList.push({
           title: ra.name || 'Role Candidate',
           department: ra.department || undefined,
-          formUrl: formUid ? `/platform/forms/${formUid}` : undefined,
+          formUrl: isFormUsable && formUid ? `/platform/forms/${formUid}` : undefined,
         });
       }
     }
@@ -153,7 +167,11 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
     const deadlineDate = endIso ? new Date(endIso) : new Date(effectiveDeadline);
     const dateStr = deadlineDate.toISOString().split('T')[0]; // YYYY-MM-DD
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ashoka-sg.com';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.NEXT_PUBLIC_BASE_URL && !process.env.NEXT_PUBLIC_BASE_URL.includes('localhost')
+        ? process.env.NEXT_PUBLIC_BASE_URL
+        : 'https://sg.ashoka.edu.in');
     const eventSummary = primaryCycleName
       ? `${orgName} (${primaryCycleName}) — Induction Deadline`
       : `${orgName} — Induction Deadline`;
@@ -179,21 +197,25 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
 
     if (!calendarEventId) {
       // Create a brand new Google Calendar event
-      const createdEvent = await addEvent(calId, {
-        summary: eventSummary,
-        description: eventDescription,
-        start: { date: dateStr },
-        end: { date: dateStr },
-        attendees: trackingAttendees,
-        guestsCanSeeOtherGuests: false,
-        reminders: {
-          useDefault: false,
-          overrides: [
-            { method: 'popup', minutes: 2880 }, // 48 hours before
-            { method: 'popup', minutes: 1440 }, // 24 hours before
-          ],
+      const createdEvent = await addEvent(
+        calId,
+        {
+          summary: eventSummary,
+          description: eventDescription,
+          start: { date: dateStr },
+          end: { date: dateStr },
+          attendees: trackingAttendees,
+          guestsCanSeeOtherGuests: false,
+          reminders: {
+            useDefault: false,
+            overrides: [
+              { method: 'popup', minutes: 2880 }, // 48 hours before
+              { method: 'popup', minutes: 1440 }, // 24 hours before
+            ],
+          },
         },
-      });
+        'none'
+      );
 
       calendarEventId = createdEvent?.id || null;
       if (calendarEventId) {
@@ -203,7 +225,7 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
       }
       return { synced: true, action: 'created', eventId: calendarEventId };
     } else {
-      // Update existing Google Calendar event
+      // Update existing Google Calendar event without sending notification emails to invitees
       try {
         const existingEvent = await getEvents(calId, '', '', calendarEventId);
         if (existingEvent) {
@@ -216,33 +238,42 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
             }
           }
 
-          await updateEvent(calId, calendarEventId, {
-            ...(existingEvent as GoogleEvent),
-            summary: eventSummary,
-            description: eventDescription,
-            start: { date: dateStr },
-            end: { date: dateStr },
-            attendees: existingAttendees,
-            guestsCanSeeOtherGuests: false,
-          });
+          await updateEvent(
+            calId,
+            calendarEventId,
+            {
+              ...(existingEvent as GoogleEvent),
+              summary: eventSummary,
+              description: eventDescription,
+              start: { date: dateStr },
+              end: { date: dateStr },
+              attendees: existingAttendees,
+              guestsCanSeeOtherGuests: false,
+            },
+            'none'
+          );
           return { synced: true, action: 'updated', eventId: calendarEventId };
         } else {
           // Event not found in Google Calendar, recreate it
-          const createdEvent = await addEvent(calId, {
-            summary: eventSummary,
-            description: eventDescription,
-            start: { date: dateStr },
-            end: { date: dateStr },
-            attendees: trackingAttendees,
-            guestsCanSeeOtherGuests: false,
-            reminders: {
-              useDefault: false,
-              overrides: [
-                { method: 'popup', minutes: 2880 },
-                { method: 'popup', minutes: 1440 },
-              ],
+          const createdEvent = await addEvent(
+            calId,
+            {
+              summary: eventSummary,
+              description: eventDescription,
+              start: { date: dateStr },
+              end: { date: dateStr },
+              attendees: trackingAttendees,
+              guestsCanSeeOtherGuests: false,
+              reminders: {
+                useDefault: false,
+                overrides: [
+                  { method: 'popup', minutes: 2880 },
+                  { method: 'popup', minutes: 1440 },
+                ],
+              },
             },
-          });
+            'none'
+          );
           calendarEventId = createdEvent?.id || null;
           if (calendarEventId) {
             await strapiPut(`/organisations/${orgId}`, {

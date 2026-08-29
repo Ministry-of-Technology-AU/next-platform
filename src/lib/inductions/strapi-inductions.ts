@@ -414,6 +414,9 @@ export async function deleteCycle(cycleId: string | number): Promise<void> {
   const orgId = res?.data?.attributes?.organisation?.data?.id ?? res?.data?.organisation?.id;
   if (orgId) {
     revalidateTag(`org-cycles:${orgId}`);
+    syncOrganisationInductionCalendarEvent(orgId).catch((e) =>
+      console.error('Calendar sync error on deleteCycle:', e)
+    );
   }
 }
 
@@ -568,17 +571,25 @@ export async function updateRole(
     if (cycleId) {
       revalidateTag(`cycle-roles:${cycleId}`);
       revalidateTag(`cycle-stats:${cycleId}`);
+      getCycleOwnerOrgId(cycleId).then((ownerOrgId) => {
+        if (ownerOrgId) {
+          syncOrganisationInductionCalendarEvent(ownerOrgId).catch((e) =>
+            console.error('Calendar sync error on updateRole:', e)
+          );
+        }
+      }).catch(console.error);
     }
   }
   return updated;
 }
 
 export async function deleteRole(roleId: string | number): Promise<void> {
+  let cycleId: string | number | null = null;
   try {
     const roleRaw = await strapiGet(`/induction-roles/${roleId}`, {
       populate: { induction_cycle: { fields: ['id'] } },
     });
-    const cycleId =
+    cycleId =
       roleRaw?.data?.attributes?.induction_cycle?.data?.id ??
       roleRaw?.data?.induction_cycle?.id ??
       roleRaw?.data?.induction_cycle;
@@ -596,6 +607,16 @@ export async function deleteRole(roleId: string | number): Promise<void> {
     await strapiDelete(`/pipeline-rounds/${r.id}`);
   }
   await strapiDelete(`/induction-roles/${roleId}`);
+  
+  if (cycleId) {
+    getCycleOwnerOrgId(cycleId).then((ownerOrgId) => {
+      if (ownerOrgId) {
+        syncOrganisationInductionCalendarEvent(ownerOrgId).catch((e) =>
+          console.error('Calendar sync error on deleteRole:', e)
+        );
+      }
+    }).catch(console.error);
+  }
 }
 
 // ---------------------------------------------------------------------------

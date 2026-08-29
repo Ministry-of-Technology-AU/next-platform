@@ -112,7 +112,7 @@ async function getEvents(
         // Ensure we get all fields
         fields: "*"
       });
-      platform.log('Fetched single event:', response.data);
+      console.log('Fetched single event:', response.data?.id);
       return response.data;
     } else {
       // List events within the specified time range
@@ -125,7 +125,7 @@ async function getEvents(
         // Ensure we get all fields
         fields: "items(*),nextPageToken,nextSyncToken"
       });
-      platform.log('Fetched events:', response.data);
+      console.log(`Fetched ${response.data.items?.length ?? 0} events`);
       return response.data.items;
     }
   } catch (error) {
