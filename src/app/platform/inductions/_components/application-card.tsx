@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   Calendar,
   CheckCircle2,
@@ -15,14 +14,23 @@ import {
   ArrowRight,
   ExternalLink,
   ChevronRight,
-  Info,
   MapPin,
-  Timer,
   FileCheck,
+  AlertTriangle,
+  Send,
+  Loader2,
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { PopulatedResponseRecord } from '@/lib/forms/strapi-forms';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  isGrievanceSubmitted,
+  checkGrievanceSubmittedAsync,
+  recordGrievanceSubmission,
+} from '@/lib/inductions/grievance-cache';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +47,62 @@ interface ApplicationCardProps {
 export function ApplicationCard({ application }: ApplicationCardProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [logoError, setLogoError] = React.useState(false);
+  const [grievanceOpen, setGrievanceOpen] = React.useState(false);
+  const [grievanceSubject, setGrievanceSubject] = React.useState('');
+  const [grievanceBody, setGrievanceBody] = React.useState('');
+  const [grievanceLoading, setGrievanceLoading] = React.useState(false);
+  const [grievanceError, setGrievanceError] = React.useState<string | null>(null);
+  
+  // Initialize immediately from fast-tier cache (LocalStorage / Cookies)
+  const [grievanceSent, setGrievanceSent] = React.useState(() =>
+    isGrievanceSubmitted(application.id),
+  );
+
+  // Deep-check across all storage tiers (IndexedDB + self-healing) on mount
+  React.useEffect(() => {
+    let isMounted = true;
+    checkGrievanceSubmittedAsync(application.id).then((record) => {
+      if (isMounted && record) {
+        setGrievanceSent(true);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [application.id]);
+
+  async function handleGrievanceSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!grievanceSubject.trim() || !grievanceBody.trim()) return;
+    setGrievanceLoading(true);
+    setGrievanceError(null);
+    try {
+      const res = await fetch('/api/platform/inductions/grievance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: application.id,
+          subject: grievanceSubject.trim(),
+          body: grievanceBody.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Something went wrong');
+      }
+      
+      // Persist across all 3 tiers (LocalStorage, Cookie, IndexedDB) with anti-eviction protection
+      await recordGrievanceSubmission(application.id, {
+        subject: grievanceSubject.trim(),
+      });
+      setGrievanceSent(true);
+    } catch (err: any) {
+      setGrievanceError(err.message || 'Failed to submit grievance');
+    } finally {
+      setGrievanceLoading(false);
+    }
+  }
+
   const form = application.form;
   if (!form) return null;
 
@@ -148,7 +212,7 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                 )}
               </div>
               <div className="min-w-0 flex-1 text-left" style={{ textAlign: 'left' }}>
-                <h3 
+                <h3
                   className="font-semibold text-base text-foreground truncate group-hover:text-primary transition-colors !text-left text-left"
                   style={{ textAlign: 'left' }}
                 >
@@ -300,7 +364,7 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
             <div className="mt-3 rounded-xl bg-muted/40 border border-border/60 p-3 text-xs text-muted-foreground flex items-start gap-2 text-left">
               <MessageSquare className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
               <p className="line-clamp-2 italic text-foreground/80 text-left">
-                "{normalizedStatusMessage.replace(/<[^>]*>?/gm, '')}"
+                &ldquo;{normalizedStatusMessage.replace(/<[^>]*>?/gm, '')}&rdquo;
               </p>
             </div>
           )}
@@ -370,9 +434,11 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
             </Button>
           )
         ) : (
-          <div className="flex items-center gap-2 w-full">
+          /* ── Submitted footer ─────────────────────────────────────────── */
+          <div className="flex flex-col gap-2 w-full">
+            {/* Primary CTA: resume form for current round */}
             {targetForm && !targetForm.isCompleted && (
-              <Button asChild className="flex-1 h-9 gap-1.5 text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xs">
+              <Button asChild className="w-full h-9 gap-1.5 text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xs">
                 <Link href={targetForm.formUrl}>
                   <FileText className="w-3.5 h-3.5" />
                   {targetForm.isDraft ? 'Resume' : 'Complete'} {targetForm.roundLabel || 'Round Form'}
@@ -380,8 +446,10 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                 </Link>
               </Button>
             )}
+
+            {/* Primary CTA: book interview slot */}
             {resolvedInterviewUrl && !interview?.isBooked && !targetForm && (
-              <Button asChild className="flex-1 h-9 gap-1.5 text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xs">
+              <Button asChild className="w-full h-9 gap-1.5 text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xs">
                 <Link href={resolvedInterviewUrl}>
                   <Calendar className="w-3.5 h-3.5" />
                   Book Interview Slot
@@ -389,10 +457,12 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                 </Link>
               </Button>
             )}
+
+            {/* Status / Details dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 {(targetForm && !targetForm.isCompleted) || (resolvedInterviewUrl && !interview?.isBooked && !targetForm) ? (
-                  <Button variant="outline" className="h-9 px-3 text-xs font-semibold border-border/80 hover:bg-background shrink-0">
+                  <Button variant="outline" className="h-9 px-3 text-xs font-semibold border-border/80 hover:bg-background w-full">
                     <MessageSquare className="w-3.5 h-3.5 mr-1 text-primary" />
                     Details
                   </Button>
@@ -463,7 +533,7 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                     <div>{renderStatusBadge()}</div>
                   </div>
 
-                  {/* Live Form Submission Direct Box if available */}
+                  {/* Live Form Submission Direct Box */}
                   {targetForm && (
                     <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
                       <div className="flex items-start gap-3">
@@ -489,7 +559,6 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                           )}
                         </div>
                       </div>
-
                       <Button asChild className="w-full gap-2 font-semibold bg-primary text-primary-foreground shadow-xs">
                         <Link href={targetForm.formUrl}>
                           <FileText className="w-4 h-4" />
@@ -500,7 +569,7 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                     </div>
                   )}
 
-                  {/* Live Interview Scheduling Direct Box if available */}
+                  {/* Live Interview Scheduling Direct Box */}
                   {resolvedInterviewUrl && (
                     <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
                       <div className="flex items-start gap-3">
@@ -514,7 +583,7 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                           <p className="text-xs text-muted-foreground">
                             {interview?.isBooked
                               ? `You are scheduled for: ${interview.booking?.slotKey}`
-                              : 'Please choose an interview slot from the organizer’s schedule.'}
+                              : "Please choose an interview slot from the organizer's schedule."}
                           </p>
                           {interview?.location && (
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
@@ -525,7 +594,6 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                           )}
                         </div>
                       </div>
-
                       <Button asChild className="w-full gap-2 font-semibold bg-primary text-primary-foreground shadow-xs">
                         <Link href={resolvedInterviewUrl}>
                           <Calendar className="w-4 h-4" />
@@ -536,58 +604,202 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
                     </div>
                   )}
 
-                {/* Message / Decision note */}
-                <div className="rounded-xl bg-card p-4 border border-border space-y-2">
-                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-muted-foreground">
-                    <MessageSquare className="w-3.5 h-3.5 text-primary" />
-                    Message from {org?.name || 'Recruitment Team'}
-                  </h4>
+                  {/* Message / Decision note */}
+                  <div className="rounded-xl bg-card p-4 border border-border space-y-2">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-muted-foreground">
+                      <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                      Message from {org?.name || 'Recruitment Team'}
+                    </h4>
+                    {normalizedStatusMessage ? (
+                      <div
+                        className="text-xs text-foreground/90 leading-relaxed prose prose-sm dark:prose-invert max-w-none [&_a]:text-primary [&_a]:underline"
+                        dangerouslySetInnerHTML={{ __html: normalizedStatusMessage }}
+                      />
+                    ) : (
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {appStatus === 'advanced'
+                          ? 'Congratulations! You have been advanced to the next round of inductions. Check your calendar or booking link for details.'
+                          : appStatus === 'approved'
+                          ? 'Congratulations! You have been accepted to the organization. The core team will reach out with onboarding details.'
+                          : appStatus === 'rejected'
+                          ? 'Thank you for your time and effort in applying. While we cannot offer you a position at this time, we encourage you to apply again in future cycles.'
+                          : 'Your submission has been received and is actively being reviewed by the induction team.'}
+                      </p>
+                    )}
+                  </div>
 
-                  {normalizedStatusMessage ? (
-                    <div
-                      className="text-xs text-foreground/90 leading-relaxed prose prose-sm dark:prose-invert max-w-none [&_a]:text-primary [&_a]:underline"
-                      dangerouslySetInnerHTML={{ __html: normalizedStatusMessage }}
-                    />
-                  ) : (
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {appStatus === 'advanced'
-                        ? 'Congratulations! You have been advanced to the next round of inductions. Check your calendar or booking link for details.'
-                        : appStatus === 'approved'
-                        ? 'Congratulations! You have been accepted to the organization. The core team will reach out with onboarding details.'
-                        : appStatus === 'rejected'
-                        ? 'Thank you for your time and effort in applying. While we cannot offer you a position at this time, we encourage you to apply again in future cycles.'
-                        : 'Your submission has been received and is actively being reviewed by the induction team.'}
-                    </p>
-                  )}
+                  {/* Submission summary info */}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground px-1 pt-1">
+                    <span>
+                      Submitted on{' '}
+                      {application.submittedAt
+                        ? new Date(application.submittedAt).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })
+                        : 'Recent'}
+                    </span>
+                    <Link
+                      href={`/platform/forms/${form.uid}`}
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      View submitted form
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
                 </div>
+              </DialogContent>
+            </Dialog>
 
-                {/* Submission summary info */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground px-1 pt-1">
-                  <span>
-                    Submitted on{' '}
-                    {application.submittedAt
-                      ? new Date(application.submittedAt).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })
-                      : 'Recent'}
-                  </span>
-                  <Link
-                    href={`/platform/forms/${form.uid}`}
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
+            {/* Grievance button — full-width row below the status button, only for rejected */}
+            {appStatus === 'rejected' && (
+              <Dialog
+                open={grievanceOpen}
+                onOpenChange={(open) => {
+                  setGrievanceOpen(open);
+                  if (!open && !grievanceSent) {
+                    setGrievanceSubject('');
+                    setGrievanceBody('');
+                    setGrievanceError(null);
+                  }
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full h-9 gap-1.5 text-xs font-semibold border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30"
                   >
-                    View submitted form
-                    <ExternalLink className="w-3 h-3" />
-                  </Link>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      )}
-    </div>
-  </div>
-);
-}
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {grievanceSent ? 'Grievance Submitted ✓' : 'Raise a Grievance'}
+                  </Button>
+                </DialogTrigger>
 
+                <DialogContent className="sm:max-w-lg rounded-2xl text-left">
+                  <DialogHeader className="text-left">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-lg font-bold">We&apos;re Sorry — Raise a Grievance</DialogTitle>
+                        <DialogDescription className="text-xs">
+                          {org?.name || 'Organization'} · {role?.name || form.title}
+                        </DialogDescription>
+                      </div>
+                    </div>
+                  </DialogHeader>
+
+                  {grievanceSent ? (
+                    <div className="py-6 text-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto">
+                        <Send className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">Your Grievance Has Been Received 💛</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                        We&apos;ve forwarded your grievance to{' '}
+                        <span className="font-medium">the Cultural Ministry</span> — you&apos;re CC&apos;d so
+                        you can track the conversation directly. We&apos;ve also emailed you a complete
+                        copy of your application record for your reference.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => setGrievanceOpen(false)}
+                      >
+                        Close
+                      </Button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleGrievanceSubmit} className="space-y-4 py-2">
+                      <div className="rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 p-3.5 text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                        <p className="font-semibold mb-1">We&apos;re sorry you&apos;re going through this.</p>
+                        <p className="mb-2">
+                          If you feel the outcome of your application was unfair or unclear, we
+                          encourage you to raise a grievance — your concerns will be taken seriously.
+                        </p>
+                        <p className="font-medium">When you submit:</p>
+                        <ol className="list-decimal list-inside mt-1 space-y-1">
+                          <li>You&apos;ll receive a full copy of your application record (all form responses, round details, and interview info) by email.</li>
+                          <li>Your grievance will be sent to the Cultural Ministry — you&apos;ll be CC&apos;d so you can track replies directly.</li>
+                        </ol>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="grievance-subject" className="text-xs font-semibold">
+                          Subject
+                        </Label>
+                        <Input
+                          id="grievance-subject"
+                          placeholder="e.g. Grievance regarding induction outcome for Design Team"
+                          value={grievanceSubject}
+                          onChange={(e) => setGrievanceSubject(e.target.value)}
+                          maxLength={150}
+                          required
+                          className="text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="grievance-body" className="text-xs font-semibold">
+                          Reason / Statement
+                        </Label>
+                        <Textarea
+                          id="grievance-body"
+                          placeholder="Describe your grievance clearly. Include any relevant context, dates, or interactions that support your case."
+                          value={grievanceBody}
+                          onChange={(e) => setGrievanceBody(e.target.value)}
+                          rows={5}
+                          maxLength={2000}
+                          required
+                          className="text-sm resize-none"
+                        />
+                        <p className="text-[11px] text-muted-foreground text-right">
+                          {grievanceBody.length}/2000
+                        </p>
+                      </div>
+
+                      {grievanceError && (
+                        <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">
+                          {grievanceError}
+                        </p>
+                      )}
+
+                      <div className="flex gap-2 pt-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1 h-9 text-xs font-semibold"
+                          onClick={() => setGrievanceOpen(false)}
+                          disabled={grievanceLoading}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          className="flex-1 h-9 gap-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white shadow-xs"
+                          disabled={
+                            grievanceLoading ||
+                            !grievanceSubject.trim() ||
+                            !grievanceBody.trim()
+                          }
+                        >
+                          {grievanceLoading ? (
+                            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting…</>
+                          ) : (
+                            <><Send className="w-3.5 h-3.5" /> Submit Grievance</>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
