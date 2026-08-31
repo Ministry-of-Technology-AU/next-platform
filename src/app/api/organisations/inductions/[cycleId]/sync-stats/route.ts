@@ -6,13 +6,13 @@ import { PLACEHOLDER_ROLE_STATS } from '@/app/organisations/inductions/types';
 
 export async function POST(
   req: Request,
-  { params }: { params: { cycleId: string } }
+  { params }: { params: Promise<{ cycleId: string }> }
 ) {
   try {
     const org = await requireInductionOrg();
     if (org instanceof NextResponse) return org;
 
-    const { cycleId } = params;
+    const { cycleId } = await params;
     const cycle = await getCycleById(cycleId);
     if (!cycle) {
       return NextResponse.json({ error: 'Cycle not found' }, { status: 404 });
