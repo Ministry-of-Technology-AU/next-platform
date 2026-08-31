@@ -19,10 +19,10 @@ function isDefaultBanner(url: string | null | undefined): boolean {
   return false;
 }
 
-// In-memory cache for organisations data (12 hours TTL)
+// In-memory cache for organisations data (5 mins TTL)
 let cachedOrgsData: any = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours (43,200,000 ms)
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (300,000 ms)
 
 export async function GET() {
   try {
@@ -184,7 +184,7 @@ export async function GET() {
             const formObj = formRound?.attributes?.form?.data || formRound?.form?.data || formRound?.form;
             const formAttrs = formObj?.attributes || formObj || {};
             const rawFormUid = formAttrs?.form_uid || formObj?.form_uid || (typeof formRound?.attributes?.form === 'string' ? formRound.attributes.form : null);
-            const isFormUsable = formAttrs?.form_status !== 'inactive';
+            const isFormUsable = formAttrs?.form_status === 'active';
             const formUid = isFormUsable && rawFormUid ? rawFormUid : null;
 
             return {
