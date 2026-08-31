@@ -114,6 +114,27 @@ export function CycleClient({
             <Button
               variant="outline"
               size="sm"
+              onClick={async () => {
+                try {
+                  toast.loading('Syncing stats...', { id: 'sync-stats' });
+                  const res = await fetch(`/api/organisations/inductions/${cycleId}/sync-stats`, {
+                    method: 'POST',
+                  });
+                  if (!res.ok) throw new Error('Failed to sync stats');
+                  toast.success('Stats synced successfully', { id: 'sync-stats' });
+                  router.refresh();
+                } catch (e: any) {
+                  toast.error(e.message || 'Error syncing stats', { id: 'sync-stats' });
+                }
+              }}
+              className="gap-1.5 rounded-xl font-medium"
+            >
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              Sync Stats
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setCycleSettingsOpen(true)}
               className="gap-1.5 rounded-xl font-medium"
             >

@@ -30,6 +30,65 @@ interface UserPreferences {
   categoryColors: Record<string, string>;
 }
 
+const DEFAULT_BANNER_URL = 'https://res.cloudinary.com/dslawnz50/image/upload/v1769686905/platform-ads/1769686891126-ad-banner-1769686891125-orgs_catalogue_default.jpg';
+const ORGS_STORAGE_KEY = 'ashoka_orgs_catalog_cache_v3';
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+export function isDefaultBanner(url: string | null | undefined): boolean {
+  if (!url || typeof url !== 'string') return true;
+  const trimmed = url.trim().toLowerCase();
+  if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined') return true;
+  if (trimmed.includes('orgs_catalogue_default')) return true;
+  if (trimmed.includes('1769686891126-ad-banner-1769686891125-orgs_catalogue_default')) return true;
+  if (trimmed.includes('1769686905') && trimmed.includes('default')) return true;
+  if (trimmed === '/orgs_catalogue_default.png' || trimmed.endsWith('/orgs_catalogue_default.png')) return true;
+  if (trimmed === DEFAULT_BANNER_URL.toLowerCase()) return true;
+  return false;
+}
+
+export function isTechMin(org: Organization): boolean {
+  if (!org) return false;
+  if (String(org.id) === '1' || (org as any).id === 1) return true;
+  const name = (org.name || '').toLowerCase().trim();
+  const email = (org.email || '').toLowerCase().trim();
+  const desc = (org.description || '').toLowerCase();
+  return (
+    name === 'ministry of technology' ||
+    name.includes('ministry of technology') ||
+    name.includes('tech min') ||
+    name.includes('tech ministry') ||
+    name.includes('technology ministry') ||
+    email.startsWith('tech.ministry') ||
+    email.startsWith('technology.ministry') ||
+    desc.includes('ministry of technology')
+  );
+}
+
+export function hasCustomBanner(org: Organization): boolean {
+  if (isDefaultBanner(org.bannerUrl)) return false;
+  if (typeof org.hasBanner === 'boolean') return org.hasBanner;
+  return true;
+}
+
+export function sortOrganisations(list: Organization[]): Organization[] {
+  return [...list].sort((a, b) => {
+    // 1. Tech Min is ALWAYS first
+    const aTechMin = isTechMin(a);
+    const bTechMin = isTechMin(b);
+    if (aTechMin && !bTechMin) return -1;
+    if (bTechMin && !aTechMin) return 1;
+
+    // 2. Orgs with custom banner come before orgs without banner
+    const aBanner = hasCustomBanner(a);
+    const bBanner = hasCustomBanner(b);
+    if (aBanner && !bBanner) return -1;
+    if (bBanner && !aBanner) return 1;
+
+    // 3. Alphabetical order within each group (row-wise)
+    return (a.name || '').trim().localeCompare((b.name || '').trim(), undefined, { sensitivity: 'base' });
+  });
+}
+
 export function CataloguePage({ 
   initialOrganizations, 
   initialError,
@@ -40,10 +99,56 @@ export function CataloguePage({
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filters, setFilters] = React.useState<Set<OrganizationType>>(new Set());
   const [showOnlyPreferences, setShowOnlyPreferences] = React.useState(false);
-  const [organizations] = React.useState<Organization[]>(initialOrganizations);
+  const [organizations, setOrganizations] = React.useState<Organization[]>(() => {
+    if (initialOrganizations && initialOrganizations.length > 0) {
+      return sortOrganisations(initialOrganizations);
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(ORGS_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS && Array.isArray(parsed?.organizations)) {
+            return sortOrganisations(parsed.organizations);
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return [];
+  });
   const [error] = React.useState<string | null>(initialError);
   const [userPreferences, setUserPreferences] = React.useState<UserPreferences | null>(initialPreferences);
   const [preferencesLoading, setPreferencesLoading] = React.useState(false);
+
+  // Sync / update 12-hour localStorage cache
+  React.useEffect(() => {
+    if (initialOrganizations && initialOrganizations.length > 0) {
+      const sorted = sortOrganisations(initialOrganizations);
+      setOrganizations(sorted);
+      try {
+        localStorage.setItem(
+          ORGS_STORAGE_KEY,
+          JSON.stringify({ organizations: sorted, timestamp: Date.now() })
+        );
+      } catch {
+        /* ignore */
+      }
+    } else {
+      try {
+        const stored = localStorage.getItem(ORGS_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS && Array.isArray(parsed?.organizations)) {
+            setOrganizations(sortOrganisations(parsed.organizations));
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [initialOrganizations]);
 
   // Tracking state
   const [trackedOrgIds, setTrackedOrgIds] = React.useState<Set<string>>(new Set(initialTrackedOrgIds));
@@ -163,7 +268,7 @@ export function CataloguePage({
   }, []);
 
   const filteredOrganizations = React.useMemo(() => {
-    return organizations.filter((org: Organization) => {
+    const list = organizations.filter((org: Organization) => {
       const matchesSearch =
         searchQuery === '' ||
         org.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -180,6 +285,8 @@ export function CataloguePage({
 
       return matchesSearch && matchesFilter && matchesPreferences;
     });
+
+    return sortOrganisations(list);
   }, [searchQuery, filters, showOnlyPreferences, userPreferences, organizations]);
 
   return (
@@ -274,9 +381,9 @@ export function CataloguePage({
               </div>
             </div>
           ) : (
-            <div className="columns-1 gap-6 sm:columns-2 lg:columns-3 xl:columns-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start">
               {filteredOrganizations.map((org: Organization) => (
-                <div key={org.id} className="mb-6 break-inside-avoid">
+                <div key={org.id} className="w-full">
                   <OrganizationCard
                     organization={org}
                     isTracking={trackedOrgIds.has(org.id)}

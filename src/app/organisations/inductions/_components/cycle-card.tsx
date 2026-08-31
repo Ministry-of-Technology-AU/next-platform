@@ -32,9 +32,10 @@ export function CycleCard({
         <div className="flex items-start justify-between gap-3">
           <Link
             href={`/organisations/inductions/${cycle.id}`}
-            className="group inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded min-w-0 flex-1"
+            className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded min-w-0 flex-1"
+            title={cycle.name}
           >
-            <h3 className="truncate text-lg font-semibold text-foreground group-hover:text-primary transition-colors !text-left">
+            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors !text-left line-clamp-2 leading-snug break-words">
               {cycle.name}
             </h3>
           </Link>
@@ -47,15 +48,15 @@ export function CycleCard({
 
         {/* Highlighted Timeline Date Pill */}
         <div className="mt-3 flex items-center gap-2">
-          <div className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary dark:text-primary-bright border border-primary/20">
+          <div className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary dark:text-primary-bright border border-primary/20 max-w-full min-w-0">
             <CalendarDays className="h-4 w-4 text-primary flex-shrink-0" />
-            <span className="whitespace-nowrap">{formatCycleDateRange(cycle.startDate, cycle.endDate)}</span>
+            <span className="truncate">{formatCycleDateRange(cycle.startDate, cycle.endDate)}</span>
           </div>
         </div>
 
         {/* Cycle Description preview */}
         {descriptionText ? (
-          <p className="mt-2.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed !text-left text-left" style={{ textAlign: 'left' }}>
+          <p className="mt-2.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed !text-left text-left break-words" style={{ textAlign: 'left' }}>
             {descriptionText}
           </p>
         ) : null}
@@ -65,29 +66,29 @@ export function CycleCard({
         {/* Small Responsive Stats at Bottom */}
         <div className="mt-5 mb-4 flex items-center gap-4 text-xs font-medium text-muted-foreground flex-wrap">
           <div className="flex items-center gap-1.5">
-            <BarChart3 className="h-3.5 w-3.5 text-muted-foreground/70" />
+            <BarChart3 className="h-3.5 w-3.5 text-muted-foreground/70 flex-shrink-0" />
             <span>{rolesCount} role{rolesCount === 1 ? '' : 's'}</span>
           </div>
-          <span className="text-muted-foreground/40">•</span>
+          <span className="text-muted-foreground/40 select-none">•</span>
           <div className="flex items-center gap-1.5">
-            <Send className="h-3.5 w-3.5 text-muted-foreground/70" />
+            <Send className="h-3.5 w-3.5 text-muted-foreground/70 flex-shrink-0" />
             <span>{appsCount} applicant{appsCount === 1 ? '' : 's'}</span>
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-3 border-t border-border/40">
-          <Button asChild size="sm" variant="default" className="flex-1 gap-1.5 font-medium">
-            <Link href={`/organisations/inductions/${cycle.id}`}>
-              View Cycle
-              <ArrowRight className="h-3.5 w-3.5" />
+          <Button asChild size="sm" variant="default" className="flex-1 min-w-0 gap-1.5 font-medium px-3">
+            <Link href={`/organisations/inductions/${cycle.id}`} className="truncate">
+              <span className="truncate">View Cycle</span>
+              <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />
             </Link>
           </Button>
           <Button
             size="icon"
             variant="ghost"
             onClick={() => setEditOpen(true)}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
             aria-label="Cycle settings"
             title="Cycle settings"
           >
@@ -97,7 +98,7 @@ export function CycleCard({
             size="icon"
             variant="ghost"
             onClick={() => onDelete(cycle)}
-            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             aria-label="Delete cycle"
             title="Delete cycle"
           >

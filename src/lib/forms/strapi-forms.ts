@@ -489,13 +489,30 @@ export async function getResponsesByForm(
   pageSize: number,
 ): Promise<ResponsePage> {
   const filters: StrapiFilters = { form: { id: { $eq: formId } } };
-  if (state !== 'all') filters.state = { $eq: state };
-  const res = await strapiGet('/form-responses', {
-    filters,
-    sort: 'submitted_at:desc,updatedAt:desc',
-    pagination: { page: 1, pageSize: 1000 },
-  });
-  const rawRows = (res?.data ?? [])
+  if (state === 'submitted') {
+    filters.state = { $ne: 'draft' };
+  } else if (state === 'draft') {
+    filters.state = { $eq: 'draft' };
+  }
+
+  const allRawData: any[] = [];
+  let currentPage = 1;
+  let totalPages = 1;
+
+  while (currentPage <= totalPages) {
+    const res = await strapiGet('/form-responses', {
+      filters,
+      sort: 'submitted_at:desc,updatedAt:desc',
+      pagination: { page: currentPage, pageSize: 250 },
+    });
+    const data = res?.data ?? [];
+    totalPages = res?.meta?.pagination?.pageCount ?? 1;
+    allRawData.push(...data);
+    currentPage++;
+    if (currentPage > 20) break; // Safeguard up to 5000 records
+  }
+
+  const rawRows = allRawData
     .map(normalizeResponse)
     .filter((r: ResponseRecord | null): r is ResponseRecord => r !== null);
 

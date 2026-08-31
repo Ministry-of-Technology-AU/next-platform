@@ -81,24 +81,6 @@ export function normalizeRole(entry: any): InductionRole | null {
 
   const firstRound = sortedRounds[0];
   let roleStats = a.stats || PLACEHOLDER_ROLE_STATS;
-  if (firstRound) {
-    const rAttrs = firstRound?.attributes ?? firstRound;
-    const formEntry = rAttrs?.form?.data ?? rAttrs?.form;
-    const formAttrs = formEntry?.attributes ?? formEntry;
-    if (formAttrs?.stats) {
-      const fs = formAttrs.stats;
-      const opens = fs.uniqueVisits ?? 0;
-      const fills = fs.submissionCount ?? 0;
-      const drafts = fs.draftCount ?? 0;
-      roleStats = {
-        opens,
-        fills,
-        drafts,
-        completionRate: opens > 0 ? fills / opens : 0,
-        topUtm: null,
-      };
-    }
-  }
 
   const formIds = rounds
     .flatMap((r: any) => {
@@ -249,28 +231,6 @@ async function listCyclesByOrgRaw(organisationId: number): Promise<InductionCycl
         c !== null && c.status !== 'archived'
     );
 
-  for (const cycle of cycles) {
-    try {
-      const roles = await listRolesByCycle(cycle.id);
-      cycle.stats.rolesCount = roles.length;
-      let totalOpens = 0;
-      let totalFills = 0;
-      let totalDrafts = 0;
-      for (const r of roles) {
-        totalOpens += r.stats?.opens || 0;
-        totalFills += r.stats?.fills || 0;
-        totalDrafts += r.stats?.drafts || 0;
-      }
-      cycle.stats.totalOpens = totalOpens;
-      cycle.stats.totalFills = totalFills;
-      cycle.stats.totalDrafts = totalDrafts;
-      cycle.stats.applicantsCount = totalFills;
-      cycle.stats.completionRate = totalOpens > 0 ? totalFills / totalOpens : 0;
-    } catch (err) {
-      console.error(`Error computing backend stats for cycle ${cycle.id}:`, err);
-    }
-  }
-
   return cycles;
 }
 
@@ -294,27 +254,6 @@ async function getCycleByIdRaw(cycleId: string | number): Promise<InductionCycle
   });
 
   const cycle = normalizeCycle(res?.data);
-  if (cycle) {
-    try {
-      const roles = await listRolesByCycle(cycle.id);
-      cycle.stats.rolesCount = roles.length;
-      let totalOpens = 0;
-      let totalFills = 0;
-      let totalDrafts = 0;
-      for (const r of roles) {
-        totalOpens += r.stats?.opens || 0;
-        totalFills += r.stats?.fills || 0;
-        totalDrafts += r.stats?.drafts || 0;
-      }
-      cycle.stats.totalOpens = totalOpens;
-      cycle.stats.totalFills = totalFills;
-      cycle.stats.totalDrafts = totalDrafts;
-      cycle.stats.applicantsCount = totalFills;
-      cycle.stats.completionRate = totalOpens > 0 ? totalFills / totalOpens : 0;
-    } catch (err) {
-      console.error(`Error computing backend stats for cycle ${cycleId}:`, err);
-    }
-  }
   return cycle;
 }
 
@@ -941,19 +880,20 @@ export async function listApplicantsByRole(roleId: string | number): Promise<App
   try {
     const rounds = await listPipelineByRole(roleId);
     const sortedRounds = [...rounds].sort((x, y) => (x.order ?? 0) - (y.order ?? 0));
-    const firstRound = sortedRounds[0];
 
     const numericFormIds: number[] = [];
     const uidFormIds: string[] = [];
 
-    if (firstRound) {
-      const allFormIds = firstRound.formIds ?? (firstRound.formId ? [firstRound.formId] : []);
+    // Collect ALL form IDs across ALL pipeline rounds for this role
+    for (const r of sortedRounds) {
+      const allFormIds = r.formIds ?? (r.formId ? [r.formId] : []);
       for (const fid of allFormIds) {
         if (fid && fid !== 'none' && fid !== '[object Object]') {
           if (!isNaN(Number(fid)) && !String(fid).includes('-')) {
-            numericFormIds.push(Number(fid));
+            const num = Number(fid);
+            if (!numericFormIds.includes(num)) numericFormIds.push(num);
           } else {
-            uidFormIds.push(fid);
+            if (!uidFormIds.includes(fid)) uidFormIds.push(fid);
             const formRecord = await getFormByUid(fid);
             if (formRecord?.id && !numericFormIds.includes(formRecord.id)) {
               numericFormIds.push(formRecord.id);
@@ -966,56 +906,47 @@ export async function listApplicantsByRole(roleId: string | number): Promise<App
     const allEntries: any[] = [];
     const seenIds = new Set<string | number>();
 
-    // 1. Fetch by numeric form IDs directly (guaranteed to match foreign key)
-    for (const formId of numericFormIds) {
-      const res = await strapiGet('/form-responses', {
-        filters: {
-          form: { id: { $eq: formId } },
-          state: { $eq: 'submitted' },
-        },
-        populate: {
-          respondent: { fields: ['id', 'username', 'email', 'name'] },
-          form: { fields: ['id', 'title', 'form_uid'] },
-        },
-        sort: 'submitted_at:desc,updatedAt:desc',
-        pagination: { pageSize: 200 },
-      });
-      const data = res?.data ?? [];
-      for (const item of data) {
-        const id = item.id ?? item.attributes?.id;
-        if (id && !seenIds.has(id)) {
-          seenIds.add(id);
-          allEntries.push(item);
+    // Helper to fetch all pages from Strapi
+    async function fetchAllResponsesForFilter(filters: any) {
+      let page = 1;
+      let totalPages = 1;
+      while (page <= totalPages) {
+        const res = await strapiGet('/form-responses', {
+          filters,
+          populate: {
+            respondent: { fields: ['id', 'username', 'email', 'name'] },
+            form: { fields: ['id', 'title', 'form_uid'] },
+          },
+          sort: 'submitted_at:desc,updatedAt:desc',
+          pagination: { page, pageSize: 250 },
+        });
+        const data = res?.data ?? [];
+        totalPages = res?.meta?.pagination?.pageCount ?? 1;
+        for (const item of data) {
+          const id = item.id ?? item.attributes?.id;
+          if (id && !seenIds.has(id)) {
+            seenIds.add(id);
+            allEntries.push(item);
+          }
         }
+        page++;
+        if (page > 20) break; // Safeguard up to 5000 records
       }
     }
 
-    // 2. Fetch by direct role relation if any
-    const roleRes = await strapiGet('/form-responses', {
-      filters: {
-        role: { id: { $eq: Number(roleId) || roleId } },
-        state: { $eq: 'submitted' },
-      },
-      populate: {
-        respondent: { fields: ['id', 'username', 'email', 'name'] },
-        form: { fields: ['id', 'title', 'form_uid'] },
-      },
-      sort: 'submitted_at:desc,updatedAt:desc',
-      pagination: { pageSize: 200 },
-    });
-    const roleData = roleRes?.data ?? [];
-    for (const item of roleData) {
-      const id = item.id ?? item.attributes?.id;
-      if (id && !seenIds.has(id)) {
-        const formEntry = item.attributes?.form?.data ?? item.form;
-        const formAttrs = formEntry?.attributes ?? formEntry;
-        const formDbId = formEntry?.id ?? formAttrs?.id;
-        if (!formDbId || numericFormIds.includes(Number(formDbId))) {
-          seenIds.add(id);
-          allEntries.push(item);
-        }
-      }
+    // 1. Fetch by numeric form IDs directly
+    for (const formId of numericFormIds) {
+      await fetchAllResponsesForFilter({
+        form: { id: { $eq: formId } },
+        state: { $ne: 'draft' },
+      });
     }
+
+    // 2. Fetch by direct role relation if any
+    await fetchAllResponsesForFilter({
+      role: { id: { $eq: Number(roleId) || roleId } },
+      state: { $ne: 'draft' },
+    });
 
     return allEntries
       .map(normalizeApplicant)

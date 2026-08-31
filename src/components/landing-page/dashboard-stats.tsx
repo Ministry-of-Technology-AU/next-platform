@@ -12,39 +12,67 @@ import {
 } from 'lucide-react';
 import { FlickeringGrid } from '../ui/shadcn-io/flickering-grid';
 
-const defaultStats = {
+import type { PlatformMetrics } from '@/lib/metrics/platform-metrics';
+
+const defaultStats: PlatformMetrics = {
   users: "4,442",
   subscriptionPools: "154",
   courseReviews: "1,093",
-  cabPools: "1793"
+  cabPools: "1,793"
 };
 
-export default function DashboardStats() {
-  const [stats, setStats] = useState(defaultStats);
-  const [loading, setLoading] = useState(true);
+function parseMetric(val: unknown, fallback: string): string {
+  if (val === undefined || val === null) return fallback;
+  if (typeof val === 'number') {
+    return isNaN(val) ? fallback : val.toLocaleString();
+  }
+  if (typeof val === 'string') {
+    const cleaned = val.replace(/,/g, '').trim();
+    const num = Number(cleaned);
+    if (!isNaN(num)) {
+      return num.toLocaleString();
+    }
+    return val || fallback;
+  }
+  return fallback;
+}
+
+interface DashboardStatsProps {
+  initialMetrics?: PlatformMetrics;
+}
+
+export default function DashboardStats({ initialMetrics }: DashboardStatsProps) {
+  const [stats, setStats] = useState<PlatformMetrics>(initialMetrics || defaultStats);
+  const [loading, setLoading] = useState(!initialMetrics);
 
   useEffect(() => {
+    if (initialMetrics) {
+      setStats(initialMetrics);
+      setLoading(false);
+      return;
+    }
+
     async function fetchMetrics() {
       try {
-        const res = await fetch("/api/platform/landing-page/metrics", { cache: 'no-store' });
+        const res = await fetch("/api/platform/landing-page/metrics");
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
         const data = await res.json();
-        setStats({
-          users: data.users?.toString() || defaultStats.users,
-          subscriptionPools: data.subscriptionPools?.toString() || defaultStats.subscriptionPools,
-          courseReviews: data.courseReviews?.toString() || defaultStats.courseReviews,
-          cabPools: data.cabPools?.toString() || defaultStats.cabPools,
-        });
+        const newStats: PlatformMetrics = {
+          users: parseMetric(data.users, defaultStats.users),
+          subscriptionPools: parseMetric(data.subscriptionPools, defaultStats.subscriptionPools),
+          courseReviews: parseMetric(data.courseReviews, defaultStats.courseReviews),
+          cabPools: parseMetric(data.cabPools, defaultStats.cabPools),
+        };
+        setStats(newStats);
       } catch (err) {
         console.error("Error fetching metrics:", err);
-        // Keep default stats on error
       } finally {
         setLoading(false);
       }
     }
 
     fetchMetrics();
-  }, []);
+  }, [initialMetrics]);
 
   if (loading) {
     return (

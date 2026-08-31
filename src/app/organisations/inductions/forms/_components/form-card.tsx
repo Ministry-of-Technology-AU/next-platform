@@ -36,9 +36,10 @@ export function FormCard({
       <div className="mb-3 flex items-start justify-between gap-2">
         <Link
           href={`/organisations/inductions/forms/${form.id}/edit`}
-          className="min-w-0 flex-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="min-w-0 flex-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring block"
+          title={form.title}
         >
-          <h3 className="truncate text-base font-semibold text-foreground">{form.title}</h3>
+          <h3 className="text-base font-semibold text-foreground line-clamp-2 leading-snug break-words">{form.title}</h3>
         </Link>
         <span
           className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLE[form.form_status]}`}

@@ -99,7 +99,11 @@ export async function GET(request: Request, ctx: RouteContext) {
     }
 
     const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
-    const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get('pageSize')) || 25));
+    const pageSizeParam = url.searchParams.get('pageSize');
+    const pageSize = pageSizeParam === 'all'
+      ? 1000
+      : Math.min(1000, Math.max(1, Number(pageSizeParam) || 1000));
+
     // Strictly return submitted responses only for the organisation side (never draft response contents)
     const { rows, total } = await getResponsesByForm(form.id, 'submitted', page, pageSize);
 
