@@ -5,12 +5,24 @@ import { getUserIdByEmail } from '@/lib/userid';
 import { getDerivedCycleStatus, type CycleStatus } from '@/app/organisations/inductions/types';
 import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 
-const DEFAULT_BANNER = '/orgs_catalogue_default.png';
+const DEFAULT_BANNER = 'https://res.cloudinary.com/dslawnz50/image/upload/v1769686905/platform-ads/1769686891126-ad-banner-1769686891125-orgs_catalogue_default.jpg';
 
-// In-memory cache for organisations data (30s TTL)
+function isDefaultBanner(url: string | null | undefined): boolean {
+  if (!url || typeof url !== 'string') return true;
+  const trimmed = url.trim().toLowerCase();
+  if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined') return true;
+  if (trimmed.includes('orgs_catalogue_default')) return true;
+  if (trimmed.includes('1769686891126-ad-banner-1769686891125-orgs_catalogue_default')) return true;
+  if (trimmed.includes('1769686905') && trimmed.includes('default')) return true;
+  if (trimmed === '/orgs_catalogue_default.png' || trimmed.endsWith('/orgs_catalogue_default.png')) return true;
+  if (trimmed === DEFAULT_BANNER.toLowerCase()) return true;
+  return false;
+}
+
+// In-memory cache for organisations data (5 mins TTL)
 let cachedOrgsData: any = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 30_000; // 30 seconds
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (300,000 ms)
 
 export async function GET() {
   try {
@@ -28,19 +40,14 @@ export async function GET() {
     // Get the user's Strapi ID
     const userId = await getUserIdByEmail(userEmail);
 
-    // Check in-memory cache first
     const now = Date.now();
-    let organisationsReq;
-
-    if (cachedOrgsData && (now - cacheTimestamp) < CACHE_TTL) {
-      organisationsReq = cachedOrgsData;
-    } else {
-      // Fetch fresh from Strapi
+    // Use cached data if available and fresh
+    if (!cachedOrgsData || (now - cacheTimestamp) > CACHE_TTL) {
       try {
-        organisationsReq = await strapiGet('/organisations', {
+        const organisationsReq = await strapiGet('/organisations', {
           populate: {
             profile: {
-              fields: ['id', 'username', 'email', 'profile_url']
+              fields: ['profile_url', 'username', 'email']
             },
             circle1_humans: {
               fields: ['id', 'username', 'email']
@@ -98,14 +105,14 @@ export async function GET() {
     // Handle different possible response structures from Strapi
     let organisationsData = [];
 
-    if (Array.isArray(organisationsReq)) {
-      organisationsData = organisationsReq;
-    } else if (organisationsReq && Array.isArray(organisationsReq.data)) {
-      organisationsData = organisationsReq.data;
-    } else if (organisationsReq && organisationsReq.data && Array.isArray(organisationsReq.data.data)) {
-      organisationsData = organisationsReq.data.data;
+    if (Array.isArray(cachedOrgsData)) {
+      organisationsData = cachedOrgsData;
+    } else if (cachedOrgsData && Array.isArray(cachedOrgsData.data)) {
+      organisationsData = cachedOrgsData.data;
+    } else if (cachedOrgsData && cachedOrgsData.data && Array.isArray(cachedOrgsData.data.data)) {
+      organisationsData = cachedOrgsData.data.data;
     } else {
-      console.error('Unexpected Strapi response structure:', organisationsReq);
+      console.error('Unexpected Strapi response structure:', cachedOrgsData);
       return NextResponse.json({
         success: false,
         error: 'Invalid response structure from Strapi'
@@ -122,13 +129,24 @@ export async function GET() {
 
         // Get banner image with fallback
         let bannerUrl = DEFAULT_BANNER;
-        if (attrs.banner_url) {
-          bannerUrl = attrs.banner_url;
-        } else if (attrs.banner?.data) {
-          const bannerData = Array.isArray(attrs.banner.data) 
-            ? attrs.banner.data[0] 
-            : attrs.banner.data;
-          bannerUrl = bannerData?.attributes?.url || DEFAULT_BANNER;
+        let hasBanner = false;
+
+        const rawBannerUrl = attrs.banner_url || attrs.bannerUrl;
+        const bannerData = attrs.banner?.data ? (Array.isArray(attrs.banner.data) ? attrs.banner.data[0] : attrs.banner.data) : null;
+        const mediaBannerUrl = bannerData?.attributes?.url || bannerData?.url;
+
+        const candidateUrl = (rawBannerUrl && typeof rawBannerUrl === 'string' && rawBannerUrl.trim()) 
+          ? rawBannerUrl.trim() 
+          : (mediaBannerUrl && typeof mediaBannerUrl === 'string' && mediaBannerUrl.trim())
+            ? mediaBannerUrl.trim()
+            : null;
+
+        if (candidateUrl && !isDefaultBanner(candidateUrl)) {
+          bannerUrl = candidateUrl;
+          hasBanner = true;
+        } else {
+          bannerUrl = DEFAULT_BANNER;
+          hasBanner = false;
         }
 
         // Get logo image from profile user's profile_url
@@ -166,7 +184,7 @@ export async function GET() {
             const formObj = formRound?.attributes?.form?.data || formRound?.form?.data || formRound?.form;
             const formAttrs = formObj?.attributes || formObj || {};
             const rawFormUid = formAttrs?.form_uid || formObj?.form_uid || (typeof formRound?.attributes?.form === 'string' ? formRound.attributes.form : null);
-            const isFormUsable = formAttrs?.form_status !== 'inactive';
+            const isFormUsable = formAttrs?.form_status === 'active';
             const formUid = isFormUsable && rawFormUid ? rawFormUid : null;
 
             return {
@@ -239,6 +257,7 @@ export async function GET() {
           description: attrs.short_description || '',
           fullDescription: attrs.description || attrs.short_description || '',
           bannerUrl: bannerUrl,
+          hasBanner: hasBanner,
           logoUrl: logoUrl,
           email: attrs.email || null,
 
@@ -293,20 +312,59 @@ export async function GET() {
       }
     }).filter(Boolean);
 
+function isTechMinOrg(org: any): boolean {
+  if (!org) return false;
+  if (String(org.id) === '1' || org.id === 1) return true;
+  const name = (org?.name || '').toLowerCase().trim();
+  const email = (org?.email || '').toLowerCase().trim();
+  const desc = (org?.description || '').toLowerCase();
+  return (
+    name === 'ministry of technology' ||
+    name.includes('ministry of technology') ||
+    name.includes('tech min') ||
+    name.includes('tech ministry') ||
+    name.includes('technology ministry') ||
+    email.startsWith('tech.ministry') ||
+    email.startsWith('technology.ministry') ||
+    desc.includes('ministry of technology')
+  );
+}
+
+function sortCatalogOrganisations(a: any, b: any): number {
+  // 1. Tech Min is ALWAYS first
+  const aTechMin = isTechMinOrg(a);
+  const bTechMin = isTechMinOrg(b);
+  if (aTechMin && !bTechMin) return -1;
+  if (bTechMin && !aTechMin) return 1;
+
+  // 2. Orgs with custom banner come before orgs without banner
+  const aBanner = a.hasBanner || (a.bannerUrl && !a.bannerUrl.includes('default')) ? 1 : 0;
+  const bBanner = b.hasBanner || (b.bannerUrl && !b.bannerUrl.includes('default')) ? 1 : 0;
+  if (bBanner !== aBanner) {
+    return bBanner - aBanner;
+  }
+
+  // 3. Alphabetical order within each group
+  return (a.name || '').localeCompare(b.name || '');
+}
+
+    // Sort organisations: Tech Min first, then custom banner orgs alphabetically, then rest alphabetically
+    const sortedOrganisations = [...organisations].sort(sortCatalogOrganisations);
+
     // Get unique types for filtering
-    const types = [...new Set(organisations.map((org: any) => org.type))];
+    const types = [...new Set(sortedOrganisations.map((org: any) => org.type))];
 
     const response = NextResponse.json({
       success: true,
       data: {
-        organisations,
+        organisations: sortedOrganisations,
         types,
         userEmail,
         userId
       }
     });
 
-    response.headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30');
+    response.headers.set('Cache-Control', 'public, max-age=43200, s-maxage=43200, stale-while-revalidate=21600');
     return response;
 
   } catch (error) {

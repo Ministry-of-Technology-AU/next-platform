@@ -1,38 +1,18 @@
 import { NextResponse } from "next/server";
-import { strapiGet } from "@/lib/apis/strapi";
+import { getCachedPlatformMetrics } from "@/lib/metrics/platform-metrics";
+
+export const revalidate = 172800; // 48 hours in seconds
 
 export async function GET() {
     try {
-        // Fetch users data
-        const usersResponse = await strapiGet('/users', { pagination: { pageSize: 10000 } });
-        const totalUsers = usersResponse.length || 0;
-
-        // Fetch subscription pools data
-        const subscriptionsResponse = await strapiGet('/services', { pagination: { pageSize: 10000 } });
-        const totalSubscriptionPools = subscriptionsResponse.data?.length || 0;
-
-        // Fetch cab pools data  
-        const poolsResponse = await strapiGet('/pools', { pagination: { pageSize: 10000 } });
-        const totalCabPools = poolsResponse.data?.length || 0;
-
-        // Fetch course reviews data
-        const reviewsResponse = await strapiGet('/reviews', { pagination: { pageSize: 10000 } });
-        const totalCourseReviews = reviewsResponse.data?.length || 0;
-
-        const metricsData = {
-            users: totalUsers,
-            subscriptionPools: totalSubscriptionPools,
-            cabPools: totalCabPools,
-            courseReviews: totalCourseReviews,
-        };
-
-        // platform.log("Platform Metrics:", metricsData);
-
-        return NextResponse.json(metricsData);
+        const metrics = await getCachedPlatformMetrics();
+        return NextResponse.json(metrics, {
+            headers: {
+                'Cache-Control': 'public, max-age=172800, s-maxage=172800, stale-while-revalidate=86400',
+            },
+        });
     } catch (error) {
         console.error("Error fetching platform metrics:", error);
-        return NextResponse.json({
-            error: 'Failed to fetch platform metrics'
-        }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to fetch platform metrics' }, { status: 500 });
     }
 }

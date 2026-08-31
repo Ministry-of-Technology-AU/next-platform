@@ -20,11 +20,15 @@ import {
   MoreVertical,
   Check,
   RotateCcw,
+  Search,
+  X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PaginationControls } from '@/components/ui/pagination';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -525,6 +529,9 @@ export function RoleApplicants({
 }) {
   const [applicants, setApplicants] = useState<ApplicantRow[]>(initialApplicants);
   const [roundFilter, setRoundFilter] = useState<number | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [actionTarget, setActionTarget] = useState<ApplicantRow | null>(null);
   const [actionType, setActionType] = useState<'proceed' | 'reject'>('proceed');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -564,13 +571,28 @@ export function RoleApplicants({
     return counts;
   }, [applicants]);
 
-  const filtered = useMemo(
-    () =>
-      roundFilter === 'all'
-        ? applicants
-        : applicants.filter((a) => a.currentRound === roundFilter),
-    [applicants, roundFilter],
-  );
+  const filtered = useMemo(() => {
+    return applicants.filter((a) => {
+      const matchesRound = roundFilter === 'all' || a.currentRound === roundFilter;
+      const query = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        !query ||
+        (a.name && a.name.toLowerCase().includes(query)) ||
+        (a.email && a.email.toLowerCase().includes(query));
+      return matchesRound && matchesSearch;
+    });
+  }, [applicants, roundFilter, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginatedApplicants = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page, pageSize]);
+
+  // Reset page to 1 when filter or search changes
+  useEffect(() => {
+    setPage(1);
+  }, [roundFilter, searchQuery]);
 
   const openAction = (applicant: ApplicantRow, type: 'proceed' | 'reject') => {
     setActionType(type);
@@ -793,35 +815,59 @@ export function RoleApplicants({
         </div>
       </div>
 
-      {/* Round Filter Tabs */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-muted-foreground flex items-center gap-1 mr-1">
-          <Filter className="h-3.5 w-3.5" />
-          Filter by round:
-        </span>
-        <button
-          onClick={() => setRoundFilter('all')}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
-            roundFilter === 'all'
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-muted/40 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
-          }`}
-        >
-          All ({totalCount})
-        </button>
-        {roundLabels.map((label, idx) => (
+      {/* Filter & Search Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 flex-wrap">
+        {/* Round Filter Tabs */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-muted-foreground flex items-center gap-1 mr-1">
+            <Filter className="h-3.5 w-3.5" />
+            Filter by round:
+          </span>
           <button
-            key={idx}
-            onClick={() => setRoundFilter(idx)}
+            onClick={() => setRoundFilter('all')}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
-              roundFilter === idx
+              roundFilter === 'all'
                 ? 'bg-primary text-primary-foreground border-primary'
                 : 'bg-muted/40 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
             }`}
           >
-            {label} ({roundCounts[idx] || 0})
+            All ({totalCount})
           </button>
-        ))}
+          {roundLabels.map((label, idx) => (
+            <button
+              key={idx}
+              onClick={() => setRoundFilter(idx)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                roundFilter === idx
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted/40 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
+              }`}
+            >
+              {label} ({roundCounts[idx] || 0})
+            </button>
+          ))}
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search applicants..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 pr-7 h-8 text-xs rounded-xl"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Bulk Action Bar */}
@@ -867,15 +913,16 @@ export function RoleApplicants({
             <TableRow>
               <TableHead className="w-10 pl-4">
                 <Checkbox
-                  checked={filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id))}
+                  checked={paginatedApplicants.length > 0 && paginatedApplicants.every((a) => selectedIds.has(a.id))}
                   onCheckedChange={(checked) => {
                     if (checked) {
-                      setSelectedIds(new Set(filtered.map((a) => a.id)));
+                      setSelectedIds(new Set([...selectedIds, ...paginatedApplicants.map((a) => a.id)]));
                     } else {
-                      setSelectedIds(new Set());
+                      const pageIds = new Set(paginatedApplicants.map((a) => a.id));
+                      setSelectedIds(new Set([...selectedIds].filter((id) => !pageIds.has(id))));
                     }
                   }}
-                  aria-label="Select all applicants"
+                  aria-label="Select all applicants on current page"
                 />
               </TableHead>
               <TableHead className="!text-left">Applicant</TableHead>
@@ -889,11 +936,11 @@ export function RoleApplicants({
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                  No applicants in this round.
+                  {searchQuery ? `No applicants matched "${searchQuery}".` : 'No applicants in this round.'}
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((applicant) => {
+              paginatedApplicants.map((applicant) => {
                 const badge = STATUS_BADGE[applicant.status] || STATUS_BADGE.submitted;
                 const totalRounds = pipeline?.length || roundLabels?.length || 1;
                 const isLastRound = applicant.currentRound >= totalRounds - 1;
@@ -1122,6 +1169,19 @@ export function RoleApplicants({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Controls */}
+      {filtered.length > pageSize && (
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          itemLabel="applicants"
+        />
+      )}
 
       {/* Action Dialog */}
       <ActionDialog

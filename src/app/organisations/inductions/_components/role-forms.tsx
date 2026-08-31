@@ -248,16 +248,17 @@ export function RoleForms({
                         <FileText className="h-5 w-5" />
                       </div>
 
-                      <div className="min-w-0 flex-1 space-y-0.5">
+                      <div className="min-w-0 flex-1 space-y-1">
                         <Link
                           href={formResponsesHref(form.id)}
-                          className="group inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                          className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded min-w-0"
+                          title={form.title}
                         >
-                          <h4 className="truncate text-base font-semibold text-foreground group-hover:text-primary transition-colors !text-left">
+                          <h4 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors !text-left line-clamp-2 leading-snug break-words">
                             {form.title}
                           </h4>
                         </Link>
-                        <p className="text-xs font-medium text-muted-foreground truncate">
+                        <p className="text-xs font-medium text-muted-foreground truncate" title={roundName}>
                           {roundName}
                         </p>
                       </div>

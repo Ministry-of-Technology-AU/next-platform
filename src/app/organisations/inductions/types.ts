@@ -157,6 +157,7 @@ export function getDerivedCycleStatus(
   endDateStr?: string | null
 ): CycleStatus {
   if (status === 'archived') return 'archived';
+  if (status === 'draft') return 'draft';
   if (!startDateStr && !endDateStr) return status;
 
   const now = new Date();

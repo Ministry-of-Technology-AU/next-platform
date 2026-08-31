@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Download,
@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { PaginationControls } from '@/components/ui/pagination';
 import { ResponseTable } from './_components/response-table';
 import { ResponseDetail, type ResponseRow } from './_components/response-detail';
 import type { FormSchema } from '@/lib/forms/schema';
@@ -74,6 +75,8 @@ export function ResponsesClient({
 }: ResponsesClientProps) {
   const [responses, setResponses] = useState<ResponseRow[]>(initialResponses);
   const [searchQuery, setSearchQuery] = useState(initialSearchEmail || '');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<ResponseRow | null>(() => {
     if (initialSearchEmail) {
@@ -88,7 +91,7 @@ export function ResponsesClient({
   const refreshResponses = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/organisations/forms/${uid}/responses?state=submitted`, {
+      const res = await fetch(`/api/organisations/forms/${uid}/responses?state=submitted&pageSize=all`, {
         cache: 'no-store',
       });
       const json = await res.json().catch(() => ({}));
@@ -105,11 +108,22 @@ export function ResponsesClient({
     }
   };
 
+  // Reset to page 1 on search change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
   const filteredResponses = useMemo(() => {
     if (!searchQuery.trim()) return responses;
     const query = searchQuery.trim().toLowerCase();
     return responses.filter((r) => r.email.toLowerCase().includes(query));
   }, [responses, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredResponses.length / pageSize));
+  const paginatedResponses = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredResponses.slice(start, start + pageSize);
+  }, [filteredResponses, page, pageSize]);
 
   const completion = Math.round((stats.completionRate || 0) * 100);
 
@@ -224,7 +238,20 @@ export function ResponsesClient({
           </Button>
         </div>
       ) : (
-        <ResponseTable responses={filteredResponses} onView={setSelected} />
+        <div className="space-y-3">
+          <ResponseTable responses={paginatedResponses} onView={setSelected} />
+          {filteredResponses.length > pageSize && (
+            <PaginationControls
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={filteredResponses.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              itemLabel="responses"
+            />
+          )}
+        </div>
       )}
 
       {/* 4. Responsive Response Detail Sheet */}

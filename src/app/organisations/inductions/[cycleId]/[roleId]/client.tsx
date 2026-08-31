@@ -108,25 +108,25 @@ export function RoleClient({
           icon={User}
           text={role.name}
           subheading={
-            <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
-              <span className="font-semibold text-foreground/80">{TIER_LABELS[role.tier] || 'Circle 3 (General)'}</span>
+            <div className="flex items-center gap-x-2 gap-y-1 mt-1.5 text-xs text-muted-foreground flex-wrap">
+              <span className="font-semibold text-foreground/80 whitespace-nowrap">{TIER_LABELS[role.tier] || 'Circle 3 (General)'}</span>
               {role.department && (
-                <>
-                  <span className="text-muted-foreground/40">·</span>
-                  <span>{role.department}</span>
-                </>
+                <span className="inline-flex items-center gap-1.5 min-w-0 max-w-full">
+                  <span className="text-muted-foreground/40 select-none flex-shrink-0">·</span>
+                  <span className="truncate">{role.department}</span>
+                </span>
               )}
               {role.description && (
-                <>
-                  <span className="text-muted-foreground/40">·</span>
+                <span className="inline-flex items-center gap-1.5 min-w-0 max-w-full">
+                  <span className="text-muted-foreground/40 select-none flex-shrink-0">·</span>
                   <span className="text-muted-foreground/80 line-clamp-1 max-w-xl">{role.description}</span>
-                </>
+                </span>
               )}
               {role.accessEmails && role.accessEmails.length > 0 && (
-                <>
-                  <span className="text-muted-foreground/40">·</span>
-                  <span className="text-foreground/75 font-medium">{role.accessEmails.length} with access</span>
-                </>
+                <span className="inline-flex items-center gap-1.5 min-w-0">
+                  <span className="text-muted-foreground/40 select-none flex-shrink-0">·</span>
+                  <span className="text-foreground/75 font-medium whitespace-nowrap">{role.accessEmails.length} with access</span>
+                </span>
               )}
             </div>
           }

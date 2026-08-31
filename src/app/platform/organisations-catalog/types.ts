@@ -13,7 +13,9 @@ export interface Organization {
   description: string;
   fullDescription: string;
   bannerUrl: string;
+  hasBanner?: boolean;
   logoUrl: string | null; // Profile image from associated user
+  email?: string | null;
   
   // Member relations
   circle1_humans: OrganizationMember[];

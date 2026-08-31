@@ -20,7 +20,7 @@ async function fetchCatalogData(): Promise<{
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
     const [orgsRes, trackingRes, checklistRes, prefsRes] = await Promise.all([
-      fetch(`${baseUrl}/api/platform/organisations-catalogue`, { headers, next: { revalidate: 30 } }),
+      fetch(`${baseUrl}/api/platform/organisations-catalogue`, { headers, next: { revalidate: 43200 } }),
       fetch(`${baseUrl}/api/platform/organisations-catalogue/tracking-status`, { headers }),
       fetch(`${baseUrl}/api/platform/organisations-catalogue/checklist`, { headers }),
       fetch(`${baseUrl}/api/platform/organisations-catalogue/preferences`, { headers })
