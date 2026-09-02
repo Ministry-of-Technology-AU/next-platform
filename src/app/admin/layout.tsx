@@ -4,7 +4,7 @@ import "../globals.css";
 import Navbar from "@/components/navbar/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import adminSidebarData from "@/components/sidebar/admin-sidebar-entries.json";
+import adminPortalSidebarData from "@/components/sidebar/admin-portal-sidebar-entries.json";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
@@ -36,7 +36,10 @@ export default async function AdminLayout({
   const session = await auth();
   const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim()) || [];
   
-  const isAuthorized = session?.user?.email && adminEmails.includes(session.user.email);
+  const isAuthorized =
+    (session?.user?.email && adminEmails.includes(session.user.email)) ||
+    session?.user?.role === 'ashoka_admin' ||
+    session?.user?.access?.includes('ashoka_admin');
   const bypassAuth = process.env.BYPASS_AUTH === 'true';
 
   if (!isAuthorized && !bypassAuth) {
@@ -49,11 +52,11 @@ export default async function AdminLayout({
         <TourProvider autoStart={false}>
           <SidebarProvider defaultOpen={false}>
             <div className="flex min-h-screen w-full overflow-x-hidden">
-              <AppSidebar data={adminSidebarData} basePath="/admin" title="Admin Portal" />
+              <AppSidebar data={adminPortalSidebarData} basePath="/admin" title="Admin Portal" />
               <div className="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">
                 <Navbar />
                 <Suspense>
-                  <main className="flex-1 pt-6 pb-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
+                  <main id="main-content" tabIndex={-1} className="flex-1 pt-6 pb-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 focus:outline-hidden">
                     {children}
                   </main>
                 </Suspense>
