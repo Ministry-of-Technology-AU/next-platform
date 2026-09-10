@@ -6,6 +6,7 @@ import PageTitle from '@/components/page-title';
 import { requireCycleAccess } from '@/lib/inductions/access';
 import { Button } from '@/components/ui/button';
 import { getCycleById, listRolesByCycle } from '@/lib/inductions/strapi-inductions';
+import { syncCycleStatsFromRoles } from '@/lib/inductions/sync-role-stats';
 import { CycleClient } from './client';
 import type { InductionCycleSummary, InductionRole } from '../types';
 import { CYCLE_STATUS_STYLE, formatCycleDateRange, getDerivedCycleStatus } from '../types';
@@ -50,6 +51,13 @@ export default async function CyclePage({ params }: PageProps) {
 
   const roles = await getRoles(cycleId);
   const status = getDerivedCycleStatus(cycle.status, cycle.startDate, cycle.endDate);
+
+  // Tier 2: aggregate cycle stats from stored Role.stats.
+  // For roles >12h stale, fires-and-forgets a form-level sync per role.
+  // Doesn't block page render.
+  syncCycleStatsFromRoles(cycleId).catch((e) =>
+    console.error('[auto-sync] cycle stats aggregation failed for cycle:', cycleId, e)
+  );
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">

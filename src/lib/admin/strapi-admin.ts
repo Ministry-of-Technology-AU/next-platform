@@ -12,6 +12,7 @@ import {
   getDerivedCycleStatus,
 } from '@/app/organisations/inductions/types';
 import { listRolesByCycle, listPipelineByRole, listCyclesByOrg } from '@/lib/inductions/strapi-inductions';
+import { syncCycleStatsIfStale } from '@/lib/inductions/sync-role-stats';
 import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 import { isAllowedAdminClub, normalizeSlug } from '@/lib/admin/allowed-clubs';
 
@@ -244,13 +245,25 @@ async function getAdminOrganizationsRaw(): Promise<{
 
         if (derivedStatus === 'active') {
           hasActiveCycle = true;
+          const cycleId = String(c.id ?? cAttrs.id);
           activeCycleData = {
-            id: String(c.id ?? cAttrs.id),
+            id: cycleId,
             name: cAttrs.name || 'Active Cycle',
             status: 'active',
             startDate,
             endDate,
           };
+          if (cycleId) {
+            const lastSyncedAt: string | undefined = cAttrs.stats?.lastSyncedAt;
+            const isFresh =
+              lastSyncedAt &&
+              Date.now() - new Date(lastSyncedAt).getTime() < 24 * 60 * 60 * 1000;
+            if (!isFresh) {
+              syncCycleStatsIfStale(cycleId).catch((err) => {
+                console.error('[admin] Background stale cycle sync failed:', cycleId, err);
+              });
+            }
+          }
         }
       }
 
@@ -470,6 +483,17 @@ async function getAdminOrganizationDetailsRaw(slug: string): Promise<AdminOrgani
       const startDate = cAttrs.start_date ?? c.startDate ?? null;
       const endDate = cAttrs.end_date ?? c.endDate ?? null;
       const derivedStatus = getDerivedCycleStatus(rawStatus, startDate, endDate);
+      if (derivedStatus === 'active' && cycleId) {
+        const lastSyncedAt: string | undefined = (cAttrs.stats ?? c.stats)?.lastSyncedAt;
+        const isFresh =
+          lastSyncedAt &&
+          Date.now() - new Date(lastSyncedAt).getTime() < 24 * 60 * 60 * 1000;
+        if (!isFresh) {
+          syncCycleStatsIfStale(cycleId).catch((err) => {
+            console.error('[admin] Background stale cycle sync failed for detail:', cycleId, err);
+          });
+        }
+      }
       const cycleStats: CycleStats = {
         ...PLACEHOLDER_CYCLE_STATS,
         ...(cAttrs.stats ?? c.stats ?? {}),

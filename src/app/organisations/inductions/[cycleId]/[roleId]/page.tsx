@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { requireRoleAccess } from '@/lib/inductions/access';
 import { listFormsByOrg, withCompletionRate } from '@/lib/forms/strapi-forms';
 import { getRoleById, listPipelineByRole, listApplicantsByRole, getOrganisationEmails } from '@/lib/inductions/strapi-inductions';
+import { syncRoleStatsFromForm } from '@/lib/inductions/sync-role-stats';
 import { RoleClient } from './client';
 import type { InductionRole, PipelineRound } from '../../types';
 import { TIER_LABELS } from '../../types';
@@ -36,6 +37,12 @@ export default async function RolePage({ params }: PageProps) {
     notFound();
   }
   const isOrgAccount = actor.isOrgAccount;
+
+  // Tier 1: auto-sync this role's stats from its linked form.
+  // Fire-and-forget — doesn't block page render. 2-min debounce inside utility.
+  syncRoleStatsFromForm(roleId).catch((e) =>
+    console.error('[auto-sync] role stats failed for role:', roleId, e)
+  );
 
   const [role, pipeline, allOrgFormsRaw, applicants, orgEmails] = await Promise.all([
     getRole(roleId),

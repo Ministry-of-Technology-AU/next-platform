@@ -13,6 +13,11 @@ import {
   TrendingUp,
   ChevronRight,
   Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ArrowDownWideNarrow,
+  Loader2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,6 +40,39 @@ interface OrganisationsClientProps {
   summaryMetrics: AdminPlatformSummary;
 }
 
+type SortField = "applications" | "roles" | "teamSize" | "name";
+type SortOrder = "asc" | "desc";
+
+function SortIcon({
+  field,
+  currentField,
+  order,
+}: {
+  field: SortField;
+  currentField: SortField;
+  order: SortOrder;
+}) {
+  if (field !== currentField) {
+    return (
+      <ArrowUpDown
+        className="w-3 h-3 text-neutral-400 opacity-60 group-hover/col:opacity-100 transition-opacity shrink-0"
+        aria-hidden="true"
+      />
+    );
+  }
+  return order === "desc" ? (
+    <ArrowDown
+      className="w-3 h-3 text-primary dark:text-primary-bright shrink-0"
+      aria-hidden="true"
+    />
+  ) : (
+    <ArrowUp
+      className="w-3 h-3 text-primary dark:text-primary-bright shrink-0"
+      aria-hidden="true"
+    />
+  );
+}
+
 export default function OrganisationsClient({
   organisations,
   summaryMetrics,
@@ -42,9 +80,17 @@ export default function OrganisationsClient({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [sortField, setSortField] = useState<SortField>("applications");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [navigatingSlug, setNavigatingSlug] = useState<string | null>(null);
   const router = useRouter();
+
+  const handleNavigate = (slug: string, url: string) => {
+    setNavigatingSlug(slug);
+    router.push(url);
+  };
 
   // Extract unique organisation types for the filter dropdown
   const uniqueTypes = useMemo(() => {
@@ -55,9 +101,9 @@ export default function OrganisationsClient({
     return Array.from(types).sort();
   }, [organisations]);
 
-  // Client-side filtering
+  // Client-side filtering & sorting (defaults to descending by totalApplications)
   const filteredOrganisations = useMemo(() => {
-    return organisations.filter((org) => {
+    const filtered = organisations.filter((org) => {
       // Search term matching name or email
       const matchesSearch =
         searchTerm === "" ||
@@ -76,7 +122,31 @@ export default function OrganisationsClient({
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [organisations, searchTerm, statusFilter, typeFilter]);
+
+    return filtered.sort((a, b) => {
+      let diff = 0;
+      if (sortField === "applications") {
+        diff = (b.totalApplications || 0) - (a.totalApplications || 0);
+        if (diff === 0) {
+          diff = (b.totalOpens || 0) - (a.totalOpens || 0);
+        }
+      } else if (sortField === "roles") {
+        diff = (b.openRolesCount || 0) - (a.openRolesCount || 0);
+      } else if (sortField === "teamSize") {
+        diff = (b.teamSize || 0) - (a.teamSize || 0);
+      } else if (sortField === "name") {
+        return sortOrder === "desc"
+          ? b.name.localeCompare(a.name)
+          : a.name.localeCompare(b.name);
+      }
+
+      const finalDiff = sortOrder === "desc" ? diff : -diff;
+      if (finalDiff !== 0) return finalDiff;
+
+      // Stable secondary tie-breaker: alphabetical by name
+      return a.name.localeCompare(b.name);
+    });
+  }, [organisations, searchTerm, statusFilter, typeFilter, sortField, sortOrder]);
 
   // Pagination calculation
   const totalPages = Math.max(1, Math.ceil(filteredOrganisations.length / entriesPerPage));
@@ -104,6 +174,16 @@ export default function OrganisationsClient({
     setTypeFilter(value);
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+    } else {
+      setSortField(field);
+      setSortOrder(field === "name" ? "asc" : "desc");
+    }
+    setCurrentPage(1);
+  };
+
   const handleEntriesPerPageChange = (value: string) => {
     setCurrentPage(1);
     setEntriesPerPage(Number(value));
@@ -113,10 +193,17 @@ export default function OrganisationsClient({
     setSearchTerm("");
     setStatusFilter("all");
     setTypeFilter("all");
+    setSortField("applications");
+    setSortOrder("desc");
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = searchTerm !== "" || statusFilter !== "all" || typeFilter !== "all";
+  const hasActiveFilters =
+    searchTerm !== "" ||
+    statusFilter !== "all" ||
+    typeFilter !== "all" ||
+    sortField !== "applications" ||
+    sortOrder !== "desc";
 
   return (
     <div className="flex flex-col gap-6">
@@ -308,6 +395,39 @@ export default function OrganisationsClient({
               </div>
             )}
 
+            {/* Sort Select */}
+            <div className="flex items-center gap-1.5">
+              <label htmlFor="sort-order-select" className="sr-only">
+                Sort organisations
+              </label>
+              <Select
+                value={`${sortField}-${sortOrder}`}
+                onValueChange={(val) => {
+                  const [field, order] = val.split('-') as [SortField, SortOrder];
+                  setSortField(field);
+                  setSortOrder(order);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger
+                  id="sort-order-select"
+                  aria-label="Sort organisations"
+                  className="w-[195px] h-10 text-xs focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <ArrowDownWideNarrow className="w-3.5 h-3.5 mr-1.5 text-neutral-primary" aria-hidden="true" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="applications-desc">Applications (Highest first)</SelectItem>
+                  <SelectItem value="applications-asc">Applications (Lowest first)</SelectItem>
+                  <SelectItem value="roles-desc">Open Roles (Highest first)</SelectItem>
+                  <SelectItem value="teamSize-desc">Team Size (Highest first)</SelectItem>
+                  <SelectItem value="name-asc">Name (A–Z)</SelectItem>
+                  <SelectItem value="name-desc">Name (Z–A)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Entries per page */}
             <div className="flex items-center gap-1.5">
               <label htmlFor="entries-per-page-select" className="sr-only">
@@ -375,12 +495,48 @@ export default function OrganisationsClient({
             </caption>
             <thead className="bg-neutral-light/50 dark:bg-gray-dark border-b border-border text-neutral-primary uppercase text-[11px] tracking-wider font-semibold">
               <tr>
-                <th scope="col" className="px-4 py-3.5">Organisation</th>
+                <th
+                  scope="col"
+                  className="px-4 py-3.5 cursor-pointer select-none hover:text-primary transition-colors group/col"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Organisation</span>
+                    <SortIcon field="name" currentField={sortField} order={sortOrder} />
+                  </div>
+                </th>
                 <th scope="col" className="px-4 py-3.5">Type</th>
                 <th scope="col" className="px-4 py-3.5">Induction Status</th>
-                <th scope="col" className="px-4 py-3.5 text-center">Open Roles</th>
-                <th scope="col" className="px-4 py-3.5 text-center">Applications</th>
-                <th scope="col" className="px-4 py-3.5 text-center">Team Size</th>
+                <th
+                  scope="col"
+                  className="px-4 py-3.5 text-center cursor-pointer select-none hover:text-primary transition-colors group/col"
+                  onClick={() => handleSort('roles')}
+                >
+                  <div className="inline-flex items-center justify-center gap-1.5">
+                    <span>Open Roles</span>
+                    <SortIcon field="roles" currentField={sortField} order={sortOrder} />
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3.5 text-center cursor-pointer select-none hover:text-primary transition-colors group/col"
+                  onClick={() => handleSort('applications')}
+                >
+                  <div className="inline-flex items-center justify-center gap-1.5">
+                    <span>Applications</span>
+                    <SortIcon field="applications" currentField={sortField} order={sortOrder} />
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3.5 text-center cursor-pointer select-none hover:text-primary transition-colors group/col"
+                  onClick={() => handleSort('teamSize')}
+                >
+                  <div className="inline-flex items-center justify-center gap-1.5">
+                    <span>Team Size</span>
+                    <SortIcon field="teamSize" currentField={sortField} order={sortOrder} />
+                  </div>
+                </th>
                 <th scope="col" className="px-4 py-3.5">Last Inducted</th>
                 <th scope="col" className="px-4 py-3.5 text-right">
                   <span className="sr-only">Actions</span>
@@ -391,20 +547,23 @@ export default function OrganisationsClient({
               {paginatedOrganisations.length > 0 ? (
                 paginatedOrganisations.map((org) => {
                   const orgUrl = `/admin/organisations/about/${org.slug}`;
+                  const isNavigating = navigatingSlug === org.slug;
                   return (
                     <tr
                       key={org.id}
-                      onClick={() => router.push(orgUrl)}
+                      onClick={() => handleNavigate(org.slug, orgUrl)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          router.push(orgUrl);
+                          handleNavigate(org.slug, orgUrl);
                         }
                       }}
                       tabIndex={0}
                       role="link"
                       aria-label={`View analytics dashboard for ${org.name}`}
-                      className="hover:bg-neutral-light/40 dark:hover:bg-gray-dark/40 transition-colors cursor-pointer group focus-visible:outline-hidden focus-visible:bg-neutral-light/60 dark:focus-visible:bg-gray-dark/60"
+                      className={`hover:bg-neutral-light/40 dark:hover:bg-gray-dark/40 transition-colors cursor-pointer group focus-visible:outline-hidden focus-visible:bg-neutral-light/60 dark:focus-visible:bg-gray-dark/60 ${
+                        isNavigating ? "opacity-60 pointer-events-none bg-neutral-light/50 dark:bg-gray-dark/50" : ""
+                      }`}
                     >
                       {/* Organisation Name & Avatar */}
                       <td className="px-4 py-3.5">
@@ -494,12 +653,19 @@ export default function OrganisationsClient({
                       <td className="px-4 py-3.5 text-right">
                         <Link
                           href={orgUrl}
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNavigatingSlug(org.slug);
+                          }}
                           aria-label={`Open ${org.name} dashboard`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-primary dark:text-primary-bright hover:underline p-1.5 rounded-md hover:bg-primary/10 transition-colors focus-visible:ring-2 focus-visible:ring-primary"
                         >
                           Dashboard
-                          <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+                          {isNavigating ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" aria-hidden="true" />
+                          ) : (
+                            <ChevronRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                          )}
                         </Link>
                       </td>
                     </tr>
