@@ -16,7 +16,10 @@ import {
 } from 'lucide-react';
 import { Organization, OpenPosition } from '../../organisations-catalog/types';
 import { htmlToPlainText } from '@/lib/utils';
-import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
+import {
+  getDeadlineStatusIST,
+  shouldShowDeadlineExtension,
+} from '@/lib/date-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -66,13 +69,18 @@ export function InductionCatalogCard({
         },
       ];
 
-  const deadlineIso = organization.inductionEnd ? normalizeEndDateToEndOfDay(organization.inductionEnd) : null;
-  const deadline = deadlineIso ? new Date(deadlineIso) : null;
-  const now = new Date();
-  const hasValidDeadline = deadline && !isNaN(deadline.getTime());
-  const isExpired = hasValidDeadline && deadline.getTime() < now.getTime();
-  const daysLeft = hasValidDeadline ? Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
-  const isEndingSoon = hasValidDeadline && !isExpired && (daysLeft !== null && daysLeft <= 3 && daysLeft >= 0);
+  const deadlineStatus = getDeadlineStatusIST(organization.inductionEnd);
+  const {
+    hasValidDeadline,
+    isExpired,
+    daysLeft,
+    isEndingSoon,
+    label: deadlineLabel,
+    formattedDeadline,
+  } = deadlineStatus;
+
+  // Deadline extension only shows for 1 day, and "closes tomorrow/today" trumps it
+  const showExtension = shouldShowDeadlineExtension(organization.deadlineExtension, daysLeft);
 
   const logoUrl = organization.logoUrl || '';
   // Cycle/induction descriptions are authored as rich text — flatten to plain
@@ -175,7 +183,7 @@ export function InductionCatalogCard({
 
         {/* Prominent Recruitment Deadline Strip */}
         <div className="text-left w-full" style={{ textAlign: 'left' }}>
-          {organization.deadlineExtension ? (
+          {showExtension ? (
             <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs shadow-2xs">
               <div className="flex items-center gap-2 min-w-0">
                 <ClockPlus className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -184,7 +192,7 @@ export function InductionCatalogCard({
                 </span>
               </div>
               <span className="text-[11px] font-semibold opacity-90 shrink-0 ml-2">
-                Until {deadline ? deadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Extended'}
+                Until {formattedDeadline || 'Extended'}
               </span>
             </div>
           ) : hasValidDeadline && !isExpired ? (
@@ -193,11 +201,11 @@ export function InductionCatalogCard({
                 <div className="flex items-center gap-2 min-w-0">
                   <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 animate-pulse" />
                   <span className="font-bold truncate">
-                    {daysLeft === 0 ? 'Closes Today!' : daysLeft === 1 ? 'Closes Tomorrow!' : `Closes in ${daysLeft} days`}
+                    {deadlineLabel}
                   </span>
                 </div>
                 <span className="text-[11px] font-semibold opacity-90 shrink-0 ml-2">
-                  {deadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {formattedDeadline}
                 </span>
               </div>
             ) : (
@@ -208,7 +216,7 @@ export function InductionCatalogCard({
                 </div>
                 <span className="text-xs font-semibold text-foreground/90 shrink-0 ml-2">
                   {daysLeft !== null && daysLeft > 0 ? `${daysLeft} days left · ` : ''}
-                  {deadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {formattedDeadline}
                 </span>
               </div>
             )
@@ -219,7 +227,7 @@ export function InductionCatalogCard({
                 <span className="font-semibold truncate">Inductions Closed</span>
               </div>
               <span className="text-[11px] font-medium opacity-80 shrink-0 ml-2">
-                Ended {deadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                Ended {formattedDeadline}
               </span>
             </div>
           ) : (

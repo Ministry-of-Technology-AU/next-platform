@@ -26,6 +26,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { PopulatedResponseRecord } from '@/lib/forms/strapi-forms';
+import {
+  getDeadlineStatusIST,
+  formatISTDate,
+  shouldShowDeadlineExtension,
+} from '@/lib/date-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -81,7 +86,7 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
       setIsDeleting(false);
     }
   }
-  
+
   // Initialize immediately from fast-tier cache (LocalStorage / Cookies)
   const [grievanceSent, setGrievanceSent] = React.useState(() =>
     isGrievanceSubmitted(application.id),
@@ -119,7 +124,7 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
       if (!res.ok || !json.success) {
         throw new Error(json.error || 'Something went wrong');
       }
-      
+
       // Persist across all 3 tiers (LocalStorage, Cookie, IndexedDB) with anti-eviction protection
       await recordGrievanceSubmission(application.id, {
         subject: grievanceSubject.trim(),
@@ -161,8 +166,10 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
     : '';
 
   const deadlineStr = form.endDate || org?.induction_end;
-  const deadline = deadlineStr ? new Date(deadlineStr) : null;
-  const isDeadlineSoon = deadline && deadline > new Date() && deadline.getTime() - Date.now() < 3 * 24 * 60 * 60 * 1000;
+  const deadlineStatus = getDeadlineStatusIST(deadlineStr);
+  const isDeadlineSoon = deadlineStatus.isEndingSoon && !deadlineStatus.isExpired;
+  const ext = application.deadlineExtension || (org as any)?.deadlineExtension;
+  const showExtension = shouldShowDeadlineExtension(ext, deadlineStatus.daysLeft);
 
   const renderStatusBadge = () => {
     const isFinalRound = currentRound >= (application.pipeline?.length || 1) - 1;
@@ -277,20 +284,18 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
           {/* Action Required Callout: Interview Scheduling */}
           {resolvedInterviewUrl && (
             <div
-              className={`mt-3 rounded-xl border p-3.5 transition-all text-left ${
-                interview?.isBooked
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60'
-                  : 'bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/25 shadow-xs'
-              }`}
+              className={`mt-3 rounded-xl border p-3.5 transition-all text-left ${interview?.isBooked
+                ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60'
+                : 'bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/25 shadow-xs'
+                }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-2.5 min-w-0 text-left">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                      interview?.isBooked
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200'
-                        : 'bg-primary text-primary-foreground shadow-2xs'
-                    }`}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${interview?.isBooked
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200'
+                      : 'bg-primary text-primary-foreground shadow-2xs'
+                      }`}
                   >
                     <Calendar className="h-4 w-4" />
                   </div>
@@ -316,11 +321,10 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
                 <Button
                   asChild
                   size="sm"
-                  className={`h-7 px-2.5 text-xs font-semibold gap-1 shrink-0 ${
-                    interview?.isBooked
-                      ? 'bg-background hover:bg-muted text-foreground border border-border shadow-2xs'
-                      : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs'
-                  }`}
+                  className={`h-7 px-2.5 text-xs font-semibold gap-1 shrink-0 ${interview?.isBooked
+                    ? 'bg-background hover:bg-muted text-foreground border border-border shadow-2xs'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs'
+                    }`}
                 >
                   <Link href={resolvedInterviewUrl}>
                     {interview?.isBooked ? 'Details' : 'Book'}
@@ -334,20 +338,18 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
           {/* Action Required Callout: Form Submission for Current Round */}
           {targetForm && (
             <div
-              className={`mt-3 rounded-xl border p-3.5 transition-all text-left ${
-                targetForm.isCompleted
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60'
-                  : 'bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/25 shadow-xs'
-              }`}
+              className={`mt-3 rounded-xl border p-3.5 transition-all text-left ${targetForm.isCompleted
+                ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60'
+                : 'bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/25 shadow-xs'
+                }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-2.5 min-w-0 text-left">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                      targetForm.isCompleted
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200'
-                        : 'bg-primary text-primary-foreground shadow-2xs'
-                    }`}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${targetForm.isCompleted
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200'
+                      : 'bg-primary text-primary-foreground shadow-2xs'
+                      }`}
                   >
                     <FileText className="h-4 w-4" />
                   </div>
@@ -373,11 +375,10 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
                 <Button
                   asChild
                   size="sm"
-                  className={`h-7 px-2.5 text-xs font-semibold gap-1 shrink-0 ${
-                    targetForm.isCompleted
-                      ? 'bg-background hover:bg-muted text-foreground border border-border shadow-2xs'
-                      : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs'
-                  }`}
+                  className={`h-7 px-2.5 text-xs font-semibold gap-1 shrink-0 ${targetForm.isCompleted
+                    ? 'bg-background hover:bg-muted text-foreground border border-border shadow-2xs'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs'
+                    }`}
                 >
                   <Link href={targetForm.formUrl}>
                     {targetForm.isCompleted ? 'View' : targetForm.isDraft ? 'Resume' : 'Fill Form'}
@@ -405,9 +406,9 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
             <div className="flex items-center gap-1.5 flex-wrap">
               <Calendar className="w-3.5 h-3.5 text-amber-500" />
               <span className={isDeadlineSoon ? 'font-semibold text-amber-600 dark:text-amber-400' : ''}>
-                {deadline ? `Due ${deadline.toLocaleDateString()}` : 'No deadline'}
+                {deadlineStatus.hasValidDeadline ? `Due ${deadlineStatus.formattedDeadline}` : 'No deadline'}
               </span>
-              {(application.deadlineExtension || (org as any)?.deadlineExtension) && (
+              {showExtension && (
                 <Badge variant="outline" className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] py-0 px-1.5 font-semibold gap-1">
                   <ClockPlus className="w-2.5 h-2.5 text-amber-500" />
                   Extended
@@ -420,12 +421,12 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
               <span>
                 {application.submittedAt
                   ? `Submitted ${new Date(application.submittedAt).toLocaleDateString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                    })}`
+                    month: 'short',
+                    day: 'numeric',
+                  })}`
                   : 'Submitted'}
               </span>
-              {(application.deadlineExtension || (org as any)?.deadlineExtension) && (
+              {showExtension && (
                 <Badge variant="outline" className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] py-0 px-1.5 font-semibold gap-1">
                   <ClockPlus className="w-2.5 h-2.5 text-amber-500" />
                   Extended
@@ -437,9 +438,9 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
           <span className="text-[11px]">
             {application.lastSavedAt
               ? `Saved ${new Date(application.lastSavedAt).toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                })}`
+                month: 'short',
+                day: 'numeric',
+              })}`
               : ''}
           </span>
         </div>
@@ -551,21 +552,20 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
                 ) : (
                   <Button
                     variant="outline"
-                    className={`w-full h-9 gap-1.5 text-xs font-semibold justify-between border-border/80 hover:bg-background transition-colors ${
-                      appStatus === 'advanced'
-                        ? 'border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200'
-                        : ''
-                    }`}
+                    className={`w-full h-9 gap-1.5 text-xs font-semibold justify-between border-border/80 hover:bg-background transition-colors ${appStatus === 'advanced'
+                      ? 'border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200'
+                      : ''
+                      }`}
                   >
                     <span className="flex items-center gap-1.5">
                       <MessageSquare className="w-3.5 h-3.5 text-primary" />
                       {appStatus === 'advanced'
                         ? 'View Round Updates & Feedback'
                         : appStatus === 'approved'
-                        ? 'View Acceptance Details'
-                        : appStatus === 'rejected'
-                        ? 'View Application Outcome'
-                        : 'Check Status & Notes'}
+                          ? 'View Acceptance Details'
+                          : appStatus === 'rejected'
+                            ? 'View Application Outcome'
+                            : 'Check Status & Notes'}
                     </span>
                     <ChevronRight className="w-3.5 h-3.5 opacity-60" />
                   </Button>
@@ -606,10 +606,10 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
                         {appStatus === 'advanced'
                           ? `Round ${currentRound + 1}: In Progress`
                           : appStatus === 'approved'
-                          ? 'Inductions Completed'
-                          : appStatus === 'rejected'
-                          ? 'Recruitment Concluded'
-                          : 'Application Under Review'}
+                            ? 'Inductions Completed'
+                            : appStatus === 'rejected'
+                              ? 'Recruitment Concluded'
+                              : 'Application Under Review'}
                       </p>
                     </div>
                     <div>{renderStatusBadge()}</div>
@@ -636,7 +636,7 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
                           {targetForm.deadline && (
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
                               <Calendar className="w-3.5 h-3.5 text-primary" />
-                              <span>Due {new Date(targetForm.deadline).toLocaleDateString()}</span>
+                              <span>Due {formatISTDate(targetForm.deadline)}</span>
                             </div>
                           )}
                         </div>
@@ -702,10 +702,10 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
                         {appStatus === 'advanced'
                           ? 'Congratulations! You have been advanced to the next round of inductions. Check your calendar or booking link for details.'
                           : appStatus === 'approved'
-                          ? 'Congratulations! You have been accepted to the organization. The core team will reach out with onboarding details.'
-                          : appStatus === 'rejected'
-                          ? 'Thank you for your time and effort in applying. While we cannot offer you a position at this time, we encourage you to apply again in future cycles.'
-                          : 'Your submission has been received and is actively being reviewed by the induction team.'}
+                            ? 'Congratulations! You have been accepted to the organization. The core team will reach out with onboarding details.'
+                            : appStatus === 'rejected'
+                              ? 'Thank you for your time and effort in applying. While we cannot offer you a position at this time, we encourage you to apply again in future cycles.'
+                              : 'Your submission has been received and is actively being reviewed by the induction team.'}
                       </p>
                     )}
                   </div>
@@ -716,10 +716,10 @@ export function ApplicationCard({ application, onDeleted }: ApplicationCardProps
                       Submitted on{' '}
                       {application.submittedAt
                         ? new Date(application.submittedAt).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })
                         : 'Recent'}
                     </span>
                     <Link

@@ -137,10 +137,12 @@ export function formatCycleDateRange(startDateStr?: string | null, endDateStr?: 
   const formatDatePart = (dStr: string, includeYear: boolean) => {
     const d = new Date(dStr);
     if (isNaN(d.getTime())) return 'TBD';
-    const day = d.getDate();
-    const month = d.toLocaleDateString('en-IN', { month: 'short' });
-    const year = d.getFullYear();
-    return includeYear ? `${day} ${month} ${year}` : `${day} ${month}`;
+    return d.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: 'numeric',
+      month: 'short',
+      ...(includeYear ? { year: 'numeric' } : {}),
+    });
   };
 
   const start = startDateStr ? formatDatePart(startDateStr, false) : 'TBD';

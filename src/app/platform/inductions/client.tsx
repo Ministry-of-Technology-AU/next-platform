@@ -26,7 +26,7 @@ import { ApplicationCard } from './_components/application-card';
 import { NotificationsPopover } from './_components/notifications-popover';
 import { InductionCatalogCard } from './_components/induction-catalog-card';
 import { InductionSidebar } from './_components/induction-sidebar';
-import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
+import { getDeadlineStatusIST } from '@/lib/date-utils';
 
 interface InductionClientProps {
   initialOrganizations: Organization[];
@@ -172,9 +172,8 @@ export function InductionClient({
     const filtered = organizations.filter((org: Organization) => {
       // Exclude ended cycles
       if (org.inductionEnd) {
-        const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
-        const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
-        if (!isNaN(endTime) && endTime < now) return false;
+        const status = getDeadlineStatusIST(org.inductionEnd);
+        if (status.isExpired) return false;
       }
 
       const matchesSearch =
@@ -207,14 +206,11 @@ export function InductionClient({
 
     // Sort: upcoming deadlines first (closest deadline first), then ended
     return [...filtered].sort((a, b) => {
-      const now = Date.now();
-      const aIso = a.inductionEnd ? normalizeEndDateToEndOfDay(a.inductionEnd) : null;
-      const bIso = b.inductionEnd ? normalizeEndDateToEndOfDay(b.inductionEnd) : null;
-      const aTime = aIso ? new Date(aIso).getTime() : NaN;
-      const bTime = bIso ? new Date(bIso).getTime() : NaN;
+      const aStatus = getDeadlineStatusIST(a.inductionEnd);
+      const bStatus = getDeadlineStatusIST(b.inductionEnd);
 
-      const aValid = !isNaN(aTime);
-      const bValid = !isNaN(bTime);
+      const aValid = aStatus.hasValidDeadline;
+      const bValid = bStatus.hasValidDeadline;
 
       // Items with valid deadlines come before items without
       if (!aValid && bValid) return 1;
@@ -224,31 +220,29 @@ export function InductionClient({
       }
 
       // Both have valid deadlines
-      const aUpcoming = aTime >= now;
-      const bUpcoming = bTime >= now;
+      const aUpcoming = aValid && !aStatus.isExpired;
+      const bUpcoming = bValid && !bStatus.isExpired;
 
       // Both upcoming -> closest deadline first
       if (aUpcoming && bUpcoming) {
-        return aTime - bTime;
+        return (aStatus.deadlineDate?.getTime() || 0) - (bStatus.deadlineDate?.getTime() || 0);
       }
       // Upcoming deadline comes before ended deadline
       if (aUpcoming && !bUpcoming) return -1;
       if (!aUpcoming && bUpcoming) return 1;
 
       // Both ended -> most recently ended first
-      return bTime - aTime;
+      return (bStatus.deadlineDate?.getTime() || 0) - (aStatus.deadlineDate?.getTime() || 0);
     });
   }, [searchQuery, selectedType, filters, onlyTracked, trackedOrgIds, organizations]);
 
   // One entry per open cycle — an org running two drives contributes two.
   const activeRecruitingCycles = React.useMemo(() => {
-    const now = Date.now();
     return organizations.filter((org) => {
       if (!org.inductionsOpen) return false;
       if (!org.inductionEnd) return false; // Rolling basis is not permitted
-      const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
-      const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
-      if (isNaN(endTime) || endTime < now) return false;
+      const status = getDeadlineStatusIST(org.inductionEnd);
+      if (status.isExpired) return false;
       return true;
     });
   }, [organizations]);

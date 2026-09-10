@@ -4,7 +4,7 @@ import { InductionClient } from "./client";
 import { cookies } from "next/headers";
 import { Organization } from "../organisations-catalog/types";
 import { PopulatedResponseRecord } from "@/lib/forms/strapi-forms";
-import { normalizeEndDateToEndOfDay } from "@/lib/date-utils";
+import { getDeadlineStatusIST } from "@/lib/date-utils";
 
 export const dynamic = 'force-dynamic';
 
@@ -60,25 +60,24 @@ async function fetchInductionData(): Promise<{
     const rawOrganizations = cycleEntries.filter((org: Organization) => {
       if (!org.inductionsOpen) return false;
       if (!org.inductionEnd) return false; // Rolling basis is not permitted
-      const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
-      const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
-      if (isNaN(endTime) || endTime < now) return false; // Cycle has ended
+      const status = getDeadlineStatusIST(org.inductionEnd);
+      if (status.isExpired) return false; // Cycle has ended
       return true;
     });
     
     // Sort organizations so closest upcoming deadline comes first
     const organizations = [...rawOrganizations].sort((a, b) => {
-      const aIso = a.inductionEnd ? normalizeEndDateToEndOfDay(a.inductionEnd) : null;
-      const bIso = b.inductionEnd ? normalizeEndDateToEndOfDay(b.inductionEnd) : null;
-      const aTime = aIso ? new Date(aIso).getTime() : NaN;
-      const bTime = bIso ? new Date(bIso).getTime() : NaN;
+      const aStatus = getDeadlineStatusIST(a.inductionEnd);
+      const bStatus = getDeadlineStatusIST(b.inductionEnd);
 
-      const aValid = !isNaN(aTime);
-      const bValid = !isNaN(bTime);
-      const aUpcoming = aValid && aTime >= now;
-      const bUpcoming = bValid && bTime >= now;
+      const aValid = aStatus.hasValidDeadline;
+      const bValid = bStatus.hasValidDeadline;
+      const aUpcoming = aValid && !aStatus.isExpired;
+      const bUpcoming = bValid && !bStatus.isExpired;
 
-      if (aUpcoming && bUpcoming) return aTime - bTime;
+      if (aUpcoming && bUpcoming) {
+        return (aStatus.deadlineDate?.getTime() || 0) - (bStatus.deadlineDate?.getTime() || 0);
+      }
       if (aUpcoming && !bUpcoming) return -1;
       if (!aUpcoming && bUpcoming) return 1;
       if (aValid && !bValid) return -1;

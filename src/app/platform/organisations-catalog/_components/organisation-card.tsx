@@ -190,6 +190,7 @@ export function OrganizationCard({ organization, isTracking = false, trackLoadin
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('en-US', { 
+        timeZone: 'Asia/Kolkata',
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
