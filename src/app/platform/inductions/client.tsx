@@ -205,7 +205,7 @@ export function InductionClient({
       return matchesSearch && matchesCategoryPill && matchesSheetFilter && matchesTrackedOnly;
     });
 
-    // Sort: rolling inductions (no valid deadline) first, then by deadline (closest upcoming first)
+    // Sort: upcoming deadlines first (closest deadline first), then ended
     return [...filtered].sort((a, b) => {
       const now = Date.now();
       const aIso = a.inductionEnd ? normalizeEndDateToEndOfDay(a.inductionEnd) : null;
@@ -216,14 +216,14 @@ export function InductionClient({
       const aValid = !isNaN(aTime);
       const bValid = !isNaN(bTime);
 
-      // 1. Rolling inductions come first
-      if (!aValid && bValid) return -1;
-      if (aValid && !bValid) return 1;
+      // Items with valid deadlines come before items without
+      if (!aValid && bValid) return 1;
+      if (aValid && !bValid) return -1;
       if (!aValid && !bValid) {
         return a.name.localeCompare(b.name);
       }
 
-      // 2. Both have valid deadlines
+      // Both have valid deadlines
       const aUpcoming = aTime >= now;
       const bUpcoming = bTime >= now;
 
@@ -235,8 +235,8 @@ export function InductionClient({
       if (aUpcoming && !bUpcoming) return -1;
       if (!aUpcoming && bUpcoming) return 1;
 
-      // Both ended
-      return aTime - bTime;
+      // Both ended -> most recently ended first
+      return bTime - aTime;
     });
   }, [searchQuery, selectedType, filters, onlyTracked, trackedOrgIds, organizations]);
 
@@ -245,11 +245,10 @@ export function InductionClient({
     const now = Date.now();
     return organizations.filter((org) => {
       if (!org.inductionsOpen) return false;
-      if (org.inductionEnd) {
-        const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
-        const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
-        if (!isNaN(endTime) && endTime < now) return false;
-      }
+      if (!org.inductionEnd) return false; // Rolling basis is not permitted
+      const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
+      const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
+      if (isNaN(endTime) || endTime < now) return false;
       return true;
     });
   }, [organizations]);

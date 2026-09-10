@@ -29,11 +29,16 @@ export async function POST(request: Request) {
     const name = typeof body?.name === 'string' ? body.name.trim() : '';
     if (!name) return jsonError('Cycle name is required', 400);
 
+    const endDate = body.endDate ? (body.endDate.includes('T') ? body.endDate.split('T')[0] : body.endDate) : null;
+    if (!endDate) {
+      return jsonError('Cycle end date (deadline) is required. Rolling basis is not permitted.', 400);
+    }
+
     const created = await createCycle({
       organisationId: org.organisationId,
       name,
       startDate: body.startDate || null,
-      endDate: body.endDate || null,
+      endDate,
       description: body.description || null,
     });
 

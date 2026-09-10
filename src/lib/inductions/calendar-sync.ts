@@ -54,20 +54,22 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
     const activeCycles = cyclesData.filter((c: any) => {
       const ca = c.attributes || c || {};
       const rawStatus = (ca.status as CycleStatus) || 'draft';
-      const derived = getDerivedCycleStatus(rawStatus, ca.start_date, ca.end_date);
+      const ext = ca.deadline_extension ?? ca.stats?.deadlineExtension ?? null;
+      const effectiveEnd = ext?.newDeadline || ca.end_date;
+      const derived = getDerivedCycleStatus(rawStatus, ca.start_date, effectiveEnd);
       return derived === 'active';
     });
 
-    // Check if legacy induction is open
+    // Check if legacy induction is open (rolling basis is not permitted)
     const isLegacyOpen =
       orgData.induction === true &&
-      (!orgData.induction_end ||
-        new Date(normalizeEndDateToEndOfDay(orgData.induction_end) || orgData.induction_end).getTime() >= Date.now());
+      Boolean(orgData.induction_end) &&
+      new Date(normalizeEndDateToEndOfDay(orgData.induction_end) || orgData.induction_end).getTime() >= Date.now();
 
     const hasActiveCycle = activeCycles.length > 0;
 
-    // If there are NO active cycles and legacy induction is not open, do not publish to Google Calendar.
-    // If a calendar event was created previously, remove it and clear the ID so unreleased info is not exposed.
+    // If there are NO active cycles and legacy induction is not open, induction is over.
+    // Clear Google Calendar event and mark induction: false in Strapi.
     if (!hasActiveCycle && !isLegacyOpen) {
       if (calendarEventId) {
         const calId = process.env.INDUCTIONS_CALENDAR_ID || undefined;
@@ -76,21 +78,35 @@ export async function syncOrganisationInductionCalendarEvent(organisationId: str
         } catch (delErr) {
           console.error(`Error deleting calendar event ${calendarEventId} for inactive org ${orgId}:`, delErr);
         }
+      }
+      if (orgData.induction === true || calendarEventId) {
         try {
           await strapiPut(`/organisations/${orgId}`, {
-            data: { calendar_event_id: null },
+            data: {
+              induction: false,
+              calendar_event_id: null,
+            },
           });
         } catch (strapiErr) {
-          console.error('Failed to clear calendar_event_id in Strapi:', strapiErr);
+          console.error('Failed to mark induction as closed in Strapi:', strapiErr);
         }
-        return {
-          synced: true,
-          action: 'none',
-          eventId: null,
-          reason: 'No active induction cycles found; removed existing calendar event',
-        };
       }
-      return { synced: false, reason: 'No active induction cycles found; event will be created when cycle becomes active' };
+      return {
+        synced: true,
+        action: 'none',
+        eventId: null,
+        reason: 'No active induction cycles found; marked induction as closed',
+      };
+    }
+
+    if (hasActiveCycle && orgData.induction !== true) {
+      try {
+        await strapiPut(`/organisations/${orgId}`, {
+          data: { induction: true },
+        });
+      } catch (strapiErr) {
+        console.error('Failed to sync induction: true to Strapi:', strapiErr);
+      }
     }
 
     const relevantCycles = activeCycles;

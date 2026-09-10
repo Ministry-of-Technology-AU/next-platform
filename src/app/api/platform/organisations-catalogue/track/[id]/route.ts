@@ -78,7 +78,9 @@ export async function POST(
     const activeCycles = cyclesData.filter((c: any) => {
       const ca = c.attributes || c || {};
       const rawStatus = (ca.status as CycleStatus) || 'draft';
-      return getDerivedCycleStatus(rawStatus, ca.start_date, ca.end_date) === 'active';
+      const ext = ca.deadline_extension ?? ca.stats?.deadlineExtension ?? null;
+      const effectiveEnd = ext?.newDeadline || ca.end_date;
+      return getDerivedCycleStatus(rawStatus, ca.start_date, effectiveEnd) === 'active';
     });
 
     // Sort active cycles to find the one closing soonest
@@ -105,8 +107,8 @@ export async function POST(
     const hasActiveCycle = activeCycles.length > 0;
     const isLegacyOpen =
       orgData?.induction === true &&
-      (!orgData?.induction_end ||
-        new Date(normalizeEndDateToEndOfDay(orgData?.induction_end) || orgData?.induction_end).getTime() >= Date.now());
+      Boolean(orgData?.induction_end) &&
+      new Date(normalizeEndDateToEndOfDay(orgData?.induction_end) || orgData?.induction_end).getTime() >= Date.now();
 
     // Extract roles and application links ONLY from active cycles
     const rolesList: { title: string; department?: string; formUrl?: string }[] = [];

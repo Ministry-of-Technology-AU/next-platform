@@ -120,6 +120,10 @@ export function CycleFormDialog({
       toast.error('Give your cycle a name');
       return;
     }
+    if (!endDate) {
+      toast.error('An end date (deadline) is required. Rolling basis inductions are not permitted.');
+      return;
+    }
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       toast.error('Start date must be before end date');
       return;
@@ -272,16 +276,24 @@ export function CycleFormDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="cycle-form-end" className="text-xs font-semibold">End date</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="cycle-form-end" className="text-xs font-semibold">
+                  End date (Deadline) <span className="text-destructive">*</span>
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-medium">Required</span>
+              </div>
               <DatePicker
                 id="cycle-form-end"
                 value={endDate}
                 onChange={(_, dateStr) => handleEndDateChange(dateStr)}
-                placeholder="Select end date"
+                placeholder="Select deadline"
                 minDate={startDate ? new Date(startDate) : undefined}
               />
             </div>
           </div>
+          <p className="text-[11px] text-muted-foreground/80">
+            A deadline is required. Rolling basis is not permitted; the cycle will automatically mark as completed once the deadline passes.
+          </p>
         </div>
         <DialogFooter className="gap-2 sm:gap-0 pt-2">
           <Button variant="outline" className="rounded-xl text-xs" onClick={() => setOpen(false)} disabled={loading}>

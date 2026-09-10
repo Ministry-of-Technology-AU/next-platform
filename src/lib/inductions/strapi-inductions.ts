@@ -56,9 +56,10 @@ export function normalizeCycle(entry: any): InductionCycleSummary | null {
   const rawStatus = (a.status as CycleStatus) || 'draft';
   const startDate = a.start_date ?? null;
   const endDate = a.end_date ?? null;
-  const derivedStatus = getDerivedCycleStatus(rawStatus, startDate, endDate);
   const stats = a.stats || PLACEHOLDER_CYCLE_STATS;
   const deadlineExtension = a.deadline_extension ?? stats?.deadlineExtension ?? null;
+  const effectiveEndDate = deadlineExtension?.newDeadline || endDate;
+  const derivedStatus = getDerivedCycleStatus(rawStatus, startDate, effectiveEndDate);
 
   return {
     id: id.toString(),

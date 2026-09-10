@@ -46,6 +46,13 @@ export async function PUT(req: Request, context: RouteContext) {
       ? (body.endDate ? (body.endDate.includes('T') ? body.endDate.split('T')[0] : body.endDate) : null)
       : undefined;
 
+    if (body.status === 'active') {
+      const effectiveTargetEnd = cleanEndDate !== undefined ? cleanEndDate : existingCycle?.endDate;
+      if (!effectiveTargetEnd) {
+        return jsonError('End date (deadline) is required for active cycles. Rolling basis is not permitted.', 400);
+      }
+    }
+
     let deadlineExtension = body.deadlineExtension;
     if (!deadlineExtension && existingCycle?.endDate && cleanEndDate) {
       const oldTime = new Date(existingCycle.endDate).getTime();

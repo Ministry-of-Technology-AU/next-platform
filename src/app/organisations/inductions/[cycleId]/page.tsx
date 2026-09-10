@@ -7,6 +7,7 @@ import { requireCycleAccess } from '@/lib/inductions/access';
 import { Button } from '@/components/ui/button';
 import { getCycleById, listRolesByCycle } from '@/lib/inductions/strapi-inductions';
 import { syncCycleStatsFromRoles } from '@/lib/inductions/sync-role-stats';
+import { syncOrganisationInductionCalendarEvent } from '@/lib/inductions/calendar-sync';
 import { CycleClient } from './client';
 import type { InductionCycleSummary, InductionRole } from '../types';
 import { CYCLE_STATUS_STYLE, formatCycleDateRange, getDerivedCycleStatus } from '../types';
@@ -58,6 +59,13 @@ export default async function CyclePage({ params }: PageProps) {
   syncCycleStatsFromRoles(cycleId).catch((e) =>
     console.error('[auto-sync] cycle stats aggregation failed for cycle:', cycleId, e)
   );
+
+  // Background sync induction lifecycle / calendar status
+  if (typeof org.organisationId === 'number') {
+    syncOrganisationInductionCalendarEvent(org.organisationId).catch((e) =>
+      console.error('Background calendar sync error on cycle page:', e)
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">

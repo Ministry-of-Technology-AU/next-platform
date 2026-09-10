@@ -59,11 +59,10 @@ async function fetchInductionData(): Promise<{
 
     const rawOrganizations = cycleEntries.filter((org: Organization) => {
       if (!org.inductionsOpen) return false;
-      if (org.inductionEnd) {
-        const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
-        const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
-        if (!isNaN(endTime) && endTime < now) return false; // Cycle has ended
-      }
+      if (!org.inductionEnd) return false; // Rolling basis is not permitted
+      const endIso = normalizeEndDateToEndOfDay(org.inductionEnd);
+      const endTime = endIso ? new Date(endIso).getTime() : new Date(org.inductionEnd).getTime();
+      if (isNaN(endTime) || endTime < now) return false; // Cycle has ended
       return true;
     });
     

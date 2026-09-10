@@ -267,11 +267,10 @@ async function getAdminOrganizationsRaw(): Promise<{
         }
       }
 
-      // Legacy fallback
-      const isLegacyOpen = a.induction === true && (
-        !a.induction_end ||
-        new Date(normalizeEndDateToEndOfDay(a.induction_end) || a.induction_end).getTime() >= Date.now()
-      );
+      // Legacy fallback (rolling basis is not permitted; valid future deadline required)
+      const isLegacyOpen = a.induction === true &&
+        Boolean(a.induction_end) &&
+        new Date(normalizeEndDateToEndOfDay(a.induction_end) || a.induction_end).getTime() >= Date.now();
       const activeInductions = hasActiveCycle || isLegacyOpen;
 
       if (activeInductions) {
@@ -562,7 +561,10 @@ async function getAdminOrganizationDetailsRaw(slug: string): Promise<AdminOrgani
 
     // If no cycles exist at all, construct a fallback cycle from legacy induction fields
     if (processedCycles.length === 0) {
-      const isLegacyOpen = !!a.induction;
+      const isLegacyOpen =
+        Boolean(a.induction) &&
+        Boolean(a.induction_end) &&
+        new Date(normalizeEndDateToEndOfDay(a.induction_end) || a.induction_end).getTime() >= Date.now();
       const legacyEnd = a.induction_end ?? null;
       processedCycles.push({
         id: 'legacy-cycle',
@@ -590,7 +592,12 @@ async function getAdminOrganizationDetailsRaw(slug: string): Promise<AdminOrgani
       return (order[a.status] ?? 4) - (order[b.status] ?? 4);
     });
 
-    const isInductionsActive = processedCycles.some((c) => c.status === 'active') || !!a.induction;
+    const isLegacyOpen =
+      Boolean(a.induction) &&
+      Boolean(a.induction_end) &&
+      new Date(normalizeEndDateToEndOfDay(a.induction_end) || a.induction_end).getTime() >= Date.now();
+
+    const isInductionsActive = processedCycles.some((c) => c.status === 'active') || isLegacyOpen;
 
     const aggregateStats = {
       totalApplications: totalAggFills,

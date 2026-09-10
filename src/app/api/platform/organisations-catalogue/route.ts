@@ -240,15 +240,15 @@ export async function GET() {
         const primaryCycle = sortedCycles[0] ?? null;
         const cycleName = primaryCycle?.name || null;
         const cycleDescription = primaryCycle?.description || '';
-        const cycleEndDate = primaryCycle?.endDate || attrs.induction_end || null;
+        const isLegacyOpen =
+          attrs.induction === true &&
+          Boolean(attrs.induction_end) &&
+          new Date(normalizeEndDateToEndOfDay(attrs.induction_end) || attrs.induction_end).getTime() >= Date.now();
+        const cycleEndDate = primaryCycle?.endDate || (isLegacyOpen ? attrs.induction_end : null) || null;
         const deadlineExtension = primaryCycle?.deadlineExtension ?? null;
 
         // hasActiveCycle is true only when there is a genuinely 'active' cycle
         const hasActiveCycle = activeCyclesOnly.length > 0;
-        const isLegacyOpen =
-          attrs.induction === true &&
-          (!attrs.induction_end ||
-            new Date(normalizeEndDateToEndOfDay(attrs.induction_end) || attrs.induction_end).getTime() >= Date.now());
 
         return {
           id: x.id.toString(),

@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import Image from "next/image";
+import { normalizeEndDateToEndOfDay } from "@/lib/date-utils";
 
 function extractUsersList(relation: any): any[] {
   if (!relation) return [];
@@ -139,9 +140,22 @@ export default function OrganisationProfileClient({
     membersUsers.map((u: any) => String(u.id))
   );
 
-  const [isOpen, setIsOpen] = useState(
-    organisation?.induction || false
-  );
+  const isDeadlinePast = React.useMemo(() => {
+    if (!deadline) return true;
+    const iso = normalizeEndDateToEndOfDay(deadline);
+    const d = iso ? new Date(iso) : new Date(deadline);
+    return isNaN(d.getTime()) || d.getTime() < Date.now();
+  }, [deadline]);
+
+  const initialIsOpen = React.useMemo(() => {
+    if (!organisation?.induction) return false;
+    if (!organisation?.induction_end) return false; // Rolling basis not allowed
+    const iso = normalizeEndDateToEndOfDay(organisation.induction_end);
+    const d = iso ? new Date(iso) : new Date(organisation.induction_end);
+    return !isNaN(d.getTime()) && d.getTime() >= Date.now();
+  }, [organisation]);
+
+  const [isOpen, setIsOpen] = useState(initialIsOpen);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -180,6 +194,17 @@ export default function OrganisationProfileClient({
     e.preventDefault();
     if (!organisationId) return;
 
+    if (isOpen) {
+      if (!deadline) {
+        toast.error("A deadline is required to mark inductions as open. Rolling basis is not permitted.");
+        return;
+      }
+      if (isDeadlinePast) {
+        toast.error("The induction deadline has already passed. Please set a future deadline or turn off 'Inductions Open'.");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -197,7 +222,7 @@ export default function OrganisationProfileClient({
     formData.append("circle1_humans", JSON.stringify(circle1.map((id) => Number(id))));
     formData.append("circle2_humans", JSON.stringify(circle2.map((id) => Number(id))));
     formData.append("members", JSON.stringify(membersDrop.map((id) => Number(id))));
-    formData.append("induction", String(isOpen));
+    formData.append("induction", String(isOpen && !isDeadlinePast));
 
     if (bannerFile) {
       formData.append("image", bannerFile);
@@ -366,18 +391,40 @@ export default function OrganisationProfileClient({
               />
             </div>
 
-            <CheckboxComponent
-              title="Inductions Open?"
-              description="Toggle if inductions are open"
-              value={isOpen}
-              onChange={(checked: boolean | string) => setIsOpen(Boolean(checked))}
-            />
+            <div className="space-y-1.5">
+              <CheckboxComponent
+                title="Inductions Open?"
+                description="Toggle if inductions are currently open. A future deadline is required; rolling basis is not permitted."
+                value={isOpen && !isDeadlinePast}
+                onChange={(checked: boolean | string) => {
+                  const val = Boolean(checked);
+                  if (val && isDeadlinePast) {
+                    toast.error("Please set a future deadline before opening inductions. Rolling basis is not permitted.");
+                  }
+                  setIsOpen(val);
+                }}
+              />
+              {deadline && isDeadlinePast && (
+                <p className="text-xs text-destructive font-medium pl-1">
+                  The induction deadline ({new Date(deadline).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}) has passed. Inductions are marked as over.
+                </p>
+              )}
+            </div>
 
             <DateTimePicker
-              title="Deadline"
-              placeholder="Select deadline"
+              title="Induction Deadline"
+              placeholder="Select deadline (required for open inductions)"
               value={deadline}
-              onChange={setDeadline}
+              onChange={(val) => {
+                setDeadline(val);
+                if (val) {
+                  const iso = normalizeEndDateToEndOfDay(val);
+                  const d = iso ? new Date(iso) : new Date(val);
+                  if (!isNaN(d.getTime()) && d.getTime() < Date.now()) {
+                    setIsOpen(false);
+                  }
+                }
+              }}
             />
 
             <RichTextInput
