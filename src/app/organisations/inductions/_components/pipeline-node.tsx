@@ -9,6 +9,7 @@ import type { PipelineRound, PipelineRoundType } from '../types';
 function formatDeadline(dateStr: string | null): string {
   if (!dateStr) return 'No deadline';
   return new Date(dateStr).toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     day: 'numeric',
     month: 'short',
     year: 'numeric',

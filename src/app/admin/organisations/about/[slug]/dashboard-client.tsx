@@ -579,7 +579,9 @@ export default function DashboardClient({ organisation }: DashboardProps) {
               </thead>
               <tbody className="divide-y divide-border">
                 {currentCycleData.roles.length > 0 ? (
-                  currentCycleData.roles.map((role) => {
+                  [...currentCycleData.roles]
+                    .sort((a, b) => ((b.stats?.fills || 0) - (a.stats?.fills || 0)) || ((b.stats?.opens || 0) - (a.stats?.opens || 0)))
+                    .map((role) => {
                     const opens = role.stats.opens || 0;
                     const fills = role.stats.fills || 0;
                     const comp = opens > 0 ? Math.round((fills / opens) * 1000) / 10 : 0;

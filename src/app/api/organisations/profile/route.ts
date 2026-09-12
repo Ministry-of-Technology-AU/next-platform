@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import { uploadImageToCloudinary } from "@/lib/apis/cloudinary";
 import { addEvent, getEvents, updateEvent, deleteEvent } from "@/lib/apis/calendar";
 import type { GoogleEvent } from "@/lib/apis/calendar";
+import { normalizeEndDateToEndOfDay } from "@/lib/date-utils";
 
 export async function GET() {
     // 🔐 Get session (v5 style)
@@ -72,6 +73,20 @@ export async function GET() {
             organisation.members = flattenRelation(organisation.members);
             organisation.profile = flattenRelation(organisation.profile);
             organisation.logo_url = (Array.isArray(organisation.profile) ? organisation.profile[0]?.profile_url : organisation.profile?.profile_url) || user?.profile_url || null;
+
+            // Disallow rolling basis: if induction is true but deadline is missing or past, mark induction as false
+            if (organisation.induction) {
+                const end = organisation.induction_end;
+                if (!end) {
+                    organisation.induction = false;
+                } else {
+                    const endIso = normalizeEndDateToEndOfDay(end);
+                    const endTime = endIso ? new Date(endIso).getTime() : new Date(end).getTime();
+                    if (isNaN(endTime) || endTime < Date.now()) {
+                        organisation.induction = false;
+                    }
+                }
+            }
         }
 
         return new Response(JSON.stringify({ organisation }), { status: 200 });
@@ -108,8 +123,23 @@ export async function PUT(request: NextRequest) {
         const type = formData.get('type') as string;
         const short_description = formData.get('short_description') as string;
         const description = formData.get('description') as string;
-        const induction = formData.get('induction') === 'true';
-        const induction_end = formData.get('induction_end') as string;
+        const rawInduction = formData.get('induction') === 'true';
+        const rawInductionEnd = (formData.get('induction_end') as string) || null;
+
+        // Disallow rolling basis: if induction is true, a valid future deadline is required
+        let induction = rawInduction;
+        let induction_end = rawInductionEnd;
+        if (induction) {
+            if (!induction_end) {
+                induction = false; // Rolling basis not permitted
+            } else {
+                const endIso = normalizeEndDateToEndOfDay(induction_end);
+                const endTime = endIso ? new Date(endIso).getTime() : new Date(induction_end).getTime();
+                if (isNaN(endTime) || endTime < Date.now()) {
+                    induction = false; // Deadline has crossed
+                }
+            }
+        }
         const induction_description = formData.get('induction_description') as string;
         const instagram = formData.get('instagram') as string;
         const linkedin = formData.get('linkedin') as string;

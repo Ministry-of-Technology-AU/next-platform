@@ -16,7 +16,10 @@ import {
 } from 'lucide-react';
 import { Organization, OpenPosition } from '../../organisations-catalog/types';
 import { htmlToPlainText } from '@/lib/utils';
-import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
+import {
+  getDeadlineStatusIST,
+  shouldShowDeadlineExtension,
+} from '@/lib/date-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -66,12 +69,18 @@ export function InductionCatalogCard({
         },
       ];
 
-  const deadlineIso = organization.inductionEnd ? normalizeEndDateToEndOfDay(organization.inductionEnd) : null;
-  const deadline = deadlineIso ? new Date(deadlineIso) : null;
-  const now = new Date();
-  const hasValidDeadline = deadline && !isNaN(deadline.getTime());
-  const daysLeft = hasValidDeadline ? Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
-  const isEndingSoon = hasValidDeadline && (daysLeft !== null && daysLeft <= 3 && daysLeft >= 0);
+  const deadlineStatus = getDeadlineStatusIST(organization.inductionEnd);
+  const {
+    hasValidDeadline,
+    isExpired,
+    daysLeft,
+    isEndingSoon,
+    label: deadlineLabel,
+    formattedDeadline,
+  } = deadlineStatus;
+
+  // Deadline extension only shows for 1 day, and "closes tomorrow/today" trumps it
+  const showExtension = shouldShowDeadlineExtension(organization.deadlineExtension, daysLeft);
 
   const logoUrl = organization.logoUrl || '';
   // Cycle/induction descriptions are authored as rich text — flatten to plain
@@ -107,21 +116,24 @@ export function InductionCatalogCard({
                   onError={() => setLogoError(true)}
                 />
               ) : (
-                (organization.name?.charAt(0) || '?').toUpperCase()
+                organization.name.charAt(0).toUpperCase()
               )}
             </div>
 
             <div className="min-w-0 flex-1 text-left" style={{ textAlign: 'left' }}>
-              <h3
-                className="font-semibold text-base text-foreground truncate group-hover:text-primary transition-colors !text-left text-left"
-                style={{ textAlign: 'left' }}
-              >
-                {organization.name}
-              </h3>
-              <div className="flex items-center justify-start gap-2 mt-1 flex-wrap text-left" style={{ textAlign: 'left' }}>
+              <div className="flex items-center gap-2 text-left" style={{ textAlign: 'left' }}>
+                <Link
+                  href={`/platform/organisations-catalog`}
+                  className="font-bold text-foreground hover:text-primary transition-colors truncate text-sm sm:text-base leading-tight !text-left"
+                  style={{ textAlign: 'left' }}
+                >
+                  {organization.name}
+                </Link>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap text-left" style={{ textAlign: 'left' }}>
                 <Badge
                   variant="secondary"
-                  className="capitalize font-medium text-[11px] py-0 px-2 bg-secondary/80 text-foreground !text-left text-left"
+                  className="text-[10px] py-0 px-1.5 font-normal capitalize bg-muted text-muted-foreground"
                 >
                   {organization.type}
                 </Badge>
@@ -171,7 +183,7 @@ export function InductionCatalogCard({
 
         {/* Prominent Recruitment Deadline Strip */}
         <div className="text-left w-full" style={{ textAlign: 'left' }}>
-          {organization.deadlineExtension ? (
+          {showExtension ? (
             <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs shadow-2xs">
               <div className="flex items-center gap-2 min-w-0">
                 <ClockPlus className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -180,20 +192,20 @@ export function InductionCatalogCard({
                 </span>
               </div>
               <span className="text-[11px] font-semibold opacity-90 shrink-0 ml-2">
-                Until {deadline ? deadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Extended'}
+                Until {formattedDeadline || 'Extended'}
               </span>
             </div>
-          ) : hasValidDeadline ? (
+          ) : hasValidDeadline && !isExpired ? (
             isEndingSoon ? (
               <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs shadow-2xs">
                 <div className="flex items-center gap-2 min-w-0">
                   <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 animate-pulse" />
                   <span className="font-bold truncate">
-                    {daysLeft === 0 ? 'Closes Today!' : daysLeft === 1 ? 'Closes Tomorrow!' : `Closes in ${daysLeft} days`}
+                    {deadlineLabel}
                   </span>
                 </div>
                 <span className="text-[11px] font-semibold opacity-90 shrink-0 ml-2">
-                  {deadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {formattedDeadline}
                 </span>
               </div>
             ) : (
@@ -204,14 +216,24 @@ export function InductionCatalogCard({
                 </div>
                 <span className="text-xs font-semibold text-foreground/90 shrink-0 ml-2">
                   {daysLeft !== null && daysLeft > 0 ? `${daysLeft} days left · ` : ''}
-                  {deadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {formattedDeadline}
                 </span>
               </div>
             )
+          ) : hasValidDeadline && isExpired ? (
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-muted/60 border border-border/80 text-muted-foreground text-xs shadow-2xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="font-semibold truncate">Inductions Closed</span>
+              </div>
+              <span className="text-[11px] font-medium opacity-80 shrink-0 ml-2">
+                Ended {formattedDeadline}
+              </span>
+            </div>
           ) : (
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-muted/40 border border-border/60 text-muted-foreground text-xs">
-              <ClockPlus className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span className="font-medium">Rolling Induction · Applications Open</span>
+              <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <span className="font-medium">Inductions Closed · No active deadline</span>
             </div>
           )}
         </div>

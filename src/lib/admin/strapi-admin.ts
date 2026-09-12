@@ -12,6 +12,7 @@ import {
   getDerivedCycleStatus,
 } from '@/app/organisations/inductions/types';
 import { listRolesByCycle, listPipelineByRole, listCyclesByOrg } from '@/lib/inductions/strapi-inductions';
+import { syncCycleStatsIfStale } from '@/lib/inductions/sync-role-stats';
 import { normalizeEndDateToEndOfDay } from '@/lib/date-utils';
 import { isAllowedAdminClub, normalizeSlug } from '@/lib/admin/allowed-clubs';
 
@@ -244,21 +245,32 @@ async function getAdminOrganizationsRaw(): Promise<{
 
         if (derivedStatus === 'active') {
           hasActiveCycle = true;
+          const cycleId = String(c.id ?? cAttrs.id);
           activeCycleData = {
-            id: String(c.id ?? cAttrs.id),
+            id: cycleId,
             name: cAttrs.name || 'Active Cycle',
             status: 'active',
             startDate,
             endDate,
           };
+          if (cycleId) {
+            const lastSyncedAt: string | undefined = cAttrs.stats?.lastSyncedAt;
+            const isFresh =
+              lastSyncedAt &&
+              Date.now() - new Date(lastSyncedAt).getTime() < 24 * 60 * 60 * 1000;
+            if (!isFresh) {
+              syncCycleStatsIfStale(cycleId).catch((err) => {
+                console.error('[admin] Background stale cycle sync failed:', cycleId, err);
+              });
+            }
+          }
         }
       }
 
-      // Legacy fallback
-      const isLegacyOpen = a.induction === true && (
-        !a.induction_end ||
-        new Date(normalizeEndDateToEndOfDay(a.induction_end) || a.induction_end).getTime() >= Date.now()
-      );
+      // Legacy fallback (rolling basis is not permitted; valid future deadline required)
+      const isLegacyOpen = a.induction === true &&
+        Boolean(a.induction_end) &&
+        new Date(normalizeEndDateToEndOfDay(a.induction_end) || a.induction_end).getTime() >= Date.now();
       const activeInductions = hasActiveCycle || isLegacyOpen;
 
       if (activeInductions) {
@@ -470,6 +482,17 @@ async function getAdminOrganizationDetailsRaw(slug: string): Promise<AdminOrgani
       const startDate = cAttrs.start_date ?? c.startDate ?? null;
       const endDate = cAttrs.end_date ?? c.endDate ?? null;
       const derivedStatus = getDerivedCycleStatus(rawStatus, startDate, endDate);
+      if (derivedStatus === 'active' && cycleId) {
+        const lastSyncedAt: string | undefined = (cAttrs.stats ?? c.stats)?.lastSyncedAt;
+        const isFresh =
+          lastSyncedAt &&
+          Date.now() - new Date(lastSyncedAt).getTime() < 24 * 60 * 60 * 1000;
+        if (!isFresh) {
+          syncCycleStatsIfStale(cycleId).catch((err) => {
+            console.error('[admin] Background stale cycle sync failed for detail:', cycleId, err);
+          });
+        }
+      }
       const cycleStats: CycleStats = {
         ...PLACEHOLDER_CYCLE_STATS,
         ...(cAttrs.stats ?? c.stats ?? {}),
@@ -538,7 +561,10 @@ async function getAdminOrganizationDetailsRaw(slug: string): Promise<AdminOrgani
 
     // If no cycles exist at all, construct a fallback cycle from legacy induction fields
     if (processedCycles.length === 0) {
-      const isLegacyOpen = !!a.induction;
+      const isLegacyOpen =
+        Boolean(a.induction) &&
+        Boolean(a.induction_end) &&
+        new Date(normalizeEndDateToEndOfDay(a.induction_end) || a.induction_end).getTime() >= Date.now();
       const legacyEnd = a.induction_end ?? null;
       processedCycles.push({
         id: 'legacy-cycle',
@@ -566,7 +592,12 @@ async function getAdminOrganizationDetailsRaw(slug: string): Promise<AdminOrgani
       return (order[a.status] ?? 4) - (order[b.status] ?? 4);
     });
 
-    const isInductionsActive = processedCycles.some((c) => c.status === 'active') || !!a.induction;
+    const isLegacyOpen =
+      Boolean(a.induction) &&
+      Boolean(a.induction_end) &&
+      new Date(normalizeEndDateToEndOfDay(a.induction_end) || a.induction_end).getTime() >= Date.now();
+
+    const isInductionsActive = processedCycles.some((c) => c.status === 'active') || isLegacyOpen;
 
     const aggregateStats = {
       totalApplications: totalAggFills,

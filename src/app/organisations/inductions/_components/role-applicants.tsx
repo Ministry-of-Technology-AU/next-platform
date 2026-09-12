@@ -140,6 +140,7 @@ const PLACEHOLDER_APPLICANTS: ApplicantRow[] = [
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     day: 'numeric',
     month: 'short',
     year: 'numeric',

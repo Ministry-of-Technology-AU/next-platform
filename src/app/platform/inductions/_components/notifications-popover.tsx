@@ -16,6 +16,11 @@ import {
 import { Organization } from '../../organisations-catalog/types';
 import { PopulatedResponseRecord } from '@/lib/forms/strapi-forms';
 import {
+  getDeadlineStatusIST,
+  formatISTDate,
+  shouldShowDeadlineExtension,
+} from '@/lib/date-utils';
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -39,23 +44,22 @@ interface NotificationItem {
   isBroadcast?: boolean;
 }
 
-const STORAGE_KEY = 'induction_seen_notification_ids';
+const STORAGE_KEY = 'induction_seen_notifications_v1';
 
-export function NotificationsPopover({ applications, organizations = [] }: NotificationsPopoverProps) {
+export function NotificationsPopover({
+  applications,
+  organizations = [],
+}: NotificationsPopoverProps) {
   const [open, setOpen] = React.useState(false);
   const [seenIds, setSeenIds] = React.useState<Set<string>>(new Set());
   const [isMounted, setIsMounted] = React.useState(false);
 
-  // Load seen notification IDs from localStorage on mount
   React.useEffect(() => {
     setIsMounted(true);
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setSeenIds(new Set(parsed));
-        }
+        setSeenIds(new Set(JSON.parse(stored)));
       }
     } catch (e) {
       console.error('Failed to parse seen notifications from localStorage', e);
@@ -64,18 +68,21 @@ export function NotificationsPopover({ applications, organizations = [] }: Notif
 
   const notifications = React.useMemo<NotificationItem[]>(() => {
     const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     const notifMap = new Map<string, NotificationItem>();
 
     // 1. Campus-wide Broadcast: Deadline Extensions for ALL recruiting organizations
+    // Must only show up for a day (within 24 hours of extendedAt)
     for (const org of organizations) {
       if (org.inductionsOpen && org.deadlineExtension) {
         const ext = org.deadlineExtension;
-        const formattedDate = new Date(ext.newDeadline).toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        });
+        if (!shouldShowDeadlineExtension(ext, null, now)) {
+          continue;
+        }
+        const status = getDeadlineStatusIST(ext.newDeadline, now);
+        if (status.isExpired) {
+          continue;
+        }
+        const formattedDate = status.formattedDeadline || formatISTDate(ext.newDeadline);
         // Keyed per cycle: an org running two drives can extend either one.
         const notifId = `deadline-ext-${org.id}-${org.cycleId ?? 'org'}-${ext.extendedAt || ext.newDeadline}`;
         
@@ -98,7 +105,6 @@ export function NotificationsPopover({ applications, organizations = [] }: Notif
     for (const app of applications) {
       const org = app.form?.organisation;
       const deadlineStr = app.form?.endDate || org?.induction_end;
-      const deadline = deadlineStr ? new Date(deadlineStr) : null;
       
       // Extract interview booking link from message if present as fallback
       const interviewLinkMatch = app.statusMessage?.match(
@@ -146,20 +152,26 @@ export function NotificationsPopover({ applications, organizations = [] }: Notif
         });
       }
 
-      if (app.state === 'draft' && deadline && deadline > now && deadline <= threeDaysFromNow) {
-        const daysLeft = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        const notifId = `deadline-${app.id}-${deadline.toISOString().slice(0, 10)}`;
-        notifMap.set(notifId, {
-          id: notifId,
-          title: 'Application Deadline Approaching',
-          message: `Your draft application for ${org?.name || 'Organisation'} is due in ${
-            daysLeft === 1 ? '1 day' : `${daysLeft} days`
-          } (${deadline.toLocaleDateString()}).`,
-          type: 'warning' as const,
-          url: app.form?.uid ? `/platform/forms/${app.form.uid}` : `/platform/inductions`,
-          date: now,
-          actionText: 'Resume Application',
-        });
+      if (app.state === 'draft' && deadlineStr) {
+        const status = getDeadlineStatusIST(deadlineStr, now);
+        if (status.hasValidDeadline && !status.isExpired && status.isEndingSoon) {
+          const daysLeftText =
+            status.isToday
+              ? 'today'
+              : status.isTomorrow
+              ? 'tomorrow (1 day)'
+              : `in ${status.daysLeft} days`;
+          const notifId = `deadline-${app.id}-${status.formattedDeadline}`;
+          notifMap.set(notifId, {
+            id: notifId,
+            title: 'Application Deadline Approaching',
+            message: `Your draft application for ${org?.name || 'Organisation'} is due ${daysLeftText} (${status.formattedDeadline}).`,
+            type: 'warning' as const,
+            url: app.form?.uid ? `/platform/forms/${app.form.uid}` : `/platform/inductions`,
+            date: now,
+            actionText: 'Resume Application',
+          });
+        }
       }
     }
 

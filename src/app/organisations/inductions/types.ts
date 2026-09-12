@@ -137,10 +137,12 @@ export function formatCycleDateRange(startDateStr?: string | null, endDateStr?: 
   const formatDatePart = (dStr: string, includeYear: boolean) => {
     const d = new Date(dStr);
     if (isNaN(d.getTime())) return 'TBD';
-    const day = d.getDate();
-    const month = d.toLocaleDateString('en-IN', { month: 'short' });
-    const year = d.getFullYear();
-    return includeYear ? `${day} ${month} ${year}` : `${day} ${month}`;
+    return d.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: 'numeric',
+      month: 'short',
+      ...(includeYear ? { year: 'numeric' } : {}),
+    });
   };
 
   const start = startDateStr ? formatDatePart(startDateStr, false) : 'TBD';
@@ -158,9 +160,31 @@ export function getDerivedCycleStatus(
 ): CycleStatus {
   if (status === 'archived') return 'archived';
   if (status === 'draft') return 'draft';
-  if (!startDateStr && !endDateStr) return status;
+  if (status === 'completed') return 'completed';
+
+  // Rolling basis is not permitted. Without an end date / deadline, a cycle cannot be active.
+  if (!endDateStr) {
+    return 'draft';
+  }
 
   const now = new Date();
+
+  let end: Date | null = null;
+  const endIso = normalizeEndDateToEndOfDay(endDateStr);
+  const e = endIso ? new Date(endIso) : new Date(endDateStr);
+  if (!isNaN(e.getTime())) {
+    end = e;
+  }
+
+  // If end date is invalid, cannot be active
+  if (!end) {
+    return 'draft';
+  }
+
+  // If induction deadline has passed, the cycle is strictly completed / over
+  if (now > end) {
+    return 'completed';
+  }
 
   let start: Date | null = null;
   if (startDateStr) {
@@ -171,22 +195,13 @@ export function getDerivedCycleStatus(
     }
   }
 
-  let end: Date | null = null;
-  if (endDateStr) {
-    const endIso = normalizeEndDateToEndOfDay(endDateStr);
-    const e = endIso ? new Date(endIso) : new Date(endDateStr);
-    if (!isNaN(e.getTime())) {
-      end = e;
-    }
-  }
-
+  // If cycle hasn't started yet
   if (start && now < start) {
     return 'draft';
   }
-  if (end && now > end) {
-    return 'completed';
-  }
-  if ((start && now >= start) || (!start && end && now <= end)) {
+
+  // If explicitly active and within the valid deadline window
+  if (status === 'active') {
     return 'active';
   }
 

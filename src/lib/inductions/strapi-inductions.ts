@@ -3,6 +3,19 @@ import 'server-only';
 import { unstable_cache, revalidateTag } from 'next/cache';
 
 /**
+ * Safely calls revalidateTag, swallowing any errors thrown by Next.js
+ * when revalidateTag is called during a Server Component render or inside cached functions.
+ */
+export function safeRevalidateTag(tag: string): void {
+  try {
+    revalidateTag(tag);
+  } catch {
+    // Next.js throws if revalidateTag is called during render or inside cached functions.
+    // That is expected when background stats sync runs during a GET request / render.
+  }
+}
+
+/**
  * Server-only data access for induction cycles, roles, pipeline rounds, and applicants.
  * All Strapi API calls using STRAPI_API_TOKEN live here or in route handlers.
  */
@@ -43,9 +56,10 @@ export function normalizeCycle(entry: any): InductionCycleSummary | null {
   const rawStatus = (a.status as CycleStatus) || 'draft';
   const startDate = a.start_date ?? null;
   const endDate = a.end_date ?? null;
-  const derivedStatus = getDerivedCycleStatus(rawStatus, startDate, endDate);
   const stats = a.stats || PLACEHOLDER_CYCLE_STATS;
   const deadlineExtension = a.deadline_extension ?? stats?.deadlineExtension ?? null;
+  const effectiveEndDate = deadlineExtension?.newDeadline || endDate;
+  const derivedStatus = getDerivedCycleStatus(rawStatus, startDate, effectiveEndDate);
 
   return {
     id: id.toString(),
@@ -282,7 +296,7 @@ export async function createCycle(input: {
 
   const created = normalizeCycle(res?.data);
   if (created) {
-    revalidateTag(`org-cycles:${input.organisationId}`);
+    safeRevalidateTag(`org-cycles:${input.organisationId}`);
     syncOrganisationInductionCalendarEvent(input.organisationId).catch((e) =>
       console.error('Calendar sync error on createCycle:', e)
     );
@@ -326,17 +340,20 @@ export async function updateCycle(
   const res = await strapiPut(`/induction-cycles/${cycleId}`, { data });
   const updated = normalizeCycle(res?.data);
   if (updated) {
-    revalidateTag(`cycle-stats:${cycleId}`);
+    safeRevalidateTag(`cycle-stats:${cycleId}`);
     const orgId =
       res?.data?.attributes?.organisation?.data?.id ??
       res?.data?.organisation?.id ??
       existingAttrs?.organisation?.data?.id ??
       existingAttrs?.organisation?.id;
     if (orgId) {
-      revalidateTag(`org-cycles:${orgId}`);
-      syncOrganisationInductionCalendarEvent(orgId).catch((e) =>
-        console.error('Calendar sync error on updateCycle:', e)
-      );
+      safeRevalidateTag(`org-cycles:${orgId}`);
+      // Only sync calendar if date/name/status might have changed, NOT for stats-only sync
+      if (patch.startDate !== undefined || patch.endDate !== undefined || patch.name !== undefined || patch.status !== undefined) {
+        syncOrganisationInductionCalendarEvent(orgId).catch((e) =>
+          console.error('Calendar sync error on updateCycle:', e)
+        );
+      }
     }
   }
   return updated;
@@ -349,10 +366,10 @@ export async function deleteCycle(cycleId: string | number): Promise<void> {
       status: 'archived',
     },
   });
-  revalidateTag(`cycle-stats:${cycleId}`);
+  safeRevalidateTag(`cycle-stats:${cycleId}`);
   const orgId = res?.data?.attributes?.organisation?.data?.id ?? res?.data?.organisation?.id;
   if (orgId) {
-    revalidateTag(`org-cycles:${orgId}`);
+    safeRevalidateTag(`org-cycles:${orgId}`);
     syncOrganisationInductionCalendarEvent(orgId).catch((e) =>
       console.error('Calendar sync error on deleteCycle:', e)
     );
@@ -466,8 +483,8 @@ export async function createRole(input: {
       },
     });
 
-    revalidateTag(`cycle-roles:${input.cycleId}`);
-    revalidateTag(`cycle-stats:${input.cycleId}`);
+    safeRevalidateTag(`cycle-roles:${input.cycleId}`);
+    safeRevalidateTag(`cycle-stats:${input.cycleId}`);
 
     // Sync updated roles to Google Calendar event
     getCycleOwnerOrgId(input.cycleId).then((ownerOrgId) => {
@@ -508,15 +525,18 @@ export async function updateRole(
   if (updated) {
     const cycleId = res?.data?.attributes?.induction_cycle?.data?.id ?? res?.data?.induction_cycle?.id;
     if (cycleId) {
-      revalidateTag(`cycle-roles:${cycleId}`);
-      revalidateTag(`cycle-stats:${cycleId}`);
-      getCycleOwnerOrgId(cycleId).then((ownerOrgId) => {
-        if (ownerOrgId) {
-          syncOrganisationInductionCalendarEvent(ownerOrgId).catch((e) =>
-            console.error('Calendar sync error on updateRole:', e)
-          );
-        }
-      }).catch(console.error);
+      safeRevalidateTag(`cycle-roles:${cycleId}`);
+      safeRevalidateTag(`cycle-stats:${cycleId}`);
+      // Only sync calendar if role name/tier/department changed, NOT for stats updates
+      if (patch.name !== undefined || patch.tier !== undefined || patch.department !== undefined) {
+        getCycleOwnerOrgId(cycleId).then((ownerOrgId) => {
+          if (ownerOrgId) {
+            syncOrganisationInductionCalendarEvent(ownerOrgId).catch((e) =>
+              console.error('Calendar sync error on updateRole:', e)
+            );
+          }
+        }).catch(console.error);
+      }
     }
   }
   return updated;
@@ -533,8 +553,8 @@ export async function deleteRole(roleId: string | number): Promise<void> {
       roleRaw?.data?.induction_cycle?.id ??
       roleRaw?.data?.induction_cycle;
     if (cycleId) {
-      revalidateTag(`cycle-roles:${cycleId}`);
-      revalidateTag(`cycle-stats:${cycleId}`);
+      safeRevalidateTag(`cycle-roles:${cycleId}`);
+      safeRevalidateTag(`cycle-stats:${cycleId}`);
     }
   } catch (err) {
     console.error('Failed to resolve cycleId during role delete:', err);
