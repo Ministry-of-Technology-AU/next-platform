@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Scholaris Academic - Organisation Dashboard</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;family=Nunito+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#001b3b",
+                    "surface-dark": "#0f0f11",
+                    "outline-variant": "#ddc0bb",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#795501",
+                    "inverse-surface": "#33302d",
+                    "primary-fixed": "#ffdad4",
+                    "surface": "#fff8f5",
+                    "on-tertiary-container": "#8ebaff",
+                    "background-dark": "#171717",
+                    "tertiary": "#003364",
+                    "surface-bright": "#fff8f5",
+                    "inverse-on-surface": "#f7efeb",
+                    "tertiary-fixed-dim": "#a7c8ff",
+                    "surface-container-high": "#eee7e3",
+                    "secondary-container": "#ffcd74",
+                    "surface-container": "#f4ece8",
+                    "on-tertiary-fixed-variant": "#004788",
+                    "surface-container-highest": "#e9e1dd",
+                    "on-primary-container": "#ffa090",
+                    "on-primary": "#ffffff",
+                    "outline": "#8a716d",
+                    "surface-variant": "#e9e1dd",
+                    "on-secondary-fixed-variant": "#5e4200",
+                    "error-container": "#ffdad6",
+                    "background": "#fff8f5",
+                    "surface-container-low": "#faf2ee",
+                    "on-background": "#1e1b19",
+                    "inverse-primary": "#ffb4a7",
+                    "on-surface": "#1e1b19",
+                    "primary-container": "#87281b",
+                    "tertiary-fixed": "#d5e3ff",
+                    "text-muted": "#767371",
+                    "primary-fixed-dim": "#ffb4a7",
+                    "crimson-deep": "#60150a",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#a33c2d",
+                    "on-secondary-fixed": "#271900",
+                    "on-error-container": "#93000a",
+                    "primary": "#671107",
+                    "on-primary-fixed": "#400100",
+                    "background-light": "#f7f4f2",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-dim": "#e0d8d5",
+                    "on-surface-variant": "#57423e",
+                    "secondary-fixed": "#ffdea9",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#00498c",
+                    "on-error": "#ffffff",
+                    "secondary": "#7c5804",
+                    "surface-light": "#f2f1ee",
+                    "on-primary-fixed-variant": "#832519",
+                    "secondary-fixed-dim": "#f0bf68"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gap-md": "1rem",
+                    "padding-page-mobile": "0.5rem",
+                    "padding-page-desktop": "2rem",
+                    "container-max": "1280px",
+                    "base": "1.5rem",
+                    "gap-lg": "1.5rem"
+            },
+            "fontFamily": {
+                    "body-lg": ["Nunito Sans"],
+                    "headline-xl-mobile": ["Nunito"],
+                    "headline-xl": ["Nunito"],
+                    "headline-md": ["Nunito"],
+                    "body-md": ["Nunito Sans"],
+                    "label-md": ["Nunito Sans"],
+                    "headline-lg": ["Nunito"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-xl-mobile": ["30px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-xl": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "headline-lg": ["30px", {"lineHeight": "1.3", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .button-animated {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .button-animated::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: #60150a;
+            z-index: 0;
+            transition: height 0.3s ease;
+        }
+        .button-animated:hover::after {
+            height: 100%;
+        }
+        .button-animated span, .button-animated i {
+            position: relative;
+            z-index: 1;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #767371;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-fixed selection:text-primary">
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="hidden md:flex h-screen w-64 fixed left-0 top-0 pt-24 bg-surface-container-low border-r border-outline-variant flex-col gap-2 py-4 z-40">
+<!-- Organization Branding -->
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg shadow-md">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div>
+<h2 class="font-headline-md text-[18px] text-primary">Department of Science</h2>
+<p class="font-label-md text-text-muted">Primary Division</p>
+</div>
+</div>
+</div>
+<!-- Nav Items -->
+<nav class="flex-grow">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 mx-2 active:scale-95 duration-200 transition-transform" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Overview</span>
+</a>
+<a class="flex items-center gap-3 text-primary font-bold bg-primary-fixed rounded-lg px-4 py-3 mx-2 active:scale-95 duration-200 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="font-label-md text-label-md">Members</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 mx-2 active:scale-95 duration-200 transition-transform" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">Projects</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 mx-2 active:scale-95 duration-200 transition-transform" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 mx-2 active:scale-95 duration-200 transition-transform" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<!-- CTA -->
+<div class="px-4 mb-4">
+<button class="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg button-animated flex items-center justify-center gap-2 active:scale-95 shadow-lg">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-label-md text-label-md">New Project</span>
+</button>
+</div>
+<!-- Footer Nav -->
+<div class="border-t border-outline-variant pt-4">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 mx-2 active:scale-95 duration-200 transition-transform" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-grow md:ml-64 relative flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="w-full sticky top-0 z-50 bg-surface shadow-lg flex justify-between items-center px-8 h-20">
+<div class="flex items-center gap-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Scholaris Academic</h1>
+<div class="hidden lg:flex items-center gap-6">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Directory</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Resources</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Support</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="w-10 h-10 rounded-full border-2 border-primary-fixed overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional portrait of an academic administrator in a clean light-filled office, smiling warmly. The aesthetic is high-end corporate with soft lighting and a cream-colored background, reflecting the modern academic brand identity. The image is crisp, with a shallow depth of field focusing on the subject." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKQ97MeiZSmNR1TInElyRb8hs0aXbNrV3e49sz6g3yz3PogjDcRr1wStsgW3PAhSn0C3PYhOPfc8fZn9OL1GYclN9RdHJSNbjNMtidDqE072TMXA1WlOIlJVy5jik-Nd7ZnO2E9ikWZ2XsmkPqIa51asb__ZtS9vctXTiuaK7sGFE0iToF6cazp1Hia0akXfbxItep_WxT87hs3Jg0sLG47lH9m5FC4zjzucoJj-ZVyykz1jWLENwABNVvc2m2RxIVBGluMIwlrew"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-grow p-8 lg:p-12 max-w-container-max mx-auto w-full">
+<!-- Hero Section -->
+<section class="flex flex-col md:flex-row justify-between items-end md:items-center mb-12 gap-6">
+<div>
+<h2 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Organisation Dashboard</h2>
+<p class="font-body-lg text-body-lg text-text-muted mt-2">Manage your academic community and track collaborative progress.</p>
+</div>
+<button class="bg-primary text-white font-bold py-4 px-8 rounded-lg button-animated flex items-center gap-3 active:scale-95 shadow-xl transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person_add</span>
+<span class="font-body-md font-bold">Invite Member</span>
+</button>
+</section>
+<!-- Metrics Row -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-lg border border-outline-variant/30 flex items-start justify-between">
+<div>
+<p class="font-label-md text-text-muted uppercase tracking-wider mb-2">Total Members</p>
+<p class="font-headline-lg text-headline-lg text-primary">2,450</p>
+<span class="text-secondary text-sm font-bold flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12% this month
+                            </span>
+</div>
+<div class="w-12 h-12 bg-primary-fixed rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">groups</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-lg border border-outline-variant/30 flex items-start justify-between">
+<div>
+<p class="font-label-md text-text-muted uppercase tracking-wider mb-2">Active Projects</p>
+<p class="font-headline-lg text-headline-lg text-primary">42</p>
+<span class="text-tertiary-container text-sm font-bold flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-sm">rocket_launch</span> 4 launching soon
+                            </span>
+</div>
+<div class="w-12 h-12 bg-tertiary-fixed rounded-lg flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">science</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-lg border border-outline-variant/30 flex items-start justify-between">
+<div>
+<p class="font-label-md text-text-muted uppercase tracking-wider mb-2">Recent Activity</p>
+<p class="font-headline-lg text-headline-lg text-primary">128</p>
+<span class="text-secondary-fixed-dim text-sm font-bold flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-sm">history</span> New events recorded
+                            </span>
+</div>
+<div class="w-12 h-12 bg-secondary-fixed rounded-lg flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">notifications_active</span>
+</div>
+</div>
+</section>
+<!-- Data Table Card -->
+<section class="bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/30 overflow-hidden mb-12">
+<div class="px-8 py-6 border-b border-outline-variant/30 flex justify-between items-center bg-white/50 backdrop-blur-sm">
+<h3 class="font-headline-md text-[20px] text-on-surface">Member Directory</h3>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">search</span>
+<input class="pl-10 pr-4 py-2 border-outline-variant rounded-full text-sm focus:ring-primary focus:border-primary bg-background-light border w-64" placeholder="Search members..." type="text"/>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 text-on-surface-variant border border-outline-variant rounded-lg hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<span class="font-label-md">Filter</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-background-light">
+<th class="px-8 py-4 font-label-md text-text-muted uppercase tracking-wider">Member</th>
+<th class="px-8 py-4 font-label-md text-text-muted uppercase tracking-wider">Role</th>
+<th class="px-8 py-4 font-label-md text-text-muted uppercase tracking-wider">Status</th>
+<th class="px-8 py-4 font-label-md text-text-muted uppercase tracking-wider">Joined Date</th>
+<th class="px-8 py-4 font-label-md text-text-muted uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed overflow-hidden ring-2 ring-white">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male researcher with glasses, in a minimalist studio setting with soft warm light. He wears a neutral-toned sweater. The photography is clean, high-resolution, with a creamy white background, aligning with a professional academic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALO3Q-cX9PVj6gPqd5N8ZiE8Zn-Q6TBYtafk1o3_4zhd5p6mWyTipB8ZvtMYXclnW1B668AnNjm15QsBAKOc5FBpRcgUQ95_ePRWBTtCT2HGc-zV1tX29MPVQO-l-DO8MPdl3vikiuaZTl6dQqZ1e9_aDNxAKedqY7_XvAD61tFhuqHQUlOukNdHDBZt0dk6xSPFhLMemV73rV_VHRvLYrJ5FLvvP1htTJcJ9ejfAING6WceoW8Cu-6KDXbdMV9j4ZXAhMQ6aJ0Yg"/>
+</div>
+<div>
+<p class="font-label-md text-on-surface">Dr. Julian Vance</p>
+<p class="text-[12px] text-text-muted">julian.vance@scholaris.edu</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-tertiary-fixed text-tertiary rounded-full text-[12px] font-bold">Admin</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-sm">Active</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-text-muted">Oct 12, 2023</td>
+<td class="px-8 py-5">
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed overflow-hidden ring-2 ring-white">
+<img class="w-full h-full object-cover" data-alt="A detailed portrait of a female PhD student wearing academic regalia or professional attire. The background is a blurred library with warm wooden tones and soft bokeh. The lighting is natural and flattering, maintaining a high-end scholarly feel with crimson and cream accents in the environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2D805k30J3KXy3616cPAo1NJjy7DDPMLnHsRVbySQTVBtUP9GWdmC5J8ahaavnWTDgrvAp963yh7juNzMI_eQhbkZds1-EEFGWqvhY7Pua1SDH1w2IzsXuh3SYCDp8a-GpH8TAf2D-iZxIENE-H4p9Mj4SZuh-xq7nZwgv9gKQeYbp80vOzCTykPBVQcM9TyuPv5lEEtETBSssVIHBKClLv0FRrfcbrx1rWse1HxHZ3MT37NZTqQy7p5PJEPGcf5Zfy28qhrSE3E"/>
+</div>
+<div>
+<p class="font-label-md text-on-surface">Elena Rodriguez</p>
+<p class="text-[12px] text-text-muted">elena.r@scholaris.edu</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-surface-variant text-on-surface-variant rounded-full text-[12px] font-bold">Member</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+<span class="text-sm text-text-muted">Pending</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-text-muted">Jan 05, 2024</td>
+<td class="px-8 py-5">
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-on-primary-container overflow-hidden ring-2 ring-white">
+<img class="w-full h-full object-cover" data-alt="A portrait of a senior professor with silver hair and a thoughtful expression, set against a dark charcoal studio background. Soft directional lighting highlights the features, creating a prestigious and authoritative look. The style is modern editorial photography with high contrast and sharp detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUy0kVgXknqUVwiLZxl0evSiqizsTFWLmnrxx0bZqq8ETLLCw5HK984RzOJL7GlKFPJBE6Q-xu0kDt-txxfpMbWjBftw8TGiLap9_kuXuV_jt32d9LuKutWma1qtC-P_zsa9FuIycj2SV_k36zdrOjphh8X9gPTJSI9MS_LtvyX5M_umNyAMh57wNt1tHsBKPZM9Bucq0NP7pUoilKs8V-qV7QHD--C7JzdvBnFq-zUejDpyrkDXwAbcADJa6v3RRRGAMEonRW2mM"/>
+</div>
+<div>
+<p class="font-label-md text-on-surface">Prof. Simon Thorne</p>
+<p class="text-[12px] text-text-muted">s.thorne@scholaris.edu</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-primary-fixed text-primary rounded-full text-[12px] font-bold">Contributor</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-sm">Active</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-text-muted">Nov 22, 2023</td>
+<td class="px-8 py-5">
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden ring-2 ring-white">
+<img class="w-full h-full object-cover" data-alt="A diverse young female academic with a friendly smile, photographed in a modern lab setting. The background features high-tech equipment blurred out. Bright, airy lighting with a clean light-gray background palette, maintaining professional academic standards and high-quality resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh73MJXZhSQUvJVXMH47c26R2xpdQlLnoIR5MsqoRx_0bxdC-LSASbekPDC0rqb9WHZAu_6KtFFtoiUq9PSeZpsYUayoVX6zufjtyLOCgWdR1ISdbjjRYELDDbjLRDMKL6q6541cJU7DggRuCr6Pu73H1ZT5de6Akz0SJHKeTQN00Q2ShbNODX2U7y9Vnz3yS2HQdir89mWplkr9XXsmcS-cKkpkM777pTovvQFFpCJf_qp2TKxpDZXC-V6D2WfMAXyWlBfaEgsmE"/>
+</div>
+<div>
+<p class="font-label-md text-on-surface">Lana Chen</p>
+<p class="text-[12px] text-text-muted">l.chen@scholaris.edu</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-surface-variant text-on-surface-variant rounded-full text-[12px] font-bold">Member</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-text-muted/30"></div>
+<span class="text-sm text-text-muted">Offline</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-text-muted">Dec 15, 2023</td>
+<td class="px-8 py-5">
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-8 py-6 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-sm text-text-muted">Showing <span class="font-bold text-on-surface">1 - 4</span> of <span class="font-bold text-on-surface">2,450</span> members</p>
+<div class="flex items-center gap-2">
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container transition-all disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 bg-primary text-white font-bold rounded-lg shadow-md active:scale-95 transition-all">1</button>
+<button class="w-10 h-10 border border-outline-variant text-on-surface-variant font-bold rounded-lg hover:bg-surface-container active:scale-95 transition-all">2</button>
+<button class="w-10 h-10 border border-outline-variant text-on-surface-variant font-bold rounded-lg hover:bg-surface-container active:scale-95 transition-all">3</button>
+<span class="px-2 text-text-muted">...</span>
+<button class="w-10 h-10 border border-outline-variant text-on-surface-variant font-bold rounded-lg hover:bg-surface-container active:scale-95 transition-all">612</button>
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container transition-all active:scale-95">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="w-full py-8 bg-surface-container-lowest border-t border-outline-variant mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-8 max-w-container-max mx-auto gap-4">
+<div class="flex flex-col md:flex-row items-center gap-6">
+<span class="font-body-md text-body-md font-bold text-primary">Scholaris Academic</span>
+<p class="font-label-md text-label-md text-text-muted">© 2024 Scholaris Academic Organization. All rights reserved.</p>
+</div>
+<div class="flex gap-6">
+<a class="font-label-md text-label-md text-text-muted hover:text-primary hover:underline transition-all" href="#">Privacy Policy</a>
+<a class="font-label-md text-label-md text-text-muted hover:text-primary hover:underline transition-all" href="#">Terms of Service</a>
+<a class="font-label-md text-label-md text-text-muted hover:text-primary hover:underline transition-all" href="#">Accessibility</a>
+</div>
+</div>
+</footer>
+</main>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.classList.add('scale-95');
+            });
+            el.addEventListener('mouseup', () => {
+                el.classList.remove('scale-95');
+            });
+            el.addEventListener('mouseleave', () => {
+                el.classList.remove('scale-95');
+            });
+        });
+    </script>
+</body></html>

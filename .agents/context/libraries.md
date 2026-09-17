@@ -1,0 +1,3 @@
+Outlines all the libraries and util functions we've created. Not components. Util functions. 
+
+## Strapi 
