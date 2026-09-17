@@ -51,8 +51,7 @@ export default async function RootLayout({
               <NewToolAlert
                 href="/platform/ashokan-around"
                 title="Ashokan Around"
-                checkSeenKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1"
-                blockIfNewVersion={true}
+                hideUntilWhatsNewDismissed
               />
             )}
             <WhatsNewModal />

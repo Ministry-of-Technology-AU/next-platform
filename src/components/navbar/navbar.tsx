@@ -291,7 +291,7 @@ export default function Navbar() {
                 </Button>
               </TooltipTrigger>
             </DialogTrigger>
-          <FeedbackDialog isOpen={true} onClose={() => {}} />
+          <FeedbackDialog />
           </Dialog>
           <TooltipContent className="hidden sm:block">
             <p className="text-sm">Give us your feedback!</p>

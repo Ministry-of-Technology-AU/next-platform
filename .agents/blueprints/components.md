@@ -9,13 +9,22 @@ Guidelines, specifications, and replicable implementations for platform-wide com
 ### Overview
 - Located at `@/components/new-tool-banner` (`src/components/new-tool-banner.tsx`).
 - Used to announce the release of a brand-new tool directly inside that tool's view.
-- Provides a sticky alert ribbon underneath the navigation bar with an `Info` icon, a welcome message, a direct trigger to the `FeedbackDialog` (`@/components/navbar/FeedbackDialog`), and a dismiss/close button.
-- Built on top of shadcn banner primitives (`@/components/ui/shadcn-io/banner`) and styled with negative margins across breakpoints to stretch full-width across page margins.
+- Provides a sticky alert ribbon underneath the navigation bar with a configurable icon, welcome message, an optional direct trigger to the `FeedbackDialog` (`@/components/navbar/FeedbackDialog`), and a dismiss/close button.
+- Built on top of shadcn banner primitives (`@/components/ui/shadcn-io/banner`) and styled with negative margins across breakpoints to stretch full-width across page margins (the "bleed" behavior, toggleable via the `bleed` prop).
+- Responsive text sizing: `text-xs` on mobile, `text-sm` on `sm:` and up.
 
 ### Component Props
 ```tsx
-interface NewToolBannerProps {
-  className?: string; // Optional class overrides (most commonly negative top margin)
+import { type LucideIcon } from 'lucide-react';
+
+export interface NewToolBannerProps {
+  title?: string;           // Main banner message (default: generic welcome text)
+  actionLabel?: string;     // Label for the feedback button (default: "Submit Feedback")
+  icon?: LucideIcon;        // Icon component (default: Info from lucide-react)
+  className?: string;       // Optional class overrides (most commonly negative top margin)
+  showFeedback?: boolean;   // Whether to render the feedback CTA (default: true)
+  feedbackPageName?: string;// Page name passed to FeedbackDialog for page-specific feedback
+  bleed?: boolean;          // Whether the banner bleeds edge-to-edge beyond parent padding (default: true)
 }
 ```
 
@@ -26,6 +35,7 @@ interface NewToolBannerProps {
 ### How to Use & Implementation
 - Because the root layouts (`/platform/layout.tsx` and `/organisations/layout.tsx`) wrap content in `<main className="flex-1 pt-6 pb-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">`, there is a default top padding of `pt-6` (24px).
 - To make the banner sit flush below the sticky navbar (`top-16`), apply `className="mt-[-24px]"` when mounting.
+- All props have sensible defaults — a bare `<NewToolBanner />` renders a fully functional banner with the generic welcome message and feedback CTA.
 
 #### Example: Placement in Tool `layout.tsx`
 ```tsx
@@ -34,7 +44,6 @@ import PageTitle from '@/components/page-title';
 import DeveloperCredits from '@/components/developer-credits';
 import { Megaphone } from 'lucide-react';
 import { NewToolBanner } from '@/components/new-tool-banner';
-import { DismissNewToolAlert } from '@/components/dismiss-new-tool-alert';
 
 export default function NewFeatureLayout({
   children,
@@ -49,7 +58,6 @@ export default function NewFeatureLayout({
     <>
       {/* Banner placed at the top with negative margin to negate main's pt-6 */}
       <NewToolBanner className="mt-[-24px]" />
-      <DismissNewToolAlert storageKey="NEW_FEATURE_ALERT_SEEN_V1" />
       
       <div className="w-full flex flex-col min-h-screen">
         <div className="container mx-auto px-4 py-6 flex-1 flex flex-col">
@@ -67,9 +75,19 @@ export default function NewFeatureLayout({
 }
 ```
 
+#### Example: Custom Text and No Feedback CTA
+```tsx
+<NewToolBanner
+  title="This tool is in beta. Some features may not work as expected."
+  showFeedback={false}
+  className="mt-[-24px]"
+/>
+```
+
 ### Guidelines & Gotchas
 - **Sticky Offset**: The banner internally has `sticky top-16 z-40`, positioning it directly below the 64px (`h-16`) navigation bar.
-- **Feedback Integration**: The "Submit Feedback" button inside `NewToolBanner` automatically triggers `FeedbackDialog`. No additional feedback handlers need to be passed.
+- **Feedback Integration**: The feedback button inside `NewToolBanner` automatically opens `FeedbackDialog` via a `<Dialog>` / `<DialogTrigger>` wrapper. No additional state or handlers need to be passed. Pass `feedbackPageName` if you want the feedback to be tagged for a specific page.
+- **Bleed Behavior**: When `bleed={true}` (default), the banner uses responsive negative margins to stretch past parent padding. Set `bleed={false}` if the banner is placed in a container that already handles full-width layout.
 - **Lifecycle**: Do not keep `NewToolBanner` permanently. Remove it after the initial launch phase (e.g., 2-4 weeks post-launch).
 
 ---
@@ -80,45 +98,35 @@ export default function NewFeatureLayout({
 
 ### Overview
 - Located at `@/components/new-tool-alert` (`src/components/new-tool-alert.tsx`).
-- A floating announcement toast that appears in the top-right corner (`top-20 right-4 z-100`) on desktop viewports (`hidden md:block`) across the platform to direct users to a newly launched feature.
-- Includes slide-in animation, a dismiss button (`X`), and an animated ghost button linking directly to the target route.
-- Paired with `@/components/dismiss-new-tool-alert` (`src/components/dismiss-new-tool-alert.tsx`) to track whether the user has already visited the tool and prevent showing the notification again.
+- A floating announcement toast that appears in the top-right corner (`top-20 right-4 z-[100]`) across all viewports to direct users to a newly launched feature.
+- Includes slide-in animation, a dismiss button (`X`), and an animated ghost button linking directly to the target route using Next.js `router.push()`.
+- **Auto-derives a localStorage key from the `href` prop** so you never need to manually invent or track storage keys.
+- **Auto-dismisses when the user visits the target page** — no companion component needed. The old `DismissNewToolAlert` component has been removed.
+- Responsive: visible on all screen sizes. On mobile, constrained to `max-w-[calc(100vw-2rem)]` to avoid obstructing the viewport. On `xs:` breakpoint and below, the tag pill is hidden to save space.
 
 ### Component Props
 ```tsx
-interface NewToolAlertProps {
-  href: string;                // Target route path (e.g. "/platform/ashokan-around" or "/organisations/ads")
-  title: string;               // Display name of the tool (e.g. "Ashokan Around")
-  className?: string;          // Optional styling overrides
-  checkSeenKey?: string;       // localStorage key used to check if the user has already seen/visited the tool
-  blockIfNewVersion?: boolean; // If true, hides alert until the user has dismissed the WhatsNewModal
-}
-```
-
-### Paired Component: `DismissNewToolAlert`
-- Located at `@/components/dismiss-new-tool-alert` (`src/components/dismiss-new-tool-alert.tsx`).
-- Headless client component that automatically sets `localStorage.setItem(storageKey, 'true')` when the user lands on the tool.
-```tsx
-interface DismissNewToolAlertProps {
-  storageKey: string; // Exact key matching checkSeenKey on NewToolAlert
+export interface NewToolAlertProps {
+  href: string;                          // Target route path (e.g. "/platform/ashokan-around"). Also used to auto-derive the storage key.
+  title?: string;                        // Display name of the tool (default: "our new feature")
+  className?: string;                    // Optional styling overrides
+  storageKey?: string;                   // Explicit localStorage key override. When omitted, derived as "new-tool-alert:{href}".
+  hideUntilWhatsNewDismissed?: boolean;  // If true, hides alert until WhatsNewModal has been dismissed (default: false)
+  tagText?: string;                      // Text inside the tag pill (default: "New Feature Added!")
+  linkText?: string;                     // Text on the link button (default: "Check out {title}!")
+  children?: React.ReactNode;            // Fully custom content — replaces the default Announcement body
 }
 ```
 
 ### Where to Use
-1. **`NewToolAlert`**:
-   - Place in the platform or organisation layout (`src/app/platform/layout.tsx` or `src/app/organisations/layout.tsx`).
-   - Only **one** active `NewToolAlert` should typically run per portal at a time.
-2. **`DismissNewToolAlert`**:
-   - Place inside the target tool's `layout.tsx` (or `page.tsx` if single-page).
+- Place in the platform or organisation root layout (`src/app/platform/layout.tsx` or `src/app/organisations/layout.tsx`).
+- Only **one** active `NewToolAlert` should typically run per portal at a time.
+- **No companion component needed on the target page.** The alert auto-dismisses when the user navigates to `href`.
 
 ### How to Use & Implementation
 
-#### Step 1: Define a Unique Storage Key
-Always name storage keys consistently with a version suffix so future alerts can be introduced without caching collisions:
-- Format: `[TOOL_NAME]_ALERT_SEEN_V[N]` (e.g. `ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1`, `ADS_TOUR_SEEN_V1`, `ASHOKA_WHEN2MEET_ALERT_SEEN_V1`).
-
-#### Step 2: Add `NewToolAlert` to Root Layout
-Add the alert to `src/app/platform/layout.tsx` (or `src/app/organisations/layout.tsx`):
+#### Single Step: Add `NewToolAlert` to Root Layout
+Add the alert to `src/app/platform/layout.tsx` (or `src/app/organisations/layout.tsx`). The only required prop is `href`:
 ```tsx
 import { NewToolAlert } from "@/components/new-tool-alert";
 import { WhatsNewModal } from "@/components/whats-new-modal";
@@ -129,8 +137,7 @@ export default function PlatformRootLayout({ children }: { children: React.React
       <NewToolAlert
         href="/platform/ashokan-around"
         title="Ashokan Around"
-        checkSeenKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1"
-        blockIfNewVersion={true}
+        hideUntilWhatsNewDismissed
       />
       <WhatsNewModal />
       {/* Rest of platform layout */}
@@ -140,26 +147,24 @@ export default function PlatformRootLayout({ children }: { children: React.React
 }
 ```
 
-#### Step 3: Add `DismissNewToolAlert` to the Tool's Layout or Page
-Add the dismiss trigger inside `src/app/platform/[tool-name]/layout.tsx` (or `page.tsx`):
-```tsx
-import { DismissNewToolAlert } from "@/components/dismiss-new-tool-alert";
+That's it — no storage keys to invent, no `DismissNewToolAlert` to place on the target page.
 
-export default function ToolLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div>
-      <DismissNewToolAlert storageKey="ASHOKA_AROUND_LAYOUT_ALERT_SEEN_V1" />
-      {children}
-    </div>
-  );
-}
+#### Example: Custom Text
+```tsx
+<NewToolAlert
+  href="/organisations/ads"
+  title="Create Advertisements"
+  tagText="Beta Launch"
+  linkText="Try the new ads builder →"
+/>
 ```
 
 ### Guidelines & Gotchas
 - **Route Suppression**: `NewToolAlert` automatically suppresses itself when `pathname === href` or `pathname.startsWith(href + '/')`. Users never see the alert while already inside the tool.
-- **Priority Coordination (`blockIfNewVersion`)**: Always set `blockIfNewVersion={true}`. This ensures that if a new version modal (`WhatsNewModal`) is pending user review, the alert does not pop up over the modal on initial visit.
-- **Key Consistency**: The `checkSeenKey` in `NewToolAlert` and the `storageKey` in `DismissNewToolAlert` must match character-for-character.
-- **Desktop Only**: The alert renders with `hidden md:block`. It deliberately stays off mobile viewports to prevent layout clutter and obstructing core navigation.
+- **Auto-Dismiss on Visit**: When the user navigates to the `href` route, the component writes `localStorage.setItem(derivedKey, 'true')` automatically. On subsequent loads, the alert does not reappear.
+- **Priority Coordination (`hideUntilWhatsNewDismissed`)**: Set this to `true` when `WhatsNewModal` is also mounted. This ensures the alert does not pop up over the modal on initial visit — it waits until the user has dismissed the modal.
+- **Storage Key Derivation**: The key is auto-derived as `"new-tool-alert:{href}"` (e.g. `"new-tool-alert:/platform/ashokan-around"`). You can override this with the `storageKey` prop if needed, but in practice you should never need to.
+- **Responsive Layout**: The alert is visible on all screen sizes. On mobile, it is constrained in width and the tag pill is hidden (`hidden xs:block`) to keep the toast compact.
 
 ---
 
@@ -253,14 +258,30 @@ When releasing a new tool or platform update:
 ### Overview
 - Located at `@/components/orientation-dialog` (`src/components/orientation-dialog.tsx`).
 - A responsive helper dialog that detects when a user is accessing a wide or desktop-optimized tool on a mobile device in portrait orientation.
-- Advises the user to rotate their device into landscape mode for the best viewing experience, featuring a rotating phone icon illustration and an explicit "Continue Anyway" dismissal option.
-- Automatically listens to viewport dimensions (`window.innerWidth < 768`) and orientation change events (`resize` and `orientationchange`).
+- Advises the user to rotate their device into landscape mode for the best viewing experience, featuring a configurable icon illustration and an explicit dismiss button.
+- Automatically listens to viewport dimensions and orientation change events (`resize` and `orientationchange`).
 - Automatically closes itself if the user rotates their device to landscape orientation.
+- Supports both **uncontrolled** (self-managing, default) and **controlled** modes via optional `open` / `onOpenChange` props.
+
+### Dismissal Behavior
+- Dismissal is **mount-scoped**: once the user taps "Continue Anyway" (or presses Escape / clicks the overlay), the dialog stays hidden for the rest of that component mount.
+- If the user **navigates away and comes back**, or **reloads the page**, the dialog will show again (because the component remounts and the internal ref resets).
+- If a **child component re-renders** or any state update causes the parent to re-render, the dialog does **not** reappear — the `useRef` persists across re-renders within the same mount.
+- This is intentional: the dialog is a gentle nudge, not a one-time gate.
 
 ### Component Props
 ```tsx
-// Component takes no props
-export function OrientationDialog(): JSX.Element;
+import { type LucideIcon } from 'lucide-react';
+
+export interface OrientationDialogProps {
+  title?: string;                        // Dialog title (default: "Rotate Your Device")
+  description?: string;                  // Body text (default: landscape prompt message)
+  dismissLabel?: string;                 // Dismiss button label (default: "Continue Anyway")
+  breakpoint?: number;                   // Viewport width breakpoint in px (default: 768)
+  icon?: LucideIcon;                     // Icon component (default: RotateCcw)
+  open?: boolean;                        // Controlled open state
+  onOpenChange?: (open: boolean) => void;// Controlled callback
+}
 ```
 
 ### Where to Use
@@ -273,7 +294,7 @@ export function OrientationDialog(): JSX.Element;
 - Mount inside the tool's `layout.tsx` (or `page.tsx` if single-page).
 
 ### How to Use & Implementation
-Mount `<OrientationDialog />` near the top of your page or layout JSX. It is completely self-contained and renders `null` on desktop viewports or when orientation criteria are not met.
+Mount `<OrientationDialog />` near the top of your page or layout JSX. It is completely self-contained and renders nothing on desktop viewports or when orientation criteria are not met. All props have sensible defaults — a bare `<OrientationDialog />` works out of the box.
 
 #### Example: Placement in Tool `layout.tsx`
 ```tsx
@@ -297,10 +318,21 @@ export default function TimetableToolLayout({
 }
 ```
 
+#### Example: Custom Text and Breakpoint
+```tsx
+<OrientationDialog
+  title="Best Viewed in Landscape"
+  description="This calendar grid works best when your device is held sideways."
+  breakpoint={640}
+/>
+```
+
 ### Guidelines & Gotchas
-- **Breakpoint Logic**: The dialog only triggers if **both** `window.innerHeight > window.innerWidth` (portrait) and `window.innerWidth < 768` (mobile screen below Tailwind's `md` breakpoint) are true. Tablets or desktops with taller windows will not trigger it.
-- **Auto-Close Behavior**: If the user rotates the device to landscape, the dialog detects `!isPortrait` and automatically closes without requiring a user tap.
-- **Graceful Dismissal**: Users can choose to bypass the recommendation by tapping "Continue Anyway", which sets local `isOpen` state to `false`.
+- **Breakpoint Logic**: The dialog only triggers if **both** `window.innerHeight > window.innerWidth` (portrait) and `window.innerWidth < breakpoint` (default 768, Tailwind's `md`) are true. Tablets or desktops with taller windows will not trigger it.
+- **Auto-Close Behavior**: If the user rotates the device to landscape, the dialog detects the viewport change and automatically closes without requiring a user tap.
+- **Mount-Scoped Dismissal**: Dismissing the dialog persists only for the current component mount. Navigating away and back, or reloading the page, resets the dismissal. Re-renders within the same mount do **not** re-trigger the dialog.
+- **Responsive Dialog Width**: The dialog uses `max-w-[90vw] sm:max-w-md` to avoid overflowing on very small screens.
+- **Controlled Mode**: For advanced use cases where the parent needs to control visibility (e.g., showing the dialog only when switching to a specific view), pass `open` and `onOpenChange` props. In controlled mode, auto-detection is disabled.
 - **Client Component Only**: Because it attaches listeners to `window`, it is a `'use client'` component. It can be safely imported and rendered in server-side `layout.tsx` or `page.tsx` files.
 
 ## FORM

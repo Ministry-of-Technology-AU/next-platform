@@ -48,7 +48,7 @@ export default function EventsCalendar({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showEventDialog, setShowEventDialog] = useState(false);
-  const [showOrientation, setShowOrientation] = useState(false);
+
   const [usePreferencesFilter, setUsePreferencesFilter] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -69,10 +69,6 @@ export default function EventsCalendar({
       setCurrentView("month");
     }
 
-    // Reset orientation dialog state when component unmounts
-    return () => {
-      setShowOrientation(false);
-    };
   }, [isMobile, mounted]);
 
   // Use the tour hook to get the current tour state
@@ -233,17 +229,8 @@ export default function EventsCalendar({
     }
   };
 
-  // Handle view change with orientation dialog for mobile
+  // Handle view change
   const handleViewChange = (view: CalendarView) => {
-    // Only show orientation dialog on mobile when switching to grid views
-    if (isMobile && (view === "month" || view === "week")) {
-      // Set flag to show the orientation dialog
-      setShowOrientation(true);
-    } else {
-      // Reset the orientation dialog flag for other views
-      setShowOrientation(false);
-    }
-
     setCurrentView(view);
   };
 
@@ -398,8 +385,8 @@ export default function EventsCalendar({
           organizations={organizations}
         />
 
-        {/* Orientation Dialog - shown when needed */}
-        {showOrientation && <OrientationDialog />}
+        {/* Orientation Dialog — only for grid views (month/week) that need landscape */}
+        {(currentView === "month" || currentView === "week") && <OrientationDialog />}
       </div>
     </div>
   );

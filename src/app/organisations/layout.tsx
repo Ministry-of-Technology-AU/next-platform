@@ -43,8 +43,7 @@ export default function RootLayout({
                     <NewToolAlert
                         href="/organisations/ads"
                         title="Create Advertisements"
-                        checkSeenKey="ADS_TOUR_SEEN_V1"
-                        blockIfNewVersion={true}
+                        hideUntilWhatsNewDismissed
                     />
                     <SidebarProvider defaultOpen={false}>
                         <RecentPageTracker />
