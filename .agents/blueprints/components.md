@@ -466,27 +466,122 @@ export function ExampleComposeForm() {
 
 ## SIDEBAR
 
+## PAGE TITLE
+
+### Overview
+- Located at `@/components/page-title` (`src/components/page-title.tsx`).
+- Default export: `import PageTitle from "@/components/page-title";`.
+- Mandatory header component for every tool and top-level page in the platform.
+- Renders a prominent, responsive heading with an optional animated entry effect powered by `WritingText` (`@/components/ui/shadcn-io/writing-text`), an optional leading category/feature icon with theme-aware accent coloring (`text-primary dark:text-primary-bright`), and an optional expandable description (`ExpandableText`) for long explanations.
+- Fully responsive: scales smoothly from mobile phones (`text-xl`) through tablet (`text-2xl`) to desktop (`text-3xl`), with responsive icon sizing (`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8`) and break-word safety.
+- Highly composable: supports custom heading levels (`as="h1"` by default), action buttons slot (`actions`), and status badges/pills (`badge`).
+- Custom styles: spreads HTML container attributes and merges `className` cleanly using `cn()`.
+
+### Component Props & Types
+```tsx
+export interface PageTitleProps extends React.HTMLAttributes<HTMLDivElement> {
+  readonly text: string;                                       // Primary title text (Required)
+  readonly subheading?: string | React.ReactNode;              // Description text or custom node
+  readonly icon?: React.ComponentType<{ className?: string }>; // Lucide or SVG icon component
+  readonly actions?: React.ReactNode;                          // Action buttons / controls (aligned right on desktop, stacked on mobile)
+  readonly badge?: React.ReactNode;                            // Status pill or badge next to title
+  readonly animate?: boolean;                                  // Whether to run WritingText spring animation (default: true)
+  readonly as?: "h1" | "h2" | "h3" | "div";                    // Semantic heading tag (default: "h1")
+  readonly className?: string;                                 // Additional styling for the header container
+}
+```
+
+### Where to Use
+- **Mandatory on every tool page in the platform**.
+- Place at the very top of the page's main content container:
+  - In `page.tsx` if single-page tool without dedicated layout.
+  - In `layout.tsx` if all sub-routes share the same primary tool title.
+- Reference rule from `.agents/blueprints/page.md`:  
+  "Always have a Page Title (`@/components/page-title.tsx`) and Developer Credits (`@/components/developer-credits.tsx`) component in the page. Developer Credits will be in `layout.tsx` if present, or `page.tsx` otherwise."
+
+### How to Use & Implementation
+
+#### Example: Standard Tool Page Header
+```tsx
+import PageTitle from "@/components/page-title";
+import { Calendar } from "lucide-react";
+
+export default function EventsCalendarPage() {
+  return (
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <PageTitle
+        text="Events Calendar"
+        icon={Calendar}
+        subheading="Discover upcoming student body and club events happening across campus."
+      />
+      {/* Tool content */}
+    </div>
+  );
+}
+```
+
+#### Example: With Actions and Status Badge
+```tsx
+import PageTitle from "@/components/page-title";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Plus, WifiPen } from "lucide-react";
+
+export default function WifiTicketsPage() {
+  return (
+    <PageTitle
+      text="WiFi Tickets"
+      icon={WifiPen}
+      subheading="Report connectivity issues to IT and track resolution progress."
+      badge={<Badge variant="secondary">Beta</Badge>}
+      actions={
+        <Button size="sm" className="gap-1.5">
+          <Plus className="h-4 w-4" />
+          New Ticket
+        </Button>
+      }
+      className="mb-6"
+    />
+  );
+}
+```
+
+### Guidelines & Gotchas
+- **Semantic Hierarchy**: Always keep `as="h1"` for top-level pages for SEO and accessibility. Use `as="h2"` only when mounting inside nested sub-sections or modal drawers.
+- **Long Subheadings**: When passing a `string` to `subheading`, it automatically wraps with `ExpandableText`, cleanly truncating on small mobile viewports with a "read more" toggle. If passing custom JSX nodes, handle wrapping explicitly.
+- **Icon Sizing**: Do not specify hardcoded icon sizes in the `icon` prop. The component internally handles responsive scaling (`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8`).
+- **Layout Margins**: Use `className="mb-6"` or wrap with layout containers like `<div className="space-y-6">` to manage vertical spacing between the title and page content.
+
+---
+
 ## DEVELOPER CREDITS
 
 ### Overview
 - Located at `@/components/developer-credits` (`src/components/developer-credits.tsx`).
 - Default export: `import DeveloperCredits from "@/components/developer-credits";`.
 - Mandatory footer component that provides consistent attribution to the students and developers who engineered or designed the tool.
-- Renders a centered, muted footer with a top border (`border-t pt-8 mt-8`) formatted as:  
+- Renders a semantic, centered, muted footer (`<footer>`) with responsive spacing (`border-t pt-6 sm:pt-8 mt-6 sm:mt-8`) and typography (`text-xs sm:text-sm`).
+- Formatted as:  
   `Feature developed by Name - Role, Name - Role`.
-- Supports optional external profile links (e.g. LinkedIn, GitHub) which render with primary brand accent colors and open safely in a new tab (`target="_blank"`).
+- Fully responsive: uses a flex-wrapping inline layout with non-breaking capsules so contributor names and roles don't break awkwardly across line boundaries on mobile screens.
+- Supports optional external profile links (e.g. LinkedIn, GitHub) which render with primary brand accent colors and open safely in a new tab (`target="_blank"` with `rel="noopener noreferrer"`).
+- Null-safe: gracefully renders `null` if the `developers` array is undefined, null, or empty.
 
 ### Component Props & Types
 ```tsx
 export interface Developer {
-  name: string;        // Full name of contributor (Required)
-  role?: string;       // Role/contribution title (e.g., "Lead Developer", "UI/UX Designer")
-  profileUrl?: string; // Optional URL to LinkedIn, GitHub, or personal portfolio
+  readonly name: string;        // Full name of contributor (Required)
+  readonly role?: string;       // Role/contribution title (e.g., "Lead Developer", "UI/UX Designer")
+  readonly profileUrl?: string; // Optional URL to LinkedIn, GitHub, or personal portfolio
 }
 
-export interface DeveloperProps {
-  developers: Developer[];
+export interface DeveloperCreditsProps extends React.HTMLAttributes<HTMLElement> {
+  readonly developers?: readonly Developer[]; // Array of contributors (renders null if empty)
+  readonly label?: string;                    // Attribution prefix (default: "Feature developed by")
+  readonly className?: string;                // Additional styling for footer element
 }
+
+export type DeveloperProps = DeveloperCreditsProps; // Backwards-compatible alias
 ```
 
 ### Where to Use
@@ -538,7 +633,10 @@ export default function ToolLayout({
 
 ### Guidelines & Gotchas
 - **Prompting for Names**: If implementing a new tool from scratch or PRD, always ask the user for contributor names, roles, and profile links before committing.
-- **Link Handling**: Ensure `profileUrl` includes the full URL protocol (e.g., `https://...`). Links open in a new tab (`target="_blank"`).
+- **Link Handling**: Ensure `profileUrl` includes the full URL protocol (e.g., `https://...`). Links automatically open in a new tab with `rel="noopener noreferrer"`.
+- **Empty Array Handling**: If no developers are passed or the array is empty (`[]`), the component automatically returns `null` (no orphan border line or empty prefix is shown).
+- **Custom Prefix**: Use the `label` prop if a different attribution is appropriate (e.g., `<DeveloperCredits label="Designed & built by" developers={developers} />`).
 - **Separators & Fallbacks**: The component automatically joins developers with commas and omits the role dash (`-`) if `role` is omitted or empty.
 
 ## COLLABORATION BANNER
+
