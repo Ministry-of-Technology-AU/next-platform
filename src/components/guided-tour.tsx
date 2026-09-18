@@ -2,12 +2,16 @@
 import React, {
   useState,
   useEffect,
+  useLayoutEffect,
   useRef,
   createContext,
   useContext,
   ReactNode,
   useCallback,
+  useMemo,
+  useId,
 } from "react";
+import { Slot } from "@radix-ui/react-slot";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,32 +20,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { platform } from "@/lib/platform-logger";
 
-// --- Helper Hook to disable scroll ---
-const useDisableMouseScroll = (isDisabled: boolean) => {
-  useEffect(() => {
-    if (isDisabled) {
-      const preventMouseScroll = (e: WheelEvent) => {
-        e.preventDefault();
-      };
-      window.addEventListener("wheel", preventMouseScroll, { passive: false });
+// --- Types ---
+export type TourPosition = "top" | "bottom" | "left" | "right";
 
-      return () => {
-        window.removeEventListener("wheel", preventMouseScroll);
-      };
-    }
-  }, [isDisabled]);
-};
-
-// --- Interfaces for Tour configuration ---
-interface TourStepConfig {
+export interface TourStepConfig {
   id: string;
   title: string;
   content: string;
-  position?: "top" | "bottom" | "left" | "right";
+  position?: TourPosition;
   order: number;
-  onOpen?: () => void; // Added onOpen callback for specific step actions
+  onOpen?: () => void; // Called before the step is shown (e.g. open a sidebar)
+  selector?: string; // Target element selector, useful for portals
+  triggerSelector?: string; // Element to auto-click to open sidebar/dialog
 }
 
 interface TourProviderProps {
@@ -52,12 +47,12 @@ interface TourProviderProps {
   shouldStart?: boolean;
   onTourComplete?: () => void;
   onTourSkip?: () => void;
-  onStepChange?: (step: TourStepConfig | null) => void; // New prop for generic step changes
+  onStepChange?: (step: TourStepConfig | null) => void;
 }
 
 interface TourContextType {
-  registerStep: (stepConfig: TourStepConfig, element: HTMLElement) => void;
-  unregisterStep: (id: string) => void;
+  registerStep: (stepConfig: TourStepConfig, ownerId: string) => void;
+  unregisterStep: (id: string, ownerId: string) => void;
   startTour: () => void;
   stopTour: () => void;
   nextStep: () => void;
@@ -67,7 +62,133 @@ interface TourContextType {
   currentStepId: string | null;
   currentStepIndex: number;
   totalSteps: number;
+  currentStepData: TourStepConfig | null;
 }
+
+interface RegisteredStep {
+  config: TourStepConfig;
+  ownerId: string;
+}
+
+interface PopoverPlacement {
+  top: number;
+  left: number;
+  position: TourPosition;
+}
+
+// --- Constants ---
+const DEFAULT_STORAGE_KEY = "rigidui-tour-completed";
+const ELEMENT_WAIT_TIMEOUT_MS = 2000;
+const AUTO_START_DELAY_MS = 500;
+const SCROLL_SETTLE_MS = 350;
+const POPOVER_MARGIN = 16;
+const HIGHLIGHT_PADDING = 8;
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// --- Helpers ---
+const safeQuery = (selector: string): HTMLElement | null => {
+  if (typeof document === "undefined") return null;
+  try {
+    return document.querySelector<HTMLElement>(selector);
+  } catch (error) {
+    platform.warn(`[guided-tour] Invalid selector "${selector}"`, error);
+    return null;
+  }
+};
+
+const escapeAttr = (value: string) =>
+  typeof CSS !== "undefined" && typeof CSS.escape === "function"
+    ? CSS.escape(value)
+    : value.replace(/"/g, '\\"');
+
+const resolveStepTarget = (
+  step: Pick<TourStepConfig, "id" | "selector"> | null
+): HTMLElement | null => {
+  if (!step) return null;
+  if (step.selector) return safeQuery(step.selector);
+  return safeQuery(`[data-tour-step="${escapeAttr(step.id)}"]`);
+};
+
+// localStorage can throw (private mode, disabled storage, SSR)
+const storage = {
+  get(key: string): string | null {
+    try {
+      return window.localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  set(key: string, value: string) {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch (error) {
+      platform.warn("[guided-tour] Unable to write localStorage", error);
+    }
+  },
+  remove(key: string) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch (error) {
+      platform.warn("[guided-tour] Unable to clear localStorage", error);
+    }
+  },
+};
+
+/**
+ * Polls (via rAF) until the step's target is in the DOM, or gives up after
+ * ELEMENT_WAIT_TIMEOUT_MS. Returns a cancel function.
+ */
+const waitForStepTarget = (
+  step: TourStepConfig,
+  onFound: (element: HTMLElement) => void,
+  onTimeout: () => void
+): (() => void) => {
+  const deadline = performance.now() + ELEMENT_WAIT_TIMEOUT_MS;
+  let frame = 0;
+  let cancelled = false;
+
+  const tick = () => {
+    if (cancelled) return;
+    const element = resolveStepTarget(step);
+    if (element) {
+      onFound(element);
+      return;
+    }
+    if (performance.now() > deadline) {
+      onTimeout();
+      return;
+    }
+    frame = requestAnimationFrame(tick);
+  };
+
+  tick();
+  return () => {
+    cancelled = true;
+    cancelAnimationFrame(frame);
+  };
+};
+
+// --- Helper Hook to lock body scroll (compensates for scrollbar width) ---
+const useScrollLock = (locked: boolean) => {
+  useEffect(() => {
+    if (!locked) return;
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    const previousPaddingRight = body.style.paddingRight;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+
+    body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.paddingRight = previousPaddingRight;
+    };
+  }, [locked]);
+};
 
 const TourContext = createContext<TourContextType | null>(null);
 
@@ -81,56 +202,91 @@ export const useTour = () => {
 
 // --- TourOverlay Component ---
 const TourOverlay: React.FC = () => {
-  const { isActive, currentStepId } = useTour();
+  const { isActive, currentStepData } = useTour();
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
 
-  useDisableMouseScroll(isActive);
+  useScrollLock(isActive);
 
   useEffect(() => {
-    if (isActive && currentStepId) {
-      const stepElement = document.querySelector(
-        `[data-tour-step="${currentStepId}"]`
-      ) as HTMLElement;
-      if (stepElement) {
-        const updateHighlight = () => {
-          const rect = stepElement.getBoundingClientRect();
-          setHighlightRect(rect);
-        };
-
-        updateHighlight();
-
-        const handleUpdate = () => updateHighlight();
-        window.addEventListener("scroll", handleUpdate, true);
-        window.addEventListener("resize", handleUpdate);
-
-        return () => {
-          window.removeEventListener("scroll", handleUpdate, true);
-          window.removeEventListener("resize", handleUpdate);
-        };
-      }
-    } else {
+    if (!isActive || !currentStepData) {
       setHighlightRect(null);
+      return;
     }
-  }, [isActive, currentStepId]);
+
+    const target = resolveStepTarget(currentStepData);
+    if (!target) {
+      setHighlightRect(null);
+      return;
+    }
+
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setHighlightRect(target.getBoundingClientRect());
+      });
+    };
+
+    setHighlightRect(target.getBoundingClientRect());
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    resizeObserver?.observe(target);
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [isActive, currentStepData]);
 
   if (!isActive || !highlightRect) {
     return null;
   }
 
-  const padding = 8;
+  const top = highlightRect.top - HIGHLIGHT_PADDING;
+  const left = highlightRect.left - HIGHLIGHT_PADDING;
+  const width = highlightRect.width + HIGHLIGHT_PADDING * 2;
+  const height = highlightRect.height + HIGHLIGHT_PADDING * 2;
+  const right = left + width;
+  const bottom = top + height;
+
+  const shadeClass =
+    "absolute bg-black/30 backdrop-blur-sm pointer-events-auto transition-all duration-300";
 
   return (
-    <div className="fixed inset-0 z-10000 pointer-events-auto">
-      <div className="fixed inset-0 bg-black/30 z-10001 backdrop-blur-sm pointer-events-auto" />
+    <div
+      className="fixed inset-0 z-[10000] pointer-events-none"
+      aria-hidden="true"
+      data-tour-overlay=""
+    >
+      {/* Top */}
       <div
-        className="absolute rounded-xl pointer-events-none"
-        style={{
-          left: highlightRect.left - padding,
-          top: highlightRect.top - padding,
-          width: highlightRect.width + padding * 2,
-          height: highlightRect.height + padding * 2,
-          transition: "all 0.3s ease",
-        }}
+        className={cn(shadeClass, "top-0 left-0 right-0")}
+        style={{ height: Math.max(0, top) }}
+      />
+      {/* Bottom */}
+      <div
+        className={cn(shadeClass, "left-0 right-0")}
+        style={{ top: Math.max(0, bottom), bottom: 0 }}
+      />
+      {/* Left */}
+      <div
+        className={cn(shadeClass, "left-0")}
+        style={{ top: Math.max(0, top), height, width: Math.max(0, left) }}
+      />
+      {/* Right */}
+      <div
+        className={cn(shadeClass, "right-0")}
+        style={{ top: Math.max(0, top), height, left: Math.max(0, right) }}
+      />
+      {/* Border outline */}
+      <div
+        className="absolute rounded-xl pointer-events-none transition-all duration-300 border-2 border-primary/50 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+        style={{ left, top, width, height }}
       />
     </div>
   );
@@ -140,33 +296,29 @@ const TourOverlay: React.FC = () => {
 const GlobalTourPopover: React.FC = () => {
   const {
     isActive,
-    currentStepId,
     currentStepIndex,
     totalSteps,
     nextStep,
     prevStep,
     stopTour,
+    currentStepData,
   } = useTour();
 
-  const [currentStepData, setCurrentStepData] = useState<TourStepConfig | null>(
-    null
-  );
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
-  const [popoverPosition, setPopoverPosition] = useState<{
-    top: number;
-    left: number;
-    position: "top" | "bottom" | "left" | "right";
-  }>({ top: 0, left: 0, position: "bottom" });
+  const [placement, setPlacement] = useState<PopoverPlacement | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
   const calculateOptimalPosition = useCallback(
     (
       targetRect: DOMRect,
-      preferredPosition: "top" | "bottom" | "left" | "right" = "bottom"
-    ) => {
+      preferredPosition: TourPosition = "bottom"
+    ): PopoverPlacement => {
       const popoverWidth = popoverRef.current?.offsetWidth || 320;
       const popoverHeight = popoverRef.current?.offsetHeight || 200;
-      const margin = 16;
+      const margin = POPOVER_MARGIN;
 
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
@@ -175,7 +327,7 @@ const GlobalTourPopover: React.FC = () => {
       const spaceTop = targetRect.top;
       const spaceBottom = viewportHeight - targetRect.bottom;
 
-      let position: "top" | "bottom" | "left" | "right" = preferredPosition;
+      let position: TourPosition = preferredPosition;
       let top = 0;
       let left = 0;
 
@@ -210,7 +362,7 @@ const GlobalTourPopover: React.FC = () => {
       } else {
         const spaceLeft = targetRect.left;
         const spaceRight = viewportWidth - targetRect.right;
-        const positionsToTry: ("top" | "bottom" | "left" | "right")[] = [
+        const positionsToTry: TourPosition[] = [
           preferredPosition,
           "bottom",
           "top",
@@ -271,127 +423,206 @@ const GlobalTourPopover: React.FC = () => {
     []
   );
 
+  // Resolve the target element for the current step
   useEffect(() => {
-    const updatePosition = () => {
-      if (isActive && currentStepId) {
-        const stepElement = document.querySelector(
-          `[data-tour-step="${currentStepId}"]`
-        ) as HTMLElement;
-        if (stepElement) {
-          const rect = stepElement.getBoundingClientRect();
-          const stepData = JSON.parse(
-            stepElement.getAttribute("data-tour-config") || "{}"
-          );
-          const newPosition = calculateOptimalPosition(rect, stepData.position);
-          setPopoverPosition(newPosition);
-        }
-      }
+    if (!isActive || !currentStepData) {
+      setTargetElement(null);
+      return;
+    }
+    setTargetElement(resolveStepTarget(currentStepData));
+  }, [isActive, currentStepData]);
+
+  // Position the popover once it is mounted (ref available), keep it in sync
+  // with scroll/resize, and re-measure after the smooth scroll settles.
+  useLayoutEffect(() => {
+    if (!targetElement || !currentStepData) {
+      setPlacement(null);
+      return;
+    }
+
+    const preferred = currentStepData.position;
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setPlacement(
+          calculateOptimalPosition(
+            targetElement.getBoundingClientRect(),
+            preferred
+          )
+        );
+      });
     };
 
-    if (isActive && currentStepId) {
-      const stepElement = document.querySelector(
-        `[data-tour-step="${currentStepId}"]`
-      ) as HTMLElement;
-      if (stepElement) {
-        const stepData = JSON.parse(
-          stepElement.getAttribute("data-tour-config") || "null"
-        );
-        setCurrentStepData(stepData);
-        setTargetElement(stepElement);
+    setPlacement(
+      calculateOptimalPosition(targetElement.getBoundingClientRect(), preferred)
+    );
+    targetElement.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "nearest",
+    });
 
-        stepElement.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-          inline: "nearest",
-        });
+    const settleTimer = setTimeout(update, SCROLL_SETTLE_MS);
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
 
-        setTimeout(() => {
-          updatePosition();
-        }, 300);
+    return () => {
+      clearTimeout(settleTimer);
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [targetElement, currentStepData, calculateOptimalPosition]);
 
-        window.addEventListener("resize", updatePosition);
-        window.addEventListener("scroll", updatePosition, true);
+  // Focus management: remember focus when the tour opens, restore when it closes
+  useEffect(() => {
+    if (!isActive) return;
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    return () => {
+      previousFocusRef.current?.focus?.({ preventScroll: true });
+      previousFocusRef.current = null;
+    };
+  }, [isActive]);
 
-        return () => {
-          window.removeEventListener("resize", updatePosition);
-          window.removeEventListener("scroll", updatePosition, true);
-        };
-      }
-    } else {
-      setCurrentStepData(null);
-      setTargetElement(null);
-    }
-  }, [isActive, currentStepId, calculateOptimalPosition]);
-
-  if (!currentStepData || !targetElement) {
-    return null;
-  }
+  // Move focus into the popover on each step so screen readers announce it
+  useEffect(() => {
+    if (!targetElement) return;
+    const frame = requestAnimationFrame(() => {
+      popoverRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [targetElement, currentStepData]);
 
   const isLastStep = currentStepIndex === totalSteps - 1;
   const isFirstStep = currentStepIndex === 0;
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    switch (event.key) {
+      case "ArrowRight":
+        event.preventDefault();
+        nextStep();
+        break;
+      case "ArrowLeft":
+        if (!isFirstStep) {
+          event.preventDefault();
+          prevStep();
+        }
+        break;
+      case "Tab": {
+        // Trap focus inside the popover while the tour is active
+        const focusables = popoverRef.current?.querySelectorAll<HTMLElement>(
+          FOCUSABLE_SELECTOR
+        );
+        if (!focusables || focusables.length === 0) break;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey && (active === first || active === popoverRef.current)) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && active === last) {
+          event.preventDefault();
+          first.focus();
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
+  if (!isActive || !currentStepData || !targetElement) {
+    return null;
+  }
+
+  const progressValue =
+    totalSteps > 0 ? ((currentStepIndex + 1) / totalSteps) * 100 : 0;
+
   return (
     <div
       ref={popoverRef}
-      className="fixed z-10003 w-80"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+      tabIndex={-1}
+      onKeyDown={handleKeyDown}
+      data-tour-popover=""
+      data-position={placement?.position ?? "bottom"}
+      className="fixed z-[10003] w-[min(20rem,calc(100vw-2rem))] outline-none"
       style={{
-        top: `${popoverPosition.top}px`,
-        left: `${popoverPosition.left}px`,
-        transition: "all 0.3s ease",
+        top: `${placement?.top ?? 0}px`,
+        left: `${placement?.left ?? 0}px`,
+        opacity: placement ? 1 : 0,
+        pointerEvents: placement ? "auto" : "none",
+        transition: "top 0.3s ease, left 0.3s ease, opacity 0.15s ease",
       }}
     >
       <Card className="border-2 border-primary/20 backdrop-blur-sm shadow-2xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-semibold">
+              <div
+                className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-semibold"
+                aria-hidden="true"
+              >
                 {currentStepIndex + 1}
               </div>
-              <CardTitle className="text-lg">{currentStepData.title}</CardTitle>
+              <CardTitle id={titleId} className="text-lg">
+                <span className="sr-only">
+                  Step {currentStepIndex + 1} of {totalSteps}:{" "}
+                </span>
+                {currentStepData.title}
+              </CardTitle>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={stopTour}
+              aria-label="Close tour"
               className="h-6 w-6 text-muted-foreground hover:text-foreground"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
-          <div className="w-full bg-muted rounded-full h-1.5">
-            <div
-              className="bg-primary h-1.5 rounded-full transition-all duration-300"
-              style={{
-                width: `${((currentStepIndex + 1) / totalSteps) * 100}%`,
-              }}
-            />
-          </div>
+          <Progress
+            value={progressValue}
+            className="h-1.5 bg-muted"
+            aria-label={`Tour progress: step ${currentStepIndex + 1} of ${totalSteps}`}
+          />
         </CardHeader>
         <CardContent className="pt-0">
-          <CardDescription className="text-sm leading-relaxed mb-4">
+          <CardDescription
+            id={descriptionId}
+            className="text-sm leading-relaxed mb-4"
+          >
             {currentStepData.content}
           </CardDescription>
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2 ml-auto">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={stopTour}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Skip Tour
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={stopTour}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Skip Tour
+            </Button>
+            {!isFirstStep && (
+              <Button variant="outline" size="sm" onClick={prevStep}>
+                <ChevronLeft className="h-4 w-4 mr-1" aria-hidden="true" />
+                Back
               </Button>
-              {!isFirstStep && (
-                <Button variant="outline" size="sm" onClick={prevStep}>
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Back
-                </Button>
+            )}
+            <Button size="sm" onClick={nextStep}>
+              {isLastStep ? "Finish" : "Next"}
+              {!isLastStep && (
+                <ChevronRight className="h-4 w-4 ml-1" aria-hidden="true" />
               )}
-              <Button size="sm" onClick={nextStep}>
-                {isLastStep ? "Finish" : "Next"}
-                {!isLastStep && <ChevronRight className="h-4 w-4 ml-1" />}
-              </Button>
-            </div>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -404,189 +635,273 @@ export const TourProvider: React.FC<TourProviderProps> = ({
   children,
   autoStart = false,
   ranOnce = true,
-  storageKey = "rigidui-tour-completed",
+  storageKey = DEFAULT_STORAGE_KEY,
   shouldStart = true,
   onTourComplete,
   onTourSkip,
-  onStepChange, // Destructure the new prop
+  onStepChange,
 }) => {
-  const [steps, setSteps] = useState<
-    Map<string, TourStepConfig & { element: HTMLElement }>
-  >(new Map());
+  const [steps, setSteps] = useState<Map<string, RegisteredStep>>(new Map());
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [activeSteps, setActiveSteps] = useState<
-    Array<TourStepConfig & { element: HTMLElement }>
-  >([]);
+  const [activeSteps, setActiveSteps] = useState<TourStepConfig[]>([]);
   const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
+  // Latest-value refs so the memoized actions never read stale state
+  const stepsRef = useRef(steps);
+  const isActiveRef = useRef(false);
+  const activeStepsRef = useRef<TourStepConfig[]>([]);
+  const currentStepRef = useRef(0);
+  const shownAnyStepRef = useRef(false);
+  const cancelPendingRef = useRef<(() => void) | null>(null);
+  const callbacksRef = useRef({ onTourComplete, onTourSkip, onStepChange });
+
+  useEffect(() => {
+    stepsRef.current = steps;
+  }, [steps]);
+
+  useEffect(() => {
+    callbacksRef.current = { onTourComplete, onTourSkip, onStepChange };
+  }, [onTourComplete, onTourSkip, onStepChange]);
+
+  const cancelPending = useCallback(() => {
+    cancelPendingRef.current?.();
+    cancelPendingRef.current = null;
+  }, []);
+
+  // Cancel any in-flight element wait on unmount
+  useEffect(() => cancelPending, [cancelPending]);
+
   const registerStep = useCallback(
-    (stepConfig: TourStepConfig, element: HTMLElement) => {
+    (stepConfig: TourStepConfig, ownerId: string) => {
       setSteps((prev) => {
-        const newSteps = new Map(prev);
-        newSteps.set(stepConfig.id, { ...stepConfig, element });
-        return newSteps;
+        const existing = prev.get(stepConfig.id);
+        if (existing && existing.ownerId !== ownerId) {
+          platform.warn(
+            `[guided-tour] Duplicate TourStep id "${stepConfig.id}"; the latest registration wins.`
+          );
+        }
+        const next = new Map(prev);
+        next.set(stepConfig.id, { config: stepConfig, ownerId });
+        return next;
       });
     },
     []
   );
 
-const unregisterStep = useCallback((id: string) => {
-  setSteps((prev) => {
-    if (!prev.has(id)) return prev; // no change → no render loop
-    const newSteps = new Map(prev);
-    newSteps.delete(id);
-    return newSteps;
-  });
-}, []);
+  const unregisterStep = useCallback((id: string, ownerId: string) => {
+    setSteps((prev) => {
+      const existing = prev.get(id);
+      // Only the instance that owns the registration may remove it
+      if (!existing || existing.ownerId !== ownerId) return prev;
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
 
+  const endTour = useCallback(
+    (completed: boolean) => {
+      cancelPending();
+      if (!isActiveRef.current) return;
 
-  const startTour = () => {
-    const filteredSteps = Array.from(steps.values()).sort(
-      (a, b) => a.order - b.order
-    );
-
-    if (filteredSteps.length > 0) {
-      setActiveSteps(filteredSteps);
+      isActiveRef.current = false;
+      activeStepsRef.current = [];
+      currentStepRef.current = 0;
+      setIsActive(false);
       setCurrentStep(0);
-      setIsActive(true);
-      // Trigger the onOpen callback for the first step
-      const firstStep = filteredSteps[0].onOpen;
-      if (firstStep) firstStep();
-    }
-  };
+      setActiveSteps([]);
 
-  const stopTour = (completed = false) => {
-    const wasActive = isActive;
-    setIsActive(false);
-    setCurrentStep(0);
-    setActiveSteps([]);
+      const callbacks = callbacksRef.current;
+      callbacks.onStepChange?.(null);
 
-    // Trigger onStepChange with null when the tour ends
-    if (wasActive && onStepChange) {
-      onStepChange(null);
-    }
-
-    if (wasActive) {
       if (completed) {
         if (ranOnce) {
-          localStorage.setItem(storageKey, "true");
+          storage.set(storageKey, "true");
         }
-        if (onTourComplete) {
-          onTourComplete();
-        }
+        callbacks.onTourComplete?.();
         window.dispatchEvent(
           new CustomEvent("tourCompleted", { detail: { storageKey } })
         );
-      } else if (!completed && onTourSkip) {
-        onTourSkip();
-      }
-    }
-  };
-
-const nextStep = () => {
-  if (currentStep < activeSteps.length - 1) {
-    const newStepIndex = currentStep + 1;
-    const { id: nextId, onOpen } = activeSteps[newStepIndex];
-
-    // Run the onOpen callback (e.g., open sidebar)
-    if (onOpen) onOpen();
-
-    // Wait for the element to be in the DOM before setting the step
-    const waitForElement = () => {
-      const el = document.querySelector(`[data-tour-step="${nextId}"]`);
-      if (el) {
-        setCurrentStep(newStepIndex);
       } else {
-        requestAnimationFrame(waitForElement);
+        callbacks.onTourSkip?.();
+      }
+    },
+    [cancelPending, ranOnce, storageKey]
+  );
+
+  // Ref so goToStep can recurse (skip missing steps) without self-reference
+  const goToStepRef = useRef<
+    (stepList: TourStepConfig[], index: number, direction: 1 | -1) => void
+  >(() => {});
+
+  /**
+   * Move to `index`, running the step's trigger/onOpen first and waiting for its
+   * target to appear. Steps whose target never shows up are skipped in
+   * `direction`; walking off the end finishes the tour.
+   */
+  const goToStep = useCallback(
+    (stepList: TourStepConfig[], index: number, direction: 1 | -1) => {
+      cancelPending();
+      if (!isActiveRef.current) return;
+
+      if (index >= stepList.length) {
+        // Only count as completed if the user actually saw a step
+        endTour(shownAnyStepRef.current);
+        return;
+      }
+      if (index < 0) return;
+
+      const step = stepList[index];
+      if (step.triggerSelector) {
+        safeQuery(step.triggerSelector)?.click();
+      }
+      step.onOpen?.();
+
+      cancelPendingRef.current = waitForStepTarget(
+        step,
+        () => {
+          cancelPendingRef.current = null;
+          shownAnyStepRef.current = true;
+          currentStepRef.current = index;
+          setCurrentStep(index);
+        },
+        () => {
+          cancelPendingRef.current = null;
+          platform.warn(
+            `[guided-tour] Target for step "${step.id}" not found; skipping.`
+          );
+          goToStepRef.current(stepList, index + direction, direction);
+        }
+      );
+    },
+    [cancelPending, endTour]
+  );
+
+  useEffect(() => {
+    goToStepRef.current = goToStep;
+  }, [goToStep]);
+
+  const startTour = useCallback(() => {
+    if (isActiveRef.current) return;
+
+    const sortedSteps = Array.from(stepsRef.current.values())
+      .map((entry) => entry.config)
+      .sort((a, b) => a.order - b.order);
+
+    if (sortedSteps.length === 0) {
+      platform.warn("[guided-tour] startTour called with no registered steps");
+      return;
+    }
+
+    shownAnyStepRef.current = false;
+    isActiveRef.current = true;
+    activeStepsRef.current = sortedSteps;
+    currentStepRef.current = 0;
+    setActiveSteps(sortedSteps);
+    setCurrentStep(0);
+    setIsActive(true);
+    goToStepRef.current(sortedSteps, 0, 1);
+  }, []);
+
+  const stopTour = useCallback(() => endTour(false), [endTour]);
+
+  const nextStep = useCallback(() => {
+    if (!isActiveRef.current) return;
+    const stepList = activeStepsRef.current;
+    const index = currentStepRef.current;
+    if (index >= stepList.length - 1) {
+      endTour(true);
+      return;
+    }
+    goToStepRef.current(stepList, index + 1, 1);
+  }, [endTour]);
+
+  const prevStep = useCallback(() => {
+    if (!isActiveRef.current) return;
+    const index = currentStepRef.current;
+    if (index <= 0) return;
+    goToStepRef.current(activeStepsRef.current, index - 1, -1);
+  }, []);
+
+  const resetTourCompletion = useCallback(() => {
+    if (!ranOnce) return;
+    storage.remove(storageKey);
+    setHasAutoStarted(false);
+    window.dispatchEvent(
+      new CustomEvent("tourReset", { detail: { storageKey } })
+    );
+  }, [ranOnce, storageKey]);
+
+  // --- Auto start ---
+  useEffect(() => {
+    if (!autoStart || hasAutoStarted || !shouldStart || steps.size === 0) {
+      return;
+    }
+    if (ranOnce && storage.get(storageKey) === "true") {
+      setHasAutoStarted(true);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setHasAutoStarted(true);
+      startTour();
+    }, AUTO_START_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [autoStart, hasAutoStarted, shouldStart, steps, ranOnce, storageKey, startTour]);
+
+  // Escape always exits the tour, so users can never get stuck with a locked page
+  useEffect(() => {
+    if (!isActive) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        endTour(false);
       }
     };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isActive, endTour]);
 
-    waitForElement();
-  } else {
-    stopTour(true);
-  }
-};
+  const currentStepData = activeSteps[currentStep] ?? null;
 
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      const newStepIndex = currentStep - 1;
-      setCurrentStep(newStepIndex);
-      // Trigger the onOpen callback for the previous step
-      const prevStep = activeSteps[newStepIndex].onOpen;
-      if (prevStep) prevStep();
-    }
-  };
-
-  const resetTourCompletion = () => {
-    if (ranOnce) {
-      localStorage.removeItem(storageKey);
-      setHasAutoStarted(false);
-      window.dispatchEvent(
-        new CustomEvent("tourReset", { detail: { storageKey } })
-      );
-    }
-  };
-
-  // --- Core logic to handle autoStart and step changes ---
   useEffect(() => {
-    if (autoStart && !hasAutoStarted && steps.size > 0 && shouldStart) {
-      const tourCompleted = ranOnce
-        ? localStorage.getItem(storageKey) === "true"
-        : false;
-      if (!tourCompleted) {
-        const timer = setTimeout(() => {
-          startTour();
-        }, 500);
-        return () => clearTimeout(timer);
-      } else {
-        setHasAutoStarted(true);
-      }
+    if (isActive && currentStepData) {
+      callbacksRef.current.onStepChange?.(currentStepData);
     }
-  }, [
-    autoStart,
-    hasAutoStarted,
-    steps,
-    ranOnce,
-    storageKey,
-    shouldStart,
-    startTour,
-  ]);
+  }, [isActive, currentStepData]);
 
-  // New useEffect to handle onStepChange callback
-  useEffect(() => {
-    if (isActive && onStepChange) {
-      const currentStepData = activeSteps[currentStep]?.id
-        ? {
-            id: activeSteps[currentStep].id,
-            title: activeSteps[currentStep].title,
-            content: activeSteps[currentStep].content,
-            position: activeSteps[currentStep].position,
-            order: activeSteps[currentStep].order,
-            onOpen: activeSteps[currentStep].onOpen,
-          }
-        : null;
-      onStepChange(currentStepData);
-    }
-  }, [isActive, currentStep, activeSteps, onStepChange]);
+  const contextValue = useMemo<TourContextType>(
+    () => ({
+      registerStep,
+      unregisterStep,
+      startTour,
+      stopTour,
+      nextStep,
+      prevStep,
+      resetTourCompletion,
+      isActive,
+      currentStepId: currentStepData?.id ?? null,
+      currentStepIndex: currentStep,
+      totalSteps: activeSteps.length,
+      currentStepData,
+    }),
+    [
+      registerStep,
+      unregisterStep,
+      startTour,
+      stopTour,
+      nextStep,
+      prevStep,
+      resetTourCompletion,
+      isActive,
+      currentStepData,
+      currentStep,
+      activeSteps.length,
+    ]
+  );
 
   return (
-    <TourContext.Provider
-      value={{
-        registerStep,
-        unregisterStep,
-        startTour,
-        stopTour: () => stopTour(false),
-        nextStep,
-        prevStep,
-        resetTourCompletion,
-        isActive,
-        currentStepId: activeSteps[currentStep]?.id || null,
-        currentStepIndex: currentStep,
-        totalSteps: activeSteps.length,
-      }}
-    >
+    <TourContext.Provider value={contextValue}>
       {children}
       <TourOverlay />
       <GlobalTourPopover />
@@ -595,26 +910,50 @@ const nextStep = () => {
 };
 
 // --- TourStep Component ---
-export const TourStep: React.FC<{
-  id: string;
-  title: string;
-  content: string;
-  order: number;
-  position?: "top" | "bottom" | "left" | "right";
-  onOpen?: () => void; // New prop for step-specific open actions
-  children: ReactNode;
+interface TourStepProps extends TourStepConfig {
+  children?: ReactNode;
   className?: string;
-}> = ({ children, id, title, content, order, position, onOpen, className }) => {
-  const { registerStep, unregisterStep, isActive, currentStepId } = useTour();
-  const elementRef = useRef<HTMLDivElement>(null);
+}
+
+export const TourStep: React.FC<TourStepProps> = ({
+  children,
+  id,
+  title,
+  content,
+  order,
+  position,
+  onOpen,
+  selector,
+  triggerSelector,
+  className,
+}) => {
+  const { registerStep, unregisterStep } = useTour();
+  const ownerId = useId();
+
+  // Keep the latest onOpen without re-registering on every render when
+  // callers pass an inline arrow function
+  const onOpenRef = useRef(onOpen);
+  useEffect(() => {
+    onOpenRef.current = onOpen;
+  }, [onOpen]);
+  const stableOnOpen = useCallback(() => onOpenRef.current?.(), []);
 
   useEffect(() => {
-    if (elementRef.current) {
-      const stepConfig = { id, title, content, order, position, onOpen };
-      registerStep(stepConfig, elementRef.current);
-    }
+    registerStep(
+      {
+        id,
+        title,
+        content,
+        order,
+        position,
+        selector,
+        triggerSelector,
+        onOpen: stableOnOpen,
+      },
+      ownerId
+    );
     return () => {
-      unregisterStep(id);
+      unregisterStep(id, ownerId);
     };
   }, [
     id,
@@ -622,76 +961,71 @@ export const TourStep: React.FC<{
     content,
     order,
     position,
-    onOpen,
+    selector,
+    triggerSelector,
+    stableOnOpen,
+    ownerId,
     registerStep,
     unregisterStep,
   ]);
 
-  const isCurrentStep = isActive && currentStepId === id;
+  if (!children && selector) {
+    return null; // Purely logical registration for a remote/portal target
+  }
 
   return (
-    <div
-      ref={elementRef}
-      data-tour-step={id}
-      data-tour-config={JSON.stringify({ id, title, content, order, position })}
-      className={`${isCurrentStep ? "relative z-10002" : "relative"} ${className || ""}`}
-    >
+    <div data-tour-step={id} className={className}>
       {children}
     </div>
   );
 };
 
 // --- TourTrigger Component ---
-export const TourTrigger: React.FC<{
+interface TourTriggerProps {
   children: ReactNode;
   className?: string;
   hideAfterComplete?: boolean;
   storageKey?: string;
-}> = ({
+  /** Render the child as the trigger instead of wrapping it in a button */
+  asChild?: boolean;
+}
+
+export const TourTrigger: React.FC<TourTriggerProps> = ({
   children,
   className,
   hideAfterComplete = false,
-  storageKey = "rigidui-tour-completed",
+  storageKey = DEFAULT_STORAGE_KEY,
+  asChild = false,
 }) => {
   const { startTour } = useTour();
   const [tourCompleted, setTourCompleted] = useState(false);
 
   useEffect(() => {
-    if (hideAfterComplete) {
-      const completed = localStorage.getItem(storageKey) === "true";
-      setTourCompleted(completed);
+    if (!hideAfterComplete) return;
 
-      const handleTourComplete = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        const eventStorageKey =
-          customEvent.detail?.storageKey || "rigidui-tour-completed";
-        if (eventStorageKey === storageKey) {
-          localStorage.setItem(storageKey, "true");
-          setTourCompleted(true);
-        }
-      };
+    setTourCompleted(storage.get(storageKey) === "true");
 
-      const handleTourReset = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        const eventStorageKey =
-          customEvent.detail?.storageKey || "rigidui-tour-completed";
-        if (eventStorageKey === storageKey) {
-          setTourCompleted(false);
-        }
-      };
+    const matchesKey = (event: Event) => {
+      const detail = (event as CustomEvent<{ storageKey?: string }>).detail;
+      return (detail?.storageKey ?? DEFAULT_STORAGE_KEY) === storageKey;
+    };
+    const handleTourComplete = (event: Event) => {
+      if (matchesKey(event)) setTourCompleted(true);
+    };
+    const handleTourReset = (event: Event) => {
+      if (matchesKey(event)) setTourCompleted(false);
+    };
 
-      window.addEventListener("tourCompleted", handleTourComplete);
-      window.addEventListener("tourReset", handleTourReset);
-
-      return () => {
-        window.removeEventListener("tourCompleted", handleTourComplete);
-        window.removeEventListener("tourReset", handleTourReset);
-      };
-    }
+    window.addEventListener("tourCompleted", handleTourComplete);
+    window.addEventListener("tourReset", handleTourReset);
+    return () => {
+      window.removeEventListener("tourCompleted", handleTourComplete);
+      window.removeEventListener("tourReset", handleTourReset);
+    };
   }, [hideAfterComplete, storageKey]);
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
     startTour();
   };
 
@@ -699,10 +1033,23 @@ export const TourTrigger: React.FC<{
     return null;
   }
 
+  if (asChild) {
+    return (
+      <Slot onClick={handleClick} className={className} data-tour-trigger="">
+        {children}
+      </Slot>
+    );
+  }
+
   return (
-    <div onClick={handleClick} className={className}>
+    <button
+      type="button"
+      onClick={handleClick}
+      className={className}
+      data-tour-trigger=""
+    >
       {children}
-    </div>
+    </button>
   );
 };
 

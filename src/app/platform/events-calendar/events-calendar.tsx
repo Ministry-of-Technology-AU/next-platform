@@ -79,7 +79,10 @@ export default function EventsCalendar({
   useEffect(() => {
     // When the tour is active and we are on the 'event-filters' step, show the sidebar.
     // Otherwise, ensure the sidebar is closed.
-    if (isActive && currentStepId === "event-filters") {
+    if (
+      isActive &&
+      (currentStepId === "event-filters" || currentStepId === "calendar-preferences")
+    ) {
       setShowPreferences(true);
     } else {
       setShowPreferences(false);

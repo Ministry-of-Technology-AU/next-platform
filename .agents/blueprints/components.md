@@ -94,6 +94,179 @@ export default function NewFeatureLayout({
 
 ## GUIDED TOUR
 
+> [!IMPORTANT]
+> **Before adding or editing a tour, invoke the `guided-tour` skill (`.agents/skills/guided-tour/SKILL.md`).** It holds the step-writing conventions, copy tone, and per-tool checklist. This section documents the component API; the skill documents how to author a good tour with it.
+
+### Overview
+- Located at `@/components/guided-tour` (`src/components/guided-tour.tsx`).
+- Exports: `TourProvider` (default export too), `TourStep`, `TourTrigger`, `useTour`, and types `TourStepConfig`, `TourPosition`.
+- A spotlight-style walkthrough: dims the page with a four-panel overlay, cuts a highlighted window around the current target, and floats a `Card` popover (title, step counter, progress bar, Back / Next / Skip) next to it.
+- Steps are **registered declaratively** by wrapping page elements in `<TourStep>`; the provider collects them, sorts by `order`, and drives the walkthrough. Nothing needs to be listed centrally.
+- Already mounted globally in `src/app/platform/layout.tsx` and `src/app/organisations/layout.tsx` with `autoStart={false}`. **Do not mount a second `TourProvider` inside a tool.**
+- The navbar help button (`src/components/navbar/navbar.tsx`) is a `<TourTrigger asChild>` — every tool with registered steps gets a "start tour" entry point for free.
+- Steps whose target never appears in the DOM (timeout 2s) are skipped with a `platform.warn`; walking off the end finishes the tour. `Escape` always exits. Body scroll is locked while active (scrollbar width compensated).
+
+### Component Props & Types
+```tsx
+export type TourPosition = "top" | "bottom" | "left" | "right";
+
+export interface TourStepConfig {
+  id: string;               // Unique per portal. Becomes data-tour-step={id} on the wrapper div.
+  title: string;            // Popover heading
+  content: string;          // Popover body (plain text, 1-2 sentences)
+  order: number;            // Sort key. Steps run ascending; gaps are fine.
+  position?: TourPosition;  // Preferred popover side (default: "bottom"). Falls back automatically if no room.
+  onOpen?: () => void;      // Called before the step shows (e.g. open a sheet, add sample data)
+  selector?: string;        // Target a remote element (portal / dialog) instead of the wrapper div
+  triggerSelector?: string; // Element to .click() before the step shows (e.g. a sidebar toggle)
+}
+
+// <TourStep {...TourStepConfig} className?: string; children?: ReactNode />
+
+interface TourProviderProps {
+  children: ReactNode;
+  autoStart?: boolean;                               // Start automatically once steps register (default: false)
+  ranOnce?: boolean;                                 // Persist completion in localStorage (default: true)
+  storageKey?: string;                               // localStorage key (default: "rigidui-tour-completed")
+  shouldStart?: boolean;                             // Gate for autoStart (default: true)
+  onTourComplete?: () => void;
+  onTourSkip?: () => void;
+  onStepChange?: (step: TourStepConfig | null) => void; // null when the tour ends
+}
+
+interface TourTriggerProps {
+  children: ReactNode;
+  className?: string;
+  hideAfterComplete?: boolean; // Hide once localStorage[storageKey] === "true" (default: false)
+  storageKey?: string;         // Must match the provider's key (default: "rigidui-tour-completed")
+  asChild?: boolean;           // Render the child as the trigger (Radix Slot) instead of wrapping in <button>
+}
+
+// useTour() → {
+//   startTour, stopTour, nextStep, prevStep, resetTourCompletion,
+//   isActive, currentStepId, currentStepIndex, totalSteps, currentStepData,
+//   registerStep, unregisterStep   // internal, used by <TourStep>
+// }
+```
+
+### Where to Use
+- Every tool with more than two or three distinct interactive regions should ship a tour. Existing examples: Semester Planner, Trajectory Planner, Events Calendar, SG Compose, Course Reviews, When2Meet, Ashokan Around, platform landing page.
+- Wrap the **smallest meaningful region** — a search input, a filter button, a table — not whole page sections. Large targets make the popover placement and highlight useless.
+- Steps live wherever the element lives: `page.tsx`, a `_components/*.tsx`, or a layout. The provider collects them regardless of depth.
+- For auto-launch on first visit, add a `_components/tour-manager.tsx` to the tool (see below). Do not use the provider's `autoStart` — it is global and would fire on every portal page.
+
+### How to Use & Implementation
+
+#### Step 1: Wrap Targets in `TourStep`
+```tsx
+import { TourStep } from "@/components/guided-tour";
+
+<TourStep
+  id="course-search"
+  order={2}
+  title="Search for Courses!"
+  content="Find courses by name, code, or professor."
+  position="bottom"
+>
+  <SearchInput onSearch={setQuery} />
+</TourStep>
+```
+`TourStep` renders a plain `<div data-tour-step={id}>` around `children`. Pass `className` (e.g. `"w-full"`, `"contents"`) if the extra wrapper breaks a flex/grid layout.
+
+#### Step 2 (optional): Auto-Launch on First Visit
+```tsx
+// src/app/platform/<tool>/_components/tour-manager.tsx
+"use client";
+
+import { useEffect } from "react";
+import { useTour } from "@/components/guided-tour";
+
+const STORAGE_KEY = "<TOOL>_TOUR_SEEN_V1";
+
+export function TourManager() {
+  const { startTour } = useTour();
+
+  useEffect(() => {
+    if (localStorage.getItem(STORAGE_KEY)) return;
+    // Small delay so all TourSteps have registered
+    const timer = setTimeout(() => {
+      startTour();
+      localStorage.setItem(STORAGE_KEY, "true");
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [startTour]);
+
+  return null;
+}
+```
+Mount `<TourManager />` once in the tool's `layout.tsx` or `page.tsx`. `startTour` is referentially stable, so the effect runs once per mount.
+
+#### Example: Step Inside a Sheet / Dialog (Portal)
+When the target only exists after something opens, either open it via `onOpen` / `triggerSelector`, or react to `currentStepId` in the owning component. The provider waits (up to 2s) for the target before showing the step.
+```tsx
+// Option A — click the toggle for us, then target the portal content
+<TourStep
+  id="calendar-preferences"
+  order={3}
+  title="Select a Date!"
+  content="Select a date to view events for that date."
+  triggerSelector="[data-tour-open-preferences]"
+  selector="[data-tour-step='calendar-preferences']"
+/>
+
+// Option B — the owner opens/closes itself based on the active step (events-calendar.tsx)
+const { isActive, currentStepId } = useTour();
+useEffect(() => {
+  const stepNeedsSidebar =
+    currentStepId === "event-filters" || currentStepId === "calendar-preferences";
+  setShowPreferences(isActive && stepNeedsSidebar);
+}, [isActive, currentStepId]);
+```
+With Option B, keep the container open for **every** step that lives inside it, otherwise the target unmounts and the step gets skipped.
+
+#### Example: Seed Data Before a Step
+```tsx
+<TourStep
+  id="timetable-grid"
+  order={4}
+  title="Your Timetable"
+  content="Courses you add appear here. Click a slot to remove it."
+  onOpen={handleAddSampleCourse} // stable or inline — both are fine
+>
+  <TimetableGrid />
+</TourStep>
+```
+
+#### Example: Custom Trigger
+```tsx
+import { TourTrigger } from "@/components/guided-tour";
+
+<TourTrigger asChild hideAfterComplete>
+  <Button variant="outline" size="sm">Show me around</Button>
+</TourTrigger>
+```
+
+### Accessibility
+- Popover is `role="dialog"` with `aria-modal`, `aria-labelledby` (title) and `aria-describedby` (content). A visually hidden "Step N of M" prefix is announced with the title.
+- Focus moves into the popover on every step and is restored to the previously focused element when the tour ends. `Tab` / `Shift+Tab` are trapped inside the popover.
+- Keyboard: `→` next, `←` back, `Escape` exit. Close button has `aria-label="Close tour"`; icons are `aria-hidden`.
+- Progress uses the shadcn `Progress` (Radix `role="progressbar"`) with a descriptive `aria-label`.
+- Overlay panels are `aria-hidden` and block pointer events everywhere except the highlighted target.
+
+### Guidelines & Gotchas
+- **Unique `id` per portal**: The registry is a `Map` keyed by `id`. Duplicates log a `platform.warn` and the last registration wins. Because `/platform` and `/organisations` have separate providers, ids only need to be unique within one portal.
+- **`order` is global to the provider**: If two tools' pages are ever rendered together (rare), their orders interleave. Keep ids and orders tool-prefixed when in doubt.
+- **`startTour` snapshots the step list**: Steps that register *after* `startTour()` is called are not part of that run. This is why `TourManager` uses a delay, and why portal-only steps should use `selector` / `triggerSelector` rather than expecting the `TourStep` to mount mid-tour.
+- **Missing targets are skipped, not fatal**: If a target never appears within 2s, the step is skipped in the direction of travel and a warning is logged. If no step could be shown at all, the tour ends *without* marking completion.
+- **`selector` must be a valid CSS selector**: Invalid selectors are caught, logged, and treated as "not found". Prefer `data-*` attributes over class names.
+- **`onOpen` runs before the wait**: Anything `onOpen` mounts is picked up by the target wait — no need to add manual timeouts.
+- **Wrapper `div`**: `TourStep` always wraps children in a `div`. Use `className="contents"` to make it layout-transparent, or `"w-full"` / `"flex-1"` to preserve sizing.
+- **Two persistence layers**: The provider's `ranOnce` / `storageKey` only matter when `autoStart` is on (it is off globally). Per-tool "seen" state belongs in that tool's `TourManager` key. `TourTrigger hideAfterComplete` reads the *provider's* key, so it only makes sense alongside `autoStart`.
+- **Scroll lock**: `document.body.style.overflow` is set to `hidden` while active. Inner scroll containers still scroll; `scrollIntoView` still works. Do not add a competing scroll lock in the tool.
+- **Client component**: `guided-tour.tsx` is `"use client"`. `TourStep` can be rendered from a server component file as long as the file importing it is fine with a client boundary.
+
+---
+
 ## NEW TOOL ALERT
 
 ### Overview

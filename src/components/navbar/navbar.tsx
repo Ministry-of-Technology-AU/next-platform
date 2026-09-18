@@ -264,7 +264,7 @@ export default function Navbar() {
         
         {/* Help button - Launches global tooltips */}
         <Tooltip>
-          <TourTrigger>
+          <TourTrigger asChild>
             <TooltipTrigger asChild>
               <Button variant="animatedGhost" size="icon" aria-label="Help" className="h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10">
                 <HelpCircle className="size-4 xs:size-4.5 sm:size-5" />
