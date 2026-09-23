@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
-  Wrench,
-  ArrowLeft,
+  HardHat,
+  ArrowRight,
+  Hammer,
   BookOpen,
   Calendar,
   GraduationCap,
@@ -19,53 +20,59 @@ const EXPLORE_LINKS = [
   { label: "Semester Planner", href: "/platform/semester-planner", icon: GraduationCap },
 ];
 
-interface UnderMaintenanceProps {
-  /** Optional custom title. */
+interface UnderConstructionProps {
+  /** Page or section title. */
   title?: string;
-  /** Optional custom description. */
+  /** Explanatory description shown below the title. */
   description?: string;
-  /** Show a "Back to Platform" button. Defaults to true. */
-  showBackButton?: boolean;
-  /** Show the "explore other tools" suggestion grid. Defaults to true. */
+  /** Label for the primary CTA button. */
+  buttonText?: string;
+  /** Href for the primary CTA button. */
+  buttonHref?: string;
+  /** Optional small sub-note displayed below the CTA. */
+  subtext?: string;
+  /** Show the "explore other tools" suggestion grid. Defaults to false. */
   showExploreSuggestions?: boolean;
   /** Optional additional classes for layout overrides. */
   className?: string;
 }
 
-export default function UnderMaintenance({
-  title = "We're tinkering under the hood",
-  description = "Our resident cat engineer is refactoring the hamster wheels and oiling the pixel gears. This page will be back before you finish your chai.",
-  showBackButton = true,
-  showExploreSuggestions = true,
+export default function UnderConstruction({
+  title = "This page is under construction",
+  description = "We're working hard to get this page ready. Stay tuned — something great is coming!",
+  buttonText = "Head to the Platform",
+  buttonHref = "/platform",
+  subtext,
+  showExploreSuggestions = false,
   className = "",
-}: UnderMaintenanceProps) {
+}: UnderConstructionProps) {
   return (
     <div
       className={`flex flex-col items-center px-4 sm:px-6 py-10 sm:py-14 ${className}`}
       role="main"
-      aria-label="Page under maintenance"
+      aria-label="Page under construction"
     >
-      {/* ---- Mascot + badge stacked together ---- */}
+      {/* ---- Badge + mascot stacked close together ---- */}
       <div className="flex flex-col items-center gap-4 mb-8">
         {/* Badge */}
         <div
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-muted-foreground text-xs font-medium tracking-wide"
           role="status"
-          aria-label="Status: Under maintenance"
+          aria-label="Status: Under construction"
         >
-          <Wrench className="w-3 h-3" aria-hidden="true" />
-          Under Maintenance
+          <HardHat className="w-3 h-3" aria-hidden="true" />
+          Under Construction
         </div>
 
         {/* Mascot */}
-        <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64">
+        <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
           <Image
-            src="/mascot-maintenance.png"
-            alt="The platform cat mascot — a grey tabby in round glasses and a work apron, holding a wrench and a gear"
+            src="/mascot-construction.png"
+            alt="The platform cat mascot — a grey tabby in glasses and a work apron, seated at a wooden workbench assembling glowing gears"
             fill
             className="object-contain"
             priority
-            sizes="(max-width: 640px) 192px, (max-width: 768px) 224px, 256px"
+            sizes="(max-width: 640px) 256px, (max-width: 768px) 320px, 384px"
           />
         </div>
       </div>
@@ -78,24 +85,30 @@ export default function UnderMaintenance({
         {description}
       </p>
 
-      {/* ---- Back Button ---- */}
-      {showBackButton && (
-        <Button
-          asChild
-          variant="animatedGhost"
-          className="gap-2 mb-10 min-h-[44px] px-5"
-          onClick={() => void haptic.tap()}
-        >
-          <Link href="/platform" aria-label="Go back to Platform home">
-            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-            Back to Platform
-          </Link>
-        </Button>
+      {/* ---- Primary CTA ---- */}
+      <Button
+        asChild
+        variant="animated"
+        className="gap-2 min-h-[44px] px-6 mb-4"
+        onClick={() => void haptic.press()}
+      >
+        <Link href={buttonHref} aria-label={buttonText}>
+          <Hammer className="w-4 h-4" aria-hidden="true" />
+          {buttonText}
+          <ArrowRight className="w-4 h-4" aria-hidden="true" />
+        </Link>
+      </Button>
+
+      {/* ---- Optional sub-note ---- */}
+      {subtext && (
+        <p className="text-center text-sm text-muted-foreground mt-1 mb-6 max-w-sm">
+          {subtext}
+        </p>
       )}
 
-      {/* ---- Explore suggestions ---- */}
+      {/* ---- Explore suggestions (opt-in) ---- */}
       {showExploreSuggestions && (
-        <nav aria-label="Other tools to explore" className="w-full max-w-md">
+        <nav aria-label="Other tools to explore" className="w-full max-w-md mt-8">
           <p className="text-xs uppercase tracking-widest text-muted-foreground text-center mb-4 font-semibold">
             Meanwhile, explore
           </p>
@@ -120,7 +133,7 @@ export default function UnderMaintenance({
 
       {/* ---- Footer quip ---- */}
       <p className="mt-12 text-[11px] text-muted-foreground/50 italic text-center">
-        &quot;It&apos;s not a bug, it&apos;s a scheduled feature vacation.&quot;
+        &quot;Good things take time. Great things take a little longer.&quot;
         {" "}— Ministry of Technology
       </p>
     </div>

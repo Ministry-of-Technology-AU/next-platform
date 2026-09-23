@@ -811,5 +811,254 @@ export default function ToolLayout({
 - **Custom Prefix**: Use the `label` prop if a different attribution is appropriate (e.g., `<DeveloperCredits label="Designed & built by" developers={developers} />`).
 - **Separators & Fallbacks**: The component automatically joins developers with commas and omits the role dash (`-`) if `role` is omitted or empty.
 
-## COLLABORATION BANNER
+## COLLABORATION BANNER (INITIATIVE CREDITS)
+
+### Overview
+- Located at `@/components/initiative-credits` (`src/components/initiative-credits.tsx`).
+- Default export: `import InitiativeCredits from "@/components/initiative-credits";`.
+- Footer attribution component used when a tool or portal module is built in cross-functional partnership with student bodies, student government departments, or campus organizations (e.g., Jazbaa, MAA, Office of Student Affairs).
+- Formats partner names into an accessible grammatical sentence with proper Oxford commas and "and" conjunctions (e.g. *"A collaborative initiative with Techmin, Jazbaa, MAA, and Office of Student Affairs"*).
+- Supports clickable external partner links with primary brand accent styling and secure tab attributes (`target="_blank"` with `rel="noopener noreferrer"`).
+- Automatically pairs with `DeveloperCredits` at the bottom of tool layouts.
+
+### Component Props & Types
+```tsx
+export interface InitiativePartner {
+  name: string;        // Partner name (e.g., "Jazbaa", "Office of Student Affairs")
+  role?: string;       // Optional partner role or descriptor
+  url?: string;        // Optional website or social link
+}
+
+export interface InitiativeCreditsProps {
+  title?: string;                                 // Attribution prefix (default: "A collaborative initiative with")
+  partners?: (string | InitiativePartner)[];      // Array of partner names or partner objects (default: ['Techmin', 'Jazbaa', 'MAA', 'Office of Student Affairs'])
+  className?: string;                             // Additional container classes
+  hideBorder?: boolean;                           // Whether to omit top border and top spacing (default: false)
+}
+```
+
+### Where to Use
+- Bottom of layout wrappers for collaborative modules (e.g., `src/app/platform/inductions/layout.tsx` and `src/app/organisations/inductions/layout.tsx`).
+- Place immediately after `{children}` and before/after `DeveloperCredits`.
+
+---
+
+## STATUS & FALLBACK SCREENS
+
+Guidelines, specifications, and architecture for system status, downtime, work-in-progress, and 404 screens across the platform.
+
+### Overview
+- Standardized components representing platform states:
+  1. **Under Maintenance** (`@/components/under-maintenance`): Displayed when a tool, database, or sub-route is undergoing scheduled maintenance or temporary repairs.
+  2. **Under Construction** (`@/components/under-construction`): Displayed for newly announced tools, unreleased sections, or pages pending launch (e.g. root landing page `src/app/page.tsx`).
+  3. **Not Found** (`@/components/not-found`): Displayed when a user navigates to an invalid URL, deleted resource, or unhandled 404 route (e.g. root 404 page `src/app/not-found.tsx`).
+- Built around a unified design language:
+  - **Platform Cat Mascot**: Custom character illustrations matching each specific state.
+  - **Neutral, Restrained Chrome**: Plain muted status badges (`bg-muted border border-border text-muted-foreground`) without flashy yellow accents, vibrating animations, or distracting emoji sparkles.
+  - **Co-located Mascot & Badge**: Badge and mascot tightly grouped inside a single flex-column block (`gap-4 mb-8`) to eliminate unwanted whitespace drift.
+  - **Consistent Actions & Exploration**: Standardized navigation buttons with accessible 44px minimum touch targets and an opt-in suggestions grid highlighting core platform tools.
+  - **Haptic Tactility**: Tactile vibrations via the centralized `@/lib/haptics` utility.
+
+---
+
+### Mascot & Haptic Feedback Architecture
+
+#### 1. Mascot Illustration Assets
+The platform utilizes dedicated illustrations of the platform cat mascot for each screen state:
+- **Maintenance Mascot**: `/mascot-maintenance.png` — A grey tabby in round glasses and a work apron, holding a wrench and a gear.
+  - Container sizing: `w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64`
+- **Construction Mascot**: `/mascot-construction.png` — A grey tabby in glasses and a work apron, seated at a wooden workbench assembling glowing gears with a hard hat.
+  - Container sizing: `w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96` (scaled larger for hero presentation without pushing content off-screen).
+- **Not Found Mascot**: `/mascot-not-found.png` — A grey tabby in glasses and a work apron with X marks over both eyes, holding a magnifying glass and looking confused.
+  - Container sizing: `w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64`
+
+All mascots are rendered using Next.js `Image` with:
+- `fill` and `className="object-contain"` to preserve intrinsic aspect ratios without stretching.
+- `priority` flag enabled to prevent Largest Contentful Paint (LCP) delays.
+- Descriptive, accessible `alt` text detailing the mascot's attire and posture for screen readers.
+
+#### 2. Centralized Haptics Engine (`@/lib/haptics`)
+Haptic feedback is routed exclusively through `@/lib/haptics` (`src/lib/haptics.ts`), which wraps `web-haptics`:
+- **SSR Safety**: Guards against `window` / `navigator` access during Next.js server-side rendering by dynamically importing `web-haptics` inside a lazy client-side singleton.
+- **Singleton Lifecycle**: Avoids creating multiple `WebHaptics` instances across re-renders and component mounts.
+- **Semantic Named Presets**: Exposes clear semantic methods so call sites avoid hardcoding string literals:
+
+```tsx
+import { haptic } from "@/lib/haptics";
+
+// Usage across UI interactions:
+haptic.tap();     // Light tap — secondary buttons, back navigation, keyboard shortcuts
+haptic.press();   // Standard press — primary CTA buttons, card clicks, committed actions
+haptic.select();  // Discrete tick — tool exploration cards, tabs, segmented controls
+haptic.confirm(); // Positive outcome — form submissions, success states
+haptic.error();   // Negative outcome — validation errors, failed requests
+haptic.warn();    // Cautionary — irreversible or destructive operations
+```
+
+---
+
+### Component Specifications & Props
+
+#### 1. Under Maintenance (`UnderMaintenance`)
+- **Location**: `src/components/under-maintenance.tsx`
+- **Export**: Default (`import UnderMaintenance from "@/components/under-maintenance"`)
+- **Badge**: `<Wrench className="w-3 h-3" /> Under Maintenance`
+- **Actions**: "Back to Platform" link (`/platform`) with `haptic.tap()`
+- **Explore Grid**: Enabled by default (`showExploreSuggestions = true`)
+
+```tsx
+export interface UnderMaintenanceProps {
+  /** Optional custom title (default: "We're tinkering under the hood") */
+  title?: string;
+  /** Optional custom description (default: "Our resident cat engineer is refactoring...") */
+  description?: string;
+  /** Show a "Back to Platform" button (default: true) */
+  showBackButton?: boolean;
+  /** Show the "explore other tools" suggestion grid (default: true) */
+  showExploreSuggestions?: boolean;
+  /** Optional additional classes for layout overrides */
+  className?: string;
+}
+```
+
+#### 2. Under Construction (`UnderConstruction`)
+- **Location**: `src/components/under-construction.tsx`
+- **Export**: Default (`import UnderConstruction from "@/components/under-construction"`)
+- **Badge**: `<HardHat className="w-3 h-3" /> Under Construction`
+- **Actions**: Primary CTA button linking to `buttonHref` with `haptic.press()`
+- **Subtext**: Optional helper note beneath the primary CTA (e.g., revamp notices)
+- **Explore Grid**: Disabled by default (`showExploreSuggestions = false`)
+
+```tsx
+export interface UnderConstructionProps {
+  /** Page or section title (default: "This page is under construction") */
+  title?: string;
+  /** Explanatory description shown below the title (default: "We're working hard to get this page ready...") */
+  description?: string;
+  /** Label for the primary CTA button (default: "Head to the Platform") */
+  buttonText?: string;
+  /** Href for the primary CTA button (default: "/platform") */
+  buttonHref?: string;
+  /** Optional small sub-note displayed below the CTA */
+  subtext?: string;
+  /** Show the "explore other tools" suggestion grid (default: false) */
+  showExploreSuggestions?: boolean;
+  /** Optional additional classes for layout overrides */
+  className?: string;
+}
+```
+
+#### 3. Not Found (`NotFoundComponent`)
+- **Location**: `src/components/not-found.tsx`
+- **Export**: Default (`import NotFoundComponent from "@/components/not-found"`)
+- **Badge**: `<SearchX className="w-3 h-3" /> 404 — Not Found`
+- **Dual Actions**:
+  - Primary: "Back to Platform" (`/platform`) with `haptic.press()`
+  - Secondary: "Go back" (`router.back()`) with `haptic.tap()`
+- **Keyboard Shortcut**: Pressing `Escape` navigates to `/platform` with `haptic.tap()`. Automatically suppressed when focus is within `<input>`, `<textarea>`, or content-editable elements.
+- **Explore Grid**: Enabled by default (`showExploreSuggestions = true`)
+
+```tsx
+export interface NotFoundComponentProps {
+  /** Optional custom title (default: "Hmm… nothing here") */
+  title?: string;
+  /** Optional custom description (default: "The page you're looking for wandered off...") */
+  description?: string;
+  /** Show the "explore other tools" suggestion grid (default: true) */
+  showExploreSuggestions?: boolean;
+  /** Optional additional classes for layout overrides */
+  className?: string;
+}
+```
+
+---
+
+### Where to Use
+- **Root Landing Page (`src/app/page.tsx`)**: When the public marketing or home page is undergoing renovation, delegate to `<UnderConstruction />`.
+- **Global 404 Page (`src/app/not-found.tsx`)**: Default Next.js App Router 404 handler. Mount `<NotFoundComponent />`.
+- **Tool-Level Maintenance**: Mount `<UnderMaintenance />` inside a tool's `page.tsx` when an external service is unavailable, during scheduled data migrations, or when a tool is taken offline for maintenance.
+- **Dynamic Route Fallbacks**: Render `<NotFoundComponent />` with custom title and description when dynamic entities (such as an induction form ID, club slug, or ticket ID) cannot be located in the database.
+
+---
+
+### How to Use & Implementation
+
+#### Example 1: Root Landing Page Delegator (`src/app/page.tsx`)
+Keep the Next.js page route as a thin orchestrator:
+```tsx
+"use client";
+
+import UnderConstruction from "@/components/under-construction";
+
+export default function LandingPage() {
+  return (
+    <UnderConstruction
+      subtext="We're revamping the SG Website too! Stay tuned!"
+    />
+  );
+}
+```
+
+#### Example 2: Global 404 Handler (`src/app/not-found.tsx`)
+```tsx
+"use client";
+
+import NotFoundComponent from "@/components/not-found";
+
+export default function NotFound() {
+  return <NotFoundComponent />;
+}
+```
+
+#### Example 3: Tool-Specific Maintenance Guard
+```tsx
+import UnderMaintenance from "@/components/under-maintenance";
+
+export default function ToolPage({ params }: { params: { slug: string } }) {
+  const isToolUnderMaintenance = true; // Conditional check or feature flag
+
+  if (isToolUnderMaintenance) {
+    return (
+      <UnderMaintenance
+        title="Course Reviews is undergoing maintenance"
+        description="We're syncing the latest course catalogs and instructor rosters. Check back soon!"
+      />
+    );
+  }
+
+  return <div>{/* Normal tool content */}</div>;
+}
+```
+
+#### Example 4: Custom Scoped 404 with Custom Copy
+```tsx
+import NotFoundComponent from "@/components/not-found";
+
+export default function ClubNotFound() {
+  return (
+    <NotFoundComponent
+      title="Club or Department not found"
+      description="We couldn't locate this organisation in the campus directory. It may have been archived or renamed."
+      showExploreSuggestions={true}
+    />
+  );
+}
+```
+
+---
+
+### Guidelines & Gotchas
+- **Co-locate Badge and Mascot**: Always keep the status badge pill and mascot illustration grouped inside a single `flex flex-col items-center gap-4 mb-8` container. Do not place large headings or arbitrary margins between the badge and image.
+- **Avoid "Vibe-Coded" Aesthetics**: Keep status badges plain and restrained (`bg-muted border border-border text-muted-foreground`). Do **not** apply saturated yellow badges, rainbow gradients, glowing rings, or sparkle emoji. The cat mascot brings playful warmth; the UI chrome must remain clean and aligned with the platform design system.
+- **Aspect-Ratio & Responsive Image Containers**: Mascots must always be placed inside an explicit container (`relative w-48 h-48 ...`) and rendered with Next.js `Image` using `fill` and `className="object-contain"`. Never hardcode static width and height attributes on the `Image` itself without aspect-ratio protection.
+- **Button Touch Targets**: All action buttons must meet accessibility standards with a minimum touch target height of 44px (`min-h-[44px]`).
+- **Semantic Button Markup**: Always use `Button asChild` when wrapping Next.js `Link` components. This preserves semantic `<a>` tags for keyboard focus, right-click "Open in new tab", and screen reader accessibility while keeping shadcn button styling.
+- **Haptic Preset Discipline**:
+  - Use `haptic.press()` for primary call-to-actions.
+  - Use `haptic.tap()` for secondary actions, "Back" navigation, and Escape shortcuts.
+  - Use `haptic.select()` for explore grid links.
+  - Never call `new WebHaptics()` or import `web-haptics` directly in UI components — always import `{ haptic }` from `@/lib/haptics`.
+- **Keyboard Shortcut Safety**: When binding global keyboard shortcuts (such as `Escape` in `NotFoundComponent`), always verify that the active event target is not an `<input>`, `<textarea>`, or content-editable element (`!target.isContentEditable`).
+- **Thin Orchestrators**: Never put hundreds of lines of UI markup directly in `src/app/page.tsx` or `src/app/not-found.tsx`. Keep route files thin and delegate to the reusable component in `src/components/`.
+
 

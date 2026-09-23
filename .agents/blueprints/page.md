@@ -37,7 +37,6 @@
     ```tsx
     import { OrientationDialog } from "@/components/orientation-dialog"; //Only if the page cannot be made responsive
     import DeveloperCredits from "@/components/developer-credits";
-    import { DismissNewToolAlert } from "@/components/dismiss-new-tool-alert";
     export default function PageNameLayout({
         children,
     }:{
@@ -52,7 +51,6 @@
                 <TourManager />
                 <NewToolBanner className="" /> //Style as necessary
                 <div className=""> //Add stlying here as necessary for the page
-                    <DismissNewToolAlert storageKey=""/> //Refer to the instructions. 
                     <OrientationDialog /> //Only if present. 
                     {children}
                 </div>

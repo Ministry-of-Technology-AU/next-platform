@@ -2,15 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  Wrench,
+  SearchX,
   ArrowLeft,
+  RotateCcw,
   BookOpen,
   Calendar,
   GraduationCap,
 } from "lucide-react";
 import { haptic } from "@/lib/haptics";
+import { useEffect } from "react";
 
 const EXPLORE_LINKS = [
   { label: "Course Reviews", href: "/platform/course-reviews", icon: BookOpen },
@@ -19,49 +22,66 @@ const EXPLORE_LINKS = [
   { label: "Semester Planner", href: "/platform/semester-planner", icon: GraduationCap },
 ];
 
-interface UnderMaintenanceProps {
+interface NotFoundComponentProps {
   /** Optional custom title. */
   title?: string;
   /** Optional custom description. */
   description?: string;
-  /** Show a "Back to Platform" button. Defaults to true. */
-  showBackButton?: boolean;
   /** Show the "explore other tools" suggestion grid. Defaults to true. */
   showExploreSuggestions?: boolean;
   /** Optional additional classes for layout overrides. */
   className?: string;
 }
 
-export default function UnderMaintenance({
-  title = "We're tinkering under the hood",
-  description = "Our resident cat engineer is refactoring the hamster wheels and oiling the pixel gears. This page will be back before you finish your chai.",
-  showBackButton = true,
+export default function NotFoundComponent({
+  title = "Hmm… nothing here",
+  description = "The page you're looking for wandered off. Maybe it mistyped its own URL. (It happens to the best of us.)",
   showExploreSuggestions = true,
   className = "",
-}: UnderMaintenanceProps) {
+}: NotFoundComponentProps) {
+  const router = useRouter();
+
+  /* Keyboard shortcut: Escape → go to platform */
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      if (
+        e.key === "Escape" &&
+        target.tagName !== "INPUT" &&
+        target.tagName !== "TEXTAREA" &&
+        !target.isContentEditable
+      ) {
+        void haptic.tap();
+        router.push("/platform");
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
+
   return (
     <div
       className={`flex flex-col items-center px-4 sm:px-6 py-10 sm:py-14 ${className}`}
       role="main"
-      aria-label="Page under maintenance"
+      aria-label="404 – Page not found"
     >
-      {/* ---- Mascot + badge stacked together ---- */}
+      {/* ---- Badge + mascot stacked close together ---- */}
       <div className="flex flex-col items-center gap-4 mb-8">
         {/* Badge */}
         <div
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-muted-foreground text-xs font-medium tracking-wide"
           role="status"
-          aria-label="Status: Under maintenance"
+          aria-label="Error: 404 Page not found"
         >
-          <Wrench className="w-3 h-3" aria-hidden="true" />
-          Under Maintenance
+          <SearchX className="w-3 h-3" aria-hidden="true" />
+          404 — Not Found
         </div>
 
         {/* Mascot */}
         <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64">
           <Image
-            src="/mascot-maintenance.png"
-            alt="The platform cat mascot — a grey tabby in round glasses and a work apron, holding a wrench and a gear"
+            src="/mascot-not-found.png"
+            alt="The platform cat mascot — a grey tabby in glasses and a work apron with X marks over both eyes, holding a magnifying glass and looking confused"
             fill
             className="object-contain"
             priority
@@ -78,26 +98,45 @@ export default function UnderMaintenance({
         {description}
       </p>
 
-      {/* ---- Back Button ---- */}
-      {showBackButton && (
+      {/* ---- Actions ---- */}
+      <div
+        className="flex flex-col sm:flex-row items-center gap-3 mb-10"
+        role="group"
+        aria-label="Recovery actions"
+      >
+        {/* Primary: back to platform */}
         <Button
           asChild
-          variant="animatedGhost"
-          className="gap-2 mb-10 min-h-[44px] px-5"
-          onClick={() => void haptic.tap()}
+          variant="animated"
+          className="gap-2 min-h-[44px] px-6"
+          onClick={() => void haptic.press()}
         >
           <Link href="/platform" aria-label="Go back to Platform home">
             <ArrowLeft className="w-4 h-4" aria-hidden="true" />
             Back to Platform
           </Link>
         </Button>
-      )}
+
+        {/* Secondary: browser back */}
+        <Button
+          variant="animatedGhost"
+          className="gap-2 min-h-[44px] px-5"
+          onClick={() => {
+            void haptic.tap();
+            router.back();
+          }}
+          aria-label="Go back to the previous page"
+        >
+          <RotateCcw className="w-4 h-4" aria-hidden="true" />
+          Go back
+        </Button>
+      </div>
 
       {/* ---- Explore suggestions ---- */}
       {showExploreSuggestions && (
         <nav aria-label="Other tools to explore" className="w-full max-w-md">
           <p className="text-xs uppercase tracking-widest text-muted-foreground text-center mb-4 font-semibold">
-            Meanwhile, explore
+            Or explore something else
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {EXPLORE_LINKS.map(({ label, href, icon: Icon }) => (
@@ -118,9 +157,18 @@ export default function UnderMaintenance({
         </nav>
       )}
 
+      {/* ---- Keyboard hint ---- */}
+      <p className="mt-10 text-[11px] text-muted-foreground/50 text-center">
+        Press{" "}
+        <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted text-muted-foreground text-[10px] font-mono">
+          Esc
+        </kbd>{" "}
+        to return to Platform
+      </p>
+
       {/* ---- Footer quip ---- */}
-      <p className="mt-12 text-[11px] text-muted-foreground/50 italic text-center">
-        &quot;It&apos;s not a bug, it&apos;s a scheduled feature vacation.&quot;
+      <p className="mt-3 text-[11px] text-muted-foreground/50 italic text-center">
+        &quot;404: Cat not found. Try looking under the bed.&quot;
         {" "}— Ministry of Technology
       </p>
     </div>
