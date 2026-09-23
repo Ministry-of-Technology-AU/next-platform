@@ -34,14 +34,13 @@ export const organisationSidebar: SidebarInterface = {
       id: "management",
       title: "Management",
       items: [
-        { title: "Dashboard", icon: Home, href: "/", absolute: true },
-        { title: "Advertisements", icon: Megaphone, href: "/ads", absolute: true },
-        { title: "Inductions", icon: FileUser, href: "/inductions", absolute: true },
+        { title: "Dashboard", icon: Home, href: "/" },
+        { title: "Advertisements", icon: Megaphone, href: "/ads" },
+        { title: "Inductions", icon: FileUser, href: "/inductions" },
         {
           title: "When2meet",
           icon: CalendarSearch,
           href: "/platform/when2meet",
-          absolute: true,
         },
       ],
     },

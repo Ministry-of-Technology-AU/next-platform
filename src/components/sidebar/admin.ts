@@ -46,7 +46,7 @@ export const adminSidebar: SidebarInterface = {
           absolute: true,
           requiresAccess: "organization",
         },
-        { title: "My Profile", icon: UserCog, href: "/profile", absolute: true },
+        { title: "My Profile", icon: UserCog, href: "/profile" },
       ],
     },
   ],

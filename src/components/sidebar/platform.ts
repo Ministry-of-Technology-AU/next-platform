@@ -77,10 +77,11 @@ export const platformSidebar: SidebarInterface = {
       id: "home",
       title: "Home",
       items: [
-        { title: "Dashboard", icon: Home, href: "/", absolute: true },
+        { title: "Dashboard", icon: Home, href: "/" },
         {
           title: "Organisations",
           icon: Library,
+          absolute: true,
           href: "/organisations",
           roles: ["organization", "ashoka_admin"],
           requiresAccess: "organization",
