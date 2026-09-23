@@ -7,7 +7,7 @@ metadata:
   version: "1.0"
 ---
 
-Install `web-haptics` (`npm i web-haptics`) and add haptic feedback to the app following these rules:
+Install `web-haptics` (if not already present, ask the user to run `npm i web-haptics`) and add haptic feedback to the app following these rules:
 
 ## Package: web-haptics
 

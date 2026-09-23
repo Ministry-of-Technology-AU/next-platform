@@ -5,12 +5,12 @@
 - To make context and user intent very clear, ask questions whenever needed for clarifications. 
 - Before creating new components, always check `src/components` to see if a component already exists that can be used. Additionally, always check the /shadcn-ui skill and the shadcn MCP if a similar component exists. 
     - For components, instead of writing code yourself (incase CLI doesn't work), try asking the user to source the code, or enter a particular command. Only write the code yourself if explicitly asked to. 
-- For any frontend related tasks, follow the instructions in `.agents/instructions/FRONTEND.md`. 
-- If given a PRD, clarify whether a wireframe needs to be made. If yes, then first refer to the wireframing section in `.agents/instructions/FRONTEND.md`. Then, draft an implementation plan and confirm with the user before starting implementation. 
+- For any frontend related tasks, follow the instructions in `.agents/context/frontend.md`. 
+- If given a PRD, clarify whether a wireframe needs to be made. If yes, then first refer to the wireframing section in `.agents/context/frontend.md`. Then, draft an implementation plan and confirm with the user before starting implementation. 
 - Always handle nulls properly.
 - Always use `platform.log()` instead of `console.log()`
-- When creating a new tool from scratch (after wireframe creation is done/bypassed), refer to `.agents/instructions/PAGE.md` for instructions.
-- `.agents/ARCHITECTURE.md` tells you overall about the high level structure of the repo. It is also completely indexed using graphify, so refer to the `graphify` section to understand it. 
+- When creating a new tool from scratch (after wireframe creation is done/bypassed), refer to `.agents/blueprints/page.md` for instructions.
+- `.agents/context/architecture.md` tells you overall about the high level structure of the repo. It is also completely indexed using graphify, so refer to the `graphify` section to understand it. 
 - Always use the `/nextjs-best-practices` skill and `/nextjs-app-router-patterns` to understand the best practices while working in this repo, since it is next based. 
 
 

@@ -14,7 +14,7 @@ This skill tells you how to add one. The component itself is documented in `.age
 
 ## When to use this skill
 
-- You are building a new tool page (also see `.agents/instructions/PAGE.md`).
+- You are building a new tool page (also see `.agents/blueprints/page.md`).
 - You are adding a tour to a tool that does not have one.
 - You are changing, adding, or removing tour steps.
 - You are checking a tour for accessibility.

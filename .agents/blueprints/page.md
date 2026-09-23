@@ -21,12 +21,12 @@
 - Try to make the components general and modular. Don't over-modularise things, but try to not make pages too big. 
 - Absolutely minimize the number of client side API calls that are made. Unless necessary, make API calls from the server side rendered `page.tsx` file, and pass it down to the client components via props.
 - Avoid hardcoding API urls. `NEXT_PUBLIC_BASE_URL` exists in `.env`, which can be used as the base URL for the API. 
-- Unless absolutely necessary, never interact with strapi, google workspace, or other APIs directly. Always create and interact with a server side route (check `.agents/instructions/ROUTE.md` for instructions).
+- Unless absolutely necessary, never interact with strapi, google workspace, or other APIs directly. Always create and interact with a server side route (check `.agents/blueprints/route.md` for instructions).
 - Use shadcn based components for the UI. Refer to the documentation at https://ui.shadcn.com/ and the available components in `@/components`. Use the /shadcn-ui skill for reference. 
-- Once a page is fully created, ask the user to proceed with creating a guided tour. Refer to the `GUIDED TOUR` section in `.agents/instructions/COMPONENTS.md` for more instructions. 
+- Once a page is fully created, ask the user to proceed with creating a guided tour. Refer to the `GUIDED TOUR` section in `.agents/blueprints/components.md` for more instructions. 
 - Upon completion of a page, ensure that the page is fully responsive and works well on both mobile and desktop devices. In case a page cannot be made responsive properly, flag it with the user, and add the `@/components/orientation-dialog.tsx` component. 
 - Always have a Page Title (`@/components/page-title.tsx`) and Developer Credits (`@/components/developer-credits.tsx`) component in the page. Developer Credits will be in `layout.tsx` if present, or `page.tsx` otherwise. Page Title will always be in `page.tsx`
-- Once a page is fully created and ready to deploy, add the `New Tool Banner` to the page, and update the `What's new dialog`, `New Tool Alert`, and `Sidebar` accordingly. Refer to `.agents/instructions/COMPONENTS.md` for instructions. 
+- Once a page is fully created and ready to deploy, add the `New Tool Banner` to the page, and update the `What's new dialog`, `New Tool Alert`, and `Sidebar` accordingly. Refer to `.agents/blueprints/components.md` for instructions. 
 
 ## `layout.tsx` Structure
 - `layout.tsx` is a server-side rendered component that is used to wrap the page in a layout. 
