@@ -1,0 +1,40 @@
+{
+  "categories": [
+    {
+      "id": "admin",
+      "title": "Administration",
+      "items": [
+        {
+          "title": "Organisations",
+          "icon": "FileStack",
+          "href": "/organisations"
+        }
+      ]
+    },
+    {
+      "id": "portals",
+      "title": "Portals",
+      "items": [
+        {
+          "title": "Student Platform",
+          "icon": "GalleryHorizontalEnd",
+          "href": "/platform",
+          "absolute": true
+        },
+        {
+          "title": "Organisations Portal",
+          "icon": "Library",
+          "href": "/organisations",
+          "absolute": true,
+          "requiresAccess": "organization"
+        },
+        {
+          "title": "My Profile",
+          "icon": "UserCog",
+          "href": "/profile",
+          "absolute": true
+        }
+      ]
+    }
+  ]
+}

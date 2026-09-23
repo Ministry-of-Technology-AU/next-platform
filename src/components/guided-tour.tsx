@@ -733,7 +733,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
   // Ref so goToStep can recurse (skip missing steps) without self-reference
   const goToStepRef = useRef<
     (stepList: TourStepConfig[], index: number, direction: 1 | -1) => void
-  >(() => {});
+  >(() => { });
 
   /**
    * Move to `index`, running the step's trigger/onOpen first and waiting for its

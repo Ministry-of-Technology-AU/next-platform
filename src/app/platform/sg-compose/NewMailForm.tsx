@@ -4,8 +4,8 @@ import { useState } from "react";
 import { DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-export default function NewMailForm(onSubmit: ()=>void) {
-    const [category, setCategory] = useState("");
+export default function NewMailForm(onSubmit: () => void) {
+  const [category, setCategory] = useState("");
   return (
     <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
       {" "}
@@ -53,11 +53,10 @@ export default function NewMailForm(onSubmit: ()=>void) {
               isDefault: true,
               email: "students@ashoka.edu.in",
             },
-            { value: "asp25", label: "ASP25", email: "asp25@ashoka.edu.in" },
-            { value: "ug26", label: "UG26", email: "ug26@ashoka.edu.in" },
             { value: "ug2023", label: "UG2023", email: "ug2023@ashoka.edu.in" },
             { value: "ug2024", label: "UG2024", email: "ug2024@ashoka.edu.in" },
             { value: "ug2025", label: "UG2025", email: "ug2025@ashoka.edu.in" },
+            { value: "ug2026", label: "UG2026", email: "ug2026@ashoka.edu.in" },
           ]}
         />
       </Form.FormContainer>
@@ -70,7 +69,7 @@ export default function NewMailForm(onSubmit: ()=>void) {
         title="Mail Draft"
         placeholder="Make this a rich text editor"
         value=""
-        onChange={()=>{}}
+        onChange={() => { }}
         isRequired
       />{" "}
       {/** TODO: MAKE THIS A RICH TEXT EDITOR */}

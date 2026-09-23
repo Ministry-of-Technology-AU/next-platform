@@ -1,17 +1,18 @@
 import { strapiGet } from "@/lib/apis/strapi";
 import { auth } from "@/auth"; // ← this is the new v5 way
-import { getUserIdByEmail } from "@/lib/userid";
+import { getUserIdByEmail, getOrganisationIdByUserId } from "@/lib/userid";
 import { strapiPut } from "@/lib/apis/strapi";
 import { NextRequest } from "next/server";
 import { uploadImageToCloudinary } from "@/lib/apis/cloudinary";
+import { addEvent, getEvents, updateEvent, deleteEvent } from "@/lib/apis/calendar";
+import type { GoogleEvent } from "@/lib/apis/calendar";
+import { normalizeEndDateToEndOfDay } from "@/lib/date-utils";
 
 export async function GET() {
     // 🔐 Get session (v5 style)
     const session = await auth();
 
     const email = session?.user?.email;
-
-
 
     // 🆔 Get user ID from email
     if (email) {
@@ -24,6 +25,7 @@ export async function GET() {
             populate: {
                 organisations: {
                     populate: {
+                        profile: true,
                         circle1_humans: true,
                         circle2_humans: true,
                         members: true,
@@ -32,7 +34,60 @@ export async function GET() {
             },
         });
 
-        const organisation = user?.organisations?.[0] || null;
+        let organisation = user?.organisations?.[0] || null;
+
+        // If user.organisations is empty, lookup using getOrganisationIdByUserId (for circle1/circle2 leadership)
+        if (!organisation) {
+            const orgId = await getOrganisationIdByUserId(userId);
+            if (orgId) {
+                const orgRes = await strapiGet(`organisations/${orgId}`, {
+                    populate: {
+                        profile: true,
+                        circle1_humans: true,
+                        circle2_humans: true,
+                        members: true,
+                    }
+                });
+                const rawData = orgRes?.data || orgRes;
+                if (rawData) {
+                    organisation = rawData.attributes ? { id: rawData.id, ...rawData.attributes } : rawData;
+                }
+            }
+        }
+
+        if (organisation) {
+            const flattenRelation = (rel: any) => {
+                if (!rel) return [];
+                if (Array.isArray(rel)) return rel;
+                if (Array.isArray(rel.data)) {
+                    return rel.data.map((item: any) => item.attributes ? { id: item.id, ...item.attributes } : item);
+                }
+                if (rel.data && typeof rel.data === 'object') {
+                    return rel.data.attributes ? { id: rel.data.id, ...rel.data.attributes } : rel.data;
+                }
+                return rel;
+            };
+
+            organisation.circle1_humans = flattenRelation(organisation.circle1_humans);
+            organisation.circle2_humans = flattenRelation(organisation.circle2_humans);
+            organisation.members = flattenRelation(organisation.members);
+            organisation.profile = flattenRelation(organisation.profile);
+            organisation.logo_url = (Array.isArray(organisation.profile) ? organisation.profile[0]?.profile_url : organisation.profile?.profile_url) || user?.profile_url || null;
+
+            // Disallow rolling basis: if induction is true but deadline is missing or past, mark induction as false
+            if (organisation.induction) {
+                const end = organisation.induction_end;
+                if (!end) {
+                    organisation.induction = false;
+                } else {
+                    const endIso = normalizeEndDateToEndOfDay(end);
+                    const endTime = endIso ? new Date(endIso).getTime() : new Date(end).getTime();
+                    if (isNaN(endTime) || endTime < Date.now()) {
+                        organisation.induction = false;
+                    }
+                }
+            }
+        }
 
         return new Response(JSON.stringify({ organisation }), { status: 200 });
     }
@@ -41,15 +96,50 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
     try {
+        const session = await auth();
+        const email = session?.user?.email;
+        if (!email) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+        }
+
+        const userId = await getUserIdByEmail(email);
+        if (!userId) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+        }
+
+        const userOrgId = await getOrganisationIdByUserId(userId);
+        if (!userOrgId) {
+            return new Response(JSON.stringify({ error: "Forbidden: You are not associated with any organisation." }), { status: 403 });
+        }
+
         const formData = await request.formData();
 
         const organisationId = formData.get('organisationId') as string;
+
+        if (String(userOrgId) !== String(organisationId)) {
+            return new Response(JSON.stringify({ error: "Forbidden: You can only edit details for your own organisation." }), { status: 403 });
+        }
         const name = formData.get('name') as string;
         const type = formData.get('type') as string;
         const short_description = formData.get('short_description') as string;
         const description = formData.get('description') as string;
-        const induction = formData.get('induction') === 'true';
-        const induction_end = formData.get('induction_end') as string;
+        const rawInduction = formData.get('induction') === 'true';
+        const rawInductionEnd = (formData.get('induction_end') as string) || null;
+
+        // Disallow rolling basis: if induction is true, a valid future deadline is required
+        let induction = rawInduction;
+        let induction_end = rawInductionEnd;
+        if (induction) {
+            if (!induction_end) {
+                induction = false; // Rolling basis not permitted
+            } else {
+                const endIso = normalizeEndDateToEndOfDay(induction_end);
+                const endTime = endIso ? new Date(endIso).getTime() : new Date(induction_end).getTime();
+                if (isNaN(endTime) || endTime < Date.now()) {
+                    induction = false; // Deadline has crossed
+                }
+            }
+        }
         const induction_description = formData.get('induction_description') as string;
         const instagram = formData.get('instagram') as string;
         const linkedin = formData.get('linkedin') as string;
@@ -59,12 +149,12 @@ export async function PUT(request: NextRequest) {
         let circle1_humans = [];
         let circle2_humans = [];
         let members = [];
-        
+
         try {
             circle1_humans = JSON.parse(formData.get('circle1_humans') as string || '[]');
             circle2_humans = JSON.parse(formData.get('circle2_humans') as string || '[]');
             members = JSON.parse(formData.get('members') as string || '[]');
-        } catch(e) {
+        } catch (e) {
             console.error("Failed to parse array fields", e);
         }
 
@@ -111,6 +201,78 @@ export async function PUT(request: NextRequest) {
 
         if (bannerUrl) {
             updateData.banner_url = bannerUrl;
+        }
+
+        // Fetch existing organisation for calendar event ID and name
+        const existingOrgRes = await strapiGet(`organisations/${organisationId}`, {
+            fields: ['id', 'name', 'induction', 'induction_end', 'calendar_event_id']
+        });
+        const existingOrg = existingOrgRes?.data?.attributes || existingOrgRes?.data || existingOrgRes?.attributes || existingOrgRes;
+        const existingEventId = existingOrg?.calendar_event_id || null;
+        const orgName = name || existingOrg?.name || 'Unknown Organisation';
+
+        let calendarEventId = existingEventId;
+        const calId = process.env.INDUCTIONS_CALENDAR_ID || undefined;
+
+        if (induction && induction_end) {
+            const startDateStr = new Date().toISOString().split('T')[0];
+            const endDateStr = new Date(induction_end).toISOString().split('T')[0];
+
+            const eventData: GoogleEvent = {
+                summary: `${orgName} — Induction Deadline`,
+                description: `Inductions are open for ${orgName}. Deadline is ${induction_end}.`,
+                start: {
+                    date: startDateStr,
+                },
+                end: {
+                    date: endDateStr,
+                },
+                guestsCanSeeOtherGuests: false,
+                reminders: {
+                    useDefault: false,
+                    overrides: [
+                        // { method: 'email', minutes: 2880 }, // 48 hours before (email)
+                        { method: 'popup', minutes: 2880 }, // 48 hours before (popup)
+                        // { method: 'email', minutes: 1440 }, // 24 hours before (email)
+                        { method: 'popup', minutes: 1440 }, // 24 hours before (popup)
+                    ],
+                },
+            };
+
+            if (!calendarEventId) {
+                try {
+                    const createdEvent = await addEvent(calId, eventData);
+                    calendarEventId = createdEvent?.id || null;
+                    if (calendarEventId) {
+                        updateData.calendar_event_id = calendarEventId;
+                    }
+                } catch (calError) {
+                    console.error('Error creating calendar event:', calError);
+                }
+            } else {
+                try {
+                    const existingEvent = await getEvents(calId, '', '', calendarEventId);
+                    if (existingEvent) {
+                        const existingAttendees = (existingEvent as any).attendees || [];
+                        await updateEvent(calId, calendarEventId, {
+                            ...eventData,
+                            attendees: existingAttendees,
+                        });
+                    }
+                } catch (calError) {
+                    console.error('Error updating calendar event:', calError);
+                }
+            }
+        } else {
+            if (calendarEventId) {
+                try {
+                    await deleteEvent(calId, calendarEventId);
+                    calendarEventId = null;
+                    updateData.calendar_event_id = null;
+                } catch (calError) {
+                    console.error('Error deleting calendar event:', calError);
+                }
+            }
         }
 
         await strapiPut(`organisations/${organisationId}`, {

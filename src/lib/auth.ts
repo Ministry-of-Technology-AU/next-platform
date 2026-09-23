@@ -70,8 +70,20 @@ export function isOrganizationMember(user: AuthenticatedUser): boolean {
 }
 
 /**
- * Check if user is student (has _ug in email)
+ * Check if user is student (has _ug, _vsp, _yif, _asp, etc. in email or role is student)
  */
 export function isStudent(user: AuthenticatedUser): boolean {
-  return user.email.includes('_ug')
+  if (user.role === 'student') return true;
+  const email = (user.email || '').toLowerCase();
+  return (
+    email.includes('_ug') ||
+    email.includes('_asp') ||
+    email.includes('_vsp') ||
+    email.includes('_yif') ||
+    email.includes('_phd') ||
+    email.includes('_msc') ||
+    email.includes('_ma') ||
+    email.includes('_mls') ||
+    email.includes('_fellow')
+  );
 }

@@ -121,17 +121,17 @@ export default function RTIForm() {
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
           <p className="text-sm text-blue-800 dark:text-blue-200">
             Information will be posted on the{" "}
-            <a 
-              href="https://drive.google.com/drive/folders/0B1MDFq4W1AY7NktWVVRMMGJtb2s?resourcekey=0-ekyASsNU1kc1WI2g_YPa-g&usp=drive_link" 
-              target="_blank" 
+            <a
+              href="https://drive.google.com/drive/folders/0B1MDFq4W1AY7NktWVVRMMGJtb2s?resourcekey=0-ekyASsNU1kc1WI2g_YPa-g&usp=drive_link"
+              target="_blank"
               rel="noopener noreferrer"
               className="underline hover:no-underline font-medium"
             >
               SG Public Drive
             </a>
             . If you share your email, a response will be emailed to you directly as well. Please refer to the{" "}
-            <a 
-              href="https://docs.google.com/document/d/1NJLt-HrDHPPwrnL7vn9axOdE98LeOsOqFM-LiBIM7NE/edit?tab=t.0" 
+            <a
+              href="https://docs.google.com/document/d/1aHmp9wXIXP4grHnM30VYOubBNKViZYY_wPuvvmohJZo/edit?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:no-underline font-medium"
@@ -140,7 +140,7 @@ export default function RTIForm() {
             </a>{" "}
             for more details.
           </p>
-        </div>        
+        </div>
 
         {!anonymous && (
           <>
@@ -164,7 +164,7 @@ export default function RTIForm() {
             />
           </>
         )}
-        
+
         <Form.CheckboxComponent
           title="Submit Anonymously"
           value={anonymous}
@@ -232,11 +232,10 @@ export default function RTIForm() {
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-              isDragActive
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${isDragActive
                 ? "border-primary bg-primary/5"
                 : "border-input hover:border-primary"
-            }`}
+              }`}
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />

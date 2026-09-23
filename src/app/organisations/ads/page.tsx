@@ -2,6 +2,8 @@ import AdsManagementClient from './ads-client';
 import { Advertisement } from '@/components/landing-page/data/types';
 import { cookies } from 'next/headers';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Server component that fetches ads via API route
  */

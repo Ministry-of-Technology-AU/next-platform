@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Lock, Unlock, Palette, Trash2, CalendarPlus } from "lucide-react";
+import { X, Lock, Unlock, Palette, Trash2, CalendarPlus, GraduationCap } from "lucide-react";
 import { formatProfessorName, slotsOverlap } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -180,8 +180,12 @@ export function TimetableGrid({
   const gridCols = hasSaturdayCourse ? "grid-cols-7" : "grid-cols-6";
   const lunchColSpan = hasSaturdayCourse ? "col-span-6" : "col-span-5";
 
+  const totalCredits = courses.reduce((sum, c) => sum + (c.credits ?? 0), 0);
+  const hasCreditsData = courses.some(c => typeof c.credits === 'number');
+
   return (
-    <ScrollArea className="w-full rounded-md border" type="always">
+    <div className="flex flex-col gap-1.5">
+      <ScrollArea className="w-full rounded-md border" type="always">
       <div
         id={id}
         className={`${hasSaturdayCourse ? "min-w-[700px] md:min-w-[950px]" : "min-w-[600px] md:min-w-[800px]"} border-b border-r rounded-lg overflow-hidden`}
@@ -342,5 +346,14 @@ export function TimetableGrid({
       </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
+    {hasCreditsData && courses.length > 0 && (
+      <div className="flex justify-end">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/40 dark:bg-secondary/15 backdrop-blur-sm border border-secondary/60 dark:border-secondary/40 text-secondary-foreground dark:text-foreground text-sm font-semibold select-none">
+          <GraduationCap className="h-4 w-4" />
+          <span>{totalCredits} Credits</span>
+        </div>
+      </div>
+    )}
+    </div>
   );
 }

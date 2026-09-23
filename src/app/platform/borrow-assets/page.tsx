@@ -1,3 +1,20 @@
+import UnderMaintenance from "@/components/under-maintenance";
+
+export default function Home() {
+  return (
+    <UnderMaintenance
+      title="Borrow Assets is getting a tune-up"
+      description="We're upgrading the borrowing system so you can snag gadgets even faster. Sit tight — the inventory will be back shortly."
+    />
+  );
+}
+
+/* ============================================================
+ * ORIGINAL PAGE — UNDER MAINTENANCE
+ * Uncomment the block below and remove the component above
+ * to restore the original page.
+ * ============================================================
+
 import { BorrowAssetsClient } from './client';
 import PageTitle from '@/components/page-title';
 import { ShoppingBag } from 'lucide-react';
@@ -48,3 +65,5 @@ export default async function Home() {
     </div>
   );
 }
+
+============================================================ */

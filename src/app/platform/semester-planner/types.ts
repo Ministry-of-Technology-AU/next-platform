@@ -7,7 +7,7 @@ export interface Course {
   location: string;
   description: string;
   prerequisites: string[];
-  // credits: number;
+  credits?: number;
   timeSlots: TimeSlot[];
   hasSaturday: boolean;
 }

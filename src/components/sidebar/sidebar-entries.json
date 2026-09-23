@@ -18,6 +18,11 @@
           "title": "Games and Puzzles",
           "icon": "Puzzle",
           "href": "/games"
+        },
+        {
+          "title": "Request for Information",
+          "icon": "BadgeInfo",
+          "href": "/sg-rti"
         }
       ]
     },
@@ -60,6 +65,12 @@
           "title": "Organisations Catalogue",
           "icon": "GalleryHorizontalEnd",
           "href": "/organisations-catalog"
+        },
+        {
+          "title": "Inductions",
+          "icon": "FileUser",
+          "href": "/inductions",
+          "isNew": true
         },
         {
           "title": "When2meet",
@@ -109,6 +120,13 @@
       "id": "my-resources",
       "title": "My Resources",
       "items": [
+        {
+          "title": "Organisations",
+          "icon": "Library",
+          "href": "/organisations",
+          "absolute": true,
+          "requiresAccess": "organization"
+        },
         {
           "title": "Ashokan Around",
           "icon": "MapPinned",

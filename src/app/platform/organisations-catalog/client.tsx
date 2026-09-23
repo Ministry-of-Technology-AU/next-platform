@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +19,9 @@ import { CategoryColorsProvider } from './_components/category-colors-context';
 interface CataloguePageProps {
   initialOrganizations: Organization[];
   initialError: string | null;
+  initialTrackedOrgIds: string[];
+  initialChecklist: any[];
+  initialPreferences: UserPreferences | null;
 }
 
 interface UserPreferences {
@@ -26,14 +30,237 @@ interface UserPreferences {
   categoryColors: Record<string, string>;
 }
 
-export function CataloguePage({ initialOrganizations, initialError }: CataloguePageProps) {
+const DEFAULT_BANNER_URL = 'https://res.cloudinary.com/dslawnz50/image/upload/v1769686905/platform-ads/1769686891126-ad-banner-1769686891125-orgs_catalogue_default.jpg';
+const ORGS_STORAGE_KEY = 'ashoka_orgs_catalog_cache_v3';
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+export function isDefaultBanner(url: string | null | undefined): boolean {
+  if (!url || typeof url !== 'string') return true;
+  const trimmed = url.trim().toLowerCase();
+  if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined') return true;
+  if (trimmed.includes('orgs_catalogue_default')) return true;
+  if (trimmed.includes('1769686891126-ad-banner-1769686891125-orgs_catalogue_default')) return true;
+  if (trimmed.includes('1769686905') && trimmed.includes('default')) return true;
+  if (trimmed === '/orgs_catalogue_default.png' || trimmed.endsWith('/orgs_catalogue_default.png')) return true;
+  if (trimmed === DEFAULT_BANNER_URL.toLowerCase()) return true;
+  return false;
+}
+
+export function isTechMin(org: Organization): boolean {
+  if (!org) return false;
+  if (String(org.id) === '1' || (org as any).id === 1) return true;
+  const name = (org.name || '').toLowerCase().trim();
+  const email = (org.email || '').toLowerCase().trim();
+  const desc = (org.description || '').toLowerCase();
+  return (
+    name === 'ministry of technology' ||
+    name.includes('ministry of technology') ||
+    name.includes('tech min') ||
+    name.includes('tech ministry') ||
+    name.includes('technology ministry') ||
+    email.startsWith('tech.ministry') ||
+    email.startsWith('technology.ministry') ||
+    desc.includes('ministry of technology')
+  );
+}
+
+export function hasCustomBanner(org: Organization): boolean {
+  if (isDefaultBanner(org.bannerUrl)) return false;
+  if (typeof org.hasBanner === 'boolean') return org.hasBanner;
+  return true;
+}
+
+export function sortOrganisations(list: Organization[]): Organization[] {
+  return [...list].sort((a, b) => {
+    // 1. Tech Min is ALWAYS first
+    const aTechMin = isTechMin(a);
+    const bTechMin = isTechMin(b);
+    if (aTechMin && !bTechMin) return -1;
+    if (bTechMin && !aTechMin) return 1;
+
+    // 2. Orgs with custom banner come before orgs without banner
+    const aBanner = hasCustomBanner(a);
+    const bBanner = hasCustomBanner(b);
+    if (aBanner && !bBanner) return -1;
+    if (bBanner && !aBanner) return 1;
+
+    // 3. Alphabetical order within each group (row-wise)
+    return (a.name || '').trim().localeCompare((b.name || '').trim(), undefined, { sensitivity: 'base' });
+  });
+}
+
+export function CataloguePage({ 
+  initialOrganizations, 
+  initialError,
+  initialTrackedOrgIds,
+  initialChecklist,
+  initialPreferences 
+}: CataloguePageProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filters, setFilters] = React.useState<Set<OrganizationType>>(new Set());
   const [showOnlyPreferences, setShowOnlyPreferences] = React.useState(false);
-  const [organizations] = React.useState<Organization[]>(initialOrganizations);
+  const [organizations, setOrganizations] = React.useState<Organization[]>(() => {
+    if (initialOrganizations && initialOrganizations.length > 0) {
+      return sortOrganisations(initialOrganizations);
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(ORGS_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS && Array.isArray(parsed?.organizations)) {
+            return sortOrganisations(parsed.organizations);
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return [];
+  });
   const [error] = React.useState<string | null>(initialError);
-  const [userPreferences, setUserPreferences] = React.useState<UserPreferences | null>(null);
+  const [userPreferences, setUserPreferences] = React.useState<UserPreferences | null>(initialPreferences);
   const [preferencesLoading, setPreferencesLoading] = React.useState(false);
+
+  // Sync / update 12-hour localStorage cache
+  React.useEffect(() => {
+    if (initialOrganizations && initialOrganizations.length > 0) {
+      const sorted = sortOrganisations(initialOrganizations);
+      setOrganizations(sorted);
+      try {
+        localStorage.setItem(
+          ORGS_STORAGE_KEY,
+          JSON.stringify({ organizations: sorted, timestamp: Date.now() })
+        );
+      } catch {
+        /* ignore */
+      }
+    } else {
+      try {
+        const stored = localStorage.getItem(ORGS_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS && Array.isArray(parsed?.organizations)) {
+            setOrganizations(sortOrganisations(parsed.organizations));
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [initialOrganizations]);
+
+  // Tracking state
+  const [trackedOrgIds, setTrackedOrgIds] = React.useState<Set<string>>(new Set(initialTrackedOrgIds));
+  const [trackingLoading, setTrackingLoading] = React.useState<Set<string>>(new Set());
+
+  // Checklist state
+  const [checklistItems, setChecklistItems] = React.useState<any[]>(initialChecklist);
+  const [checklistLoading, setChecklistLoading] = React.useState(false);
+
+  // Fetch checklist items from Strapi user (used for refreshing after track/untrack)
+  const fetchChecklist = React.useCallback(async () => {
+    try {
+      setChecklistLoading(true);
+      const response = await fetch('/api/platform/organisations-catalogue/checklist', {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data?.success && Array.isArray(data.checklist)) {
+        const items = data.checklist.map((item: any) => ({
+          id: item.name.toLowerCase().replace(/\s+/g, '-'),
+          label: item.name,
+          deadline: item.deadline,
+          completed: item.isDone,
+        }));
+        setChecklistItems(items);
+      } else {
+        setChecklistItems([]);
+      }
+    } catch (error) {
+      console.error('Error fetching checklist:', error);
+      setChecklistItems([]);
+    } finally {
+      setChecklistLoading(false);
+    }
+  }, []);
+
+  // Handle track/untrack with optimistic updates
+  const handleTrack = React.useCallback(async (orgId: string) => {
+    // Optimistic update
+    setTrackedOrgIds(prev => new Set([...prev, orgId]));
+    setTrackingLoading(prev => new Set([...prev, orgId]));
+
+    try {
+      const response = await fetch(`/api/platform/organisations-catalogue/track/${orgId}`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (!data.success) {
+        // Revert on failure
+        setTrackedOrgIds(prev => {
+          const next = new Set(prev);
+          next.delete(orgId);
+          return next;
+        });
+        toast.error('Failed to track organisation');
+      } else {
+        toast.success('Now tracking inductions!');
+        fetchChecklist();
+      }
+    } catch {
+      // Revert on error
+      setTrackedOrgIds(prev => {
+        const next = new Set(prev);
+        next.delete(orgId);
+        return next;
+      });
+      toast.error('Failed to track organisation');
+    } finally {
+      setTrackingLoading(prev => {
+        const next = new Set(prev);
+        next.delete(orgId);
+        return next;
+      });
+    }
+  }, []);
+
+  const handleUntrack = React.useCallback(async (orgId: string) => {
+    // Optimistic update
+    setTrackedOrgIds(prev => {
+      const next = new Set(prev);
+      next.delete(orgId);
+      return next;
+    });
+    setTrackingLoading(prev => new Set([...prev, orgId]));
+
+    try {
+      const response = await fetch(`/api/platform/organisations-catalogue/track/${orgId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (!data.success) {
+        // Revert on failure
+        setTrackedOrgIds(prev => new Set([...prev, orgId]));
+        toast.error('Failed to untrack organisation');
+      } else {
+        toast.success('Stopped tracking inductions');
+        fetchChecklist();
+      }
+    } catch {
+      // Revert on error
+      setTrackedOrgIds(prev => new Set([...prev, orgId]));
+      toast.error('Failed to untrack organisation');
+    } finally {
+      setTrackingLoading(prev => {
+        const next = new Set(prev);
+        next.delete(orgId);
+        return next;
+      });
+    }
+  }, []);
 
   // Handle preferences change from FiltersSidebar
   const handlePreferencesChange = React.useCallback((preferences: UserPreferences) => {
@@ -41,7 +268,7 @@ export function CataloguePage({ initialOrganizations, initialError }: CatalogueP
   }, []);
 
   const filteredOrganizations = React.useMemo(() => {
-    return organizations.filter((org: Organization) => {
+    const list = organizations.filter((org: Organization) => {
       const matchesSearch =
         searchQuery === '' ||
         org.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -50,14 +277,16 @@ export function CataloguePage({ initialOrganizations, initialError }: CatalogueP
       const matchesFilter =
         filters.size === 0 || filters.has(org.type);
 
-      const matchesPreferences = 
-        !showOnlyPreferences || 
-        !userPreferences || 
+      const matchesPreferences =
+        !showOnlyPreferences ||
+        !userPreferences ||
         userPreferences.selectedOrganizations.length === 0 ||
         userPreferences.selectedOrganizations.includes(org.id);
 
       return matchesSearch && matchesFilter && matchesPreferences;
     });
+
+    return sortOrganisations(list);
   }, [searchQuery, filters, showOnlyPreferences, userPreferences, organizations]);
 
   return (
@@ -74,20 +303,30 @@ export function CataloguePage({ initialOrganizations, initialError }: CatalogueP
             <div className="flex items-center gap-2 sm:gap-3">
               <TooltipProvider>
                 <div className="hidden sm:block">
-                  <FiltersSidebar 
-                    filters={filters} 
+                  <FiltersSidebar
+                    filters={filters}
                     onFilterChange={setFilters}
                     onPreferencesChange={handlePreferencesChange}
+                    checklistItems={checklistItems}
+                    checklistLoading={checklistLoading}
+                    setChecklistItems={setChecklistItems}
+                    organizations={organizations}
+                    initialPreferences={initialPreferences || undefined}
                   />
                 </div>
                 <div className="sm:hidden">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <FiltersSidebar 
-                        filters={filters} 
+                      <FiltersSidebar
+                        filters={filters}
                         onFilterChange={setFilters}
                         onPreferencesChange={handlePreferencesChange}
                         isIconOnly
+                        checklistItems={checklistItems}
+                        checklistLoading={checklistLoading}
+                        setChecklistItems={setChecklistItems}
+                        organizations={organizations}
+                        initialPreferences={initialPreferences || undefined}
                       />
                     </TooltipTrigger>
                     <TooltipContent>Filters & Preferences</TooltipContent>
@@ -100,30 +339,29 @@ export function CataloguePage({ initialOrganizations, initialError }: CatalogueP
                       variant={showOnlyPreferences ? "default" : "outline"}
                       onClick={() => setShowOnlyPreferences(!showOnlyPreferences)}
                       disabled={preferencesLoading || !userPreferences}
-                      className={`h-12 rounded-full transition-all sm:gap-2 sm:px-6 ${
-                        showOnlyPreferences 
-                          ? 'bg-primary hover:bg-primary-dark text-white' 
-                          : 'border-neutral-300 hover:bg-neutral-100'
-                      } ${
+                      className={`h-12 rounded-full transition-all sm:gap-2 sm:px-6 ${showOnlyPreferences
+                        ? 'bg-primary hover:bg-primary-dark text-white'
+                        : 'border-neutral-300 hover:bg-neutral-100'
+                        } ${
                         // Icon-only on mobile, with text on larger screens
                         'sm:px-6 sm:gap-2 w-12 sm:w-auto p-0 sm:p-0'
-                      }`}
+                        }`}
                     >
                       <Heart className={`h-5 w-5 flex-shrink-0 ${showOnlyPreferences ? 'fill-current' : ''}`} />
                       <span className="hidden sm:inline text-sm font-medium">
-                        {preferencesLoading 
-                          ? 'Loading...' 
-                          : showOnlyPreferences 
-                            ? 'Showing Preferences' 
+                        {preferencesLoading
+                          ? 'Loading...'
+                          : showOnlyPreferences
+                            ? 'Showing Preferences'
                             : 'Only Show Preferences'}
                       </span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {preferencesLoading 
-                      ? 'Loading...' 
-                      : showOnlyPreferences 
-                        ? 'Showing Preferences' 
+                    {preferencesLoading
+                      ? 'Loading...'
+                      : showOnlyPreferences
+                        ? 'Showing Preferences'
                         : 'Only Show Preferences'}
                   </TooltipContent>
                 </Tooltip>
@@ -143,10 +381,16 @@ export function CataloguePage({ initialOrganizations, initialError }: CatalogueP
               </div>
             </div>
           ) : (
-            <div className="columns-1 gap-6 sm:columns-2 lg:columns-3 xl:columns-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start">
               {filteredOrganizations.map((org: Organization) => (
-                <div key={org.id} className="mb-6 break-inside-avoid">
-                  <OrganizationCard organization={org} />
+                <div key={org.id} className="w-full">
+                  <OrganizationCard
+                    organization={org}
+                    isTracking={trackedOrgIds.has(org.id)}
+                    trackLoading={trackingLoading.has(org.id)}
+                    onTrack={handleTrack}
+                    onUntrack={handleUntrack}
+                  />
                 </div>
               ))}
             </div>

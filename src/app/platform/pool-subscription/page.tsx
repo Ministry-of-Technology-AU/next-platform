@@ -1,3 +1,20 @@
+import UnderMaintenance from "@/components/under-maintenance";
+
+export default function PoolSubscription() {
+    return (
+        <UnderMaintenance
+            title="Pool Subscriptions is being revamped"
+            description="We're redesigning how you split Netflix, Spotify, and more. The new experience will be worth the wait — pinky promise."
+        />
+    );
+}
+
+/* ============================================================
+ * ORIGINAL PAGE — UNDER MAINTENANCE
+ * Uncomment the block below and remove the component above
+ * to restore the original page.
+ * ============================================================
+
 import { Users, Loader } from "lucide-react"
 import PoolSubscriptionForm from "./PoolSubscriptionForm"
 import ActivePoolSubscription from "./ActivePoolSubscription"
@@ -65,7 +82,7 @@ export default async function PoolSubscription() {
     return (
         <div className="flex justify-center px-4 sm:px-6 lg:px-8">
             <div className="w-full space-y-6">
-                {/* Header Section */}
+                {/- Header Section -/}
                 <div className="max-w-7xl container mx-auto p-6 space-y-6">
                     <PageTitle
                         text="Pool Subscriptions"
@@ -78,7 +95,7 @@ export default async function PoolSubscription() {
                     <div className="my-4 border-t border-gray-300"></div>
                 </div>
 
-                {/* Conditional Rendering: Show Active Subscription or Form */}
+                {/- Conditional Rendering: Show Active Subscription or Form -/}
                 <Suspense fallback={<Loader />}>
                     {hasActiveSubscription ? (
                         <ActivePoolSubscription userSubscription={existingRequest.userSubscription} />
@@ -90,3 +107,5 @@ export default async function PoolSubscription() {
         </div>
     )
 }
+
+============================================================ */
