@@ -5,10 +5,7 @@ import path from "path";
 import * as LucideIcons from "lucide-react"; // 👈 Import all Lucide icons
 
 const appDir = path.resolve("src/app");
-const sidebarEntriesPath = path.resolve(
-  "src/components/sidebar/sidebar-entries.json"
-);
-const sidebarTsxPath = path.resolve("src/components/sidebar/app-sidebar.tsx");
+const platformTsPath = path.resolve("src/components/sidebar/platform.ts");
 
 const categories = [
   { id: "home", title: "Home" },
@@ -63,64 +60,46 @@ export default function ${toComponentName(route)}Page() {
 }`;
   await fs.writeFile(pageFile, pageTemplate);
 
-  // 2. Update sidebar-entries.json
-  const sidebarEntries = await fs.readJSON(sidebarEntriesPath);
-  const categoryObj = sidebarEntries.categories.find((c) => c.id === category);
-  if (!categoryObj) {
-    console.error(`❌ Category ${category} not found in sidebar-entries.json`);
-    process.exit(1);
-  }
-  categoryObj.items.push({
-    title,
-    icon,
-    href: `/${route}`,
-  });
-  await fs.writeJSON(sidebarEntriesPath, sidebarEntries, { spaces: 2 });
+  // 2. Register the tool in the platform sidebar config — the single place that
+  //    holds the icon import and the entry. No icon map, no JSON mirror.
+  if (await fs.pathExists(platformTsPath)) {
+    let platformCode = await fs.readFile(platformTsPath, "utf-8");
 
-  // 3. Update app-sidebar.tsx
-  let sidebarCode = await fs.readFile(sidebarTsxPath, "utf-8");
-
-  // (a) Ensure icon is imported
-  if (!new RegExp(`\\b${icon}\\b`).test(sidebarCode)) {
-    sidebarCode = sidebarCode.replace(
-      /(import\s*{\s*)([^}]*)(} from "lucide-react";)/,
-      (match, start, icons, end) => {
-        const newIcons = icons
-          .split(",")
-          .map((i) => i.trim())
-          .filter(Boolean);
-        if (!newIcons.includes(icon)) newIcons.push(icon);
-        return `${start}${newIcons.join(", ")}${end}`;
-      }
+    // 2a. Add the icon to the lucide-react import block if it is not there yet.
+    const importMatch = platformCode.match(
+      /import\s*{\s*([\s\S]*?)\s*}\s*from\s*"lucide-react";/
     );
-  }
-
-  // (b) Ensure icon is added to iconMap
-  // (b) Ensure icon is added to iconMap
-  if (!new RegExp(`\\b${icon}:`).test(sidebarCode)) {
-    sidebarCode = sidebarCode.replace(
-      /const iconMap = {([^}]*)}/s,
-      (match, p1) => {
-        const entries = p1
-          .split(",")
-          .map((e) => e.trim())
-          .filter(Boolean);
-
-        // avoid duplicates
-        if (!entries.includes(icon)) {
-          entries.push(icon);
-        }
-
-        return `const iconMap = {\n  ${entries.join(",\n  ")}\n}`;
+    if (importMatch) {
+      const existing = importMatch[1]
+        .split(",")
+        .map((i) => i.trim())
+        .filter(Boolean);
+      if (!existing.includes(icon)) {
+        existing.push(icon);
+        existing.sort((a, b) => a.localeCompare(b));
+        platformCode = platformCode.replace(
+          importMatch[0],
+          `import {\n  ${existing.join(",\n  ")},\n} from "lucide-react";`
+        );
       }
-    );
-  }
+    }
 
-  await fs.writeFile(sidebarTsxPath, sidebarCode);
+    // 2b. Append the entry to the chosen category.
+    const categoryRegex = new RegExp(
+      `(id:\\s*["']${category}["'][\\s\\S]*?items:\\s*\\[)([\\s\\S]*?)(\\],)`,
+      "m"
+    );
+    platformCode = platformCode.replace(categoryRegex, (match, prefix, items, suffix) => {
+      const newItem = `\n        { title: "${title}", icon: ${icon}, href: "/${route}" },`;
+      return `${prefix}${items.trimEnd()}${newItem}\n      ${suffix}`;
+    });
+
+    await fs.writeFile(platformTsPath, platformCode);
+  }
 
   platform.log(`✅ Created page at app/${route}/page.tsx`);
-  platform.log(`✅ Added to category "${category}" in sidebar-entries.json`);
-  platform.log(`✅ Updated app-sidebar.tsx with ${icon}`);
+  platform.log(`✅ Added to category "${category}" in platform.ts`);
+  platform.log(`   Set roles / hideFor on the new entry if it is not for everyone.`);
 }
 
 // helpers

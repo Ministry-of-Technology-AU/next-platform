@@ -3,9 +3,7 @@ import { Nunito, Nunito_Sans } from "next/font/google";
 import "../globals.css";
 import Navbar from "@/components/navbar/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import platformSidebarData from "@/components/sidebar/sidebar-entries.json";
-import adminSidebarData from "@/components/sidebar/admin-sidebar-entries.json";
+import { AppSidebar } from "@/components/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
@@ -38,7 +36,11 @@ export default async function RootLayout({
 }>) {
   const session = await auth();
   const isAshokaAdmin = session?.user?.role === "ashoka_admin";
-  const sidebarData = isAshokaAdmin ? adminSidebarData : platformSidebarData;
+  // Sidebar is resolved once here, from the session's role. Layouts persist
+  // across client-side navigation, so this does not run again as the user
+  // moves between tools — only on a full page load.
+  const role = session?.user?.role;
+  const access = session?.user?.access ?? [];
 
   return (
     <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
@@ -57,7 +59,7 @@ export default async function RootLayout({
             <WhatsNewModal />
             <RecentPageTracker />
             <div className="flex min-h-screen w-full overflow-x-hidden">
-              <AppSidebar data={sidebarData} basePath="/platform" title="Platform" />
+              <AppSidebar interfaceId="platform" role={role} access={access} />
               <div className="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">
                 <Navbar />
                 <Suspense>

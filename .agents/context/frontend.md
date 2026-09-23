@@ -226,7 +226,77 @@ don't force one tree to serve both with a pile of conditional classes.
   `outline-ring/50`) — never remove it.
 - Semantic HTML first, ARIA second. Radix handles most of this — don't reimplement it.
 
-## 8. Before handing off
+## 8. Shortcuts, tooltips & cognitive load
+
+Everything that can be done with the mouse should have a keyboard route, and every
+non-obvious control should explain itself without being clicked. These are the two halves of
+the same goal: a platform you can move through fast without having to learn it first.
+
+### Shortcuts are expected on every tool
+Add them on both Mac and Windows. `useIsMac()` (`src/hooks/useIsMac.ts`) tells you which
+modifier to *display* — the handler checks `e.metaKey || e.ctrlKey` and covers both.
+
+Already global, do not reassign:
+
+| Shortcut | Does |
+|----------|------|
+| `⌘K` / `Ctrl+K` | Command palette (`src/components/navbar/navbar.tsx`) |
+| `⌘B` / `Ctrl+B` | Toggle sidebar (`src/components/ui/sidebar.tsx`) |
+
+What to add per tool: the primary action, save/submit, create-new, search/filter focus, close or
+cancel, and moving between views or tabs. If a user does it more than twice per session, it
+earns a shortcut.
+
+### Never collide with the browser or the OS
+The platform runs in a browser tab. A shortcut that fights Chrome or the OS is worse than no
+shortcut — the user loses a reflex they rely on everywhere else.
+
+**Off limits**, Mac and Windows alike: `⌘/Ctrl` + `T` `W` `N` `Q` `R` `L` `D` `P` `S` `F` `O`
+`H` `M` `+` `-` `0` `1`–`9`, plus `⌘⇧T`, `⌘⇧N`, `⌘⌥I`, `F5`, `F11`, `F12`, `Alt+Tab`,
+`Alt+←/→`, and `Ctrl+Shift+` anything the browser already owns.
+
+**Safe and preferred**, in this order:
+1. **Bare keys when focus is not in a text field** — `n` new, `e` edit, `/` focus search,
+   `Esc` close. This is what Linear and Gmail do, and it is the least likely to collide.
+   Always bail out early when the event target is an `input`, `textarea` or `contenteditable`.
+2. **`g` then a letter** for navigation — `g` `s` to Semester Planner, `g` `c` to CGPA Planner.
+   Two-key sequences collide with nothing.
+3. **`⌘/Ctrl` + an unclaimed letter** — only when the action is genuinely global and the bare
+   key is taken.
+4. **`?`** always opens the shortcut list for the current tool. Reserve it everywhere.
+
+Register a tool's shortcuts in one place in that tool, not scattered across components, so
+collisions inside the tool are visible in one read.
+
+### Tooltips — as many as earn their place
+Use `src/components/ui/tooltip.tsx`. `TooltipProvider` is already mounted in all three layouts.
+
+- **Every icon-only control needs one.** No exceptions — an icon button with no tooltip and no
+  `aria-label` is unusable for both new users and screen readers.
+- **A control with a shortcut shows it in the tooltip**, right-aligned and formatted for the
+  user's platform via `useIsMac()` — `⌘K` on Mac, `Ctrl+K` on Windows. This is the main way
+  people discover shortcuts, so it is not optional.
+- **Explain consequence, not the label.** "Delete" as a tooltip on a trash icon is noise;
+  "Delete this draft — cannot be undone" is worth reading.
+- **Disabled controls say why.** Wrap the disabled element so the tooltip still fires, and give
+  the reason: "Select at least one course first."
+- Tooltips are for supplementary detail. Never put information *only* in a tooltip if the user
+  needs it to complete the task — touch devices have no hover.
+
+Beyond tooltips, the guided tour (`.agents/blueprints/components.md`) is where a tool's
+shortcuts and overall model get introduced. Mention the shortcuts there too.
+
+### Keep cognitive load low
+- Default to fewer visible controls. Secondary actions go behind an overflow menu, a
+  `Popover`, or a shortcut — not the main toolbar.
+- One primary action per screen, visually obvious. Everything else is quieter.
+- Progressive disclosure: advanced options start collapsed.
+- Reuse the platform's existing patterns rather than inventing a new interaction. A user who
+  learned one tool should already know how the next one works.
+- Never make someone remember a value across steps — carry it forward and show it.
+- If a control needs a paragraph to explain, the control is wrong. Fix the control.
+
+## 9. Before handing off
 
 Frontend-level only. Build, typecheck and deploy checks belong to the orchestrator.
 
@@ -237,4 +307,8 @@ Frontend-level only. Build, typecheck and deploy checks belong to the orchestrat
 - [ ] Haptics on **every** interactive element, routed through the shared `src/lib/` helper.
 - [ ] Touch targets ≥ 44px; nothing depends on hover alone.
 - [ ] Keyboard navigable, focus ring intact.
+- [ ] Shortcuts on the primary actions, working on Mac **and** Windows, colliding with nothing
+      the browser or OS owns.
+- [ ] Every icon-only control has a tooltip; shortcuts shown in tooltips, formatted per platform.
+- [ ] Disabled controls explain why.
 - [ ] Motion purposeful; `prefers-reduced-motion` honoured.

@@ -3,14 +3,14 @@ import { Nunito, Nunito_Sans } from "next/font/google";
 import "../globals.css";
 import Navbar from "@/components/navbar/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import organisationSidebarData from "@/components/sidebar/organisation-sidebar-entries.json";
+import { AppSidebar } from "@/components/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
 import { NewToolAlert } from "@/components/new-tool-alert";
 import { WhatsNewModal } from "@/components/whats-new-modal";
 import { RecentPageTracker } from "@/components/landing-page/recent-page-tracker";
+import { auth } from "@/auth";
 
 const nunito = Nunito({
     variable: "--font-heading",
@@ -29,11 +29,16 @@ export const metadata: Metadata = {
     description: "Engineered by the Ministry of Technology of Ashoka University",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const session = await auth();
+    // Resolved once here — see the note in src/app/platform/layout.tsx.
+    const role = session?.user?.role;
+    const access = session?.user?.access ?? [];
+
     return (
         <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
             <TooltipProvider>
@@ -48,7 +53,7 @@ export default function RootLayout({
                     <SidebarProvider defaultOpen={false}>
                         <RecentPageTracker />
                         <div className="flex min-h-screen w-full overflow-x-hidden">
-                            <AppSidebar data={organisationSidebarData} basePath="/organisations" title="Platform" />
+                            <AppSidebar interfaceId="organisations" role={role} access={access} />
                             <div className="flex flex-1 flex-col min-w-0">
                                 <Navbar />
                                 <Suspense>

@@ -4,7 +4,7 @@
         {
             "label": "Git Pull on Open",
             "type": "shell",
-            "command": "git pull origin main",
+            "command": "git pull",
             "runOptions": {
                 "runOn": "folderOpen"
             },

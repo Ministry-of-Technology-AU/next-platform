@@ -23,7 +23,8 @@ const INDUCTION_SHARED_ROUTES = [
 ]
 
 // Tools that ashoka_admin users are NOT allowed to access directly by URL.
-// Keep in sync with admin-sidebar-entries.json.
+// Keep in sync with the `hideFor: ['ashoka_admin']` entries in
+// src/components/sidebar/platform.ts.
 const ASHOKA_ADMIN_BLOCKED_ROUTES = [
   '/platform/course-reviews',
   '/platform/sg-compose',

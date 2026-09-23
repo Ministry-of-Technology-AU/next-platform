@@ -37,7 +37,7 @@ import ThemeToggle from "@/components/ui/theme-toggle";
 import ClientOnly from "../client-only";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import sidebarEntries from "@/components/sidebar/sidebar-entries.json";
+import { platformSidebar as sidebarEntries } from "@/components/sidebar";
 import FeedbackDialog from "./FeedbackDialog";
 
 // Search Command Component
