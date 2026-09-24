@@ -18,13 +18,16 @@ restate them.
    Match headings by meaning; they get renamed. No section named → the file is short, read it.
 3. **Code via graphify.** `graphify query "<q>"` / `explain "<x>"` / `path "<A>" "<B>"` before
    grep. `GRAPH_REPORT.md` only if those fall short.
-4. **Skills come from the docs.** `frontend.md`'s skills section says which to load for UI work.
-   Load a skill's `SKILL.md` only; go deeper only when it says to.
+4. **Skills come from the docs.** `frontend.md`'s skills section for UI work; each blueprint
+   names the skills for its own work. Load a skill's `SKILL.md` only; go deeper only when it
+   says to. A skill's generic template vs a blueprint's → the blueprint wins.
 5. **Stubs don't block.** Empty / STUB / missing / dangling reference → fall back to graphify +
    the reference implementation the blueprint names, keep going, report the gap at the end.
 6. **Conflicts.** Two docs disagree → the blueprint for the artifact you're producing wins
    (`page.md` for pages, `route.md` for routes). Say which conflict you hit.
-7. **Tool-local state.** `PRD.md` / `README.md` in the tool's directory is the spec / current
+7. **Prose.** Writing anything a person reads (PRD, docs, tour steps, UI copy) →
+   `context/writing.md`, including its `/humanizer` pass. No em dashes.
+8. **Tool-local state.** `PRD.md` / `README.md` in the tool's directory is the spec / current
    state. `CLAUDE.md` names a doc for the feature area → read it.
 
 ## Workflows
@@ -32,7 +35,7 @@ restate them.
 Argument given → use it. Else infer; if two fit, ask. `tool` runs the others — don't stack them.
 
 ### `prd`
-1. `blueprints/prd.md` — whole. It covers intent, what to ask, skeleton, location.
+1. `blueprints/prd.md` — whole. It covers skills (`/prd`), what to ask, skeleton, location.
 2. While deciding each PRD section → the blueprint it maps to, via `context/backend.md` → where
    things live. Rules sections only.
 3. `context/architecture.md` → data layer, hosting.

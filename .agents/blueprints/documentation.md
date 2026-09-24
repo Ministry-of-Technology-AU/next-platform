@@ -23,7 +23,7 @@ planned. Goal: someone can work on the feature without re-deriving it from code.
 ## Skeleton
 
 ```markdown
-# <Feature> — Developer & Agent Guide
+# <Feature>: Developer & Agent Guide
 ## 1. Overview        what it does, who uses it, surfaces (path → who)
 ## 2. Data model      Strapi collection types + key types in types.ts
 ## 3. API             table: path · method · access · purpose
@@ -33,6 +33,10 @@ planned. Goal: someone can work on the feature without re-deriving it from code.
 ## 7. Deviations      where the build differs from PRD.md (omit if no PRD)
 ## 8. Next steps      open TODOs
 ```
+
+## Writing style
+
+`.agents/context/writing.md`, including its `/humanizer` final pass. No em dashes.
 
 ## After writing
 

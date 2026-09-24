@@ -8,9 +8,16 @@ wrong guess later — a good PRD leaves no architectural decision open.
 **Exemplar:** `documentation/FORM_BUILDER_SPEC.md` — read its table of contents for shape, not
 its body.
 
+## Skills
+
+- `/prd` — use its **discovery interview** and **quality standards** (measurable criteria, user
+  stories with acceptance criteria, non-goals, `TBD` over invented constraints). Its schema is
+  generic; the skeleton below is the output structure — map its sections into ours.
+- `/brainstorming` — only if the idea is still fuzzy, before `/prd`'s interview.
+
 ## Before writing
 
-1. **Intent.** Fuzzy idea → `/brainstorming` first. Confirm:
+1. **Intent.** Confirm:
    - tool name — kebab-case, Indian English spelling
    - `<area>`, who uses it (student / organisation / admin), the one job it does
    - overlap — `graphify query "<idea>"`. Extend an existing tool, or new?
@@ -29,24 +36,30 @@ Tables over prose. Each section as short as it can be while still being decisive
 doesn't apply → write "n/a" so the builder knows it was considered.
 
 ```markdown
-# <Tool name> — PRD
+# <Tool name>: PRD
 > Status: draft | approved | shipped · Area: <area> · Owner: <name>
 
-## 1. Summary          problem · who · the one job · success metric
-## 2. Users & access   roles, who sees/does what — in terms of auth.md's access values
-## 3. Flows            numbered user flows, happy path first, then edge cases
+## 1. Summary          problem · proposed solution · who · 3–5 measurable success criteria
+## 2. Users & access   roles, who sees/does what, in terms of auth.md's access values
+## 3. Stories & flows  "As a <user>, I want <action> so that <benefit>" + acceptance criteria each;
+                       then numbered flows, happy path first, then edge cases
 ## 4. Screens          per screen: purpose, primary action, states (loading/empty/error),
                        mobile vs desktop differences
                        Wireframe: yes/no · Stitch project link + screen IDs
-## 5. Data             Strapi collection types — fields, types, relations; new vs existing
+## 5. Data             Strapi collection types: fields, types, relations; new vs existing
 ## 6. API contract     per route: path, method, access, request, response, error codes
 ## 7. Live data        none | why realtime is needed + clients × events × payload estimate
 ## 8. Caching & cost   per dataset: shared vs per-user, how stale it may be, expected volume
-## 9. Integrations     Cloudinary / Google Workspace / mail — what and why
+## 9. Integrations     Cloudinary / Google Workspace / mail: what and why
 ## 10. Launch          sidebar category, tour, new-tool banner/alert, what's-new entry, credits
-## 11. Milestones      - [ ] M1 — <scope> · acceptance: <criteria>   (ticked during the build)
-## 12. Out of scope    and open questions
+## 11. Milestones      - [ ] M1: <scope> · acceptance: <criteria>   (ticked during the build)
+## 12. Non-goals       what we are NOT building
+## 13. Risks           technical/cost/dependency risks + mitigation · open questions (TBD)
 ```
+
+## Writing style
+
+`.agents/context/writing.md`, including its `/humanizer` final pass. No em dashes.
 
 ## After writing
 

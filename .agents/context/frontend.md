@@ -49,6 +49,7 @@ Read only what the current task needs. Do not preload all of these.
 | `.agents/blueprints/page.md` | Laying out a new page's file structure. |
 | `src/app/platform/semester-planner/` | Unsure of structure — this is the reference implementation. |
 | `src/components/custom-components.css` | Bespoke CSS that doesn't belong in `globals.css`. |
+| `.agents/context/writing.md` | Writing any copy a user reads: tooltips, empty/error states, toasts, tour steps, subheadings. |
 
 ---
 
@@ -319,3 +320,4 @@ Frontend-level only. Build, typecheck and deploy checks belong to the orchestrat
 - [ ] Every icon-only control has a tooltip; shortcuts shown in tooltips, formatted per platform.
 - [ ] Disabled controls explain why.
 - [ ] Motion purposeful; `prefers-reduced-motion` honoured.
+- [ ] All copy follows `.agents/context/writing.md`: `/humanizer` pass done, no em dashes.

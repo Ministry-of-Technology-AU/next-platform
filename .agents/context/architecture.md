@@ -212,6 +212,7 @@ A tool's folder structure is not freeform — `.agents/blueprints/page.md` defin
 | New page / tool structure | `.agents/blueprints/page.md` |
 | Auth, roles, access checks | `.agents/blueprints/auth.md` |
 | Documenting a shipped feature | `.agents/blueprints/documentation.md` |
+| Writing style for any prose (docs, PRDs, UI copy) | `.agents/context/writing.md` |
 | Platform components (tour, banners, dialogs, form, editor) | `.agents/blueprints/components.md` |
 | New API route | `.agents/blueprints/route.md` |
 | Querying Strapi | `.agents/blueprints/strapi.md` |

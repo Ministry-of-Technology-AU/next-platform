@@ -114,7 +114,9 @@ Wrapping a whole section gives the user a big glowing box and no idea what to do
 
 ## Step 4: Write the step text
 
-Each step has a `title` and a `content`. Rules:
+Each step has a `title` and a `content`. Follow the platform writing style in
+`.agents/context/writing.md` (no em dashes, plain words, no "click here", Indian English), and
+run its `/humanizer` pass over all step text once the tour is written. Tour-specific rules:
 
 - **Title**: two to five words. Say what the thing is or what it does. Use a verb when the user is meant to act. Examples: "Search for a course", "Pick a department", "Your timetable", "Save your plan".
 - **Content**: one or two short sentences. Say what to do and what happens. Do not describe how it looks (the user can see it). Do not use words like "simply", "just", or "easily".
@@ -321,6 +323,7 @@ Copy this into your notes and tick each line:
 [ ] order uses gaps of 10
 [ ] Titles are two to five words, plain, no em dashes
 [ ] Content is one to two sentences, says what to do, no "click here"
+[ ] Step text follows .agents/context/writing.md, /humanizer pass done, no em dashes
 [ ] Hidden targets use onOpen, triggerSelector, or selector
 [ ] Containers stay open for every step inside them
 [ ] TourManager added with a versioned STORAGE_KEY
