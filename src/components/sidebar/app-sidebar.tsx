@@ -19,6 +19,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { haptic } from "@/lib/haptics";
 import {
   getSidebarInterface,
   resolveHref,
@@ -154,6 +156,25 @@ export function AppSidebar({
                       fullHref !== "/" &&
                       pathname.startsWith(`${fullHref}/`));
 
+                  const isComingSoon = Boolean(item.isComingSoon);
+                  const comingSoonText =
+                    typeof item.isComingSoon === "string"
+                      ? item.isComingSoon
+                      : "Soon";
+
+                  const handleItemClick = (e: React.MouseEvent) => {
+                    if (isComingSoon) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void haptic.warn();
+                      toast.info(`${item.title} is coming soon!`, {
+                        description: "We're currently working on this tool. Stay tuned!",
+                      });
+                      return;
+                    }
+                    handleLinkClick();
+                  };
+
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
@@ -164,6 +185,7 @@ export function AppSidebar({
                           "hover:bg-primary-light/50 hover:text-accent-foreground",
                           isActive &&
                             "bg-primary text-primary-foreground hover:bg-primary/90",
+                          isComingSoon && !isActive && "opacity-85 hover:opacity-100",
                           // When collapsed
                           "group-data-[state=collapsed]:justify-center",
                           "group-data-[state=collapsed]:gap-0",
@@ -173,13 +195,25 @@ export function AppSidebar({
                           // Focus indicator compliance
                           "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none"
                         )}
-                        tooltip={iconCollapse ? item.title : undefined}
+                        tooltip={
+                          iconCollapse
+                            ? isComingSoon
+                              ? `${item.title} (${comingSoonText})`
+                              : item.isNew
+                              ? `${item.title} (New)`
+                              : item.title
+                            : undefined
+                        }
                       >
                         <Link
-                          href={fullHref}
-                          className="flex items-center w-full"
-                          onClick={handleLinkClick}
+                          href={isComingSoon ? "#" : fullHref}
+                          className={cn(
+                            "flex items-center w-full",
+                            isComingSoon && "cursor-default"
+                          )}
+                          onClick={handleItemClick}
                           aria-current={isActive ? "page" : undefined}
+                          aria-disabled={isComingSoon ? "true" : undefined}
                         >
                           <div className="relative transition-all duration-500">
                             {IconComponent ? (
@@ -189,7 +223,11 @@ export function AppSidebar({
                                   "size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0",
                                   item.isNew &&
                                     !isActive &&
-                                    "text-primary dark:text-secondary-extradark animate-pulse"
+                                    "text-primary dark:text-secondary-extradark animate-pulse",
+                                  isComingSoon &&
+                                    !isActive &&
+                                    !item.isNew &&
+                                    "text-muted-foreground group-hover:text-foreground"
                                 )}
                               />
                             ) : (
@@ -198,7 +236,7 @@ export function AppSidebar({
                                 className="size-4 group-data-[state=collapsed]:mx-auto flex-shrink-0 rounded-full bg-muted-foreground/35 animate-pulse"
                               />
                             )}
-                            {item.isNew && (
+                            {item.isNew ? (
                               <span
                                 aria-hidden="true"
                                 className="absolute -top-1 -right-1 flex h-2 w-2"
@@ -206,7 +244,14 @@ export function AppSidebar({
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary dark:bg-secondary-extradark opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary dark:bg-secondary-extradark"></span>
                               </span>
-                            )}
+                            ) : isComingSoon ? (
+                              <span
+                                aria-hidden="true"
+                                className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5"
+                              >
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-secondary-dark/80 dark:bg-secondary"></span>
+                              </span>
+                            ) : null}
                           </div>
 
                           <span
@@ -220,7 +265,10 @@ export function AppSidebar({
 
                           {/* Fallback accessible label for screen readers when visual text is collapsed */}
                           {hideLabels && (
-                            <span className="sr-only">{item.title}</span>
+                            <span className="sr-only">
+                              {item.title}
+                              {isComingSoon ? ` (${comingSoonText})` : item.isNew ? " (New)" : ""}
+                            </span>
                           )}
 
                           {item.isNew && (
@@ -228,7 +276,7 @@ export function AppSidebar({
                               {!hideLabels && (
                                 <span
                                   className={cn(
-                                    "ml-auto inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-all duration-200",
+                                    "ml-auto inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-all duration-200 flex-shrink-0",
                                     isActive
                                       ? "bg-primary-foreground/20 text-primary-foreground"
                                       : "bg-primary/15 text-primary dark:bg-secondary-extradark/15 dark:text-secondary-extradark border border-primary/25 dark:border-secondary-extradark/30 shadow-xs"
@@ -238,6 +286,24 @@ export function AppSidebar({
                                 </span>
                               )}
                               <span className="sr-only"> (New)</span>
+                            </>
+                          )}
+
+                          {isComingSoon && !item.isNew && (
+                            <>
+                              {!hideLabels && (
+                                <span
+                                  className={cn(
+                                    "ml-auto inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-all duration-200 flex-shrink-0",
+                                    isActive
+                                      ? "bg-primary-foreground/20 text-primary-foreground"
+                                      : "bg-secondary-dark/15 text-primary-dark dark:bg-secondary/15 dark:text-secondary border border-secondary-dark/25 dark:border-secondary/30 shadow-xs"
+                                  )}
+                                >
+                                  {comingSoonText}
+                                </span>
+                              )}
+                              <span className="sr-only"> ({comingSoonText})</span>
                             </>
                           )}
                         </Link>

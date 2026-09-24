@@ -207,7 +207,11 @@ A tool's folder structure is not freeform — `.agents/blueprints/page.md` defin
 | Finding where any specific code lives | `graphify query "..."` — see the note at the top |
 | Building any UI | `.agents/context/frontend.md` |
 | Design tokens, colour roles, type scale | `.agents/context/design.md` |
+| Writing a PRD | `.agents/blueprints/prd.md` |
+| A new tool end to end | `.agents/blueprints/tool.md` |
 | New page / tool structure | `.agents/blueprints/page.md` |
+| Auth, roles, access checks | `.agents/blueprints/auth.md` |
+| Documenting a shipped feature | `.agents/blueprints/documentation.md` |
 | Platform components (tour, banners, dialogs, form, editor) | `.agents/blueprints/components.md` |
 | New API route | `.agents/blueprints/route.md` |
 | Querying Strapi | `.agents/blueprints/strapi.md` |

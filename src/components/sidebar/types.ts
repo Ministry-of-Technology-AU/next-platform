@@ -33,6 +33,11 @@ export interface SidebarItem {
   href: string;
   isNew?: boolean;
   /**
+   * When true or a custom label string (e.g. "Coming Soon", "WIP"), renders a coming soon
+   * badge and indicator dot, and disables navigation with feedback. Defaults to "Soon" when true.
+   */
+  isComingSoon?: boolean | string;
+  /**
    * Resolve `href` directly instead of prefixing the interface `basePath`.
    * Also implied when `href` starts with `../`, `/` or `http`.
    */

@@ -121,7 +121,7 @@ export default function UnderMaintenance({
       {/* ---- Footer quip ---- */}
       <p className="mt-12 text-[11px] text-muted-foreground/50 italic text-center">
         &quot;It&apos;s not a bug, it&apos;s a scheduled feature vacation.&quot;
-        {" "}— Ministry of Technology
+        {" "} Ministry of Technology
       </p>
     </div>
   );

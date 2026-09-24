@@ -16,6 +16,11 @@
 | `src/lib/cgpa-utils.ts`, `cgpa-types.ts` | CGPA domain logic |
 | `src/lib/apl-knockout.ts`, `apl-substitution-compliance.ts` | APL domain logic |
 | `src/lib/constants/` | Shared constants (`dept-rep-map.ts`) |
+| `src/lib/haptics.ts` | `triggerHaptic()`, `haptic.*` — the shared haptics helper |
+| `src/lib/forms/` | Form builder — schema, zod validator, conditions engine, theme, sanitize, Strapi access |
+| `src/lib/inductions/` | Inductions — access guards, Strapi access, emails, calendar sync, role stats |
+| `src/lib/admin/` | Admin portal — allowed clubs, Strapi admin queries |
+| `src/lib/metrics/` | `getCachedPlatformMetrics` — cached platform metrics |
 
 ## TODO
 - [ ] Per-function signatures and usage examples

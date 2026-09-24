@@ -37,7 +37,9 @@ import ThemeToggle from "@/components/ui/theme-toggle";
 import ClientOnly from "../client-only";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { platformSidebar as sidebarEntries } from "@/components/sidebar";
+import { platformSidebar as sidebarEntries, type SidebarItem } from "@/components/sidebar";
+import { toast } from "sonner";
+import { haptic } from "@/lib/haptics";
 import FeedbackDialog from "./FeedbackDialog";
 
 // Search Command Component
@@ -59,9 +61,17 @@ const SearchCommand = React.memo(function SearchCommand() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const handleSelect = (href: string) => {
+  const handleSelect = (item: SidebarItem) => {
     setOpen(false);
-    router.push(`/platform${href}`);
+    const isComingSoon = Boolean(item.isComingSoon);
+    if (isComingSoon) {
+      void haptic.warn();
+      toast.info(`${item.title} is coming soon!`, {
+        description: "We're currently working on this tool. Stay tuned!",
+      });
+      return;
+    }
+    router.push(`/platform${item.href}`);
   };
 
   return (
@@ -99,15 +109,32 @@ const SearchCommand = React.memo(function SearchCommand() {
           {sidebarEntries.categories.map((category) => (
             <React.Fragment key={category.id}>
               <CommandGroup heading={category.title}>
-                {category.items.map((item) => (
-                  <CommandItem
-                    key={item.href}
-                    onSelect={() => handleSelect(item.href)}
-                    className="cursor-pointer"
-                  >
-                    <span>{item.title}</span>
-                  </CommandItem>
-                ))}
+                {category.items.map((item) => {
+                  const isComingSoon = Boolean(item.isComingSoon);
+                  const comingSoonText =
+                    typeof item.isComingSoon === "string"
+                      ? item.isComingSoon
+                      : "Soon";
+
+                  return (
+                    <CommandItem
+                      key={item.href}
+                      onSelect={() => handleSelect(item)}
+                      className="cursor-pointer flex items-center justify-between"
+                    >
+                      <span>{item.title}</span>
+                      {isComingSoon ? (
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-secondary-dark/15 text-primary-dark dark:bg-secondary/15 dark:text-secondary border border-secondary-dark/25 dark:border-secondary/30">
+                          {comingSoonText}
+                        </span>
+                      ) : item.isNew ? (
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/15 text-primary dark:bg-secondary-extradark/15 dark:text-secondary-extradark border border-primary/25 dark:border-secondary-extradark/30">
+                          New
+                        </span>
+                      ) : null}
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
               <CommandSeparator />
             </React.Fragment>

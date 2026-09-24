@@ -54,14 +54,21 @@ Read only what the current task needs. Do not preload all of these.
 
 ## 3. Wireframing
 
-Only when the orchestrator says a wireframe is wanted.
+Only when the orchestrator says a wireframe is wanted. No React code at this stage.
 
-1. Load `/stitch-generate-design`. Prompt in the language of `design.md` §6: *"modern academic,
-   spacious fluid grid, clean utilitarian, subtle drop shadows, tactile micro-interactions,
-   crimson accents."* Never ask for heavy gradients or stark black/white.
-2. Feed it `.agents/design/rules.yaml` + `.agents/design/stitch.context` so output lands
-   on-system.
-3. Convert with `/stitch-react-components`.
+1. **Screen list first.** From the PRD's screens section (or ask): every screen, its primary
+   action, and which states need their own frame (empty, error). Each screen gets a desktop
+   **and** a mobile frame — see §7. Confirm the list before generating.
+2. Load `/stitch-generate-design` (`/enhance-prompt` if a brief is thin). One screen per prompt.
+   Prompt in the language of `design.md` §6: *"modern academic, spacious fluid grid, clean
+   utilitarian, subtle drop shadows, tactile micro-interactions, crimson accents."* Never ask
+   for heavy gradients or stark black/white.
+3. Feed it `.agents/design/rules.yaml` + `.agents/design/stitch.context` so output lands
+   on-system. Empty → pass `design.md` §6 instead.
+4. Review with the user per screen. `design.md` is the arbiter, not the generator's taste.
+   Similar shipped tools for visual reference: `documentation/screenshots/`.
+5. Record the Stitch project link + screen IDs in the PRD's screens section.
+6. At build time, convert with `/stitch-react-components`.
 
 ---
 

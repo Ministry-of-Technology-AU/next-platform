@@ -15,7 +15,8 @@ Cloudinary. The frontend never talks to an external service directly — it goes
 | SSE / realtime | `.agents/blueprints/realtime.md` |
 | Google Workspace | `.agents/blueprints/google-workspace.md` |
 | Cloudinary | `src/lib/apis/CLOUDINARY-API-GUIDE.md` |
-| Auth + access checks | `src/lib/auth.ts` |
+| Auth + access checks | `.agents/blueprints/auth.md` + `src/lib/auth.ts` |
+| Shared helpers (don't rewrite) | `.agents/context/libraries.md` |
 
 ## TODO
 - [ ] Auth model — roles, `hasAccess` conventions, who gets what

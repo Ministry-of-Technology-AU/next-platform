@@ -15,10 +15,11 @@
 ## General Guidelines
 - For types and mock data, always use the same files already defined in the corresponding page. For example, for semester planner route, use the `src/app/platform/semester-planner/data.ts` and `src/app/platform/semester-planner/types.ts` files, instead of creating new ones. This also ensures strong typesafety and consistency. For any new types/data you need to create, add them to these same files.
 - Always abstract the route into helper functions in `helper.ts`. Avoid redundant functions. Define modular functions that can be used in multiple places. Don't over-modularise things, but try to not make routes too big. 
-- Always use the predefined libraries and functions we have in the repo to avoid redundancy and maintain consistency. Refer to the `libraries.md` file for instructions. This will be for Strapi, Cloudinary, Google Workspace, etc. 
-- For caching practices, follow `caching.md`. 
+- Always use the predefined libraries and functions we have in the repo to avoid redundancy and maintain consistency. Refer to `.agents/context/libraries.md` (and `ls src/lib` — the file can lag the folder). This will be for Strapi, Cloudinary, Google Workspace, etc. 
+- For caching practices, follow `.agents/blueprints/caching.md`. For live updates, `.agents/blueprints/realtime.md` — its rules section is a gate, not advice. 
 - Always ensure thorough null handling. In case the API fails to obtain data, pass appropriate error message to the frontend.
-- For all auth based practices and RBAC, refer to `auth.md`. 
+- For all auth based practices and RBAC, refer to `.agents/blueprints/auth.md`. For Strapi queries, `.agents/blueprints/strapi.md`.
+- Define request/response types in the page's `types.ts` before writing the handler — the contract comes first. 
 - Always verify the user's session in every request. If a session expires or is unauthorized, do not send back data, pass an appropriate error. 
 - Rely as much as possible on predefined library functions for auth, strapi, etc. 
 - Only request as much data from strapi as necessary. This means adding correct filters and parameters - don't over-fetch data. 
@@ -33,7 +34,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getSemesterData } from "./helper"; // Example helper
-import { API_URLS } from "@/lib/api-routes"; // Use your shared API routing config
 
 export const dynamic = 'force-dynamic';
 

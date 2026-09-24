@@ -12,6 +12,18 @@
                 "reveal": "silent",
                 "panel": "shared"
             }
+        },
+        {
+            "label": "Set node version",
+            "type": "shell",
+            "command": "nvm use",
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
         }
     ]
 }
