@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { auth } from '../auth'
 import { NextResponse } from 'next/server'
 import { STUDENT_EMAIL, YSP_EMAIL, type PlatformRole } from './authz/roles'
@@ -17,8 +18,9 @@ export interface AuthenticatedUser {
 /**
  * Get authenticated user from request
  * Returns null if user is not authenticated
+ * Wrapped in React.cache so layout, page and components share one session read per request.
  */
-export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
+export const getAuthenticatedUser = cache(async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   try {
     const session = await auth()
     
@@ -39,7 +41,7 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     platform.error('Error getting authenticated user:', error)
     return null
   }
-}
+})
 
 /**
  * Check if user has required access level

@@ -169,6 +169,8 @@ export const config = {
     '/api/sg-compose/:path*',
     '/api/drive/:path*',
     '/api/mail/:path*',
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|login|$).*)'
+    // Skips /public assets by extension so auth() never runs for an image or font,
+    // and /api/revalidate, which Strapi calls with its own bearer token.
+    '/((?!api/auth|api/revalidate|_next/static|_next/image|favicon.ico|login|$|.*\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|woff2?|webmanifest)$).*)'
   ],
 }

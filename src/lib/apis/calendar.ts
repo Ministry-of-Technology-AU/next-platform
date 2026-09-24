@@ -1,8 +1,7 @@
-import { google, calendar_v3 } from "googleapis";
-import { NextApiRequest, NextApiResponse } from "next";
+import { auth, calendar as createCalendar, calendar_v3 } from "@googleapis/calendar";
 
 // Initialize Google Calendar API with OAuth2
-const calendarOAuth2Client = new google.auth.OAuth2(
+const calendarOAuth2Client = new auth.OAuth2(
   process.env.DRIVE_CLIENT_ID,
   process.env.DRIVE_CLIENT_SECRET,
   process.env.GOOGLE_REDIRECT_URI
@@ -15,7 +14,7 @@ if (process.env.GOOGLE_REFRESH_TOKEN) {
   });
 }
 
-const calendar = google.calendar({
+const calendar = createCalendar({
   version: "v3",
   auth: calendarOAuth2Client,
 });

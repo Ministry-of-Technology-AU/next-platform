@@ -39,7 +39,7 @@ Read this for orientation. For *how to do* a specific thing, go to the blueprint
                                │                    │
                                ▼                    ▼
                         Cloudinary           Google Workspace
-                     (images / files)   (Drive, Calendar, Gmail, Sheets)
+                     (images / files)   (Drive, Calendar, Gmail SMTP)
 ```
 
 ### Hosting
@@ -125,15 +125,16 @@ sizing and format come from Cloudinary transform URLs, not from `next/image`.
 
 ### Google Workspace
 
-We use several Google APIs through the `googleapis` SDK, server-side, with refresh-token auth.
-Wrappers live in `src/lib/apis/`:
+Drive and Calendar go through the per-API packages `@googleapis/drive` and `@googleapis/calendar`
+(not the full `googleapis` SDK, which loads all 317 Google APIs), server-side, with refresh-token
+auth. Mail is plain SMTP through `nodemailer`. Wrappers live in `src/lib/apis/`:
 
 | File | Covers |
 |------|--------|
 | `drive.ts` | Upload/download/delete, attachment IDs, public embed links |
 | `calendar.ts` | Calendar events (`GoogleEvent`) |
-| `mail.ts` | `sendMail()`, `sendMailSG()` — transactional mail from platform + SG accounts |
-| `sheets.ts` | Sheets reads |
+| `mail.ts` | `sendMail()`, `sendMailSG()`: transactional mail from the Tech Ministry and SG accounts |
+| `sheets.ts` | Empty placeholder. No Sheets integration yet. |
 
 Reference: **`.agents/blueprints/google-workspace.md`**.
 
@@ -146,9 +147,10 @@ by name. The ones that matter architecturally:
 |-----|-----------|
 | `STRAPI_URL`, `STRAPI_API_TOKEN`, `STRAPI_IMAGE_URL` | Strapi v4 |
 | `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_BACKEND_URL` | This app / its API base |
-| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `NEXTAUTH_SECRET`, `ALLOWED_EMAIL_DOMAIN` | NextAuth |
+| `AUTH_CLIENT_ID`, `AUTH_CLIENT_SECRET`, `NEXTAUTH_SECRET`, `ALLOWED_EMAIL_DOMAIN` | NextAuth (Google sign-in) |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `CALENDAR_CALLBACK_URL` | Semester planner's "add to my calendar" OAuth client (not NextAuth) |
 | `CLOUDINARY_*` | Cloudinary |
-| `DRIVE_*`, `GOOGLE_*` | Google Workspace |
+| `DRIVE_*`, `GOOGLE_*`, `INDUCTIONS_CALENDAR_ID`, `SGMAIL_*`, `TECHMAIL_*` | Google Workspace, see `.agents/blueprints/google-workspace.md` |
 
 Never hardcode a URL that one of these already provides.
 
