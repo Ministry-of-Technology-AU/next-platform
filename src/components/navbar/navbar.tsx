@@ -235,7 +235,7 @@ const AuthSection = React.memo(function AuthSection() {
 
 export function ComposeDashboardButton(){
   const { data: session } = useSession();  
-  if(session?.user?.role === 'hor_member' || session?.user?.role === 'admin' ){
+  if(session?.user?.role === 'hor_member'){
   return (
     <Tooltip >
             <TooltipTrigger asChild>

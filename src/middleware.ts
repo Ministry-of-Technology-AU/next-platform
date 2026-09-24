@@ -159,6 +159,9 @@ export default auth(async function middleware(req) {
 
 // Configure middleware to run on specific paths
 export const config = {
+  // Node, not edge: the auth callback refreshes claims from Strapi (axios) as
+  // they go stale, and that runs here on the first request after expiry.
+  runtime: 'nodejs',
   matcher: [
     '/sg-compose/:path*',
     '/platform/:path*',

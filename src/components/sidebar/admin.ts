@@ -12,6 +12,10 @@ import type { SidebarInterface } from "./types";
  * interface today — add roles here as the portal grows.
  */
 const roles = {
+  superadmin: {
+    label: "Super Admin",
+    description: "Listed in SUPERADMIN_EMAILS. Carries the ashoka_admin grant.",
+  },
   ashoka_admin: {
     label: "Ashoka Admin",
     description: "University staff listed in ADMIN_EMAILS, or holding the ashoka_admin grant.",

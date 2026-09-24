@@ -14,6 +14,10 @@ import type { SidebarInterface } from "./types";
  * so every role listed here already has it.
  */
 const roles = {
+  superadmin: {
+    label: "Super Admin",
+    description: "Listed in SUPERADMIN_EMAILS. Carries the organization grant.",
+  },
   organization: {
     label: "Organisation Account",
     description: "The shared club/society account that owns this workspace.",

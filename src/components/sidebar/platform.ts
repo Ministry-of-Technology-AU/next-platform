@@ -20,12 +20,13 @@ import {
   MapPinned,
   UserCog,
 } from "lucide-react";
+import { TofuIcon } from "./tofu-icon";
 import type { SidebarInterface } from "./types";
 
 /**
  * Roles that exist inside the student platform interface.
  *
- * Assignment happens in `src/auth.ts` (the `jwt` callback). This file only
+ * Assignment happens in `src/lib/authz/roles.ts`. This file only
  * decides what each role sees once it has been assigned.
  *
  * Visibility rules, in order:
@@ -35,17 +36,29 @@ import type { SidebarInterface } from "./types";
  *   4. `requiresAccess`             → additionally needs that grant
  */
 const roles = {
+  superadmin: {
+    label: "Super Admin",
+    description: "Listed in SUPERADMIN_EMAILS. Sees every tool.",
+  },
   student: {
     label: "Student",
-    description: "@ashoka.edu.in address with a programme suffix (_ug, _asp, _phd, …).",
+    description: "@ashoka.edu.in address with an underscore suffix (_ug, _ugt, _asp, _yif, _phd, …). Programme is in session.user.batch.",
+  },
+  ysp: {
+    label: "YSP Participant",
+    description: "Address carries the _ysp suffix. Assigned in src/lib/authz/roles.ts.",
   },
   rep: {
     label: "Department Representative",
-    description: "Listed in REP_EMAILS. Also carries the rep_dashboard grant.",
+    description: "Email is in the department-reps collection in Strapi. Also carries the rep_dashboard grant.",
   },
   hor_member: {
     label: "House of Representatives",
     description: "Listed in HOR_MEMBERS.",
+  },
+  sport_poc: {
+    label: "Sports Point of Contact",
+    description: "Runs at least one league (APL, ABA, RSL). Assigned in src/lib/authz/roles.ts.",
   },
   beta_tester: {
     label: "Beta Tester",
@@ -83,7 +96,7 @@ export const platformSidebar: SidebarInterface = {
           icon: Library,
           absolute: true,
           href: "/organisations",
-          roles: ["organization", "ashoka_admin"],
+          roles: ["organization", "ashoka_admin", "superadmin"],
           requiresAccess: "organization",
         },
         {
@@ -94,6 +107,7 @@ export const platformSidebar: SidebarInterface = {
         },
         { title: "Games and Puzzles", icon: Puzzle, href: "/games" },
         { title: "Request for Information", icon: BadgeInfo, href: "/sg-rti" },
+        { title: "Tofu", icon: TofuIcon, href: "/tofu", isComingSoon: true },
       ],
     },
     {
@@ -136,19 +150,25 @@ export const platformSidebar: SidebarInterface = {
           hideFor: ["ashoka_admin"],
         },
         { title: "Pool a Cab", icon: Car, href: "/pool-cab" },
-        { title: "Pool Subscriptions", icon: Users, href: "/pool-subscription" },
+        {
+          title: "Pool Subscriptions",
+          icon: Users,
+          href: "/pool-subscription",
+          isComingSoon: true,
+        },
         {
           title: "Borrow Assets",
           icon: ShoppingBag,
           href: "/borrow-assets",
           hideFor: ["ashoka_admin"],
+          isComingSoon: true,
         },
       ],
     },
     {
       id: "sports",
       title: "Sports",
-      items: [{ title: "Sports", icon: Trophy, href: "/sports" }],
+      items: [{ title: "Sports", icon: Trophy, href: "/sports", isComingSoon: true }],
     },
     {
       id: "my-resources",
