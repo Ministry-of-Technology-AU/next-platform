@@ -16,6 +16,7 @@
 | `src/lib/cgpa-utils.ts`, `cgpa-types.ts` | CGPA domain logic |
 | `src/lib/apl-knockout.ts`, `apl-substitution-compliance.ts` | APL domain logic |
 | `src/lib/constants/` | Shared constants (`dept-rep-map.ts`) |
+| `src/lib/rate-limit.ts` | `checkRateLimit`, `tooManyRequests`, `limitApiRequest` — global `/api` limit (middleware) and per-route limits |
 | `src/lib/haptics.ts` | `triggerHaptic()`, `haptic.*` — the shared haptics helper |
 | `src/lib/forms/` | Form builder — schema, zod validator, conditions engine, theme, sanitize, Strapi access |
 | `src/lib/inductions/` | Inductions — access guards, Strapi access, emails, calendar sync, role stats |

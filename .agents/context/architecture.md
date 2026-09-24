@@ -27,6 +27,9 @@ Read this for orientation. For *how to do* a specific thing, go to the blueprint
                       ┌──────────────────────────────────────────┐
   browser  ──────────►│  AWS EC2 t3a.medium                      │
   (desktop / mobile)  │                                          │
+                      │   nginx (reverse proxy, TLS, flood guard)│
+                      │        │                                 │
+                      │        ▼                                 │
                       │   next-platform (Next.js 15, App Router) │
                       │        │                                 │
                       │        │  REST over HTTP + SSE           │
@@ -55,6 +58,52 @@ Because both share one modest instance, **frontend cost and load discipline is n
 Refetch storms and uncapped SSE connections are the two things that have actually hurt us —
 see `.agents/blueprints/caching.md` and `.agents/blueprints/realtime.md` before adding any fetch
 or live connection.
+
+### nginx, and the two rate-limit layers
+
+**nginx** sits in front of Next on the same box. It terminates TLS and proxies to Next on
+localhost. Next's port must not be open in the EC2 security group. Traffic reaches Next only
+through nginx, otherwise a client could send its own `X-Real-IP` header.
+
+Rate limiting has two layers, and each has one job:
+
+| Layer | Where | Keyed by | Stops |
+|-------|-------|----------|-------|
+| 1. Flood guard | nginx `limit_req` on `/api/` | Client IP | One machine firing hundreds of requests a second, before it costs Node any CPU |
+| 2. Global API limit | `src/middleware.ts` → `src/lib/rate-limit.ts` | Session email (IP if signed out) | One user hammering the API: reads, writes, mail sends |
+
+Per-route limits for expensive actions (uploads, form submits) sit on top of layer 2 in the
+handler. Rules and numbers: `.agents/context/backend.md` §7.
+
+**Layer 1 is loose on purpose.** Most students reach us through the campus network, which
+likely shares one public IP. A strict per-IP limit would lock out the whole campus at once,
+so fairness per user is layer 2's job.
+
+```nginx
+# http {} block
+limit_req_zone $binary_remote_addr zone=api_flood:10m rate=100r/s;
+limit_req_status 429;
+
+# server {} block
+location /api/ {
+    limit_req zone=api_flood burst=500 nodelay;
+    proxy_pass http://127.0.0.1:<next port>;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;           # layer 2 reads this for signed-out callers
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+- `proxy_set_header X-Real-IP` **overwrites** whatever the client sent. That is why
+  `rate-limit.ts` trusts it. Set it on every `location` that proxies to Next, not only `/api/`.
+- SSE routes send `X-Accel-Buffering: no`, so nginx streams them without extra config. Don't
+  turn on `proxy_buffering` for them.
+- After changing the config, run `sudo nginx -t && sudo systemctl reload nginx`. Then check
+  `/var/log/nginx/error.log` for `limiting requests` during a busy period, like an inductions
+  deadline or a live match. If campus traffic shows up there, raise `rate`, not `burst`.
+- Compression: nginx must not strip `content-encoding` from Next's responses. See
+  `caching.md` §7.2.
 
 ### The data layer — and the one hard rule
 
@@ -186,6 +235,7 @@ src/
 │   ├── sse/                  event-emitter · apl-emitter · apl-events
 │   ├── auth.ts               NextAuth helpers, access checks
 │   ├── platform-logger.ts    platform.log() — the only logger
+│   ├── rate-limit.ts         global /api limit (middleware) + per-route limits
 │   ├── apis.ts  utils.ts  date-utils.ts  userid.ts
 │   ├── cgpa-*.ts  apl-*.ts   domain logic
 │   └── constants/

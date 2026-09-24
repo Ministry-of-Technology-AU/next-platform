@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from './auth'
+import { limitApiRequest } from '@/lib/rate-limit'
 
 // Define protected routes and their access requirements
 // ashoka_admin has 'platform' access so they can reach /platform,
@@ -40,6 +41,10 @@ export default auth(async function middleware(req) {
   if (pathname.startsWith('/api/auth')) {
     return NextResponse.next()
   }
+
+  // Global per-user /api limit (src/lib/rate-limit.ts). Runs before any handler.
+  const limited = limitApiRequest(pathname, req.method, req.headers, req.auth?.user?.email)
+  if (limited) return limited
 
   if (pathname.startsWith('/backend')) {
     return NextResponse.next()

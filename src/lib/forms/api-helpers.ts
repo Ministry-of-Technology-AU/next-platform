@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { getUserIdByEmail, getOrganisationIdByUserId } from '@/lib/userid';
 import { getFormByUid, type FormRecord } from './strapi-forms';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export function jsonOk<T>(data: T, status = 200) {
   return NextResponse.json({ success: true, data }, { status });
@@ -66,38 +67,12 @@ export async function resolveOrgForm(
 }
 
 // ---------------------------------------------------------------------------
-// Rate limiting (spec §14.11) — simple per-instance sliding window.
-// Documented as best-effort / per-instance; not a distributed limiter.
+// Rate limiting (spec §14.11) — per-route limits on top of the global /api
+// limit. Backed by the shared limiter in @/lib/rate-limit.
 // ---------------------------------------------------------------------------
 
-const buckets = new Map<string, number[]>();
-
 export function rateLimit(key: string, limit: number, windowMs: number): boolean {
-  const now = Date.now();
-  const since = now - windowMs;
-  const hits = (buckets.get(key) ?? []).filter((t) => t > since);
-  if (hits.length >= limit) {
-    buckets.set(key, hits);
-    return false;
-  }
-  hits.push(now);
-  buckets.set(key, hits);
-  return true;
-}
-
-// Periodically drop empty buckets to bound memory.
-if (typeof setInterval !== 'undefined') {
-  const CLEAN_MS = 10 * 60 * 1000;
-  const timer = setInterval(() => {
-    const cutoff = Date.now() - CLEAN_MS;
-    for (const [key, hits] of buckets) {
-      const live = hits.filter((t) => t > cutoff);
-      if (live.length === 0) buckets.delete(key);
-      else buckets.set(key, live);
-    }
-  }, CLEAN_MS);
-  // Do not keep the event loop alive for this housekeeping timer.
-  (timer as { unref?: () => void }).unref?.();
+  return checkRateLimit(key, { limit, windowMs }).ok;
 }
 
 // ---------------------------------------------------------------------------

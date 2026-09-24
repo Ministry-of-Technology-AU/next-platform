@@ -79,6 +79,12 @@
       "skillPath": "plugins/frontend-mobile-development/skills/nextjs-app-router-patterns/SKILL.md",
       "computedHash": "b4fea42eecf1f803155ef7fa133d5286ee8f2dbba3e616954e9e43c6f0ffc144"
     },
+    "nextjs-best-practices": {
+      "source": "sickn33/agentic-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/nextjs-best-practices/SKILL.md",
+      "computedHash": "b1505d0c502f16b87bb8fa57dfb90038ced830f4db29e7e791c75dd067308672"
+    },
     "prd": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
