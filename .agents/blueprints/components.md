@@ -510,6 +510,129 @@ export default function TimetableToolLayout({
 
 ## FORM
 
+### Overview
+- Components: `@/components/form` (`src/components/form/`). Import everything from the folder index.
+- Schemas, cleaning, file policy and uploads: `@/lib/forms/fields` (`src/lib/forms/fields/`). Shared server/client, so reuse the same schema in the route handler.
+- Upload endpoint: `POST /api/uploads` (`src/app/api/uploads/route.ts`), which stores files through `@/lib/apis/cloudinary`.
+- Built on react-hook-form + `@hookform/resolvers/zod` (zod v4).
+
+### Two ways to use the fields
+1. **Controlled (the original API, still supported):** `value` + `onChange`, with an optional `schema` for self-validation. All existing call sites keep working unchanged.
+2. **Schema-driven (preferred for new forms):** `useZodForm(schema)` + `<Form>` + `<FormField>`. The schema drives cleaning, validation, error messages, focus-on-first-error and the error summary.
+
+### Recommended pattern
+```tsx
+'use client';
+import { z } from 'zod';
+import {
+  Form, FormField, FormSection, SubmitButton,
+  TextInput, PhoneInput, SingleSelect, FileUpload,
+  field, useZodForm, uploadFiles,
+} from '@/components/form';
+
+const schema = z.object({
+  name: field.text({ label: 'Full name', max: 80 }),
+  email: field.email({ label: 'Ashoka email', domains: ['ashoka.edu.in'] }),
+  phone: field.phone({ label: 'Phone number' }),
+  batch: field.select(['UG26', 'UG27'] as const, { label: 'Batch' }),
+  resume: field.files({ label: 'Resume', kinds: ['pdf', 'document'], maxFiles: 1, maxSizeMB: 5 }),
+});
+
+export function ApplyForm() {
+  const form = useZodForm(schema, { defaultValues: { name: '', email: '', phone: '', resume: [] } });
+
+  return (
+    <Form
+      form={form}
+      onSubmit={async (values) => {
+        // values is z.output: cleaned, parsed, typed ('UG26' | 'UG27', File[] …)
+        const [resume] = await uploadFiles(values.resume, { target: 'forms' });
+        const res = await fetch('/api/…', { method: 'POST', body: JSON.stringify({ ...values, resume }) });
+        if (!res.ok) throw new Error('Couldn’t save your application. Try again.'); // shown at the top of the form
+      }}
+    >
+      <FormSection title="Contact">
+        <FormField control={form.control} name="name"
+          render={(f) => <TextInput title="Full name" isRequired maxLength={80} autoComplete="name" {...f} />} />
+        <FormField control={form.control} name="email"
+          render={(f) => <TextInput title="Ashoka email" type="email" isRequired {...f} />} />
+        <FormField control={form.control} name="phone"
+          render={(f) => <PhoneInput title="Phone number" isRequired {...f} />} />
+        <FormField control={form.control} name="batch"
+          render={(f) => <SingleSelect title="Batch" placeholder="Choose your batch" isRequired
+            items={[{ value: 'UG26', label: 'UG26' }, { value: 'UG27', label: 'UG27' }]} {...f} />} />
+      </FormSection>
+      <FormField control={form.control} name="resume"
+        render={(f) => <FileUpload title="Resume" isRequired kinds={['pdf', 'document']} maxSize={5} {...f} />} />
+      <SubmitButton text="Send application" />
+    </Form>
+  );
+}
+```
+- `{...f}` passes `name`, `value`, `onChange`, `onBlur`, `errorMessage`, `disabled` and `ref`. The field name must exist in the schema; this is checked at compile time.
+- `isRequired` only draws the asterisk. The schema decides what is actually required.
+- Validate again on the server: `schema.safeParse(body)`, then run rich text through `sanitizeHtml()` from `@/lib/forms/sanitize`.
+
+### Schema factories (`field.*`)
+Required by default; pass `required: false` to make a field optional. Each factory cleans the value before validating it.
+
+| Factory | Field input | Parsed output | Cleaning |
+|---|---|---|---|
+| `text({ min, max, multiline, pattern })` | `string` | `string` | NFKC, strips control and zero-width characters, collapses whitespace (keeps line breaks when `multiline`) |
+| `email({ domains })` | `string` | `string` | trims, lowercases |
+| `url({ hosts })` | `string` | `string` (https only) | adds `https://` to bare domains |
+| `phone()` | `string` | 10 national digits | strips `+91`, a leading `0` and separators |
+| `number({ min, max, integer })` | `string` | `number` | strips grouping commas; `12.5` fails `integer` instead of becoming `125` |
+| `select(values)` | `string` | literal union | rejects values not in the list |
+| `multiSelect(values, { min, max })` | `string[]` | subset of the literals | dedupes and keeps the list's order |
+| `checkbox({ mustBeChecked })` | `boolean` | `boolean` | — |
+| `date({ min, max })` | `Date` | `Date` (midnight) | also accepts ISO or `yyyy-MM-dd` strings at runtime |
+| `dateTime({ min, max })` | ISO string | ISO string (UTC) | — |
+| `richText({ minChars, maxChars })` | HTML | HTML or `''` | strips script-capable markup; counts only visible text |
+| `files({ kinds, accept, maxSizeMB, maxFiles, maxTotalMB })` / `images()` | `File[]` | `File[]` | synchronous checks of type, size and count |
+
+### Fields
+| Component | Notes |
+|---|---|
+| `TextInput` | `type`: text, email, password (show/hide toggle), number (text input with numeric keypad; ↑/↓ step, Shift = ×10), url, search, datetime-local. `isParagraph` renders an auto-growing textarea. `maxLength` shows a counter. Tidies the value on blur. |
+| `PhoneInput` | Fixed `+91`. Cleans pasted numbers as you type. Validates itself unless a parent passes `errorMessage`. |
+| `RichTextInput` | `maxChars` shows a counter of visible characters. |
+| `SingleSelect` | Radix listbox on desktop, native `<select>` on mobile. |
+| `MultiSelectCheckbox` | `columns={2}` for long lists; each option can take a `description`. |
+| `MultiSelectDropdown` | Searchable; `maxSelected` shows a message when the limit is hit. |
+| `CheckboxComponent` | The whole row is the hit target. |
+| `DatePicker` / `DateTimePicker` | Popover on desktop, bottom drawer on mobile. `fromDate` / `toDate`; `captionLayout="dropdown"` for birthdays. |
+| `FileUpload` / `ImageUpload` | See below. |
+| `FormSection` | `<fieldset>` + `<legend>` group. |
+| `FormStepper` | Multi-step body inside `<Form>`. Each step validates only its own `fields`. |
+| `SubmitButton` | Follows the form's pending state. Takes `disabledReason` (shown as a tooltip) and shows the ⌘↵ / Ctrl+Enter shortcut. |
+| `FormContainer`, `InstructionsField` | Unchanged legacy wrappers. |
+
+### File uploads
+- Files stay in form state as `File` objects. **Nothing is uploaded until submit.** Call `uploadFiles(files, { target })` in `onSubmit`. It uploads sequentially and throws `UploadError` (which carries the files already uploaded) on the first failure.
+- When a file is added (click, drag-and-drop or paste), the field checks that its extension, MIME type and magic bytes agree. Images are compressed to WebP (longest edge 2560 px), which also strips EXIF/GPS metadata. Opt out with `compressImages={false}` or pass `CompressOptions`.
+- Rejected files are listed in the field's error line; they are not silently dropped.
+- Preview: images and plain text show inline. PDFs use the browser's viewer, falling back to "Open in new tab" where the browser has no inline viewer. Other kinds get a download link.
+- `/api/uploads` requires sign-in, is rate-limited (30 per minute), caps files at 10 MB, repeats every check, and stores files in `uploads/<target>` with a MIME type that matches the file. Add targets in `UPLOAD_TARGETS` (`src/lib/forms/fields/uploads.ts`).
+- Legacy call sites that pass `onChange={(files) => …}` still receive `File[]`, now validated and compressed.
+
+### Behaviour baked in
+- **Validation timing:** a field validates on first blur, then on every change once an error is showing. There are no errors while someone is still typing their first answer.
+- **On a failed submit:** an error haptic plays, focus moves to the first invalid field, and a linked error summary appears when there are two or more errors.
+- **Stepper:** Enter and ⌘↵ mean "Next" until the last step. A failed final submit jumps back to the step that holds the error. Focus moves to each new step's heading.
+- **Haptics** (via `@/lib/haptics`): tap for toggles and removing files, select for picks and steps, error for rejections and failed validation, confirm on a successful submit. Standalone `SubmitButton` uses press. Nothing fires on keystrokes.
+- **Accessibility:** every control is linked to its label, help text and error through ARIA attributes. Errors are announced through a polite live region and use an icon plus text, not colour alone. Touch targets are ≥44 px on mobile. Motion respects `prefers-reduced-motion`.
+- **Unsaved changes:** the browser asks before leaving a dirty form. Turn this off with `warnOnUnsavedChanges={false}`.
+- **Signature:** a thin margin rule left of each field turns crimson on focus and red when the field is invalid.
+
+### Building a custom field
+Use `FieldShell`, `useFieldIds`, `controlAria` and `useFieldValidation` from `@/components/form`. Accept `FieldBaseProps` plus `value`, `onChange` and `ref`, and it plugs into `<FormField>` like the built-in fields.
+
+### Gotchas
+- Global `h1`–`h6` rules are unlayered, so they beat Tailwind utilities. Use `!text-left` or `!text-xl` on headings inside forms.
+- Use the `text-destructive-text` token for error text. Plain `text-destructive` falls below WCAG AA contrast on dark backgrounds.
+- `useFormContext()` returns null outside `<Form>`. `SubmitButton` and `FormField` handle this; do the same in custom components.
+
 ## EDITOR
 
 ### Overview

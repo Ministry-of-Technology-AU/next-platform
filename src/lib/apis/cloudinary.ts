@@ -12,12 +12,14 @@ cloudinary.config({
  * @param file - File object or Buffer to upload
  * @param filename - Original filename (used for public_id)
  * @param folder - Cloudinary folder to upload to (default: 'platform-ads')
+ * @param mime - MIME type for the data URI (default: image/jpeg)
  * @returns Promise with Cloudinary upload result containing secure_url
  */
 export async function uploadImageToCloudinary(
     file: File | Buffer,
     filename: string,
-    folder: string = 'platform-ads'
+    folder: string = 'platform-ads',
+    mime: string = 'image/jpeg'
 ): Promise<{ url: string; publicId: string }> {
     try {
         // Convert File to Buffer if needed
@@ -30,7 +32,7 @@ export async function uploadImageToCloudinary(
         }
 
         // Convert buffer to base64 data URI
-        const base64Data = `data:image/jpeg;base64,${buffer.toString('base64')}`;
+        const base64Data = `data:${mime};base64,${buffer.toString('base64')}`;
 
         // Sanitize filename to remove special characters (e.g., '#', '?', '%', spaces) invalid in Cloudinary public_id
         const sanitizedFilename = filename
