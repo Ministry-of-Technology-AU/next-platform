@@ -46,11 +46,14 @@ doesn't apply → write "n/a" so the builder knows it was considered.
 ## 4. Screens          per screen: purpose, primary action, states (loading/empty/error),
                        mobile vs desktop differences
                        Wireframe: yes/no · Stitch project link + screen IDs
+                       Design direction: yes/no · 3–6 bullets per screen (frontend.md §3)
 ## 5. Data             Strapi collection types: fields, types, relations; new vs existing
 ## 6. API contract     per route: path, method, access, request, response, error codes
 ## 7. Live data        none | why realtime is needed + clients × events × payload estimate
 ## 8. Caching & cost   per dataset: shared vs per-user, how stale it may be, expected volume
 ## 9. Integrations     Cloudinary / Google Workspace / mail: what and why
+                       New env keys: name · purpose · server-only or NEXT_PUBLIC_ · example
+                       format (added to .env.example, empty, in the same change)
 ## 10. Launch          sidebar category, tour, new-tool banner/alert, what's-new entry, credits
 ## 11. Milestones      - [ ] M1: <scope> · acceptance: <criteria>   (ticked during the build)
 ## 12. Non-goals       what we are NOT building
@@ -63,5 +66,6 @@ doesn't apply → write "n/a" so the builder knows it was considered.
 
 ## After writing
 
-Ask whether a wireframe is needed (`CLAUDE.md`). Then an implementation plan, confirmed with the
+Ask whether a wireframe, then a design direction, is needed (`AGENTS.md` §4).
+Then an implementation plan, confirmed with the
 user, before any code — `.agents/blueprints/tool.md`.

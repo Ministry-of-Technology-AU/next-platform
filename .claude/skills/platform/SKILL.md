@@ -1,7 +1,7 @@
 ---
 name: platform
-description: Orchestrator for building anything in next-platform — routes the agent to exactly the .agents/ context it needs and no more. Workflows - prd (write a PRD for a new tool/feature), wireframe (Stitch screens before code), page (design + build a page under src/app), route (design + build an API route under src/app/api), tool (end-to-end new tool - PRD → routes → pages → launch), docs (developer docs for a shipped feature). Use this whenever the user wants to plan, spec, wireframe, scaffold, build, extend or document a tool, page, screen, API endpoint or feature in this repo — even if they don't say "platform" or name a workflow, e.g. "let's add a lost-and-found tool", "need an endpoint for org stats", "write up how inductions works", "make a PRD for pool cab v2".
-argument-hint: "<prd|wireframe|page|route|tool|docs> [name or brief]"
+description: Orchestrator for building anything in next-platform — routes the agent to exactly the .agents/ context it needs and no more. Workflows - prd (write a PRD for a new tool/feature), wireframe (Stitch screens before code), design (look-and-feel direction before code), page (design + build a page under src/app), route (design + build an API route under src/app/api), tool (end-to-end new tool - PRD → routes → pages → launch), docs (developer docs for a shipped feature). Use this whenever the user wants to plan, spec, wireframe, scaffold, build, extend or document a tool, page, screen, API endpoint or feature in this repo — even if they don't say "platform" or name a workflow, e.g. "let's add a lost-and-found tool", "need an endpoint for org stats", "write up how inductions works", "make a PRD for pool cab v2".
+argument-hint: "<prd|wireframe|design|page|route|tool|docs> [name or brief]"
 ---
 
 # Platform
@@ -45,6 +45,12 @@ Argument given → use it. Else infer; if two fit, ask. `tool` runs the others �
 2. `context/frontend.md` → wireframing (the procedure), then responsiveness if mobile is unclear.
 3. `context/design.md` → the Stitch generation section.
 
+### `design`
+1. `PRD.md` → summary, users, screens (and the wireframe links, if any).
+2. `context/frontend.md` → design direction (the procedure). It names the skills and the
+   sections it draws on.
+3. `context/design.md` → visual theme, layout principles.
+
 ### `route`
 1. `PRD.md` → API contract, data.
 2. `blueprints/route.md` — whole. The contract + its reference implementation.
@@ -56,7 +62,7 @@ Argument given → use it. Else infer; if two fit, ask. `tool` runs the others �
 5. Env keys → `context/architecture.md` → environment. By name only.
 
 ### `page`
-1. `PRD.md` → screens, data. Data route missing → run `route` first.
+1. `PRD.md` → screens (incl. design direction), data. Data route missing → run `route` first.
 2. `blueprints/page.md` — whole. Then from its reference implementation, only `page.tsx` /
    `layout.tsx`, and `src/app/<area>/layout.tsx`.
 3. `context/frontend.md` → skills, what-to-reference, rules. Its tables decide what else loads
@@ -79,6 +85,6 @@ to. Check in with the user at every phase boundary.
 
 The frontend/backend docs defer these to you:
 - Code changed → `npm run typecheck`. Fix what you caused; report what you didn't.
-- \> 50 lines changed → `npm run build`.
+- \> 50 lines changed → `npm run build`. Detail: `AGENTS.md` §1 → verification.
 - Never `graphify update` — re-indexing is a deploy step.
 - Finish with: what was built, files touched, doc gaps hit (protocol 5), next workflow to run.

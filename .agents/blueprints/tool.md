@@ -31,6 +31,6 @@ Per page → `.agents/blueprints/page.md` + `.agents/context/frontend.md`. Tick 
 3. Launch video, only if asked → `.agents/context/content-creation.md`.
 
 ## CLOSE OUT
-- Typecheck + build (a tool always crosses the build threshold in `CLAUDE.md`).
+- Typecheck + build (a tool always crosses the 50-line build threshold in `AGENTS.md` §1 → verification).
 - PRD status → shipped, all milestones ticked or explicitly deferred.
 - Offer feature docs → `.agents/blueprints/documentation.md`.

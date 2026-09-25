@@ -189,8 +189,9 @@ Reference: **`.agents/blueprints/google-workspace.md`**.
 
 ### Environment
 
-Secrets live in `.env` on the server. **Never read or open `.env`.** Only ever reference keys
-by name. The ones that matter architecturally:
+Secrets live in `.env` on the server. **Never read or open `.env`.** Key names come from
+`.env.example`; new keys are declared in the PRD and added there first
+(`AGENTS.md` §7). The ones that matter architecturally:
 
 | Key | Points at |
 |-----|-----------|

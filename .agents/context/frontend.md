@@ -53,8 +53,9 @@ Read only what the current task needs. Do not preload all of these.
 
 ---
 
-## 3. Wireframing
+## 3. Wireframing & design direction
 
+### Wireframing
 Only when the orchestrator says a wireframe is wanted. No React code at this stage.
 
 1. **Screen list first.** From the PRD's screens section (or ask): every screen, its primary
@@ -70,6 +71,23 @@ Only when the orchestrator says a wireframe is wanted. No React code at this sta
    Similar shipped tools for visual reference: `documentation/screenshots/`.
 5. Record the Stitch project link + screen IDs in the PRD's screens section.
 6. At build time, convert with `/stitch-react-components`.
+
+### Design direction
+Only when the orchestrator says design is wanted. No code, no Stitch. The output is a few
+decisive bullets per screen in the PRD, which the `page` workflow builds from.
+
+1. Load `/frontend-design` and `/ui-ux-pro-max`. Read `design.md` §1 (theme) and §5 (layout).
+2. Per screen, decide:
+   - **Hierarchy:** the one primary action, the hero element, what stays quiet (§8).
+   - **Density:** how much shows at once, what goes behind progressive disclosure.
+   - **Motion moments:** which state changes animate and why (§6). Not decoration.
+   - **Mobile composition:** what gets removed, abstracted, restructured or improved (§7).
+   - **Finish:** the states and niceties that make this screen feel done (§5), and the
+     shortcuts for its primary actions (§8).
+3. Where there is a real choice, offer two directions in a few lines each. The user picks.
+4. Record the chosen direction in the PRD's screens section, 3–6 bullets per screen.
+5. The design system is fixed. A direction never invents colours, fonts or radii; it decides
+   how the existing tokens are used.
 
 ---
 

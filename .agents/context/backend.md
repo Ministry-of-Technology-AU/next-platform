@@ -16,6 +16,7 @@ every handler follows, and the practices that keep a shared EC2 box and its bill
 ### Always
 | Skill | Why |
 |-------|-----|
+| `/nextjs-best-practices` | App Router principles: server components, data fetching, routing |
 | `/nextjs-app-router-patterns` | Route handlers, server components, `revalidateTag`, streaming — the Next 15 way to do it |
 
 ### By task

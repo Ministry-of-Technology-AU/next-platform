@@ -40,5 +40,5 @@ planned. Goal: someone can work on the feature without re-deriving it from code.
 
 ## After writing
 
-Ask whether `CLAUDE.md` should point agents at this README for the feature area, like its
+Ask whether `AGENTS.md` should point agents at this README for the feature area, like its
 existing feature-doc pointers.
