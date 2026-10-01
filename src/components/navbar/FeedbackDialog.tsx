@@ -3,9 +3,23 @@ import { Button } from "../ui/button";
 import * as React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 
-export default function FeedbackDialog({ isOpen, onClose, pageName }: { isOpen: boolean; onClose: () => void; pageName?: string }) {
+/**
+ * Props for the FeedbackDialog component.
+ *
+ * This component renders as a `<DialogContent>` and should be placed
+ * inside a `<Dialog>` — the dialog's open/close state is managed by the
+ * parent `<Dialog>` / `<DialogTrigger>`, not by this component.
+ */
+export interface FeedbackDialogProps {
+  /** Optional callback invoked when the feedback has been successfully submitted. */
+  readonly onClose?: () => void;
+  /** Explicit page name for page-specific feedback. Falls back to `window.location.pathname`. */
+  readonly pageName?: string;
+}
+
+export default function FeedbackDialog({ onClose, pageName }: FeedbackDialogProps) {
     const [feedback, setFeedback] = React.useState('');
-    const [isPageSpecific, setIsPageSpecific] = React.useState(false);
+    const [isPageSpecific, setIsPageSpecific] = React.useState(true);
     const [sending, setSending] = React.useState(false);
     const [sent, setSent] = React.useState(false);
 
@@ -34,10 +48,10 @@ export default function FeedbackDialog({ isOpen, onClose, pageName }: { isOpen: 
         // close after a short delay to show success
         setTimeout(() => {
           setSent(false);
-          onClose();
+          onClose?.();
         }, 800);
       } catch (err) {
-        console.error(err);
+        platform.log('Feedback submission error:', err);
         // keep dialog open for retry
       } finally {
         setSending(false);

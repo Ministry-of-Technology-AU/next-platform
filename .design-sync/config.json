@@ -1,0 +1,33 @@
+{
+  "projectId": "7c23f73c-8a80-4898-a698-1f700195fa19",
+  "shape": "package",
+  "pkg": "..",
+  "globalName": "AshokaDS",
+  "srcDir": ".design-sync/.cache/scoped-src",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": ".ds-sync/compiled/globals.css",
+  "extraFonts": [".design-sync/fonts/fonts.css"],
+  "componentSrcMap": {
+    "ClientOnly": null,
+    "NextAuthProvider": null,
+    "ThemeProvider": null,
+    "KnockoutBracketTree": null,
+    "AppSidebar": null,
+    "PlatformCarousel": null,
+    "PopularToolsGrid": null,
+    "RecentlyVisited": null,
+    "Navbar": null,
+    "WhatsNewModal": null,
+    "SignOutButton": null
+  },
+  "provider": {
+    "component": "NextAuthProvider",
+    "inner": {
+      "component": "ThemeProvider",
+      "props": { "defaultTheme": "light" }
+    }
+  },
+  "overrides": {
+    "Dialog": { "cardMode": "single", "viewport": "480x520" }
+  }
+}

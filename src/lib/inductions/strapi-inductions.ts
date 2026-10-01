@@ -20,6 +20,7 @@ export function safeRevalidateTag(tag: string): void {
  * All Strapi API calls using STRAPI_API_TOKEN live here or in route handlers.
  */
 
+import { envEmailList } from '@/lib/authz/assigners';
 import { strapiGet, strapiPost, strapiPut, strapiDelete, type StrapiFilters } from '@/lib/apis/strapi';
 import type {
   InductionCycleSummary,
@@ -1244,11 +1245,8 @@ export async function isOrganisationAccount(
   if (!userEmail) return false;
   const normalizedEmail = userEmail.trim().toLowerCase();
 
-  // 1. Admin emails can always manage for testing & platform governance
-  const adminEmails = (process.env.ADMIN_EMAILS || '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
+  // 1. Super admins and admins can always manage for testing & platform governance
+  const adminEmails = [...envEmailList('SUPERADMIN_EMAILS'), ...envEmailList('ADMIN_EMAILS')];
   if (adminEmails.includes(normalizedEmail)) {
     return true;
   }

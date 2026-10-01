@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { auth, drive as createDrive } from '@googleapis/drive';
 import { Readable } from 'stream';
 
 // Google Drive OAuth2 Configuration
@@ -7,7 +7,7 @@ const DRIVE_CLIENT_SECRET = process.env.DRIVE_CLIENT_SECRET;
 const DRIVE_REDIRECT_URI = "https://developers.google.com/oauthplayground";
 const DRIVE_REFRESH_TOKEN = process.env.DRIVE_REFRESH_TOKEN;
 
-const oauth2Client = new google.auth.OAuth2(
+const oauth2Client = new auth.OAuth2(
     DRIVE_CLIENT_ID,
     DRIVE_CLIENT_SECRET,
     DRIVE_REDIRECT_URI
@@ -18,7 +18,7 @@ oauth2Client.setCredentials({
 });
 
 // Initialize Google Drive API
-const drive = google.drive({
+const drive = createDrive({
     version: 'v3',
     auth: oauth2Client,
 });

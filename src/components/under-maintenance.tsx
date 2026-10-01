@@ -6,37 +6,21 @@ import { Button } from "@/components/ui/button";
 import {
   Wrench,
   ArrowLeft,
-  Sparkles,
   BookOpen,
   Calendar,
   GraduationCap,
 } from "lucide-react";
+import { haptic } from "@/lib/haptics";
 
 const EXPLORE_LINKS = [
-  {
-    label: "Course Reviews",
-    href: "/platform/course-reviews",
-    icon: BookOpen,
-  },
-  {
-    label: "Events Calendar",
-    href: "/platform/events-calendar",
-    icon: Calendar,
-  },
-  {
-    label: "CGPA Planner",
-    href: "/platform/cgpa-planner",
-    icon: GraduationCap,
-  },
-  {
-    label: "Semester Planner",
-    href: "/platform/semester-planner",
-    icon: GraduationCap,
-  },
+  { label: "Course Reviews", href: "/platform/course-reviews", icon: BookOpen },
+  { label: "Events Calendar", href: "/platform/events-calendar", icon: Calendar },
+  { label: "CGPA Planner", href: "/platform/cgpa-planner", icon: GraduationCap },
+  { label: "Semester Planner", href: "/platform/semester-planner", icon: GraduationCap },
 ];
 
 interface UnderMaintenanceProps {
-  /** Optional custom title. Defaults to a witty maintenance message. */
+  /** Optional custom title. */
   title?: string;
   /** Optional custom description. */
   description?: string;
@@ -44,7 +28,7 @@ interface UnderMaintenanceProps {
   showBackButton?: boolean;
   /** Show the "explore other tools" suggestion grid. Defaults to true. */
   showExploreSuggestions?: boolean;
-  /** Optional additional classes for styling/spacing custom overrides. */
+  /** Optional additional classes for layout overrides. */
   className?: string;
 }
 
@@ -56,71 +40,88 @@ export default function UnderMaintenance({
   className = "",
 }: UnderMaintenanceProps) {
   return (
-    <div className={`flex flex-col items-center justify-start min-h-[70vh] px-4 sm:px-6 pt-2 pb-10 sm:pt-4 sm:pb-16 select-none ${className}`}>
-      {/* ---- Floating badge ---- */}
-      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-semibold tracking-wide uppercase mb-6 animate-pulse">
-        <Wrench className="w-3.5 h-3.5" />
-        Under Maintenance
-      </div>
+    <div
+      className={`flex flex-col items-center px-4 sm:px-6 py-10 sm:py-14 ${className}`}
+      role="main"
+      aria-label="Page under maintenance"
+    >
+      {/* ---- Mascot + badge stacked together ---- */}
+      <div className="flex flex-col items-center gap-4 mb-8">
+        {/* Badge */}
+        <div
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-muted-foreground text-xs font-medium tracking-wide"
+          role="status"
+          aria-label="Status: Under maintenance"
+        >
+          <Wrench className="w-3 h-3" aria-hidden="true" />
+          Under Maintenance
+        </div>
 
-      {/* ---- Mascot ---- */}
-      <div className="relative w-56 h-56 sm:w-72 sm:h-72 mb-8 mt-[-12]">
-        <Image
-          src="/mascot-maintenance.png"
-          alt="Platform mascot cat wearing a hard hat, holding a wrench, surrounded by gears and caution tape"
-          fill
-          className="object-contain drop-shadow-lg"
-          priority
-        />
-        {/* Subtle floating sparkle */}
-        <Sparkles className="absolute -top-2 -right-2 w-6 h-6 text-amber-400 animate-bounce" />
+        {/* Mascot */}
+        <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64">
+          <Image
+            src="/mascot-maintenance.png"
+            alt="The platform cat mascot — a grey tabby in round glasses and a work apron, holding a wrench and a gear"
+            fill
+            className="object-contain"
+            priority
+            sizes="(max-width: 640px) 192px, (max-width: 768px) 224px, 256px"
+          />
+        </div>
       </div>
 
       {/* ---- Copy ---- */}
-      <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-center max-w-xl leading-tight mb-3">
+      <h1 className="font-heading text-2xl sm:text-3xl font-bold text-center max-w-lg leading-snug mb-3">
         {title}
       </h1>
-      <p className="text-muted-foreground text-center max-w-md text-sm sm:text-base leading-relaxed mb-8">
+      <p className="text-muted-foreground text-center max-w-sm text-sm sm:text-base leading-relaxed mb-8">
         {description}
       </p>
 
       {/* ---- Back Button ---- */}
       {showBackButton && (
-        <Link href="/platform">
-          <Button variant="animatedGhost" className="gap-2 mb-10">
-            <ArrowLeft className="w-4 h-4" />
+        <Button
+          asChild
+          variant="animatedGhost"
+          className="gap-2 mb-10 min-h-[44px] px-5"
+          onClick={() => void haptic.tap()}
+        >
+          <Link href="/platform" aria-label="Go back to Platform home">
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
             Back to Platform
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       )}
 
       {/* ---- Explore suggestions ---- */}
       {showExploreSuggestions && (
-        <div className="w-full max-w-lg">
+        <nav aria-label="Other tools to explore" className="w-full max-w-md">
           <p className="text-xs uppercase tracking-widest text-muted-foreground text-center mb-4 font-semibold">
-            Meanwhile, why not explore
+            Meanwhile, explore
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {EXPLORE_LINKS.map(({ label, href, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
-                className="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all duration-200"
+                onClick={() => void haptic.select()}
+                className="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring min-h-[76px]"
+                aria-label={`Go to ${label}`}
               >
-                <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" aria-hidden="true" />
                 <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
                   {label}
                 </span>
               </Link>
             ))}
           </div>
-        </div>
+        </nav>
       )}
 
       {/* ---- Footer quip ---- */}
-      <p className="mt-12 text-[11px] text-muted-foreground/60 italic text-center">
+      <p className="mt-12 text-[11px] text-muted-foreground/50 italic text-center">
         &quot;It&apos;s not a bug, it&apos;s a scheduled feature vacation.&quot;
-        — Ministry of Technology
+        {" "} Ministry of Technology
       </p>
     </div>
   );

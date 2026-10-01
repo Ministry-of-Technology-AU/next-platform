@@ -5,7 +5,7 @@ import Loader from "../loading";
 import { OrientationDialog } from "@/components/orientation-dialog";
 
 import DeveloperCredits from "@/components/developer-credits";
-import { DismissNewToolAlert } from "@/components/dismiss-new-tool-alert";
+
 
 export default function SemesterPlannerLayout({
   children,
@@ -19,7 +19,7 @@ export default function SemesterPlannerLayout({
         icon={Calendar}
         subheading='Plan and organize your course schedule. Click on the course cards to know more details about each course. Click on the "+" button to add a course to your timetable.'
       />
-      <DismissNewToolAlert storageKey="CALENDAR_SYNC_TOUR_SEEN_V1" />
+
       <OrientationDialog />
       <Suspense fallback={<Loader />}>
         {children}

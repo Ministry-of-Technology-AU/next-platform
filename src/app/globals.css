@@ -100,6 +100,7 @@ h3 {
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-text: var(--destructive-text);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -147,6 +148,8 @@ h3 {
   --accent: #f7f7f7;
   --accent-foreground: #3a3a3a;
   --destructive: #c0392b;
+  /* Error text on page surfaces; --destructive alone is < 4.5:1 on dark backgrounds. */
+  --destructive-text: #b3321f;
   --border: #e0e0e0;
   --input: #e0e0e0;
   --ring: #bdbdbd;
@@ -189,6 +192,8 @@ h3 {
   --accent: #4e342e;
   --accent-foreground: #fff8f0;
   --destructive: #c0392b;
+  /* Lighter in dark mode so 14px error text clears WCAG AA (≈6.5:1 on #171717). */
+  --destructive-text: #f1776a;
   --border: #404040;
   --input: #e0e0e0;
   --ring: #bdbdbd;

@@ -2,7 +2,7 @@
 
 /**
  * Maps a single input block → the existing controlled components in
- * `src/components/form.tsx`. This switch is the ONLY place block types are
+ * `src/components/form/`. This switch is the ONLY place block types are
  * bound to UI, and it is shared by the filler and the builder preview so they
  * can never drift (spec §9.2). Do not fork the underlying components.
  */

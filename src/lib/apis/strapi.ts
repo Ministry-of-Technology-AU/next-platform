@@ -113,7 +113,7 @@ function strapiGet(endpoint: string, queryParams?: string | StrapiQueryParams, h
         const normalized = normalizeEndpoint(endpoint);
         const qs = buildQueryString(queryParams);
         const url = normalized + (qs ? `?${qs}` : '');
-        console.log(url);
+        platform.log(url);
         const response = strapi.get(url, { headers, ...options });
         return response.then(r => r.data);
     }

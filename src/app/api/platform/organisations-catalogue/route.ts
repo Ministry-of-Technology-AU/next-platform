@@ -36,7 +36,6 @@ export async function GET() {
     }
 
     const userEmail = session.user.email;
-
     // Get the user's Strapi ID
     const userId = await getUserIdByEmail(userEmail);
 
@@ -126,7 +125,6 @@ export async function GET() {
 
         // Normalize type to lowercase for consistency
         const normalizedType = (attrs.type || 'other').toLowerCase();
-
         // Get banner image with fallback
         let bannerUrl = DEFAULT_BANNER;
         let hasBanner = false;
@@ -135,8 +133,8 @@ export async function GET() {
         const bannerData = attrs.banner?.data ? (Array.isArray(attrs.banner.data) ? attrs.banner.data[0] : attrs.banner.data) : null;
         const mediaBannerUrl = bannerData?.attributes?.url || bannerData?.url;
 
-        const candidateUrl = (rawBannerUrl && typeof rawBannerUrl === 'string' && rawBannerUrl.trim()) 
-          ? rawBannerUrl.trim() 
+        const candidateUrl = (rawBannerUrl && typeof rawBannerUrl === 'string' && rawBannerUrl.trim())
+          ? rawBannerUrl.trim()
           : (mediaBannerUrl && typeof mediaBannerUrl === 'string' && mediaBannerUrl.trim())
             ? mediaBannerUrl.trim()
             : null;
@@ -214,11 +212,11 @@ export async function GET() {
             openPositions: positionsForCycle(cycle),
             deadlineExtension: ext
               ? {
-                  extendedAt: ext.extendedAt,
-                  previousDeadline: ext.previousDeadline,
-                  newDeadline: ext.newDeadline || endDate,
-                  reason: ext.reason || null,
-                }
+                extendedAt: ext.extendedAt,
+                previousDeadline: ext.previousDeadline,
+                newDeadline: ext.newDeadline || endDate,
+                reason: ext.reason || null,
+              }
               : null,
           };
         });
@@ -282,7 +280,6 @@ export async function GET() {
             username: member.attributes?.username || 'Unknown User',
             email: member.attributes?.email || 'No email'
           })),
-
           // Induction details
           inductionsOpen: hasActiveCycle || isLegacyOpen,
           inductionEnd: cycleEndDate,
@@ -300,7 +297,6 @@ export async function GET() {
           youtube: attrs.youtube || '',
           website: attrs.website_blog || '',
           whatsapp: attrs.whatsapp || '',
-
           // Additional fields
           calendarEventId: attrs.calendar_event_id || null,
           createdAt: attrs.createdAt || new Date().toISOString(),
@@ -312,41 +308,41 @@ export async function GET() {
       }
     }).filter(Boolean);
 
-function isTechMinOrg(org: any): boolean {
-  if (!org) return false;
-  if (String(org.id) === '1' || org.id === 1) return true;
-  const name = (org?.name || '').toLowerCase().trim();
-  const email = (org?.email || '').toLowerCase().trim();
-  const desc = (org?.description || '').toLowerCase();
-  return (
-    name === 'ministry of technology' ||
-    name.includes('ministry of technology') ||
-    name.includes('tech min') ||
-    name.includes('tech ministry') ||
-    name.includes('technology ministry') ||
-    email.startsWith('tech.ministry') ||
-    email.startsWith('technology.ministry') ||
-    desc.includes('ministry of technology')
-  );
-}
+    function isTechMinOrg(org: any): boolean {
+      if (!org) return false;
+      if (String(org.id) === '1' || org.id === 1) return true;
+      const name = (org?.name || '').toLowerCase().trim();
+      const email = (org?.email || '').toLowerCase().trim();
+      const desc = (org?.description || '').toLowerCase();
+      return (
+        name === 'ministry of technology' ||
+        name.includes('ministry of technology') ||
+        name.includes('tech min') ||
+        name.includes('tech ministry') ||
+        name.includes('technology ministry') ||
+        email.startsWith('tech.ministry') ||
+        email.startsWith('technology.ministry') ||
+        desc.includes('ministry of technology')
+      );
+    }
 
-function sortCatalogOrganisations(a: any, b: any): number {
-  // 1. Tech Min is ALWAYS first
-  const aTechMin = isTechMinOrg(a);
-  const bTechMin = isTechMinOrg(b);
-  if (aTechMin && !bTechMin) return -1;
-  if (bTechMin && !aTechMin) return 1;
+    function sortCatalogOrganisations(a: any, b: any): number {
+      // 1. Tech Min is ALWAYS first
+      const aTechMin = isTechMinOrg(a);
+      const bTechMin = isTechMinOrg(b);
+      if (aTechMin && !bTechMin) return -1;
+      if (bTechMin && !aTechMin) return 1;
 
-  // 2. Orgs with custom banner come before orgs without banner
-  const aBanner = a.hasBanner || (a.bannerUrl && !a.bannerUrl.includes('default')) ? 1 : 0;
-  const bBanner = b.hasBanner || (b.bannerUrl && !b.bannerUrl.includes('default')) ? 1 : 0;
-  if (bBanner !== aBanner) {
-    return bBanner - aBanner;
-  }
+      // 2. Orgs with custom banner come before orgs without banner
+      const aBanner = a.hasBanner || (a.bannerUrl && !a.bannerUrl.includes('default')) ? 1 : 0;
+      const bBanner = b.hasBanner || (b.bannerUrl && !b.bannerUrl.includes('default')) ? 1 : 0;
+      if (bBanner !== aBanner) {
+        return bBanner - aBanner;
+      }
 
-  // 3. Alphabetical order within each group
-  return (a.name || '').localeCompare(b.name || '');
-}
+      // 3. Alphabetical order within each group
+      return (a.name || '').localeCompare(b.name || '');
+    }
 
     // Sort organisations: Tech Min first, then custom banner orgs alphabetically, then rest alphabetically
     const sortedOrganisations = [...organisations].sort(sortCatalogOrganisations);

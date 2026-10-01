@@ -1,8 +1,7 @@
-import { google, calendar_v3 } from "googleapis";
-import { NextApiRequest, NextApiResponse } from "next";
+import { auth, calendar as createCalendar, calendar_v3 } from "@googleapis/calendar";
 
 // Initialize Google Calendar API with OAuth2
-const calendarOAuth2Client = new google.auth.OAuth2(
+const calendarOAuth2Client = new auth.OAuth2(
   process.env.DRIVE_CLIENT_ID,
   process.env.DRIVE_CLIENT_SECRET,
   process.env.GOOGLE_REDIRECT_URI
@@ -15,7 +14,7 @@ if (process.env.GOOGLE_REFRESH_TOKEN) {
   });
 }
 
-const calendar = google.calendar({
+const calendar = createCalendar({
   version: "v3",
   auth: calendarOAuth2Client,
 });
@@ -112,7 +111,7 @@ async function getEvents(
         // Ensure we get all fields
         fields: "*"
       });
-      console.log('Fetched single event:', response.data?.id);
+      platform.log('Fetched single event:', response.data);
       return response.data;
     } else {
       // List events within the specified time range
@@ -122,10 +121,10 @@ async function getEvents(
         timeMax: endTime,
         singleEvents: true,
         orderBy: "startTime",
-        // Ensure we get all fields
+        // Ensure we get all fields for each event
         fields: "items(*),nextPageToken,nextSyncToken"
       });
-      console.log(`Fetched ${response.data.items?.length ?? 0} events`);
+      platform.log('Fetched events:', response.data);
       return response.data.items;
     }
   } catch (error) {

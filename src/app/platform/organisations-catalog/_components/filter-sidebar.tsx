@@ -72,7 +72,6 @@ export function FiltersSidebar({
     selectedCategories: ['clubs', 'societies', 'departments', 'ministries', 'others'],
     categoryColors: categoryColors,
   });
-
   const [searchTerms, setSearchTerms] = React.useState<Record<string, string>>({});
   const [mounted, setMounted] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -105,7 +104,6 @@ export function FiltersSidebar({
           };
           setPreferences(newPreferences);
           setCategoryColors(prefsData.preferences.categoryColors || preferences.categoryColors);
-
           // Notify parent component of preferences change
           if (onPreferencesChange) {
             onPreferencesChange(newPreferences);
@@ -129,7 +127,6 @@ export function FiltersSidebar({
 
   const getFilteredOrganizations = (category: string) => {
     const searchTerm = searchTerms[category] || '';
-
     return organizations
       .filter((org) => {
         const orgType = org.type.toLowerCase();
@@ -160,10 +157,8 @@ export function FiltersSidebar({
   const handleCategoryToggle = (category: string) => {
     const isCurrentlySelected = preferences.selectedCategories.includes(category);
     let newSelected: string[];
-
     if (isCurrentlySelected) {
       newSelected = preferences.selectedCategories.filter(cat => cat !== category);
-
       // Make sure we have at least one category selected
       if (newSelected.length === 0) {
         newSelected = [category];
@@ -212,10 +207,8 @@ export function FiltersSidebar({
         throw new Error(`Failed to save preferences: ${response.statusText}`);
       }
       const data = await response.json();
-
       // Reload preferences after saving to ensure we have the latest data
       await reloadPreferences();
-
       toast.success('Preferences saved successfully!');
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -233,8 +226,8 @@ export function FiltersSidebar({
         <Button
           variant="outline"
           className={`relative h-12 gap-2 rounded-full border-neutral-300 hover:bg-neutral-100 transition-all ${isIconOnly
-              ? 'w-12 p-0 flex items-center justify-center'
-              : 'px-6'
+            ? 'w-12 p-0 flex items-center justify-center'
+            : 'px-6'
             }`}
         >
           <Filter className="h-5 w-5 flex-shrink-0" />
@@ -281,124 +274,124 @@ export function FiltersSidebar({
           {/* Categories and Organizations - Updated Section */}
           <div>
             <h3 className="font-medium mb-3">Categories and Organizations</h3>
-              <Accordion11
-                type="single"
-                collapsible
-                className="w-full max-w-2xl"
-                defaultValue="clubs"
-              >
-                {categories.map((category) => (
-                  <Accordion11Item
-                    key={category}
-                    value={category}
-                    className="flex flex-col justify-start !w-full"
-                  >
-                    {/* Custom header with checkbox, category name, and color picker */}
-                    <div className="capitalize text-sm text-left flex items-center w-full py-2 border-b">
-                      {/* Left: Checkbox + Category */}
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`cat-${category}`}
-                          checked={preferences.selectedCategories.includes(
-                            category
-                          )}
-                          onCheckedChange={() => handleCategoryToggle(category)}
-                          className="rounded-xs mx-3 w-4 h-4 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
-                        />
-                        <span className="font-semibold text-sm capitalize">
-                          {category}
-                        </span>
-                      </div>
-
-                      {/* Right: Palette */}
-                      <div className="flex items-center space-x-2 ml-auto">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button
-                              className="w-5 h-5 rounded border hover:scale-110 transition-transform"
-                              style={{
-                                backgroundColor:
-                                  preferences.categoryColors[category],
-                              }}
-                            />
-                          </PopoverTrigger>
-                          <PopoverContent className="flex flex-wrap gap-2 w-50">
-                            {defaultColors.map((color) => (
-                              <button
-                                key={color}
-                                onClick={() =>
-                                  handleColorChange(category, color)
-                                }
-                                className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
-                                style={{
-                                  backgroundColor: color,
-                                  borderColor:
-                                    preferences.categoryColors[category] ===
-                                      color
-                                      ? '#000'
-                                      : '#d1d5db',
-                                }}
-                              />
-                            ))}
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      {/* Separate accordion trigger with just the chevron */}
-                      <Accordion11Trigger className="ml-2 p-0">
-                        <span className="sr-only">Toggle {category}</span>
-                      </Accordion11Trigger>
+            <Accordion11
+              type="single"
+              collapsible
+              className="w-full max-w-2xl"
+              defaultValue="clubs"
+            >
+              {categories.map((category) => (
+                <Accordion11Item
+                  key={category}
+                  value={category}
+                  className="flex flex-col justify-start !w-full"
+                >
+                  {/* Custom header with checkbox, category name, and color picker */}
+                  <div className="capitalize text-sm text-left flex items-center w-full py-2 border-b">
+                    {/* Left: Checkbox + Category */}
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`cat-${category}`}
+                        checked={preferences.selectedCategories.includes(
+                          category
+                        )}
+                        onCheckedChange={() => handleCategoryToggle(category)}
+                        className="rounded-xs mx-3 w-4 h-4 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
+                      />
+                      <span className="font-semibold text-sm capitalize">
+                        {category}
+                      </span>
                     </div>
 
-                    <Accordion11Content>
-                      <div className="space-y-3">
-                        <div className="relative">
-                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder={`Search ${category}...`}
-                            value={searchTerms[category] || ''}
-                            onChange={(e) =>
-                              setSearchTerms({
-                                ...searchTerms,
-                                [category]: e.target.value,
-                              })
-                            }
-                            className="pl-8"
+                    {/* Right: Palette */}
+                    <div className="flex items-center space-x-2 ml-auto">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            className="w-5 h-5 rounded border hover:scale-110 transition-transform"
+                            style={{
+                              backgroundColor:
+                                preferences.categoryColors[category],
+                            }}
                           />
-                        </div>
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                          {getFilteredOrganizations(category).length > 0 ? (
-                            getFilteredOrganizations(category).map((org) => (
-                              <div
-                                key={org.id}
-                                className="flex items-center space-x-2"
-                              >
-                                <Checkbox
-                                  id={org.id}
-                                  checked={preferences.selectedOrganizations.includes(
-                                    org.id
-                                  )}
-                                  onCheckedChange={() =>
-                                    handleOrganizationToggle(org.id)
-                                  }
-                                  className="rounded-md w-5 h-5 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
-                                />
-                                <label htmlFor={org.id} className="text-sm cursor-pointer">
-                                  {org.name}
-                                </label>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="text-sm text-muted-foreground py-2 text-center">
-                              No organizations found
-                            </div>
-                          )}
-                        </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="flex flex-wrap gap-2 w-50">
+                          {defaultColors.map((color) => (
+                            <button
+                              key={color}
+                              onClick={() =>
+                                handleColorChange(category, color)
+                              }
+                              className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
+                              style={{
+                                backgroundColor: color,
+                                borderColor:
+                                  preferences.categoryColors[category] ===
+                                    color
+                                    ? '#000'
+                                    : '#d1d5db',
+                              }}
+                            />
+                          ))}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Separate accordion trigger with just the chevron */}
+                    <Accordion11Trigger className="ml-2 p-0">
+                      <span className="sr-only">Toggle {category}</span>
+                    </Accordion11Trigger>
+                  </div>
+
+                  <Accordion11Content>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder={`Search ${category}...`}
+                          value={searchTerms[category] || ''}
+                          onChange={(e) =>
+                            setSearchTerms({
+                              ...searchTerms,
+                              [category]: e.target.value,
+                            })
+                          }
+                          className="pl-8"
+                        />
                       </div>
-                    </Accordion11Content>
-                  </Accordion11Item>
-                ))}
-              </Accordion11>
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {getFilteredOrganizations(category).length > 0 ? (
+                          getFilteredOrganizations(category).map((org) => (
+                            <div
+                              key={org.id}
+                              className="flex items-center space-x-2"
+                            >
+                              <Checkbox
+                                id={org.id}
+                                checked={preferences.selectedOrganizations.includes(
+                                  org.id
+                                )}
+                                onCheckedChange={() =>
+                                  handleOrganizationToggle(org.id)
+                                }
+                                className="rounded-md w-5 h-5 transition-transform duration-200 ease-in-out data-[state=checked]:scale-110"
+                              />
+                              <label htmlFor={org.id} className="text-sm cursor-pointer">
+                                {org.name}
+                              </label>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-sm text-muted-foreground py-2 text-center">
+                            No organizations found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Accordion11Content>
+                </Accordion11Item>
+              ))}
+            </Accordion11>
           </div>
 
           {/* Save Button */}

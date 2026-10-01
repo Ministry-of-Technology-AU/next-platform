@@ -1,9 +1,22 @@
 // A strapi get function which returns the user id of the user with the given email
 import { strapiGet } from "@/lib/apis/strapi";
+import { createLru } from "@/lib/cache/memory";
 
+// Email → Strapi id never changes for an account. 2,000 entries is about 100 KB.
+const userIdCache = createLru<number>(2000, 24 * 60 * 60 * 1000);
+
+/**
+ * Prefer `getAuthenticatedUser().uid` for the signed-in user; it is already on the session.
+ * This stays for looking up other users and for older call sites.
+ */
 export async function getUserIdByEmail(email: string): Promise<number | null> {
-    if (email.trim() === '') {
+    const key = email.trim().toLowerCase();
+    if (key === '') {
         return null;
+    }
+    const cached = userIdCache.get(key);
+    if (cached !== undefined) {
+        return cached;
     }
     try {
         const response = await strapiGet('/users', {
@@ -14,9 +27,14 @@ export async function getUserIdByEmail(email: string): Promise<number | null> {
             }
         })
         const users = response || []
-        return users.length > 0 ? users[0].id : null
+        const id: number | null = users.length > 0 ? users[0].id : null
+        // Misses are not cached: the account may be created on the next sign-in.
+        if (id !== null) {
+            userIdCache.set(key, id);
+        }
+        return id
     } catch (error) {
-        console.error("Error fetching user by email:", error)
+        platform.error("Error fetching user by email:", error)
         return null
     }
 }

@@ -4,7 +4,19 @@
         {
             "label": "Git Pull on Open",
             "type": "shell",
-            "command": "git pull origin main",
+            "command": "git pull",
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Set node version",
+            "type": "shell",
+            "command": "nvm use",
             "runOptions": {
                 "runOn": "folderOpen"
             },

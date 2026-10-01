@@ -3,8 +3,7 @@ import { Nunito, Nunito_Sans } from "next/font/google";
 import "../globals.css";
 import Navbar from "@/components/navbar/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import adminPortalSidebarData from "@/components/sidebar/admin-portal-sidebar-entries.json";
+import { AppSidebar } from "@/components/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TourProvider } from "@/components/guided-tour";
 import { Suspense } from "react";
@@ -46,13 +45,17 @@ export default async function AdminLayout({
     redirect("/unauthorized"); // or "/login"
   }
 
+  // Resolved once here — see the note in src/app/platform/layout.tsx.
+  const role = session?.user?.role;
+  const access = session?.user?.access ?? [];
+
   return (
     <div className={`${nunito.variable} ${nunitoSans.variable} antialiased`}>
       <TooltipProvider>
         <TourProvider autoStart={false}>
           <SidebarProvider defaultOpen={false}>
             <div className="flex min-h-screen w-full overflow-x-hidden">
-              <AppSidebar data={adminPortalSidebarData} basePath="/admin" title="Admin Portal" />
+              <AppSidebar interfaceId="admin" role={role} access={access} />
               <div className="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">
                 <Navbar />
                 <Suspense>

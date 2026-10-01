@@ -130,7 +130,7 @@ function getDepartmentFromCourseCode(courseCode: string): string {
 async function fetchSemesterPlannerData(): Promise<any[]> {
   try {
     const response = await strapiGet('/semester-planner-sync');
-    
+
     // Log the structure of the response to diagnose structural mismatch
     console.log('[Semester Planner Sync] Raw response structure:', {
       hasResponse: !!response,

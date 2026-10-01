@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from './auth'
+import { limitApiRequest } from '@/lib/rate-limit'
 
 // Define protected routes and their access requirements
 // ashoka_admin has 'platform' access so they can reach /platform,
@@ -23,7 +24,8 @@ const INDUCTION_SHARED_ROUTES = [
 ]
 
 // Tools that ashoka_admin users are NOT allowed to access directly by URL.
-// Keep in sync with admin-sidebar-entries.json.
+// Keep in sync with the `hideFor: ['ashoka_admin']` entries in
+// src/components/sidebar/platform.ts.
 const ASHOKA_ADMIN_BLOCKED_ROUTES = [
   '/platform/course-reviews',
   '/platform/sg-compose',
@@ -39,6 +41,10 @@ export default auth(async function middleware(req) {
   if (pathname.startsWith('/api/auth')) {
     return NextResponse.next()
   }
+
+  // Global per-user /api limit (src/lib/rate-limit.ts). Runs before any handler.
+  const limited = limitApiRequest(pathname, req.method, req.headers, req.auth?.user?.email)
+  if (limited) return limited
 
   if (pathname.startsWith('/backend')) {
     return NextResponse.next()
@@ -158,6 +164,9 @@ export default auth(async function middleware(req) {
 
 // Configure middleware to run on specific paths
 export const config = {
+  // Node, not edge: the auth callback refreshes claims from Strapi (axios) as
+  // they go stale, and that runs here on the first request after expiry.
+  runtime: 'nodejs',
   matcher: [
     '/sg-compose/:path*',
     '/platform/:path*',
@@ -165,6 +174,8 @@ export const config = {
     '/api/sg-compose/:path*',
     '/api/drive/:path*',
     '/api/mail/:path*',
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|login|$).*)'
+    // Skips /public assets by extension so auth() never runs for an image or font,
+    // and /api/revalidate, which Strapi calls with its own bearer token.
+    '/((?!api/auth|api/revalidate|_next/static|_next/image|favicon.ico|login|$|.*\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|woff2?|webmanifest)$).*)'
   ],
 }
