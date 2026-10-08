@@ -39,11 +39,6 @@ export async function uploadImageToCloudinary(
             .replace(/\.[^/.]+$/, '') // Remove extension
             .replace(/[^a-zA-Z0-9_-]+/g, '_'); // Replace invalid URL chars with underscore
 
-        // Sanitize filename to remove special characters (e.g., '#', '?', '%', spaces) invalid in Cloudinary public_id
-        const sanitizedFilename = filename
-            .replace(/\.[^/.]+$/, '') // Remove extension
-            .replace(/[^a-zA-Z0-9_-]+/g, '_'); // Replace invalid URL chars with underscore
-
         // Upload to Cloudinary with optimizations
         const uploadResponse = await cloudinary.uploader.upload(base64Data, {
             folder: folder,
