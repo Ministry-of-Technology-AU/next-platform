@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "form_responses",
+  "info": {
+    "singularName": "form-response",
+    "pluralName": "form-responses",
+    "displayName": "Form Response",
+    "description": "Drafts and submissions for platform forms"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "form": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::form.form",
+      "inversedBy": "responses"
+    },
+    "respondent": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "respondent_email": { "type": "email", "required": true },
+    "data": { "type": "json", "required": true },
+    "state": {
+      "type": "enumeration",
+      "enum": ["draft", "submitted"],
+      "default": "draft",
+      "required": true
+    },
+    "visited_at": { "type": "datetime" },
+    "last_saved_at": { "type": "datetime" },
+    "submitted_at": { "type": "datetime" },
+    "files": { "type": "json" }
+  }
+}

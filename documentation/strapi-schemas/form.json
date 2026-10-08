@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "forms",
+  "info": {
+    "singularName": "form",
+    "pluralName": "forms",
+    "displayName": "Form",
+    "description": "Induction/recruitment forms built with the platform form builder"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "title": { "type": "string", "required": true, "maxLength": 200 },
+    "form_uid": { "type": "string", "required": true, "unique": true },
+    "schema": { "type": "json", "required": true },
+    "form_status": {
+      "type": "enumeration",
+      "enum": ["draft", "active", "inactive"],
+      "default": "draft",
+      "required": true
+    },
+    "start_date": { "type": "datetime" },
+    "end_date": { "type": "datetime" },
+    "stats": { "type": "json" },
+    "organisation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::organisation.organisation",
+      "inversedBy": "forms"
+    },
+    "responses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::form-response.form-response",
+      "mappedBy": "form"
+    }
+  }
+}
