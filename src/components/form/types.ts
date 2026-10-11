@@ -39,4 +39,6 @@ export interface DropdownOption {
   disable?: boolean;
   /** Secondary line under the label (checkbox lists and mobile picker). */
   description?: string;
+  /** Leading icon in the desktop list and trigger. The native mobile picker can't show icons. */
+  icon?: React.ComponentType<{ className?: string }>;
 }

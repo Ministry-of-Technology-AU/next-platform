@@ -142,7 +142,14 @@ export function SingleSelect({
                 disabled={option.disable}
                 className="min-h-9 cursor-pointer"
               >
-                {option.label}
+                {option.icon ? (
+                  <span className="flex items-center gap-2">
+                    <option.icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+                    {option.label}
+                  </span>
+                ) : (
+                  option.label
+                )}
               </SelectItem>
             ))}
           </SelectContent>

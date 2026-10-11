@@ -118,7 +118,7 @@ function strapiGet(endpoint: string, queryParams?: string | StrapiQueryParams, h
         return response.then(r => r.data);
     }
     catch (error) {
-        console.error("Error in strapiGet:", error);
+        platform.error("Error in strapiGet:", error);
         throw error;
     }
 }
@@ -132,7 +132,7 @@ function strapiPost(endpoint: string, body?: Record<string, unknown> | FormData,
         return response.then(r => r.data);
     }
     catch (error) {
-        console.error("Error in strapiPost:", error);
+        platform.error("Error in strapiPost:", error);
         throw error;
     }
 }
@@ -146,7 +146,7 @@ function strapiPut(endpoint: string, body?: Record<string, unknown> | FormData, 
         return response.then(r => r.data);
     }
     catch (error) {
-        console.error("Error in strapiPut:", error);
+        platform.error("Error in strapiPut:", error);
         throw error;
     }
 }
@@ -160,7 +160,7 @@ function strapiDelete(endpoint: string, queryParams?: string | StrapiQueryParams
         return response.then(r => r.data);
     }
     catch (error) {
-        console.error("Error in strapiDelete:", error);
+        platform.error("Error in strapiDelete:", error);
         throw error;
     }
 }
@@ -192,13 +192,38 @@ async function strapiRequest<T = unknown>({ endpoint, queryParams, body, method,
         }
     }
     catch (error) {
-        console.error("Error in strapiRequest:", error);
+        platform.error("Error in strapiRequest:", error);
         throw error;
     }
 }
 
+/**
+ * One-line summary of a failed Strapi call for server logs: status, Strapi's own
+ * message and, for validation errors, the field-level details. Never send this
+ * to the browser; it can name internal fields.
+ */
+function describeStrapiError(error: unknown): string {
+    if (!axios.isAxiosError(error)) return error instanceof Error ? error.message : String(error);
+    const body = error.response?.data as
+        | { error?: { status?: number; name?: string; message?: string; details?: { errors?: { path?: string[]; message?: string }[] } } }
+        | undefined;
+    const strapiError = body?.error;
+    const fields = (strapiError?.details?.errors ?? [])
+        .map((e) => `${(e.path ?? []).join('.') || '?'}: ${e.message ?? ''}`)
+        .join('; ');
+    return [
+        `${error.config?.method?.toUpperCase() ?? ''} ${error.config?.url ?? ''} -> ${error.response?.status ?? 'no response'}`,
+        strapiError?.name,
+        strapiError?.message,
+        fields,
+    ]
+        .filter(Boolean)
+        .join(' | ');
+}
+
 export {
     strapi,
+    describeStrapiError,
     buildQueryString,
     strapiGet,
     strapiPost,
