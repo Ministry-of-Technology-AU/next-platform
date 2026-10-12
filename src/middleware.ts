@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from './auth'
 import { limitApiRequest } from '@/lib/rate-limit'
+import { platform } from '@/lib/platform-logger'
 
 // Define protected routes and their access requirements
 // ashoka_admin has 'platform' access so they can reach /platform,
