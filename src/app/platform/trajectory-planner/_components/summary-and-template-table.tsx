@@ -132,6 +132,7 @@ export function SummaryAndTemplateTable() {
     const [showShareDialog, setShowShareDialog] = useState(false)
     const [showRepositoryDialog, setShowRepositoryDialog] = useState(false)
     const [cgpaInput, setCgpaInput] = useState("")
+    const [isLoadingSemesters, setIsLoadingSemesters] = useState(false)
     const [loadResult, setLoadResult] = useState<{ success: boolean; message: string } | null>(null)
     const [isSummaryOpen, setIsSummaryOpen] = useState(true)
 
@@ -164,13 +165,15 @@ export function SummaryAndTemplateTable() {
         }))
         .filter((s) => s.gpa !== null)
 
-    const handleLoadPreviousSemesters = () => {
+    const handleLoadPreviousSemesters = async () => {
         if (!cgpaInput.trim()) {
             setLoadResult({ success: false, message: "Please paste your AMS data first" })
             return
         }
 
-        const result = loadPreviousSemesters(cgpaInput)
+        setIsLoadingSemesters(true)
+        const result = await loadPreviousSemesters(cgpaInput)
+        setIsLoadingSemesters(false)
         setLoadResult(result)
 
         if (result.success) {
@@ -509,9 +512,9 @@ export function SummaryAndTemplateTable() {
                         >
                             Cancel
                         </Button>
-                        <Button onClick={handleLoadPreviousSemesters}>
+                        <Button onClick={() => void handleLoadPreviousSemesters()} disabled={isLoadingSemesters} aria-busy={isLoadingSemesters}>
                             <Upload size={14} className="mr-2" />
-                            Load Semesters
+                            {isLoadingSemesters ? "Loading..." : "Load Semesters"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

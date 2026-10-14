@@ -1,5 +1,6 @@
 import type { Course, CourseType, Grade, Semester, DepartmentCode } from "./types"
 import { v4 as uuidv4 } from "uuid"
+import type { ParsedCGPAData } from "@/lib/cgpa/types"
 
 // FC course name patterns to identify foundation courses
 const FC_COURSE_PATTERNS = [
@@ -133,84 +134,52 @@ export interface ParsedCGPADataForPlanner {
 }
 
 /**
- * Parse AMS text data into trajectory planner format
- * Based on parseGradeData from cgpa-planner/useCalculations.tsx
+ * Maps a parsed AMS report (from POST /api/platform/cgpa-planner/parse) onto planner semesters.
+ * Parsing itself happens on the server, so this tool and the CGPA planner read AMS the same way.
  */
-export function parseGradeDataForPlanner(text: string): ParsedCGPADataForPlanner {
-    const lines = text.split('\n').map((line) => line.trim())
-    const result: ParsedCGPADataForPlanner = {
-        semesters: [],
-        takenCourseNames: [],
-    }
+export function mapReportToPlanner(report: ParsedCGPAData): ParsedCGPADataForPlanner {
+    const result: ParsedCGPADataForPlanner = { semesters: [], takenCourseNames: [] }
 
-    let currentSemesterName: string | null = null
-    let currentCourses: Course[] = []
-    let semesterIndex = 0
-
-    for (const line of lines) {
-        // Detect semester header (e.g., "Monsoon 2022", "Spring 2023", "Summer 2024")
-        if (line.match(/^(Monsoon|Spring|Summer)\s+\d{4}/)) {
-            const parsedSemesterName = line.split('\t')[0].trim()
-            
-            // If the semester name is the same as current, it's just a page break in AMS.
-            // Don't create a new semester, just continue accumulating courses.
-            if (currentSemesterName === parsedSemesterName) {
-                continue
-            }
-
-            // Save previous semester if exists
-            if (currentSemesterName && currentCourses.length > 0) {
-                result.semesters.push({
-                    id: `semester-${uuidv4()}`,
-                    name: currentSemesterName,
-                    courses: currentCourses,
-                })
-                semesterIndex++
-            }
-
-            currentSemesterName = parsedSemesterName
-            currentCourses = []
-            continue
+    for (const term of report.semesters) {
+        const courses: Course[] = []
+        for (const parsed of term.courses) {
+            const title = parsed.title?.trim()
+            if (!title) continue
+            const code = parsed.code ?? undefined
+            courses.push({
+                id: uuidv4(),
+                name: title,
+                credits: parseCredits(parsed.creditsRegistered ?? parsed.creditsEarned),
+                deptCode: extractDeptCode(code),
+                type: inferCourseType(title, code),
+                isInSemester: true,
+                grade: mapGrade(parsed.grade),
+            })
+            result.takenCourseNames.push(title.toLowerCase())
         }
-
-        // Parse course line (starts with a number - the S.No.)
-        // Format: 1	CS-1101	Introduction to Computer Programming	4	A	4	16
-        if (currentSemesterName && line.match(/^\d+\t/) && !line.includes('systems.support')) {
-            const parts = line.split('\t')
-            if (parts.length >= 5) {
-                const [sno, code, title, creditsRegistered, grade, creditsEarned] = parts
-
-                if (title && title !== '--') {
-                    const mappedGrade = mapGrade(grade)
-                    const credits = parseCredits(creditsRegistered || creditsEarned)
-                    const courseType = inferCourseType(title, code)
-                    const deptCode = extractDeptCode(code)
-
-                    const course: Course = {
-                        id: uuidv4(),
-                        name: title.trim(),
-                        credits,
-                        deptCode,
-                        type: courseType,
-                        isInSemester: true,
-                        grade: mappedGrade,
-                    }
-
-                    currentCourses.push(course)
-                    result.takenCourseNames.push(title.trim().toLowerCase())
-                }
-            }
+        if (courses.length > 0) {
+            result.semesters.push({ id: `semester-${uuidv4()}`, name: term.semester, courses })
         }
-    }
-
-    // Don't forget last semester
-    if (currentSemesterName && currentCourses.length > 0) {
-        result.semesters.push({
-            id: `semester-${uuidv4()}`,
-            name: currentSemesterName,
-            courses: currentCourses,
-        })
     }
 
     return result
+}
+
+/** Sends the pasted AMS text to the shared parser and maps the result for the planner. */
+export async function fetchPlannerSemesters(text: string): Promise<{ data: ParsedCGPADataForPlanner | null; error: string | null }> {
+    try {
+        const response = await fetch("/api/platform/cgpa-planner/parse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+        })
+        const json = (await response.json().catch(() => null)) as { success?: boolean; data?: ParsedCGPAData; error?: string } | null
+        if (!response.ok || !json?.success || !json.data) {
+            return { data: null, error: json?.error ?? "Failed to read the pasted data" }
+        }
+        return { data: mapReportToPlanner(json.data), error: null }
+    } catch (error) {
+        platform.error("Parsing AMS data failed:", error)
+        return { data: null, error: "Couldn't reach the server. Check your connection and try again." }
+    }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from './auth'
 import { limitApiRequest } from '@/lib/rate-limit'
+import { platform } from '@/lib/platform-logger'
 
 // Define protected routes and their access requirements
 // ashoka_admin has 'platform' access so they can reach /platform,
@@ -55,6 +56,13 @@ export default auth(async function middleware(req) {
     pathname.startsWith('/api/platform/sports/aba/sse') ||
     pathname.startsWith('/api/platform/sports/apl/webhook') ||
     pathname.startsWith('/api/platform/sports/apl/sse')) {
+    return NextResponse.next()
+  }
+
+  // CGPA planner API is called from outside the platform (CORS, Google bearer token).
+  // Every handler gates itself: /parse is public and stateless, the rest need a session or a
+  // verified bearer token. The rate limit above still applies.
+  if (pathname.startsWith('/api/platform/cgpa-planner')) {
     return NextResponse.next()
   }
 

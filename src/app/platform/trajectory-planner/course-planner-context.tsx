@@ -4,7 +4,7 @@ import { createContext, useContext, useState, type ReactNode, useEffect } from "
 import type { CoursePlannerState, Semester, Course, Grade } from "./types"
 import { v4 as uuidv4 } from "uuid"
 import { gradePointsMap } from "./templates"
-import { parseGradeDataForPlanner } from "./parse-cgpa-data"
+import { fetchPlannerSemesters } from "./ams-report"
 
 const DEFAULT_COURSES: Omit<Course, "id">[] = [
     { name: "Economy, Politics, and Society", credits: 4, deptCode: "", type: "FC", isInSemester: false },
@@ -24,7 +24,7 @@ interface CoursePlannerContextType {
     state: CoursePlannerState
     selectedDegreeId: string | null
     setSelectedDegree: (degreeId: string | null) => void
-    loadPreviousSemesters: (cgpaText: string) => { success: boolean; message: string; semestersLoaded: number }
+    loadPreviousSemesters: (cgpaText: string) => Promise<{ success: boolean; message: string; semestersLoaded: number }>
     addCourse: (semesterId: string | null, course: Course) => void
     removeCourse: (courseId: string) => void
     updateCourse: (courseId: string, updates: Partial<Course>) => void
@@ -116,9 +116,12 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
     }
 
     // Load previous semesters from AMS data
-    const loadPreviousSemesters = (cgpaText: string): { success: boolean; message: string; semestersLoaded: number } => {
+    const loadPreviousSemesters = async (cgpaText: string): Promise<{ success: boolean; message: string; semestersLoaded: number }> => {
         try {
-            const parsed = parseGradeDataForPlanner(cgpaText)
+            const { data: parsed, error } = await fetchPlannerSemesters(cgpaText)
+            if (!parsed) {
+                return { success: false, message: error ?? "Failed to parse the pasted data", semestersLoaded: 0 }
+            }
 
             if (parsed.semesters.length === 0) {
                 return { success: false, message: "No semesters found in the pasted data", semestersLoaded: 0 }
@@ -180,7 +183,7 @@ export function CoursePlannerProvider({ children, initialData }: { children: Rea
                 semestersLoaded: parsed.semesters.length
             }
         } catch (error) {
-            console.error("Error parsing CGPA data:", error)
+            platform.error("Error parsing CGPA data:", error)
             return { success: false, message: "Failed to parse the pasted data", semestersLoaded: 0 }
         }
     }

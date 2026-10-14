@@ -10,6 +10,7 @@ import { normalizeEmail } from './assigners'
 import { fetchOrgMemberships, fetchStrapiUser } from './loaders'
 import { DEFAULT_ROLE, ROLES, SPORT_POCS, isPlatformRole, type PlatformRole } from './roles'
 import { SPORTS, type AssignContext, type OrgMembership, type Sport, type SportAssignContext } from './types'
+import { platform } from '@/lib/platform-logger'
 
 /** Bump when the claim shape changes — older tokens re-resolve on their next request. */
 export const CLAIMS_VERSION = 2
