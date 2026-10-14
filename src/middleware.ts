@@ -59,6 +59,13 @@ export default auth(async function middleware(req) {
     return NextResponse.next()
   }
 
+  // CGPA planner API is called from outside the platform (CORS, Google bearer token).
+  // Every handler gates itself: /parse is public and stateless, the rest need a session or a
+  // verified bearer token. The rate limit above still applies.
+  if (pathname.startsWith('/api/platform/cgpa-planner')) {
+    return NextResponse.next()
+  }
+
   if (pathname.endsWith('jpg') || pathname.endsWith('png') || pathname.endsWith('svg') || pathname.endsWith('ico')) {
     return NextResponse.next()
   }

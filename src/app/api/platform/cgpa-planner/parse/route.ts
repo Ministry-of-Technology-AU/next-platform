@@ -1,52 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { parseGradeDataText, sanitizeCGPAData } from "@/lib/cgpa-utils";
+import { NextRequest } from "next/server";
+import { json, preflight, reportFromRequest } from "../helper";
 
-const CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+export const dynamic = "force-dynamic";
 
-function withCors(response: NextResponse) {
-    Object.entries(CORS_HEADERS).forEach(([key, value]) => response.headers.set(key, value));
-    return response;
-}
+/**
+ * Stateless parse of an AMS course report. Public on purpose: it stores nothing and is
+ * called from outside the platform. The global anonymous rate limit applies.
+ *
+ * POST { text } -> { success, data: ParsedCGPAData }
+ * 422 when no terms could be found, with a message saying what to paste.
+ */
 
-function jsonResponse(body: unknown, status = 200) {
-    return withCors(NextResponse.json(body, { status }));
-}
+const METHODS = "POST, OPTIONS";
 
-export async function OPTIONS() {
-    return withCors(new NextResponse(null, { status: 204 }));
+export function OPTIONS() {
+  return preflight(METHODS);
 }
 
 export async function POST(request: NextRequest) {
-    try {
-        const body = await request.json();
-        const text = typeof body?.text === "string" ? body.text : "";
-
-        if (!text.trim()) {
-            return jsonResponse({ success: false, error: "Missing or invalid text input" }, 400);
-        }
-
-        const parsedData = parseGradeDataText(text);
-        const sanitizedData = sanitizeCGPAData(parsedData);
-
-        return jsonResponse({
-            success: true,
-            data: sanitizedData,
-            message: "CGPA data parsed successfully",
-        });
-
-    } catch (error) {
-        console.error("Error parsing CGPA data:", error);
-        return jsonResponse(
-            {
-                success: false,
-                error: "Failed to parse CGPA data",
-                details: (error as Error).message
-            },
-            500
-        );
-    }
+  try {
+    const result = await reportFromRequest(request);
+    if (!result.ok) return json({ success: false, error: result.error }, result.status, METHODS);
+    return json({ success: true, data: result.report, message: "CGPA data parsed" }, 200, METHODS);
+  } catch (error) {
+    platform.error("POST /api/platform/cgpa-planner/parse failed:", error);
+    return json({ success: false, error: "Failed to parse CGPA data" }, 500, METHODS);
+  }
 }

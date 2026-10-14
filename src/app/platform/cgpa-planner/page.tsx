@@ -1,38 +1,47 @@
-"use server";
+import { Calculator } from "lucide-react";
+import { TourStep } from "@/components/guided-tour";
+import PageTitle from "@/components/page-title";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { getCGPAReport } from "@/lib/cgpa/data";
+import type { ParsedCGPAData } from "@/lib/cgpa/types";
+import { CGPAPlannerClient } from "./client";
 
-import React from "react";
-import CGPAPlanner from "./cgpa-planner";
-import { cookies } from "next/headers";
+// Per-user data read with the session; never statically cached.
+export const dynamic = "force-dynamic";
 
-import type { ParsedCGPAData } from "@/lib/cgpa-types";
-
-async function fetchCGPAData(): Promise<ParsedCGPAData | null> {
-  const cookieStore = await cookies();
+async function loadReport(): Promise<{ data: ParsedCGPAData | null; error: string | null }> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/platform/cgpa-planner`, {
-      cache: 'no-store',
-      headers: { 'Cookie': cookieStore.toString() },
-    });
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success && result.data) {
-        return result.data as ParsedCGPAData;
-      } else {
-        platform.log('CGPAPlanner: No CGPA data found in API result.');
-      }
-    } else {
-      console.error('CGPAPlanner: Response not OK:', response.status, await response.text());
-    }
-  } catch (e) {
-    console.error('Error fetching CGPA Data:', e);
+    const user = await getAuthenticatedUser();
+    if (!user?.uid) return { data: null, error: null };
+    const { report } = await getCGPAReport(user.uid);
+    return { data: report, error: null };
+  } catch (err) {
+    platform.error("CGPA planner: loading the saved report failed:", err);
+    return { data: null, error: "Your saved grades didn't load. Paste your AMS report again, or reload in a minute." };
   }
-  return null;
 }
 
-
 export default async function CGPAPlannerPage() {
-  const cgpaData = await fetchCGPAData();
-  return (<div className="mt-2 xs:mt-3 sm:mt-4 md:mt-5 mx-2 xs:mx-3 sm:mx-4 md:mx-6 mb-2 xs:mb-3 sm:mb-4">
-    <CGPAPlanner data={cgpaData} />
-  </div>);
+  const { data, error } = await loadReport();
+
+  return (
+    <>
+      <TourStep
+        id="page-title"
+        title="CGPA Planner"
+        content="Paste your AMS course report once. Then try out grades for this term, link retakes, and work out what you need to hit a target CGPA."
+        order={0}
+      >
+        <PageTitle
+          icon={Calculator}
+          text="CGPA Planner"
+          subheading="See how this term's grades move your CGPA. Retakes, pass/fail, audits, summer terms, semesters abroad and transfer credits all count the way AMS counts them."
+        />
+      </TourStep>
+
+      <div className="mt-6 sm:mt-8">
+        <CGPAPlannerClient initialData={data} initialError={error} />
+      </div>
+    </>
+  );
 }
