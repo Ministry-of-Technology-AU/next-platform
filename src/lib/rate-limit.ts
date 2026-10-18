@@ -112,6 +112,8 @@ const MAIL_ROUTES = [
   '/api/platform/games/wordle/friends',
   '/api/platform/sg-compose/dashboard',
   '/api/organisations/ads/submit',
+  // Trailing slash: only the request route mails, not the bookmark POST on the parent path.
+  '/api/platform/borrow-assets/',
 ];
 
 /**

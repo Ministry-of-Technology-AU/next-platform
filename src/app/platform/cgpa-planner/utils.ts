@@ -12,11 +12,7 @@ export function formatCredits(value: number | null | undefined): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
-/** True when a key press is going into a text field, so bare-key shortcuts should stay out of the way. */
-export function isTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.getAttribute("role") === "combobox";
-}
+export { isTypingTarget } from "@/lib/utils";
 
 /** Tour selector for a target inside a tab, matching only once that tab has finished sliding in. */
 export function inSettledTab(tab: PlannerTab, target: string): string {

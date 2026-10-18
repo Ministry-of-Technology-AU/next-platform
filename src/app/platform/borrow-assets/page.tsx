@@ -1,69 +1,53 @@
-import UnderMaintenance from "@/components/under-maintenance";
-
-export default function Home() {
-  return (
-    <UnderMaintenance
-      title="Borrow Assets is getting a tune-up"
-      description="We're upgrading the borrowing system so you can snag gadgets even faster. Sit tight — the inventory will be back shortly."
-    />
-  );
-}
-
-/* ============================================================
- * ORIGINAL PAGE — UNDER MAINTENANCE
- * Uncomment the block below and remove the component above
- * to restore the original page.
- * ============================================================
-
-import { BorrowAssetsClient } from './client';
-import PageTitle from '@/components/page-title';
 import { ShoppingBag } from 'lucide-react';
-import { cookies } from 'next/headers';
-import { Asset } from './types';
+import DeveloperCredits from '@/components/developer-credits';
+import { TourStep } from '@/components/guided-tour';
+import PageTitle from '@/components/page-title';
+import { getAuthenticatedUser } from '@/lib/auth';
+import { getBorrowAssets } from '@/lib/borrow-assets/data';
+import { BorrowAssetsClient } from './client';
+import type { BorrowAssetsData } from './types';
 
+// Per-user data (bookmarks, open requests) read with the session; never statically cached.
 export const dynamic = 'force-dynamic';
 
-async function getAssets(): Promise<Asset[]> {
+const EMPTY: BorrowAssetsData = { assets: [], phone: '' };
+
+async function loadAssets(): Promise<{ data: BorrowAssetsData; error: string | null }> {
   try {
-      const cookieStore = await cookies();
-    
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/platform/borrow-assets`, {
-      cache: 'no-store', // Ensure fresh data on each request
-      headers: { 'Cookie': cookieStore.toString() }
-    });
-    
-    if (!response.ok) {
-      console.error('Failed to fetch assets:', response.statusText);
-      return []; // Return empty array if request fails
-    }
-    
-    const result = await response.json();
-    
-    if (result.success && result.data) {
-      return result.data;
-    }
-    
-    return []; // Return empty array if no data
-  } catch (error) {
-    console.error('Error fetching assets:', error);
-    return []; // Return empty array on error
+    const user = await getAuthenticatedUser();
+    if (!user) return { data: EMPTY, error: 'Sign in to see what you can borrow.' };
+    return { data: await getBorrowAssets(user), error: null };
+  } catch (err) {
+    platform.error('Borrow assets: loading the catalogue failed:', err);
+    return { data: EMPTY, error: "We couldn't reach the inventory. Try again in a minute." };
   }
 }
 
-export default async function Home() {
-  const assets = await getAssets();
-  
+export default async function BorrowAssetsPage() {
+  const { data, error } = await loadAssets();
+
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <PageTitle text='Borrow Assets' subheading='Find the range of assets available for borrowing from the Ministry of Technology and other societies.
-        Browse the available items, submit a request, and get quick access to what you need, ensuring you stay
-        connected and safe. All requests are handled promptly, with transparent tracking of device availability.' icon={ShoppingBag}/>
-        <BorrowAssetsClient initialAssets={assets}/>
+    <div className="mx-auto w-full max-w-7xl">
+      <TourStep
+        id="page-title"
+        title="Borrow Assets"
+        content="Borrow phones, cables, adapters and more from Techmin and Jazbaa. Send a request here, and the team replies by email to approve it and set a pickup time."
+        order={0}
+      >
+        <PageTitle
+          icon={ShoppingBag}
+          text="Borrow Assets"
+          subheading="Borrow phones, cables, adapters and more from Techmin and Jazbaa. Send a request and the team replies by email to sort out pickup."
+        />
+      </TourStep>
+
+      <div className="mt-6 sm:mt-8">
+        <BorrowAssetsClient initialData={data} initialError={error} />
       </div>
+
+      <DeveloperCredits
+        developers={[{ name: 'Soham Tulsyan', profileUrl: 'https://www.linkedin.com/in/soham-tulsyan-0902482a7/' }]}
+      />
     </div>
   );
 }
-
-============================================================ */

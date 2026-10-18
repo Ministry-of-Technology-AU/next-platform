@@ -1,50 +1,75 @@
-'use client';
-
-import { Asset } from '../types';
+import type { ReactNode } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { Asset } from '../types';
 import { AssetCard } from './asset-card';
-import { useState } from 'react';
-import AssetDialog from './asset-dialog';
 
-interface AssetGridProps {
-  assets: Asset[];
+const GRID = 'grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6';
+
+interface AssetSectionProps {
   title: string;
-  onToggleBookmark: (assetId: string) => void;
-  onRequestSuccess?: () => void;
+  assets: Asset[];
+  showOwner: boolean;
+  onBorrow: (asset: Asset) => void;
+  onToggleBookmark: (asset: Asset) => void;
 }
 
-export function AssetGrid({ assets, title, onToggleBookmark, onRequestSuccess }: AssetGridProps) {
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleRequestBorrow = (assetId: string) => {
-    setSelectedAssetId(assetId);
-    setIsDialogOpen(true);
-  };
-
-  const selectedAsset = assets.find((asset) => asset.id === selectedAssetId);
+export function AssetSection({ title, assets, showOwner, onBorrow, onToggleBookmark }: AssetSectionProps) {
+  if (assets.length === 0) return null;
+  const headingId = `section-${title.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
-    <>
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold mb-4">{title}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {assets.map((asset) => (
-            <AssetCard
-              key={asset.id}
-              asset={asset}
-              onRequestBorrow={handleRequestBorrow}
-              onToggleBookmark={onToggleBookmark}
-            />
-          ))}
-        </div>
+    <section aria-labelledby={headingId}>
+      <h2 id={headingId} className="mb-3 flex items-baseline gap-2 !text-left !text-base !font-semibold sm:mb-4 sm:!text-lg">
+        {title}
+        <span className="text-sm font-normal text-muted-foreground">{assets.length}</span>
+      </h2>
+      <div className={GRID}>
+        {assets.map((asset) => (
+          <AssetCard
+            key={asset.id}
+            asset={asset}
+            showOwner={showOwner}
+            onBorrow={onBorrow}
+            onToggleBookmark={onToggleBookmark}
+          />
+        ))}
       </div>
+    </section>
+  );
+}
 
-      <AssetDialog
-        asset={selectedAsset || null}
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onRequestSuccess={onRequestSuccess}
-      />
-    </>
+/** Same grid and card proportions as the loaded page, so nothing shifts when data lands. */
+export function AssetGridSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <div className={GRID}>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="overflow-hidden rounded-xl border bg-card">
+          <Skeleton className="aspect-[4/3] w-full rounded-none" />
+          <div className="space-y-2 p-3 sm:p-4">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+            <Skeleton className="mt-3 h-10 w-full sm:h-9" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+interface EmptyStateProps {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  action?: ReactNode;
+}
+
+export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+  return (
+    <div className="flex flex-col items-center rounded-xl border border-dashed px-6 py-12 text-center sm:py-16">
+      <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">{icon}</div>
+      <p className="font-heading font-semibold">{title}</p>
+      <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>
+      {action && <div className="mt-4">{action}</div>}
+    </div>
   );
 }

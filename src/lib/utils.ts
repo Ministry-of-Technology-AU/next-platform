@@ -5,6 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** True when a key press is going into a text field, so bare-key shortcuts should stay out of the way. */
+export function isTypingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.getAttribute("role") === "combobox";
+}
+
 export function normalizePlayerName(name: string | null | undefined): string {
   if (!name) return 'Unknown';
   return name.replace(/\s+\d+\s*$/, '').trim() || 'Unknown';

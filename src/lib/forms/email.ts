@@ -13,13 +13,13 @@ import { visiblePages, visibleBlocks } from './conditions';
 import { isInputBlock, type FormResponseData, type FormSchema, type InputBlock, type FileDescriptor } from './schema';
 import type { FormRecord } from './strapi-forms';
 
-const ACCENT = '#87281b';
-const TEXT = '#232020';
-const MUTED = '#6b6560';
-const BORDER = '#e5ddd3';
+export const EMAIL_ACCENT = '#87281b';
+export const EMAIL_TEXT = '#232020';
+export const EMAIL_MUTED = '#6b6560';
+export const EMAIL_BORDER = '#e5ddd3';
 const FONT = 'Arial, Helvetica, sans-serif';
 
-function escapeHtml(s: string): string {
+export function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -29,7 +29,7 @@ function escapeHtml(s: string): string {
 
 function formatAnswer(block: InputBlock, value: unknown): string {
   if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) {
-    return `<span style="color:${MUTED}">—</span>`;
+    return `<span style="color:${EMAIL_MUTED}">—</span>`;
   }
   switch (block.type) {
     case 'checkbox':
@@ -58,7 +58,7 @@ function formatAnswer(block: InputBlock, value: unknown): string {
       return (value as FileDescriptor[])
         .map(
           (f) =>
-            `<a href="${escapeHtml(f.url)}" style="color:${ACCENT}">${escapeHtml(f.filename)}</a>`,
+            `<a href="${escapeHtml(f.url)}" style="color:${EMAIL_ACCENT}">${escapeHtml(f.filename)}</a>`,
         )
         .join('<br>');
     case 'rich-text':
@@ -82,20 +82,20 @@ export function buildBrandedEmailHtml(options: {
 }): string {
   return `
   <div style="background:#faf7f2;padding:24px 0;font-family:${FONT};">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid ${EMAIL_BORDER};border-radius:12px;overflow:hidden;">
       <tr>
-        <td style="background:${ACCENT};padding:20px 28px;">
+        <td style="background:${EMAIL_ACCENT};padding:20px 28px;">
           <div style="color:#ffffff;font-size:18px;font-weight:bold;">${escapeHtml(options.heading)}</div>
           <div style="color:#f7d9d3;font-size:13px;margin-top:2px;">${escapeHtml(options.subheading)}</div>
         </td>
       </tr>
       <tr>
-        <td style="padding:24px 28px;color:${TEXT};font-size:15px;line-height:1.6;">${options.bodyHtml}</td>
+        <td style="padding:24px 28px;color:${EMAIL_TEXT};font-size:15px;line-height:1.6;">${options.bodyHtml}</td>
       </tr>${
         options.footer
           ? `
       <tr>
-        <td style="padding:16px 28px;background:#faf7f2;color:${MUTED};font-size:12px;">
+        <td style="padding:16px 28px;background:#faf7f2;color:${EMAIL_MUTED};font-size:12px;">
           ${escapeHtml(options.footer)}
         </td>
       </tr>`
@@ -124,10 +124,10 @@ export function buildResponseEmailHtml(
     .map(
       (block) => `
         <tr>
-          <td style="padding:12px 0;border-bottom:1px solid ${BORDER};vertical-align:top;width:40%;color:${MUTED};font-size:14px;">${escapeHtml(
+          <td style="padding:12px 0;border-bottom:1px solid ${EMAIL_BORDER};vertical-align:top;width:40%;color:${EMAIL_MUTED};font-size:14px;">${escapeHtml(
             block.title,
           )}</td>
-          <td style="padding:12px 0 12px 16px;border-bottom:1px solid ${BORDER};vertical-align:top;color:${TEXT};font-size:14px;">${formatAnswer(
+          <td style="padding:12px 0 12px 16px;border-bottom:1px solid ${EMAIL_BORDER};vertical-align:top;color:${EMAIL_TEXT};font-size:14px;">${formatAnswer(
             block,
             data[block.id],
           )}</td>
@@ -141,7 +141,7 @@ export function buildResponseEmailHtml(
     heading: formTitle,
     subheading: orgName,
     bodyHtml: `
-          <p style="margin:0 0 16px;color:${TEXT};font-size:15px;">Here is a copy of the response${applicantEmail ? ` submitted by <strong>${escapeHtml(applicantEmail)}</strong>` : ''}.</p>
+          <p style="margin:0 0 16px;color:${EMAIL_TEXT};font-size:15px;">Here is a copy of the response${applicantEmail ? ` submitted by <strong>${escapeHtml(applicantEmail)}</strong>` : ''}.</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml}</table>`,
     footer: `Submitted ${submittedAt} · This is a copy of the response.`,
   });

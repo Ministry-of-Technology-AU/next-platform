@@ -1,140 +1,123 @@
 'use client';
 
-import Image from 'next/image';
-import { Asset } from '../types';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { ArrowRight, Bookmark, CheckCircle2, Clock, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Bookmark, ArrowRight } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { haptic } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
-
-// Format date consistently to avoid hydration mismatch
-function formatDateIST(dateString: string): string {
-  const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-}
+import type { Asset } from '../types';
+import { assetImageSrcSet, assetImageUrl, categoryLabel, unavailableLabel } from '../utils';
 
 interface AssetCardProps {
   asset: Asset;
-  onRequestBorrow: (assetId: string) => void;
-  onToggleBookmark: (assetId: string) => void;
+  /** Show who lends it. Only useful on tabs that mix lenders. */
+  showOwner: boolean;
+  onBorrow: (asset: Asset) => void;
+  onToggleBookmark: (asset: Asset) => void;
 }
 
-export function AssetCard({ asset, onRequestBorrow, onToggleBookmark }: AssetCardProps) {
-  const isAvailable = asset.status === 'available';
-  
-  const getStatusColor = (status: Asset['status']) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'borrowed':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'overdue':
-        return 'bg-red-100 text-red-700 border-red-200';
-      case 'unavailable':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
+const IMAGE_SIZES = '(min-width: 1280px) 22vw, (min-width: 1024px) 28vw, (min-width: 768px) 30vw, 46vw';
 
-  const getStatusText = (status: Asset['status']) => {
-    switch (status) {
-      case 'available':
-        return 'Available';
-      case 'borrowed':
-        return 'Currently Borrowed';
-      case 'overdue':
-        return 'Overdue';
-      case 'unavailable':
-        return 'Unavailable';
-      default:
-        return 'Unknown';
-    }
-  };
-  
+export function AssetCard({ asset, showOwner, onBorrow, onToggleBookmark }: AssetCardProps) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const isAvailable = asset.status === 'available';
+  const canRequest = isAvailable && !asset.pendingForMe;
+  const subtitle = [showOwner ? asset.owner : null, asset.model].filter(Boolean).join(' · ');
+
   return (
-    <Card className={cn(
-      "flex flex-col h-full overflow-hidden transition-opacity",
-      !isAvailable && "opacity-60"
-    )}>
-      <CardHeader className="relative p-0">
-        <div className="relative aspect-[4/3] w-full overflow-hidden">
-          {asset.Image?.url ? (
-            <Image
-              src={asset.Image.url}
-              alt={asset.Image.alternativeText || asset.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
+    <article
+      className={cn(
+        'group relative flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground transition-shadow',
+        canRequest && 'hover:shadow-md focus-within:shadow-md',
+      )}
+    >
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        {asset.image && !imageFailed ? (
+          // Cloudinary does the resizing (next.config sets images.unoptimized), so a plain img with srcSet.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={assetImageUrl(asset.image.url, 640)}
+            srcSet={assetImageSrcSet(asset.image.url)}
+            sizes={IMAGE_SIZES}
+            alt={asset.image.alt}
+            loading="lazy"
+            decoding="async"
+            onError={() => setImageFailed(true)}
+            className={cn(
+              'size-full object-cover transition-transform duration-300 motion-reduce:transition-none',
+              canRequest && 'group-hover:scale-[1.03]',
+              !isAvailable && 'opacity-60 grayscale',
+            )}
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center text-muted-foreground">
+            <Package className="size-8 opacity-50" aria-hidden />
+          </div>
+        )}
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => {
+                void haptic.tap();
+                onToggleBookmark(asset);
+              }}
+              aria-pressed={asset.bookmarked}
+              aria-label={asset.bookmarked ? `Remove ${asset.name} from saved` : `Save ${asset.name}`}
+              className="absolute right-1 top-1 z-10 flex size-11 items-center justify-center rounded-full sm:right-2 sm:top-2 sm:size-9"
+            >
+              <span className="flex size-8 items-center justify-center rounded-full bg-background/90 shadow-sm backdrop-blur transition-transform active:scale-90 motion-reduce:transition-none">
+                <Bookmark className={cn('size-4', asset.bookmarked && 'fill-primary text-primary')} />
+              </span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{asset.bookmarked ? 'Remove from Saved' : 'Save to find it later in the Saved tab'}</TooltipContent>
+        </Tooltip>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
+        <span className="w-fit rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          {categoryLabel(asset.type)}
+        </span>
+        <h3 className="mt-1 break-words !text-left !text-sm !font-semibold leading-snug">{asset.name}</h3>
+        {subtitle && <p className="break-words text-xs text-muted-foreground">{subtitle}</p>}
+        {asset.description && (
+          <p className="mt-0.5 hidden text-xs text-muted-foreground sm:line-clamp-2">{asset.description}</p>
+        )}
+
+        <div className="mt-auto pt-3">
+          {canRequest ? (
+            <Button
+              size="sm"
+              className="h-10 w-full sm:h-9 after:absolute after:inset-0 after:content-['']"
+              onClick={() => {
+                void haptic.press();
+                onBorrow(asset);
+              }}
+              aria-label={`Borrow ${asset.name}`}
+            >
+              Borrow
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
+            </Button>
           ) : (
-            <div className="flex items-center justify-center h-full bg-gray-100 text-gray-400 text-sm">
-              No Image Available
-            </div>
-          )}
-          <button
-            onClick={() => onToggleBookmark(asset.id)}
-            className="absolute top-3 right-3 p-1 rounded-md hover:bg-white/80 transition-colors"
-            aria-label={asset.bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-          >
-            <Bookmark
-              className={cn(
-                'h-5 w-5 transition-all',
-                asset.bookmarked
-                  ? 'fill-gray-800 text-gray-800'
-                  : 'fill-none text-white stroke-2'
+            <p className="flex h-10 items-center gap-1.5 text-xs text-muted-foreground sm:h-9 sm:text-sm">
+              {asset.pendingForMe ? (
+                <>
+                  <CheckCircle2 className="size-4 shrink-0 text-green" aria-hidden />
+                  <span className="line-clamp-1">Requested. Check your email.</span>
+                </>
+              ) : (
+                <>
+                  <Clock className={cn('size-4 shrink-0', asset.status === 'overdue' && 'text-destructive')} aria-hidden />
+                  <span className="line-clamp-1">{unavailableLabel(asset)}</span>
+                </>
               )}
-            />
-          </button>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 p-4">
-        <CardTitle className="text-lg mb-2">{asset.name}</CardTitle>
-        {asset.model && (
-          <p className="text-sm text-gray-600 mb-2 font-medium">Model: {asset.model}</p>
-        )}
-        <CardDescription className="text-sm mb-3 line-clamp-2">
-          {asset.description}
-        </CardDescription>
-        <div className="flex items-center flex-wrap gap-2 mb-2">
-          <Badge variant="secondary" className="text-xs capitalize">
-            {asset.type === 'mobile' ? 'Mobile Phone' : asset.type}
-          </Badge>
-          <Badge className={cn("text-xs", getStatusColor(asset.status))}>
-            {getStatusText(asset.status)}
-          </Badge>
-          {asset.bookmarked && (
-            <Badge variant="outline" className="text-xs">
-              Bookmarked
-            </Badge>
+            </p>
           )}
         </div>
-        {!isAvailable && asset.last_borrow_request && (
-          <p className="text-xs text-gray-600">
-            Last activity: {formatDateIST(asset.last_borrow_request.updatedAt)}
-          </p>
-        )}
-      </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <Button
-          onClick={() => onRequestBorrow(asset.id)}
-          className="w-full"
-          variant={isAvailable ? 'default' : 'outline'}
-          disabled={!isAvailable}
-        >
-          <span className="flex items-center justify-center gap-2">
-            {isAvailable ? 'Request Borrow' : 
-             asset.status === 'borrowed' ? 'Currently Borrowed' :
-             asset.status === 'overdue' ? 'Overdue Return' :
-             'Currently Unavailable'}
-            {isAvailable && <ArrowRight className="h-4 w-4" />}
-          </span>
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </article>
   );
 }
