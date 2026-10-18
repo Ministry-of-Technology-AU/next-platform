@@ -1,49 +1,24 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useTour } from "@/components/guided-tour";
+import { useEffect } from "react"
+import { useTour } from "@/components/guided-tour"
+import { STORAGE_KEYS } from "../data"
+import { readStorage, writeStorage } from "../utils"
 
-const STORAGE_KEY = "TRAJECTORY_PLANNER_TOUR_SEEN_V1";
-
+/** Starts the planner tour on a student's first visit. The navbar help button replays it. */
 export function TourManager() {
-    const { startTour, isActive } = useTour();
+    const { startTour } = useTour()
 
     useEffect(() => {
-        // Check if user has seen the tour for this version
-        const hasSeenTour = localStorage.getItem(STORAGE_KEY);
+        if (readStorage<boolean>(STORAGE_KEYS.tourSeen)) return
 
-        if (!hasSeenTour) {
-            // Small delay to ensure everything is mounted
-            const timer = setTimeout(() => {
-                startTour();
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [startTour]);
+        // Wait a moment so every TourStep on the page has registered.
+        const timer = setTimeout(() => {
+            startTour()
+            writeStorage(STORAGE_KEYS.tourSeen, true)
+        }, 1000)
+        return () => clearTimeout(timer)
+    }, [startTour])
 
-    // Monitor when tour finishes (isActive becomes false after being true)
-    useEffect(() => {
-        if (!isActive) {
-
-            const handleTourCompleted = () => {
-                localStorage.setItem(STORAGE_KEY, "true");
-            };
-        }
-    }, [isActive]);
-
-    // We'll wrap the startTour call to set the storage key.
-    useEffect(() => {
-        const hasSeenTour = localStorage.getItem(STORAGE_KEY);
-        if (!hasSeenTour) {
-            const timer = setTimeout(() => {
-                startTour();
-                // We mark it as seen immediately when we launch it. 
-                // This ensures it doesn't pop up again on refresh.
-                localStorage.setItem(STORAGE_KEY, "true");
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, []);
-
-    return null;
+    return null
 }

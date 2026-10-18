@@ -11,6 +11,25 @@ export function isTypingTarget(target: EventTarget | null): boolean {
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.getAttribute("role") === "combobox";
 }
 
+/** Reads JSON from localStorage. Null when missing, unparsable, or storage is blocked. */
+export function readStorage<T>(key: string): T | null {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Writes JSON to localStorage. Fails silently: private mode or full storage only loses persistence. */
+export function writeStorage(key: string, value: unknown): void {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Nothing to do; the value just won't survive a reload.
+  }
+}
+
 export function normalizePlayerName(name: string | null | undefined): string {
   if (!name) return 'Unknown';
   return name.replace(/\s+\d+\s*$/, '').trim() || 'Unknown';

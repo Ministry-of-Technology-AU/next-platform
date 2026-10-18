@@ -1,275 +1,165 @@
 "use client"
 
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import type { Course, Credits, CourseType, DepartmentCode, Grade } from "../types"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCoursePlanner } from "../course-planner-context"
+import { ArrowRightLeft, GripVertical, Pencil, Trash2, Undo2 } from "lucide-react"
+import { toast } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
+import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
-import { GripVertical, Trash2, Pencil, Undo2, Check, ChevronDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useCoursePlanner } from "../course-planner-context"
 import { gradeOptions } from "../templates"
+import type { Course, CourseLocation, Grade } from "../types"
+import { COURSE_TYPE_LABEL, COURSE_TYPE_STYLES, gradeStyle } from "../utils"
+import { ActionMenu } from "./action-menu"
 
 interface CourseCardProps {
     course: Course
-    isDragging?: boolean
+    location: CourseLocation
+    onEdit: (courseId: string) => void
 }
 
-export function CourseCard({ course, isDragging }: CourseCardProps) {
-    const { updateCourse, removeCourse, updateCourseGrade, moveCourse, state } = useCoursePlanner()
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: course.id })
+/** A course on the board. The whole card drags; the menu is the keyboard and touch route. */
+export function CourseCard({ course, location, onEdit }: CourseCardProps) {
+    const { setNodeRef, listeners, transform, transition, isDragging } = useSortable({ id: course.id })
 
-    const [isEditMode, setIsEditMode] = useState(false)
-    const cardRef = useRef<HTMLDivElement>(null)
+    return (
+        <div
+            ref={setNodeRef}
+            {...listeners}
+            style={{ transform: CSS.Translate.toString(transform), transition }}
+            className={cn("touch-manipulation", isDragging && "opacity-40")}
+        >
+            <CourseCardView course={course} location={location} onEdit={onEdit} />
+        </div>
+    )
+}
 
-    const isInSemester = course.isInSemester || false
-    const showEditable = !isInSemester || isEditMode
+/** The card itself, without drag wiring. The drag overlay renders this with `overlay`. */
+export function CourseCardView({
+    course,
+    location,
+    onEdit,
+    overlay = false,
+}: CourseCardProps & { overlay?: boolean }) {
+    const inSemester = location !== null
 
-    // Handle click outside to exit edit mode
-    useEffect(() => {
-        if (!isEditMode) return
+    return (
+        <article
+            aria-label={course.name}
+            className={cn(
+                "group flex gap-1.5 rounded-lg border border-border bg-card py-2.5 pl-2 pr-2.5 shadow-xs transition-[box-shadow,border-color] select-none md:pl-1.5",
+                "cursor-grab hover:border-primary/30 hover:shadow-md active:cursor-grabbing",
+                overlay && "rotate-1 cursor-grabbing border-primary/40 shadow-lg",
+            )}
+        >
+            <GripVertical
+                className="mt-0.5 hidden size-4 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-muted-foreground md:block"
+                aria-hidden
+            />
 
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as HTMLElement
-            // Don't close if clicking inside the card
-            if (cardRef.current && cardRef.current.contains(target)) {
-                return
-            }
-            // Don't close if clicking on Select popover content (which renders in a portal)
-            if (target.closest('[role="listbox"]') || target.closest('[data-radix-popper-content-wrapper]')) {
-                return
-            }
-            setIsEditMode(false)
-        }
+            <div className="min-w-0 flex-1">
+                <div className="flex items-start gap-1">
+                    <h4 className="line-clamp-2 min-w-0 flex-1 !text-left !text-sm !font-semibold leading-snug">{course.name}</h4>
+                    {!overlay && <CourseMenu course={course} location={location} onEdit={onEdit} />}
+                </div>
 
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [isEditMode])
+                <div className="mt-1.5 flex min-h-6 items-center gap-2">
+                    <div className="flex min-w-0 flex-1 items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className={cn("shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold", COURSE_TYPE_STYLES[course.type])}>
+                            {COURSE_TYPE_LABEL[course.type]}
+                        </span>
+                        <span className="truncate">
+                            {course.deptCode && <>{course.deptCode} · </>}
+                            <span className="tabular-nums">{course.credits} cr</span>
+                        </span>
+                    </div>
+                    {inSemester && !overlay && <GradePicker course={course} />}
+                    {inSemester && overlay && course.grade && (
+                        <span className={cn("rounded-full border px-2 text-xs font-bold", gradeStyle(course.grade))}>{course.grade}</span>
+                    )}
+                </div>
+            </div>
+        </article>
+    )
+}
 
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        transition,
+/** Keeps a press on a control inside the card (or in a menu it portals) from starting a drag. */
+function stopDrag(e: React.SyntheticEvent) {
+    e.stopPropagation()
+}
+const dragGuard = { onPointerDown: stopDrag, onMouseDown: stopDrag, onTouchStart: stopDrag }
+
+function GradePicker({ course }: { course: Course }) {
+    const { updateCourseGrade } = useCoursePlanner()
+
+    return (
+        <div {...dragGuard} className="shrink-0">
+            <Select
+                value={course.grade ?? "none"}
+                onValueChange={(value) => {
+                    void haptic.select()
+                    updateCourseGrade(course.id, value === "none" ? null : (value as Exclude<Grade, null>))
+                }}
+            >
+                <SelectTrigger
+                    aria-label={`Grade for ${course.name}`}
+                    className={cn(
+                        "h-6 min-w-14 cursor-pointer gap-1 rounded-full px-2 py-0 text-xs shadow-none hover:bg-muted [&_svg]:size-3",
+                        course.grade && "font-bold",
+                        gradeStyle(course.grade ?? undefined),
+                    )}
+                >
+                    {course.grade ?? "Grade"}
+                </SelectTrigger>
+                <SelectContent>
+                    {gradeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    )
+}
+
+function CourseMenu({ course, location, onEdit }: CourseCardProps) {
+    const { state, moveCourse, removeCourse, addCourse } = useCoursePlanner()
+
+    const moveTo = (to: CourseLocation) => {
+        void haptic.press()
+        moveCourse(course.id, location, to)
     }
 
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        updateCourse(course.id, { name: e.target.value })
-    }
-
-    const handleCreditsChange = (value: string) => {
-        updateCourse(course.id, { credits: Number.parseInt(value) as Credits })
-    }
-
-    const handleDeptChange = (value: string) => {
-        updateCourse(course.id, { deptCode: value as DepartmentCode })
-    }
-
-    const handleTypeChange = (value: string) => {
-        updateCourse(course.id, { type: value as CourseType })
-    }
-
-    const handleGradeChange = (value: string) => {
-        const grade = value === "none" ? null : (value as Grade)
-        updateCourseGrade(course.id, grade)
-    }
-
-    // Using global colors as requested
-    const getBadgeColor = (type: CourseType) => {
-        switch (type) {
-            case "Major":
-                return "bg-primary/10 text-primary border-primary/20"
-            case "Minor":
-                return "bg-secondary/20 text-secondary-extradark border-secondary/20"
-            case "FC":
-                return "bg-green/15 text-green-dark border-green/20"
-            case "CC":
-                return "bg-blue/15 text-blue-dark border-blue/20"
-            case "Open":
-                return "bg-gray/15 text-gray-dark border-gray/20"
-            case "CT":
-                return "bg-purple/15 text-purple-dark border-purple/20"
-            default:
-                return "bg-gray/15 text-gray-dark border-gray/20"
-        }
+    const remove = () => {
+        void haptic.warn()
+        removeCourse(course.id)
+        toast(`Deleted ${course.name}`, {
+            action: { label: "Undo", onClick: () => addCourse(location, course) },
+        })
     }
 
     return (
-        <div ref={(node) => { setNodeRef(node); (cardRef as any).current = node; }} style={style} className={cn("group relative", isDragging && "opacity-50")}>
-            <Card className="hover:shadow-md transition-shadow border-muted bg-card">
-                <CardContent className="p-3 space-y-3">
-                    <div className="flex items-start gap-2">
-                        <button
-                            {...attributes}
-                            {...listeners}
-                            className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            <GripVertical size={18} />
-                        </button>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                                {showEditable ? (
-                                    <Input
-                                        value={course.name}
-                                        onChange={handleNameChange}
-                                        placeholder="Course Name"
-                                        className="h-7 text-sm font-semibold border-none focus-visible:ring-1 focus-visible:ring-primary p-0 bg-transparent shadow-none"
-                                    />
-                                ) : (
-                                    <h4 className="text-sm font-semibold leading-tight text-left truncate">{course.name}</h4>
-                                )}
-
-                                {/* Action buttons - inline with title */}
-                                <div className="flex gap-0.5 shrink-0">
-                                    {isInSemester && (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className={cn(
-                                                "h-5 w-5 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10",
-                                                isEditMode ? "opacity-100" : "opacity-80 group-hover:opacity-100"
-                                            )}
-                                            onClick={() => setIsEditMode(!isEditMode)}
-                                            title={isEditMode ? "Save changes" : "Edit course"}
-                                        >
-                                            {isEditMode ? <Check size={12} /> : <Pencil size={12} />}
-                                        </Button>
-                                    )}
-                                    {isInSemester ? (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10"
-                                            onClick={() => {
-                                                const fromSemester = state.semesters.find(s => s.courses.some(c => c.id === course.id))
-                                                if (fromSemester) {
-                                                    moveCourse(course.id, fromSemester.id, null)
-                                                }
-                                            }}
-                                            title="Move back to tray"
-                                        >
-                                            <Undo2 size={12} />
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5 opacity-20 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-                                            onClick={() => removeCourse(course.id)}
-                                            title="Delete course"
-                                        >
-                                            <Trash2 size={12} />
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex flex-wrap gap-1.5 mt-2 items-center">
-                                <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 border", getBadgeColor(course.type))}>
-                                    {course.type}
-                                </Badge>
-                                {course.deptCode && (
-                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-secondary/30 text-secondary-extradark hover:bg-secondary/40 border-transparent">
-                                        {course.deptCode}
-                                    </Badge>
-                                )}
-                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/20 text-primary">
-                                    {course.credits} Cr
-                                </Badge>
-
-                                {/* Grade Selector Badge - always visible when in semester */}
-                                {isInSemester && (
-                                    <div className="relative">
-                                        <Select value={course.grade || "none"} onValueChange={handleGradeChange}>
-                                            <SelectTrigger
-                                                className={cn(
-                                                    "h-5 text-[10px] px-1.5 gap-1 rounded-full border shadow-none bg-transparent hover:bg-muted/50 focus:ring-0 flex items-center min-w-[50px] justify-between",
-                                                    course.grade
-                                                        ? (course.grade.startsWith('A')
-                                                            ? "bg-green/10 text-green-dark border-green/20"
-                                                            : course.grade.startsWith('B')
-                                                                ? "bg-blue/10 text-blue-dark border-blue/20"
-                                                                : "bg-gray/10 text-gray-dark border-gray/20")
-                                                        : "bg-muted/30 text-muted-foreground border-transparent"
-                                                )}
-                                            >
-                                                <span className="font-bold leading-none translate-y-[0.5px]">{course.grade || "Gr"}</span>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {gradeOptions.map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {showEditable && (
-                        <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/50">
-                            <Select value={course.credits.toString()} onValueChange={handleCreditsChange}>
-                                <SelectTrigger className="h-6 text-[10px] px-1 bg-muted/30 border-none shadow-none">
-                                    <SelectValue placeholder="Cred" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="2">2 Credits</SelectItem>
-                                    <SelectItem value="4">4 Credits</SelectItem>
-                                    <SelectItem value="8">8 Credits</SelectItem>
-                                    <SelectItem value="12">12 Credits</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={course.deptCode || "None"} onValueChange={handleDeptChange}>
-                                <SelectTrigger className="h-6 text-[10px] px-1 bg-muted/30 border-none shadow-none">
-                                    <SelectValue placeholder="Dept" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="None">None</SelectItem>
-                                    <SelectItem value="CS">CS</SelectItem>
-                                    <SelectItem value="ENT">ENT</SelectItem>
-                                    <SelectItem value="ECO">ECO</SelectItem>
-                                    <SelectItem value="MATH">MATH</SelectItem>
-                                    <SelectItem value="PHY">PHY</SelectItem>
-                                    <SelectItem value="CHM">CHM</SelectItem>
-                                    <SelectItem value="BIO">BIO</SelectItem>
-                                    <SelectItem value="PSY">PSY</SelectItem>
-                                    <SelectItem value="PHI">PHI</SelectItem>
-                                    <SelectItem value="ENG">ENG</SelectItem>
-                                    <SelectItem value="HIS">HIS</SelectItem>
-                                    <SelectItem value="POL">POL</SelectItem>
-                                    <SelectItem value="MS">MS</SelectItem>
-                                    <SelectItem value="PA">PA</SelectItem>
-                                    <SelectItem value="AST">AST</SelectItem>
-                                    <SelectItem value="YIF">YIF</SelectItem>
-                                    <SelectItem value="HUM">HUM</SelectItem>
-                                    <SelectItem value="CW">CW</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={course.type} onValueChange={handleTypeChange}>
-                                <SelectTrigger className="h-6 text-[10px] px-1 bg-muted/30 border-none shadow-none">
-                                    <SelectValue placeholder="Type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="FC">FC</SelectItem>
-                                    <SelectItem value="CC">CC</SelectItem>
-                                    <SelectItem value="Major">Major</SelectItem>
-                                    <SelectItem value="Minor">Minor</SelectItem>
-                                    <SelectItem value="CT">Concentration</SelectItem>
-                                    <SelectItem value="Open">Open</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        </div >
+        <div {...dragGuard} className="-mr-1 -mt-1 shrink-0">
+            <ActionMenu
+                label={`Actions for ${course.name}`}
+                groups={[
+                    {
+                        items: [
+                            { label: "Edit details", icon: Pencil, onSelect: () => onEdit(course.id) },
+                            ...(location !== null ? [{ label: "Back to unplaced", icon: Undo2, onSelect: () => moveTo(null) }] : []),
+                        ],
+                    },
+                    {
+                        submenu: { label: "Move to", icon: ArrowRightLeft, empty: "Add a semester first" },
+                        items: state.semesters
+                            .filter((s) => s.id !== location)
+                            .map((s) => ({ label: s.name, onSelect: () => moveTo(s.id) })),
+                    },
+                    { items: [{ label: "Delete course", icon: Trash2, destructive: true, onSelect: remove }] },
+                ]}
+            />
+        </div>
     )
 }

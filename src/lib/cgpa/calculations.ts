@@ -293,3 +293,8 @@ export function creditsToTarget(standing: Standing, targetInput: string, average
   if (average <= target) return { kind: "note", text: "Your average has to be above the target to pull the CGPA up." };
   return { kind: "value", value: gap / (average - target) };
 }
+
+/** Two decimals, or a dash when there's nothing to show. */
+export function formatGPA(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(2) : "--";
+}

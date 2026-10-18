@@ -40,3 +40,13 @@ export interface DegreeTemplate {
     }
     defaultCourses: Omit<Course, 'id'>[]
 }
+
+/** Credits per requirement bucket. Same shape for what a plan has and what a degree needs. */
+export type CreditBreakdown = DegreeTemplate["requiredCredits"]
+export type CreditCategory = Exclude<keyof CreditBreakdown, "total">
+
+/** Where a course sits: a semester id, or null for the unplaced tray. */
+export type CourseLocation = string | null
+
+/** The page's dialogs. Only one is open at a time. */
+export type PlannerDialog = "ideal" | "ams" | "repository" | "share" | "reps" | "shortcuts"

@@ -1,39 +1,18 @@
 import { LETTER_RANGES } from "./data";
 import type { GradeComponent, PlannerCourse, PlannerTab } from "./types";
 
-/** Two decimals, or a dash when there's nothing to show. */
-export function formatGPA(value: number | null | undefined): string {
-  return typeof value === "number" && Number.isFinite(value) ? (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(2) : "--";
-}
-
 /** Credits without a trailing ".0". */
 export function formatCredits(value: number | null | undefined): string {
   if (typeof value !== "number" || !Number.isFinite(value)) return "--";
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
-export { isTypingTarget } from "@/lib/utils";
+export { formatGPA } from "@/lib/cgpa/calculations";
+export { isTypingTarget, readStorage, writeStorage } from "@/lib/utils";
 
 /** Tour selector for a target inside a tab, matching only once that tab has finished sliding in. */
 export function inSettledTab(tab: PlannerTab, target: string): string {
   return `[data-tour-tab-settled="${tab}"] ${target}`;
-}
-
-export function readStorage<T>(key: string): T | null {
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function writeStorage(key: string, value: unknown): void {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Private mode or full storage: the plan just won't survive a reload.
-  }
 }
 
 // ---------------------------------------------------------------------------
