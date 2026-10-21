@@ -934,37 +934,84 @@ export default function ToolLayout({
 - **Custom Prefix**: Use the `label` prop if a different attribution is appropriate (e.g., `<DeveloperCredits label="Designed & built by" developers={developers} />`).
 - **Separators & Fallbacks**: The component automatically joins developers with commas and omits the role dash (`-`) if `role` is omitted or empty.
 
-## COLLABORATION BANNER (INITIATIVE CREDITS)
+## COLLABORATION BANNER
 
 ### Overview
-- Located at `@/components/initiative-credits` (`src/components/initiative-credits.tsx`).
-- Default export: `import InitiativeCredits from "@/components/initiative-credits";`.
-- Footer attribution component used when a tool or portal module is built in cross-functional partnership with student bodies, student government departments, or campus organizations (e.g., Jazbaa, MAA, Office of Student Affairs).
-- Formats partner names into an accessible grammatical sentence with proper Oxford commas and "and" conjunctions (e.g. *"A collaborative initiative with Techmin, Jazbaa, MAA, and Office of Student Affairs"*).
-- Supports clickable external partner links with primary brand accent styling and secure tab attributes (`target="_blank"` with `rel="noopener noreferrer"`).
-- Automatically pairs with `DeveloperCredits` at the bottom of tool layouts.
+- Located at `@/components/collaboration-banner` (`src/components/collaboration-banner.tsx`). Named export `CollaborationBanner`.
+- Credits the teams a page was built with. It is attribution, not an announcement: never dismissable, no entrance animation, never collapses.
+- One partner list, three layouts:
+  - `strip` (default): a slim one-line band (about 44px) for the top of a page, above `PageTitle`. Logo stack, lead text and partner names; phones show the first name and "and N more".
+  - `compact`: a chip ("Collaboration with" plus logos) for `PageTitle`'s `actions` slot, when vertical space is tight.
+  - `credits`: a quiet, centred footer line. This replaced `InitiativeCredits`, which no longer exists.
+- In `strip` and `compact`, the names open a popover with every partner's logo, role and link.
+- **Techmin is the host on every collaboration.** Its logo always leads the logo stack and the popover opens with "Built by Techmin", but the words name only the collaborators ("In collaboration with Jazbaa"). Never put Techmin in `partners`.
 
-### Component Props & Types
+### Component Props
 ```tsx
-export interface InitiativePartner {
-  name: string;        // Partner name (e.g., "Jazbaa", "Office of Student Affairs")
-  role?: string;       // Optional partner role or descriptor
-  url?: string;        // Optional website or social link
+export interface CollaborationPartner {
+  name: string;
+  logo?: string;   // Image URL. Cloudinary URLs are resized automatically; without one, initials show
+  url?: string;    // Opens in a new tab
+  role?: string;   // Shown in the popover, e.g. "Content and outreach"
 }
 
-export interface InitiativeCreditsProps {
-  title?: string;                                 // Attribution prefix (default: "A collaborative initiative with")
-  partners?: (string | InitiativePartner)[];      // Array of partner names or partner objects (default: ['Techmin', 'Jazbaa', 'MAA', 'Office of Student Affairs'])
-  className?: string;                             // Additional container classes
-  hideBorder?: boolean;                           // Whether to omit top border and top spacing (default: false)
+// Any CSS colour: var(--color-primary), #0b3d2e, oklch(...), color-mix(...)
+export interface CollaborationColors {
+  background?: string;
+  foreground?: string;  // Lead text and body copy
+  accent?: string;      // Partner names, links, initials
+  border?: string;
+}
+
+export interface CollaborationBannerProps {
+  partners: CollaborationPartner[];           // The collaborators only, not Techmin. Empty array renders nothing
+  host?: CollaborationPartner | null;         // Default TECHMIN (exported). null hides the host logo
+  variant?: "strip" | "compact" | "credits";  // Default "strip"
+  lead?: string;          // Default "In collaboration with" ("Collaboration with" on compact, "A collaborative initiative with" on credits)
+  message?: string;       // Short line after the names on the strip. Own line on phones, same line from sm
+  action?: ReactNode;     // Trailing slot on the strip, e.g. a "Learn more" link
+  tone?: "neutral" | "crimson" | "gold";  // Token-based presets with dark values built in. Default "neutral"
+  colors?: CollaborationColors;      // Overrides the tone, value by value
+  darkColors?: CollaborationColors;  // Dark-mode values for anything in `colors`
+  maxLogos?: number;      // Logos before "+N". Default 4
+  className?: string;
 }
 ```
+Also exported: `TECHMIN` (the default host, with its Cloudinary logo), `COLLABORATION_TONES` (the presets) and `formatPartnerNames()` ("A, B and C").
 
-### Where to Use
-- Bottom of layout wrappers for collaborative modules (e.g., `src/app/platform/inductions/layout.tsx` and `src/app/organisations/inductions/layout.tsx`).
-- Place immediately after `{children}` and before/after `DeveloperCredits`.
+### How to Use
+```tsx
+import { CollaborationBanner } from "@/components/collaboration-banner";
 
----
+const partners = [
+  { name: "Jazbaa", logo: "https://res.cloudinary.com/.../jazbaa.png", role: "Programming" },
+  { name: "Office of Student Affairs", url: "https://..." },
+];
+
+// Top of a collaborative page, above PageTitle
+<CollaborationBanner partners={partners} tone="crimson" message="Inductions for every society, in one place" />
+
+// Inside the title, when the page is short on space
+<PageTitle text="Inductions" actions={<CollaborationBanner variant="compact" partners={partners} />} />
+
+// Footer line (what InitiativeCredits used to do)
+<CollaborationBanner variant="credits" partners={partners} />
+
+// Colours outside our palette: pass both light and dark values
+<CollaborationBanner
+  partners={partners}
+  colors={{ background: "#e8f5ee", foreground: "#14372a", accent: "#1b6b45", border: "#b9dcc8" }}
+  darkColors={{ background: "#10241b", foreground: "#d9efe3", accent: "#7fd1a4", border: "#24513a" }}
+/>
+```
+
+### Guidelines & Gotchas
+- **Stick to the tones.** `neutral`, `crimson` and `gold` come from `globals.css` tokens and already switch for dark mode. Use `colors` only when a partner's brand colour is genuinely needed.
+- **Custom colours need dark values.** A colour set in `colors` is also used in dark mode unless `darkColors` overrides it. Check contrast (4.5:1 for text) in both themes yourself; the component can't.
+- **One strip per page,** placed once, above `PageTitle` in the tool's `layout.tsx` or `page.tsx`. Don't pair a `strip` and a `compact` chip on the same page.
+- **Logos:** square-ish, transparent PNG or SVG on Cloudinary. They render at 24px (strip and chip) and 32px (popover). A broken logo falls back to the partner's initials.
+- **Names are the accessible label.** The trigger reads "In collaboration with A, B and C. Show details", so don't put names only in logos.
+- **Haptics:** opening the popover fires `haptic.tap()`.
 
 ## STATUS & FALLBACK SCREENS
 

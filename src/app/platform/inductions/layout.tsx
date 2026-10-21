@@ -1,6 +1,6 @@
 import React from 'react';
 import { NewToolBanner } from '@/components/new-tool-banner';
-import InitiativeCredits from '@/components/initiative-credits';
+import { CollaborationBanner } from '@/components/collaboration-banner';
 import DeveloperCredits from '@/components/developer-credits';
 
 export default function PlatformInductionsLayout({
@@ -12,7 +12,10 @@ export default function PlatformInductionsLayout({
     <>
       <NewToolBanner className="mt-[-24px] mb-4" />
       {children}
-      <InitiativeCredits partners={['Jazbaa', 'MAA', 'Office of Student Affairs']} />
+      <CollaborationBanner
+        variant="credits"
+        partners={[{ name: 'Jazbaa' }, { name: 'MAA' }, { name: 'Office of Student Affairs' }]}
+      />
     </>
   );
 }

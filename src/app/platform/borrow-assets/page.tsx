@@ -1,4 +1,5 @@
 import { ShoppingBag } from 'lucide-react';
+import { CollaborationBanner, type CollaborationPartner } from '@/components/collaboration-banner';
 import DeveloperCredits from '@/components/developer-credits';
 import { TourStep } from '@/components/guided-tour';
 import PageTitle from '@/components/page-title';
@@ -12,6 +13,10 @@ import type { BorrowAssetsData } from './types';
 export const dynamic = 'force-dynamic';
 
 const EMPTY: BorrowAssetsData = { assets: [], phone: '' };
+
+// Techmin's logo leads the banner automatically; only the collaborators are listed here.
+// No Jazbaa logo on file yet, so it shows initials. Add its Cloudinary URL as `logo` when we have it.
+const PARTNERS: CollaborationPartner[] = [{ name: 'Jazbaa', role: 'Cultural Ministry' }];
 
 async function loadAssets(): Promise<{ data: BorrowAssetsData; error: string | null }> {
   try {
@@ -28,7 +33,13 @@ export default async function BorrowAssetsPage() {
   const { data, error } = await loadAssets();
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
+    <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
+      <CollaborationBanner
+        partners={PARTNERS}
+        message="Borrow from Techmin's or Jazbaa's inventory!"
+        className="mb-4 sm:mb-6"
+      />
+
       <TourStep
         id="page-title"
         title="Borrow Assets"
