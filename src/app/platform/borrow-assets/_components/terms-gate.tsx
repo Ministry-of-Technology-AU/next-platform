@@ -70,7 +70,7 @@ export function TermsGate({ read, onRead, agreed, onAgreedChange, error }: Terms
           tabIndex={0}
           role="region"
           aria-labelledby="borrow-terms-heading"
-          className="max-h-44 overflow-y-auto rounded-lg border bg-muted/40 p-4 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:max-h-40"
+          className="max-h-60 overflow-y-auto rounded-lg border bg-muted/40 p-4 text-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:max-h-72"
         >
           <p className="mb-3 text-muted-foreground">Read these before you ask to borrow. By sending a request, you agree to:</p>
           <ol className="list-decimal space-y-2 pl-5">

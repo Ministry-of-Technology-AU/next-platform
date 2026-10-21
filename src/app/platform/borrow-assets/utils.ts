@@ -13,7 +13,7 @@ export function inTab(asset: Asset, tab: AssetTab): boolean {
 
 function matchesQuery(asset: Asset, query: string): boolean {
   if (!query) return true;
-  return [asset.name, asset.model ?? '', asset.description, asset.type, asset.owner]
+  return [asset.name, asset.description, asset.type, categoryLabel(asset.type), asset.owner]
     .some((text) => text.toLowerCase().includes(query));
 }
 
@@ -85,7 +85,6 @@ export function relativeDays(date: string): string {
 }
 
 /** What a card says when the item can't be borrowed right now. */
-export function unavailableLabel(asset: Asset): string {
-  if (asset.status === 'overdue') return 'Overdue';
-  return asset.dueBack ? `Back by ${shortDate(asset.dueBack)}` : 'On loan';
+export function unavailableLabel(_asset?: Asset): string {
+  return 'Unavailable';
 }

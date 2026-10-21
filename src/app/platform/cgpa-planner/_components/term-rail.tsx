@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
-import type { ParsedSemester } from "@/lib/cgpa/types";
+import type { ParsedSemester } from "../types";
 import { TERM_KIND_LABEL } from "../data";
 import { formatGPA } from "../utils";
 

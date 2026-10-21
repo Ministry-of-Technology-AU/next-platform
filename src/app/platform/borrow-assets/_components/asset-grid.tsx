@@ -9,11 +9,13 @@ interface AssetSectionProps {
   title: string;
   assets: Asset[];
   showOwner: boolean;
+  /** How many cards at the top load their image straight away instead of lazily. */
+  eagerImages?: number;
   onBorrow: (asset: Asset) => void;
   onToggleBookmark: (asset: Asset) => void;
 }
 
-export function AssetSection({ title, assets, showOwner, onBorrow, onToggleBookmark }: AssetSectionProps) {
+export function AssetSection({ title, assets, showOwner, eagerImages = 0, onBorrow, onToggleBookmark }: AssetSectionProps) {
   if (assets.length === 0) return null;
   const headingId = `section-${title.toLowerCase().replace(/\s+/g, '-')}`;
 
@@ -24,11 +26,12 @@ export function AssetSection({ title, assets, showOwner, onBorrow, onToggleBookm
         <span className="text-sm font-normal text-muted-foreground">{assets.length}</span>
       </h2>
       <div className={GRID}>
-        {assets.map((asset) => (
+        {assets.map((asset, index) => (
           <AssetCard
             key={asset.id}
             asset={asset}
             showOwner={showOwner}
+            eagerImage={index < eagerImages}
             onBorrow={onBorrow}
             onToggleBookmark={onToggleBookmark}
           />

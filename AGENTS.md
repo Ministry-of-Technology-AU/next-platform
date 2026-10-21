@@ -71,9 +71,18 @@ These apply to every task. The detail lives in the linked docs.
   `getAuthenticatedUser`, caching through `src/lib/cache/`, rate limits through
   `src/lib/rate-limit.ts`, haptics through `src/lib/haptics.ts`. A generic reimplementation of
   something we already have is a bug.
+- **Code lives with the tool that owns it.** What one tool needs stays in its folder, server
+  code included: `types.ts`, `data.ts`, `utils.ts`, `schema.ts` (zod) and `_server/` (Strapi
+  access its page and routes both call). Its routes import from there. Other tools that need it
+  import from the owner's folder too: the trajectory planner takes its grade maths from
+  `src/app/platform/cgpa-planner/utils.ts`. Being imported elsewhere never moves code to
+  `src/lib/`. `src/lib/<feature>/` is only for logic no single tool owns, like `src/lib/forms/`
+  and `src/lib/inductions/`, which serve several surfaces. Detail: `.agents/blueprints/page.md` →
+  structure.
 - **Modular, never repeated.** When logic appears a second time, extract it: to the tool's
-  `utils.ts` / `helper.ts` if it's local, or to `src/lib/<feature>/` or `src/components/` if
-  2+ tools use it. Don't over-abstract either. One use means no helper.
+  `utils.ts` / `helper.ts` (tool logic stays with its owner, see above), or to `src/lib/` or
+  `src/components/` when it's generic, not any one tool's. Don't over-abstract either. One use
+  means no helper.
 - **Components: check before you build, ask before you write.**
   1. `src/components/ui/` and `src/components/`
   2. `/shadcn-ui` and the shadcn MCP

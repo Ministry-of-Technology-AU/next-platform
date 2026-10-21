@@ -94,7 +94,6 @@ export function Board({ onNewCourse, onEditCourse, onAddSemester }: BoardProps) 
         void haptic.press()
     }
 
-    const tray = <CourseTray onNewCourse={onNewCourse} onEditCourse={onEditCourse} />
 
     return (
         <DndContext
@@ -106,7 +105,12 @@ export function Board({ onNewCourse, onEditCourse, onAddSemester }: BoardProps) 
             onDragCancel={() => setActive(null)}
         >
             <div className="flex h-[calc(100dvh-5rem)] min-h-[28rem] gap-4 md:h-[calc(100dvh-7rem)]">
-                {!isMobile && <div className="w-64 shrink-0">{tray}</div>}
+                {/* No tray on phones: there the planner is for viewing and rearranging semesters. */}
+                {!isMobile && (
+                    <div className="w-64 shrink-0">
+                        <CourseTray onNewCourse={onNewCourse} onEditCourse={onEditCourse} />
+                    </div>
+                )}
 
                 <div
                     ref={scrollerRef}
@@ -121,8 +125,6 @@ export function Board({ onNewCourse, onEditCourse, onAddSemester }: BoardProps) 
                         isMobile && !active && "snap-x snap-mandatory",
                     )}
                 >
-                    {isMobile && <div className={cn(MOBILE_COLUMN, "shrink-0 snap-start")}>{tray}</div>}
-
                     {state.semesters.map((semester, index) =>
                         collapsedIds.includes(semester.id) ? (
                             <CollapsedSemester key={semester.id} semester={semester} onExpand={() => toggleCollapsed(semester.id)} />
@@ -138,32 +140,35 @@ export function Board({ onNewCourse, onEditCourse, onAddSemester }: BoardProps) 
                         ),
                     )}
 
-                    <TourStep
-                        id="trajectory-add-semester"
-                        title="Add a semester"
-                        content="Add as many semesters as your degree needs, including summer terms. Rename one by pressing its name."
-                        order={70}
-                        position="left"
-                        className="h-full shrink-0 snap-start"
-                    >
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button
-                                    type="button"
-                                    onClick={onAddSemester}
-                                    className="flex h-full w-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
-                                >
-                                    <span className="flex size-10 items-center justify-center rounded-full border-2 border-dashed border-current">
-                                        <Plus className="size-5" aria-hidden />
-                                    </span>
-                                    Add semester
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent className="flex items-center gap-2">
-                                Add a semester at the end <KeyHint>A</KeyHint>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TourStep>
+                    {/* Phones get no Add semester either: there the board is for viewing and rearranging. */}
+                    {!isMobile && (
+                        <TourStep
+                            id="trajectory-add-semester"
+                            title="Add a semester"
+                            content="Add as many semesters as your degree needs, including summer terms. Rename one by pressing its name."
+                            order={70}
+                            position="left"
+                            className="h-full shrink-0 snap-start"
+                        >
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        onClick={onAddSemester}
+                                        className="flex h-full w-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
+                                    >
+                                        <span className="flex size-10 items-center justify-center rounded-full border-2 border-dashed border-current">
+                                            <Plus className="size-5" aria-hidden />
+                                        </span>
+                                        Add semester
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent className="flex items-center gap-2">
+                                    Add a semester at the end <KeyHint>A</KeyHint>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TourStep>
+                    )}
                 </div>
             </div>
 

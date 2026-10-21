@@ -1,11 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { courseRef, plannedTermGPA, summarisePlan } from "@/lib/cgpa/calculations";
-import type { GradeKey, ParsedSemester } from "@/lib/cgpa/types";
+import type { GradeKey, ParsedSemester } from "./types";
 import { PLAN_STORAGE_KEY } from "./data";
 import type { PlanState } from "./types";
-import { readStorage, writeStorage } from "./utils";
+import { courseRef, plannedTermGPA, readStorage, summarisePlan, writeStorage } from "./utils";
 
 const EMPTY_PLAN: PlanState = { plannedGrades: {}, retakeLinks: {}, unlinked: [] };
 
@@ -36,10 +35,8 @@ export function usePlan(terms: ParsedSemester[]) {
 
   const setGrade = useCallback((ref: string, grade: GradeKey | null) => {
     setPlan((prev) => {
-      const plannedGrades = { ...prev.plannedGrades };
-      if (grade) plannedGrades[ref] = grade;
-      else delete plannedGrades[ref];
-      return { ...prev, plannedGrades };
+      // Kept even when null: clearing a row AMS already graded must not bring that grade back.
+      return { ...prev, plannedGrades: { ...prev.plannedGrades, [ref]: grade } };
     });
   }, []);
 
@@ -77,7 +74,7 @@ export function usePlan(terms: ParsedSemester[]) {
   const baseline = useMemo(() => summarisePlan({ terms, plannedGrades: {}, retakeLinks: {}, unlinked: [] }), [terms]);
   const summary = useMemo(() => summarisePlan({ terms, ...plan }), [terms, plan]);
 
-  const hasPlannedGrades = Object.keys(plan.plannedGrades).length > 0;
+  const hasPlannedGrades = Object.values(plan.plannedGrades).some((grade) => grade !== null);
 
   const termProjection = useCallback(
     (term: ParsedSemester) => plannedTermGPA(term, plan.plannedGrades),

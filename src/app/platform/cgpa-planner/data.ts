@@ -1,4 +1,4 @@
-import type { TermKind } from "@/lib/cgpa/types";
+import type { TermKind } from "./types";
 import type { GradeComponent, PlannerCourse } from "./types";
 
 /** Letters the grade planner works in. */

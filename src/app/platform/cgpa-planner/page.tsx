@@ -2,8 +2,8 @@ import { Calculator } from "lucide-react";
 import { TourStep } from "@/components/guided-tour";
 import PageTitle from "@/components/page-title";
 import { getAuthenticatedUser } from "@/lib/auth";
-import { getCGPAReport } from "@/lib/cgpa/data";
-import type { ParsedCGPAData } from "@/lib/cgpa/types";
+import { getCGPAReport } from "./_server/report";
+import type { ParsedCGPAData } from "./types";
 import { CGPAPlannerClient } from "./client";
 
 // Per-user data read with the session; never statically cached.

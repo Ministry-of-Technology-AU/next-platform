@@ -11,9 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { GRADE_OPTIONS, isGradeKey } from "@/lib/cgpa/calculations";
-import type { CourseState } from "@/lib/cgpa/calculations";
-import type { GradeKey } from "@/lib/cgpa/types";
+import { GRADE_OPTIONS, isGradeKey, type CourseState } from "../utils";
+import type { GradeKey } from "../types";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +22,7 @@ export type CourseRowModel = {
   code: string | null;
   title: string;
   credits: number | null;
-  /** AMS grade for completed terms; the planned grade for in-progress ones. */
+  /** AMS grade for completed terms; for in-progress ones, the planned grade (AMS's grade until changed). */
   grade: string | null;
   creditsEarned: number | null;
   gradePoints: number | null;
@@ -82,15 +81,15 @@ export function RetakeBadge({ row, onUnlink }: { row: CourseRowModel; onUnlink: 
   const state = row.state;
   if (!state?.inRetakeGroup) return null;
 
-  if (state.replaced) {
-    return (
-      <Badge variant="outline" className="border-dashed font-medium text-muted-foreground">
-        Replaced by retake
-      </Badge>
-    );
-  }
-
+  // Past rows: a later attempt replaced this one, or this is the retake that counts.
   if (!row.editable) {
+    if (state.replaced) {
+      return (
+        <Badge variant="outline" className="border-dashed font-medium text-muted-foreground">
+          Replaced by retake
+        </Badge>
+      );
+    }
     return state.counts ? (
       <Badge variant="secondary" className="bg-secondary-light text-black hover:bg-secondary-light">
         Retake
@@ -98,9 +97,19 @@ export function RetakeBadge({ row, onUnlink }: { row: CourseRowModel; onUnlink: 
     ) : null;
   }
 
+  // This term's rows are the retake. When an earlier attempt still beats the planned grade,
+  // that earlier attempt is what counts, so say that rather than "replaced".
   return (
-    <Badge variant="secondary" className="gap-1 bg-secondary-light pr-0.5 text-black hover:bg-secondary-light">
-      Retake
+    <Badge
+      variant={state.replaced ? "outline" : "secondary"}
+      className={cn(
+        "gap-1 pr-0.5",
+        state.replaced
+          ? "border-dashed font-medium text-muted-foreground"
+          : "bg-secondary-light text-black hover:bg-secondary-light",
+      )}
+    >
+      {state.replaced ? "Retake: earlier grade counts" : "Retake"}
       <Tooltip>
         <TooltipTrigger asChild>
           <button

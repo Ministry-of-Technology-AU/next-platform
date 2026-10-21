@@ -14,6 +14,10 @@ export const CACHE_TAGS = {
   metrics: 'metrics',
   organisations: 'organisations',
   courses: 'courses',
+  trajectoryTemplates: 'trajectory-templates',
+  sharedTrajectories: 'shared-trajectories',
+  borrowAssets: 'borrow-assets',
+  borrowAssetsPocs: 'borrow-assets-pocs',
 } as const;
 
 export type CacheTag = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS];
@@ -31,4 +35,9 @@ export const STRAPI_MODEL_TAGS: Readonly<Record<string, readonly CacheTag[]>> = 
   pool: [CACHE_TAGS.metrics],
   service: [CACHE_TAGS.metrics],
   user: [CACHE_TAGS.metrics],
+  'dept-info': [CACHE_TAGS.trajectoryTemplates],
+  'shared-trajectory': [CACHE_TAGS.sharedTrajectories],
+  asset: [CACHE_TAGS.borrowAssets],
+  'borrow-request': [CACHE_TAGS.borrowAssets],
+  'borrow-assets-poc': [CACHE_TAGS.borrowAssetsPocs],
 };

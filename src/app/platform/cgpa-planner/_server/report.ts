@@ -1,6 +1,8 @@
+import "server-only";
+
 import { strapiGet, strapiPut } from "@/lib/apis/strapi";
 import { normaliseReport } from "./schema";
-import type { ParsedCGPAData } from "./types";
+import type { ParsedCGPAData } from "../types";
 
 /**
  * Strapi access for the CGPA report saved on a user (`cgpa_data`).

@@ -222,10 +222,11 @@ We fix pages one at a time. For each page, go through this list.
 
 Server components that `fetch()` our own `/api/...` with a forwarded cookie do 3 to 5 times the
 work (HTTP to ourselves, middleware, `auth()` twice, JSON twice). Move the route handler's body
-into a function in `src/lib/<feature>/`, then call it from both places:
+into a function in the tool's `_server/` folder (`src/lib/<feature>/` only when no single tool
+owns it), then call it from both places:
 
 ```ts
-// src/lib/<feature>/data.ts
+// src/app/platform/<tool>/_server/<thing>.ts  (starts with import 'server-only')
 export async function getThingsForUser(uid: number) { /* strapiGet... */ }
 
 // route.ts: the client still needs the route

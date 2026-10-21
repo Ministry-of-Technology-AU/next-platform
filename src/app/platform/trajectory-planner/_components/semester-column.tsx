@@ -24,12 +24,12 @@ interface SemesterColumnProps {
 }
 
 export function SemesterColumn({ semester, isFirst, onCollapse, onEditCourse }: SemesterColumnProps) {
-    const { getSemesterCredits, getSemesterGPA, deleteSemester } = useCoursePlanner()
+    const { summary, deleteSemester } = useCoursePlanner()
     const { setNodeRef, isOver } = useDroppable({ id: semester.id })
     const [renaming, setRenaming] = useState(false)
 
-    const credits = getSemesterCredits(semester.id)
-    const gpa = getSemesterGPA(semester.id)
+    const credits = summary.semesters[semester.id]?.credits ?? 0
+    const gpa = summary.semesters[semester.id]?.gpa ?? null
     const underLoad = credits < MIN_SEMESTER_CREDITS && semester.courses.length > 0
 
     const column = (
@@ -163,8 +163,7 @@ function RenameInput({ semester, onDone }: { semester: Semester; onDone: () => v
 
 /** A collapsed semester: a narrow rail that still shows its name and credits. Press to expand. */
 export function CollapsedSemester({ semester, onExpand }: { semester: Semester; onExpand: () => void }) {
-    const { getSemesterCredits } = useCoursePlanner()
-    const credits = getSemesterCredits(semester.id)
+    const credits = useCoursePlanner().summary.semesters[semester.id]?.credits ?? 0
 
     return (
         <Tooltip>

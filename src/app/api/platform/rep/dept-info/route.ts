@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { getDeptForRep, DEPT_NAMES } from "@/lib/constants/dept-rep-map"
 import { strapiGet, strapiPut, strapiPost } from "@/lib/apis/strapi"
+import { revalidateTemplates } from "@/app/platform/trajectory-planner/_server/templates"
 
 // GET: Fetch dept_info for authenticated rep's department
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const session = await auth()
 
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
             }
         })
     } catch (error) {
-        console.error("Error fetching dept info:", error)
+        platform.error("GET /api/platform/rep/dept-info failed:", error)
         return NextResponse.json({ error: "Failed to fetch department info" }, { status: 500 })
     }
 }
@@ -102,6 +103,8 @@ export async function PUT(request: NextRequest) {
             // Create new entry
             result = await strapiPost("/dept-infos", updateData)
         }
+        // The trajectory planner serves templates from L2; drop it so students see this edit.
+        revalidateTemplates()
 
         return NextResponse.json({
             success: true,
@@ -109,7 +112,7 @@ export async function PUT(request: NextRequest) {
             message: existingEntry ? "Updated successfully" : "Created successfully"
         })
     } catch (error) {
-        console.error("Error updating dept info:", error)
+        platform.error("PUT /api/platform/rep/dept-info failed:", error)
         return NextResponse.json({ error: "Failed to update department info" }, { status: 500 })
     }
 }

@@ -11,7 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useIsMac } from "@/hooks/useIsMac";
 import { haptic } from "@/lib/haptics";
-import type { ParsedCGPAData } from "@/lib/cgpa/types";
+import type { ParsedCGPAData } from "../types";
 
 type SaveResponse = { success?: boolean; data?: ParsedCGPAData; error?: string };
 

@@ -1,6 +1,8 @@
+import "server-only";
+
 import { z } from "zod";
 import { classifyTerm, splitCodes, termStatus, yearOf } from "./parser";
-import type { ParsedCGPAData, ParsedCourse, ParsedSemester } from "./types";
+import type { ParsedCGPAData, ParsedCourse, ParsedSemester } from "../types";
 
 /**
  * Validates report JSON from outside the parser (a client POSTing a report, or data saved

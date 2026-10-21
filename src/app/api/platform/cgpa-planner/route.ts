@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { clearCGPAReport, getCGPAReport, saveCGPAReport } from "@/lib/cgpa/data";
+import { clearCGPAReport, getCGPAReport, saveCGPAReport } from "@/app/platform/cgpa-planner/_server/report";
 import { json, preflight, reportFromRequest, resolveSessionOrBearerUser, resolveSessionUser } from "./helper";
 
 export const dynamic = "force-dynamic";

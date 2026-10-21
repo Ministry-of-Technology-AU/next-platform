@@ -1,5 +1,31 @@
 import type { Shortcut } from '@/components/shortcuts-dialog';
-import type { AssetTab } from './types';
+import type { AssetOwner, AssetTab, OwnerContact } from './types';
+
+/** Longest loan, in days from today. The form, the calendar and the API all enforce it. */
+export const MAX_BORROW_DAYS = 30;
+
+/** An open request nobody acts on stops showing as "Requested" after this many days. */
+export const REQUEST_EXPIRY_DAYS = 7;
+
+export const REASON_MIN_LENGTH = 10;
+export const REASON_MAX_LENGTH = 300;
+
+const TECHMIN_EMAIL = 'technology.ministry@ashoka.edu.in';
+const JAZBAA_EMAIL = 'culturalministry@ashoka.edu.in';
+
+export const OWNER_CONTACTS: Record<AssetOwner, OwnerContact> = {
+  Techmin: { team: 'Ministry of Technology', email: TECHMIN_EMAIL },
+  Jazbaa: { team: 'Jazbaa', email: JAZBAA_EMAIL },
+};
+
+/**
+ * CC'd on a request when the Strapi `borrow-assets-poc` entry can't be read. Matches the
+ * defaults on that single type, so a Strapi outage still reaches each lender's team inbox.
+ */
+export const DEFAULT_POC_EMAILS: Record<AssetOwner, string[]> = {
+  Techmin: [TECHMIN_EMAIL],
+  Jazbaa: [JAZBAA_EMAIL],
+};
 
 export const TABS: ReadonlyArray<{ value: AssetTab; label: string }> = [
   { value: 'All', label: 'All' },

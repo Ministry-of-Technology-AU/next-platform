@@ -6,14 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { courseRef, creditsFor } from "@/lib/cgpa/calculations";
-import type { GradeKey, ParsedSemester } from "@/lib/cgpa/types";
+import type { ParsedSemester } from "../types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { TERM_KIND_LABEL } from "../data";
 import type { PlanApi } from "../use-plan";
-import { formatCredits, formatGPA, inSettledTab } from "../utils";
+import { courseRef, creditsFor, effectiveGrade, formatCredits, formatGPA, inSettledTab } from "../utils";
 import { CourseMenu, GradeSelect, RetakeBadge, type CourseRowModel, type RetakeActions } from "./course-row-parts";
 
 const HEAD = "border-b border-border bg-muted/60 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground";
@@ -37,7 +36,8 @@ export function TermPanel({
 
   const rows: CourseRowModel[] = term.courses.map((course, index) => {
     const ref = courseRef(term, index);
-    const planned: GradeKey | null = plan.plannedGrades[ref] ?? null;
+    // Every row of a term in progress is editable. Rows AMS already graded (a TP) start from that grade.
+    const planned = editable ? effectiveGrade(term, index, plan.plannedGrades).grade : null;
     return {
       ref,
       code: course.code,

@@ -30,9 +30,7 @@ function Stat({ label, value, emphasis = false }: { label: string; value: string
 
 /** The always-visible line: CGPA, credits so far, and the breakdown toggle. */
 export function SummaryStats({ breakdownOpen }: { breakdownOpen: boolean }) {
-    const { getCGPA, getCreditsByType } = useCoursePlanner()
-    const cgpa = getCGPA()
-    const credits = getCreditsByType()
+    const { cgpa, credits } = useCoursePlanner().summary
 
     return (
         <TourStep
@@ -72,10 +70,10 @@ export function SummaryStats({ breakdownOpen }: { breakdownOpen: boolean }) {
 
 /** Credits by course type and each semester's GPA. Lives inside the collapsible. */
 export function SummaryBreakdown() {
-    const { state, getCreditsByType, getSemesterGPA } = useCoursePlanner()
-    const credits = getCreditsByType()
+    const { state, summary } = useCoursePlanner()
+    const { credits } = summary
     const semesterGPAs = state.semesters
-        .map((semester) => ({ id: semester.id, name: semester.name, gpa: getSemesterGPA(semester.id) }))
+        .map((semester) => ({ id: semester.id, name: semester.name, gpa: summary.semesters[semester.id]?.gpa ?? null }))
         .filter((s): s is { id: string; name: string; gpa: number } => s.gpa !== null)
 
     return (
@@ -108,7 +106,7 @@ export function SummaryBreakdown() {
             </div>
 
             <p className="text-xs text-muted-foreground lg:col-span-2">
-                Credits count every course placed in a semester, graded or still planned. A course graded F earns none.
+                Credits count every course placed in a semester, graded or still planned. A failed, audited or zero-credit course earns none.
             </p>
         </div>
     )

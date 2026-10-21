@@ -5,8 +5,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { courseKey, courseRef } from "@/lib/cgpa/calculations";
-import type { ParsedSemester } from "@/lib/cgpa/types";
+import { courseKey, courseRef } from "../utils";
+import type { ParsedSemester } from "../types";
 import { haptic } from "@/lib/haptics";
 
 type Option = { ref: string; key: string; code: string | null; title: string; grade: string | null };

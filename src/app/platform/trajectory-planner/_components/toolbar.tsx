@@ -1,9 +1,10 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { BookOpen, Contact, FileText, Keyboard, Map, Save, Share2, Upload, type LucideIcon } from "lucide-react"
+import { BookOpen, Check, Contact, FileText, Keyboard, Map, NotebookPen, Save, Share2, Upload, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { TourStep } from "@/components/guided-tour"
+import type { AutoSaveStatus } from "@/hooks/use-auto-save"
 import { Button } from "@/components/ui/button"
 import {
     Combobox,
@@ -70,16 +71,49 @@ export function DegreePicker({
     )
 }
 
-export function SaveButton({ isSaving, onSave }: { isSaving: boolean; onSave: () => void }) {
+const SAVE_STATUS_TEXT: Record<AutoSaveStatus, string | null> = {
+    idle: null,
+    pending: "Unsaved changes",
+    saving: null, // The button says it.
+    saved: "Saved",
+    error: "Couldn't save",
+}
+
+interface SaveButtonProps {
+    status: AutoSaveStatus
+    /** Auto-save is off because the account copy didn't load. */
+    paused: boolean
+    lastSavedAt: number | null
+    onSave: () => void
+}
+
+/** Auto-save status, plus a button to save straight away. */
+export function SaveButton({ status, paused, lastSavedAt, onSave }: SaveButtonProps) {
+    const isSaving = status === "saving"
+    const text = paused ? "Auto-save paused" : SAVE_STATUS_TEXT[status]
+    const savedTime = lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : null
+
     return (
         <TourStep
             id="trajectory-save"
-            title="Save your plan"
-            content="Your plan stays on this device as you work. Press Save to keep it in your account so it opens on any device."
+            title="Saving your plan"
+            content="Your plan saves to your account a moment after each change, so it opens on any device. Press Save to save straight away."
             order={40}
             position="bottom"
-            className="ml-auto"
+            className="ml-auto flex items-center gap-3"
         >
+            <p
+                role="status"
+                aria-live="polite"
+                className={cn(
+                    "flex items-center gap-1 text-xs text-muted-foreground",
+                    (status === "error" || paused) && "text-destructive",
+                )}
+            >
+                {status === "saved" && !paused && <Check className="size-3.5 text-green-dark dark:text-green-light" aria-hidden />}
+                {text}
+                {status === "saved" && !paused && savedTime && <span className="sr-only">at {savedTime}</span>}
+            </p>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button onClick={onSave} disabled={isSaving} aria-busy={isSaving} className="h-10 min-w-24 cursor-pointer gap-1.5">
@@ -88,7 +122,7 @@ export function SaveButton({ isSaving, onSave }: { isSaving: boolean; onSave: ()
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent className="flex items-center gap-2">
-                    Save to your account <KeyHint>S</KeyHint>
+                    {savedTime ? `Last saved ${savedTime}. Save now` : "Save to your account now"} <KeyHint>S</KeyHint>
                 </TooltipContent>
             </Tooltip>
         </TourStep>
@@ -106,9 +140,10 @@ interface BarButtonProps {
     onClick: () => void
     /** Shown as a toast instead of running, so the reason reaches touch users too. */
     blockedReason?: string
+    className?: string
 }
 
-function BarButton({ icon: Icon, label, tip, onClick, blockedReason }: BarButtonProps) {
+function BarButton({ icon: Icon, label, tip, onClick, blockedReason, className }: BarButtonProps) {
     return (
         <Tooltip>
             <TooltipTrigger asChild>
@@ -125,7 +160,11 @@ function BarButton({ icon: Icon, label, tip, onClick, blockedReason }: BarButton
                         void haptic.tap()
                         onClick()
                     }}
-                    className={cn(BAR_BUTTON, blockedReason && "cursor-not-allowed opacity-50 hover:border-border hover:bg-background active:scale-100")}
+                    className={cn(
+                        BAR_BUTTON,
+                        blockedReason && "cursor-not-allowed opacity-50 hover:border-border hover:bg-background active:scale-100",
+                        className,
+                    )}
                 >
                     <Icon className="text-primary dark:text-white" aria-hidden />
                     <span className="sr-only sm:not-sr-only">{label}</span>
@@ -216,6 +255,16 @@ export function ActionBar({ template, semesterCount, onOpen }: ActionBarProps) {
                     </Tooltip>
                 )}
             </TourStep>
+
+            {/* Phones have no room left in this row; the scratchpad is for planning at a desk. */}
+            <Separator orientation="vertical" className="mx-1 hidden !h-5 shrink-0 sm:block" />
+            <BarButton
+                icon={NotebookPen}
+                label="Scratchpad"
+                tip="Jot notes while you plan. Saved in this browser only"
+                onClick={() => onOpen("scratchpad")}
+                className="hidden sm:inline-flex"
+            />
 
             <Tooltip>
                 <TooltipTrigger asChild>

@@ -79,16 +79,35 @@ export function buildBrandedEmailHtml(options: {
   subheading: string;
   bodyHtml: string;
   footer?: string;
+  /** Optional band between the header and the body, e.g. a mascot. Trusted HTML. */
+  heroHtml?: string;
+  /** Override the header background colour. Defaults to EMAIL_ACCENT. */
+  accentColor?: string;
+  /** Logo shown inside the header band, above the heading. */
+  logoUrl?: string;
+  logoAlt?: string;
 }): string {
+  const accent = options.accentColor ?? EMAIL_ACCENT;
+  const logoHtml = options.logoUrl
+    ? `<img src="${escapeHtml(options.logoUrl)}" height="36" alt="${escapeHtml(options.logoAlt ?? '')}" style="display:block;height:36px;width:auto;border:0;margin-bottom:10px;" />`
+    : '';
   return `
   <div style="background:#faf7f2;padding:24px 0;font-family:${FONT};">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid ${EMAIL_BORDER};border-radius:12px;overflow:hidden;">
       <tr>
-        <td style="background:${EMAIL_ACCENT};padding:20px 28px;">
+        <td style="background:${accent};padding:20px 28px;">
+          ${logoHtml}
           <div style="color:#ffffff;font-size:18px;font-weight:bold;">${escapeHtml(options.heading)}</div>
           <div style="color:#f7d9d3;font-size:13px;margin-top:2px;">${escapeHtml(options.subheading)}</div>
         </td>
-      </tr>
+      </tr>${
+        options.heroHtml
+          ? `
+      <tr>
+        <td style="padding:24px 28px 0;">${options.heroHtml}</td>
+      </tr>`
+          : ''
+      }
       <tr>
         <td style="padding:24px 28px;color:${EMAIL_TEXT};font-size:15px;line-height:1.6;">${options.bodyHtml}</td>
       </tr>${

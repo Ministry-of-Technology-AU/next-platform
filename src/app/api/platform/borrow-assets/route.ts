@@ -3,11 +3,14 @@ import { getAuthenticatedUser } from '@/lib/auth';
 import { jsonError, jsonOk } from '@/lib/forms/api-helpers';
 import { withCacheControl } from '@/lib/cache/headers';
 import { strapiGet } from '@/lib/apis/strapi';
-import { getBorrowAssets, setBookmark } from '@/lib/borrow-assets/data';
+import { getBorrowAssets, setBookmark } from '@/app/platform/borrow-assets/_server/data';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/platform/borrow-assets
- * The catalogue with the viewer's bookmarks. Per-user, so never cached on the server.
+ * The catalogue with the viewer's bookmarks. The catalogue part comes from L2; the per-user part
+ * is read fresh, and the combined body is per-user, so the browser never keeps it.
  */
 export async function GET() {
   try {

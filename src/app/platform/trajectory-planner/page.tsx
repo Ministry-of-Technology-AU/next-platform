@@ -1,41 +1,31 @@
 import { Route } from "lucide-react"
 import { TourStep } from "@/components/guided-tour"
 import PageTitle from "@/components/page-title"
-import { strapiGet } from "@/lib/apis/strapi"
 import { getAuthenticatedUser } from "@/lib/auth"
+import { getTrajectory } from "./_server/plan"
+import { getTemplates } from "./_server/templates"
 import { TrajectoryPlannerClient } from "./client"
 import type { CoursePlannerState } from "./types"
-import { isPlannerState } from "./utils"
 
-// Per-user data read with the session; never statically cached.
+// Per-user data read with the session; never statically cached. Templates come from L2.
 export const dynamic = "force-dynamic"
 
-type StrapiUserTrajectory = { course_trajectory?: unknown }
+type LoadedTrajectory = { data: CoursePlannerState | null; error: string | null }
 
-async function loadTrajectory(): Promise<CoursePlannerState | null> {
+async function loadTrajectory(): Promise<LoadedTrajectory> {
     try {
         const user = await getAuthenticatedUser()
-        if (!user?.email) return null
-
-        const response: unknown = await strapiGet("users", {
-            filters: { email: user.email },
-            fields: ["id", "email", "course_trajectory"],
-        })
-        const users: StrapiUserTrajectory[] = Array.isArray(response)
-            ? response
-            : ((response as { results?: StrapiUserTrajectory[] } | null)?.results ?? [])
-
-        const saved = users[0]?.course_trajectory
-        return isPlannerState(saved) ? saved : null
+        return { data: user?.uid ? await getTrajectory(user.uid) : null, error: null }
     } catch (err) {
-        // The board falls back to this device's copy, so a failed read is not fatal.
+        // The board falls back to this device's copy. Auto-save stays off so it can't overwrite
+        // the account's copy, which may be newer.
         platform.error("Trajectory planner: loading the saved trajectory failed:", err)
-        return null
+        return { data: null, error: "Your saved plan didn't load, so auto-save is paused. Reload the page in a minute." }
     }
 }
 
 export default async function TrajectoryPlannerPage() {
-    const trajectory = await loadTrajectory()
+    const [{ data, error }, templates] = await Promise.all([loadTrajectory(), getTemplates()])
 
     return (
         <>
@@ -53,7 +43,7 @@ export default async function TrajectoryPlannerPage() {
             </TourStep>
 
             <div className="mt-6 sm:mt-8">
-                <TrajectoryPlannerClient initialData={trajectory} />
+                <TrajectoryPlannerClient initialData={data} initialError={error} templates={templates} />
             </div>
         </>
     )

@@ -13,17 +13,19 @@ interface AssetCardProps {
   asset: Asset;
   /** Show who lends it. Only useful on tabs that mix lenders. */
   showOwner: boolean;
+  /** Above the fold: load now, at high priority. */
+  eagerImage?: boolean;
   onBorrow: (asset: Asset) => void;
   onToggleBookmark: (asset: Asset) => void;
 }
 
 const IMAGE_SIZES = '(min-width: 1280px) 22vw, (min-width: 1024px) 28vw, (min-width: 768px) 30vw, 46vw';
 
-export function AssetCard({ asset, showOwner, onBorrow, onToggleBookmark }: AssetCardProps) {
+export function AssetCard({ asset, showOwner, eagerImage = false, onBorrow, onToggleBookmark }: AssetCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const isAvailable = asset.status === 'available';
   const canRequest = isAvailable && !asset.pendingForMe;
-  const subtitle = [showOwner ? asset.owner : null, asset.model].filter(Boolean).join(' · ');
+  const subtitle = showOwner ? asset.owner : null;
 
   return (
     <article
@@ -41,7 +43,8 @@ export function AssetCard({ asset, showOwner, onBorrow, onToggleBookmark }: Asse
             srcSet={assetImageSrcSet(asset.image.url)}
             sizes={IMAGE_SIZES}
             alt={asset.image.alt}
-            loading="lazy"
+            loading={eagerImage ? 'eager' : 'lazy'}
+            fetchPriority={eagerImage ? 'high' : 'auto'}
             decoding="async"
             onError={() => setImageFailed(true)}
             className={cn(
@@ -110,7 +113,7 @@ export function AssetCard({ asset, showOwner, onBorrow, onToggleBookmark }: Asse
                 </>
               ) : (
                 <>
-                  <Clock className={cn('size-4 shrink-0', asset.status === 'overdue' && 'text-destructive')} aria-hidden />
+                  <Clock className="size-4 shrink-0" aria-hidden />
                   <span className="line-clamp-1">{unavailableLabel(asset)}</span>
                 </>
               )}

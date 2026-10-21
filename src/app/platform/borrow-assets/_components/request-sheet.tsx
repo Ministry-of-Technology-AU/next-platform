@@ -33,7 +33,7 @@ function AssetSummary({ asset }: { asset: Asset }) {
       <div className="min-w-0">
         <p className="line-clamp-1 font-heading font-semibold">{asset.name}</p>
         <p className="line-clamp-1 text-sm text-muted-foreground">
-          {[asset.model ?? categoryLabel(asset.type), `from ${asset.owner}`].join(' · ')}
+          {[categoryLabel(asset.type), `from ${asset.owner}`].join(' · ')}
         </p>
       </div>
     </div>

@@ -7,10 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { creditsToTarget, projectedCGPA, requiredGPA, type GoalResult } from "@/lib/cgpa/calculations";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
-import { formatCredits, formatGPA, inSettledTab } from "../utils";
+import { creditsToTarget, formatCredits, formatGPA, inSettledTab, projectedCGPA, requiredGPA, type GoalResult } from "../utils";
 
 type Standing = { cgpa: number; gpaCredits: number; gradePoints: number };
 

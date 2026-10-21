@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { v4 as uuidv4 } from "uuid"
 import { Card } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import { haptic } from "@/lib/haptics"
@@ -13,28 +12,40 @@ import { CourseEditDialog } from "./_components/course-edit-dialog"
 import { IdealTrajectoryDialog } from "./_components/ideal-trajectory-dialog"
 import { SummaryBreakdown, SummaryStats } from "./_components/plan-summary"
 import { ShareTrajectoryDialog } from "./_components/share-trajectory-dialog"
+import { ScratchpadSheet } from "./_components/scratchpad"
 import { ShortcutsDialog } from "./_components/shortcuts-dialog"
 import { ActionBar, DegreePicker, SaveButton } from "./_components/toolbar"
 import { TrajectoryRepositoryDialog } from "./_components/trajectory-repository-dialog"
 import { CoursePlannerProvider, useCoursePlanner } from "./course-planner-context"
 import { STORAGE_KEYS } from "./data"
-import type { CoursePlannerState, PlannerDialog } from "./types"
-import { useSaveTrajectory } from "./use-save"
-import { useDegreeTemplates } from "./use-templates"
+import type { CoursePlannerState, PlannerDialog, TemplatesPayload } from "./types"
+import { useTrajectorySync } from "./use-save"
 import { isTypingTarget, pluralise, readStorage, writeStorage } from "./utils"
 
-export function TrajectoryPlannerClient({ initialData }: { initialData: CoursePlannerState | null }) {
+interface TrajectoryPlannerClientProps {
+    /** The plan saved in the student's account, or null when there is none (or it didn't load). */
+    initialData: CoursePlannerState | null
+    /** Set when the account copy failed to load. Auto-save stays off so it can't overwrite it. */
+    initialError: string | null
+    templates: TemplatesPayload
+}
+
+export function TrajectoryPlannerClient({ initialData, initialError, templates }: TrajectoryPlannerClientProps) {
     return (
         <CoursePlannerProvider initialData={initialData}>
-            <Planner />
+            <Planner initialData={initialData} initialError={initialError} templates={templates} />
         </CoursePlannerProvider>
     )
 }
 
-function Planner() {
+function Planner({ initialData, initialError, templates: { degreeTemplates, idealTrajectories } }: TrajectoryPlannerClientProps) {
     const { state, addCourse, addSemester, selectedDegreeId, setSelectedDegree } = useCoursePlanner()
-    const { degreeTemplates, idealTrajectories } = useDegreeTemplates()
-    const { isSaving, save } = useSaveTrajectory()
+    const sync = useTrajectorySync(initialData, initialError !== null)
+    const { saveNow } = sync
+
+    useEffect(() => {
+        if (initialError) toast.error(initialError)
+    }, [initialError])
 
     const [dialog, setDialog] = useState<PlannerDialog | null>(null)
     const [editingCourseId, setEditingCourseId] = useState<string | null>(null)
@@ -53,7 +64,7 @@ function Planner() {
     const trajectory = idealTrajectories.find((t) => t.templateId === selectedDegreeId)
 
     const newCourse = useCallback(() => {
-        const id = uuidv4()
+        const id = crypto.randomUUID()
         addCourse(null, { id, name: "New course", credits: 4, deptCode: "", type: "Major" })
         setEditingCourseId(id)
         void haptic.press()
@@ -80,7 +91,7 @@ function Planner() {
             const key = e.key.toLowerCase()
             if (key === "n") newCourse()
             else if (key === "a") newSemester()
-            else if (key === "s") void save()
+            else if (key === "s") void saveNow()
             else if (key === "b") toggleBreakdown(!breakdownOpen)
             else if (key === "?") setDialog("shortcuts")
             else if (key === "i") {
@@ -91,7 +102,7 @@ function Planner() {
         }
         window.addEventListener("keydown", onKeyDown)
         return () => window.removeEventListener("keydown", onKeyDown)
-    }, [dialog, editingCourseId, newCourse, newSemester, save, toggleBreakdown, breakdownOpen, template])
+    }, [dialog, editingCourseId, newCourse, newSemester, saveNow, toggleBreakdown, breakdownOpen, template])
 
     return (
         <div className="space-y-4 sm:space-y-6">
@@ -100,7 +111,7 @@ function Planner() {
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                         <DegreePicker templates={degreeTemplates} value={selectedDegreeId ?? ""} onChange={setSelectedDegree} />
                         <SummaryStats breakdownOpen={breakdownOpen} />
-                        <SaveButton isSaving={isSaving} onSave={() => void save()} />
+                        <SaveButton status={sync.status} paused={initialError !== null} lastSavedAt={sync.lastSavedAt} onSave={() => void saveNow()} />
                     </div>
                     <CollapsibleContent className="pt-4">
                         <SummaryBreakdown />
@@ -118,11 +129,12 @@ function Planner() {
             <AmsImportDialog {...dialogProps("ams")} />
             <ContactRepsDialog {...dialogProps("reps")} />
             <ShortcutsDialog {...dialogProps("shortcuts")} />
+            <ScratchpadSheet {...dialogProps("scratchpad")} />
             <ShareTrajectoryDialog {...dialogProps("share")} semesters={state.semesters} />
             <TrajectoryRepositoryDialog
                 {...dialogProps("repository")}
                 onImportCourses={(courses) => {
-                    courses.forEach((course) => addCourse(null, { ...course, id: uuidv4() }))
+                    courses.forEach((course) => addCourse(null, { ...course, id: crypto.randomUUID() }))
                     void haptic.confirm()
                     toast.success(`Added ${pluralise(courses.length, "course")} to Unplaced`)
                 }}

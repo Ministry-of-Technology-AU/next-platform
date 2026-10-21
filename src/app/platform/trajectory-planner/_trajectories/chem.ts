@@ -1,5 +1,5 @@
 // Chemistry Department: Chemistry (3yr, 4yr, with Research)
-import type { IdealTrajectory, DegreeTemplate } from "./shared"
+import type { DegreeTemplate, IdealTrajectory } from "../types"
 
 export const chemTrajectories: IdealTrajectory[] = [
     {

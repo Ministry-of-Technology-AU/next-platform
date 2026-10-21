@@ -5,12 +5,14 @@ import { CSS } from "@dnd-kit/utilities"
 import { ArrowRightLeft, GripVertical, Pencil, Trash2, Undo2 } from "lucide-react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { toGradeKey } from "@/app/platform/cgpa-planner/utils"
 import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
 import { useCoursePlanner } from "../course-planner-context"
-import { gradeOptions } from "../templates"
-import type { Course, CourseLocation, Grade } from "../types"
-import { COURSE_TYPE_LABEL, COURSE_TYPE_STYLES, gradeStyle } from "../utils"
+import { COURSE_TYPE_LABEL, GRADE_OPTIONS } from "../data"
+import type { Course, CourseLocation } from "../types"
+import { COURSE_TYPE_STYLES, gradeLabel, gradeStyle } from "../utils"
 import { ActionMenu } from "./action-menu"
 
 interface CourseCardProps {
@@ -76,7 +78,7 @@ export function CourseCardView({
                     </div>
                     {inSemester && !overlay && <GradePicker course={course} />}
                     {inSemester && overlay && course.grade && (
-                        <span className={cn("rounded-full border px-2 text-xs font-bold", gradeStyle(course.grade))}>{course.grade}</span>
+                        <span className={cn("rounded-full border px-2 text-xs font-bold", gradeStyle(course.grade))}>{gradeLabel(course.grade)}</span>
                     )}
                 </div>
             </div>
@@ -99,7 +101,7 @@ function GradePicker({ course }: { course: Course }) {
                 value={course.grade ?? "none"}
                 onValueChange={(value) => {
                     void haptic.select()
-                    updateCourseGrade(course.id, value === "none" ? null : (value as Exclude<Grade, null>))
+                    updateCourseGrade(course.id, toGradeKey(value))
                 }}
             >
                 <SelectTrigger
@@ -110,12 +112,13 @@ function GradePicker({ course }: { course: Course }) {
                         gradeStyle(course.grade ?? undefined),
                     )}
                 >
-                    {course.grade ?? "Grade"}
+                    {gradeLabel(course.grade) ?? "Grade"}
                 </SelectTrigger>
                 <SelectContent>
-                    {gradeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                            {option.label}
+                    <SelectItem value="none">No grade</SelectItem>
+                    {GRADE_OPTIONS.map((grade) => (
+                        <SelectItem key={grade} value={grade}>
+                            {grade}
                         </SelectItem>
                     ))}
                 </SelectContent>
@@ -126,6 +129,9 @@ function GradePicker({ course }: { course: Course }) {
 
 function CourseMenu({ course, location, onEdit }: CourseCardProps) {
     const { state, moveCourse, removeCourse, addCourse } = useCoursePlanner()
+    const isMobile = useIsMobile()
+    // Phones have no Unplaced tray, so a course sent there would vanish from view.
+    const canUnplace = location !== null && !isMobile
 
     const moveTo = (to: CourseLocation) => {
         void haptic.press()
@@ -148,7 +154,7 @@ function CourseMenu({ course, location, onEdit }: CourseCardProps) {
                     {
                         items: [
                             { label: "Edit details", icon: Pencil, onSelect: () => onEdit(course.id) },
-                            ...(location !== null ? [{ label: "Back to unplaced", icon: Undo2, onSelect: () => moveTo(null) }] : []),
+                            ...(canUnplace ? [{ label: "Back to unplaced", icon: Undo2, onSelect: () => moveTo(null) }] : []),
                         ],
                     },
                     {

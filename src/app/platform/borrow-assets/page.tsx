@@ -3,11 +3,12 @@ import DeveloperCredits from '@/components/developer-credits';
 import { TourStep } from '@/components/guided-tour';
 import PageTitle from '@/components/page-title';
 import { getAuthenticatedUser } from '@/lib/auth';
-import { getBorrowAssets } from '@/lib/borrow-assets/data';
+import { getBorrowAssets } from './_server/data';
 import { BorrowAssetsClient } from './client';
 import type { BorrowAssetsData } from './types';
 
 // Per-user data (bookmarks, open requests) read with the session; never statically cached.
+// The shared catalogue underneath is cached in L2 (see _server/data.ts).
 export const dynamic = 'force-dynamic';
 
 const EMPTY: BorrowAssetsData = { assets: [], phone: '' };

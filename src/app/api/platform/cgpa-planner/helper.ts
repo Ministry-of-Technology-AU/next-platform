@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { CACHE_CONTROL } from "@/lib/cache/headers";
 import { getUserIdByEmail } from "@/lib/userid";
-import { parseCourseReport } from "@/lib/cgpa/parser";
-import { normaliseReport } from "@/lib/cgpa/schema";
-import type { ParsedCGPAData } from "@/lib/cgpa/types";
+import { parseCourseReport } from "@/app/platform/cgpa-planner/_server/parser";
+import { normaliseReport } from "@/app/platform/cgpa-planner/_server/schema";
+import type { ParsedCGPAData } from "@/app/platform/cgpa-planner/types";
 
 /**
  * Shared plumbing for the CGPA planner routes. They are called from the platform and from

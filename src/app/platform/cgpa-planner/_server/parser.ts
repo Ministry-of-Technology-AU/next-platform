@@ -15,7 +15,9 @@
  *   still parse when the page squashes them onto one line.
  */
 
-import type { CreditCategory, ParsedCGPAData, ParsedCourse, ParsedSemester, TermKind, TermStatus } from "./types";
+import "server-only";
+
+import type { CreditCategory, ParsedCGPAData, ParsedCourse, ParsedSemester, TermKind, TermStatus } from "../types";
 
 // ---------------------------------------------------------------------------
 // Token patterns
@@ -114,10 +116,15 @@ export function yearOf(name: string): number | null {
   return match ? Number.parseInt(match[1], 10) : null;
 }
 
-/** A term is complete once AMS shows any final grade or any earned credit. */
-export function termStatus(term: Pick<ParsedSemester, "courses" | "gpa" | "semesterCreditsEarned">): TermStatus {
-  const anyGrade = term.courses.some((course) => course.grade !== null);
-  return anyGrade || term.gpa > 0 || term.semesterCreditsEarned > 0 ? "completed" : "in-progress";
+/**
+ * In progress while AMS still shows a blank grade on any course that carries credit, or on every
+ * course. Earned credits and a GPA don't decide it: a TP row is graded and earns its credits
+ * before the rest of the term is, and AMS prints a GPA of 0 for a pass-only term.
+ */
+export function termStatus(term: Pick<ParsedSemester, "courses">): TermStatus {
+  const pending = term.courses.some((course) => course.grade === null && (course.creditsRegistered ?? 0) > 0);
+  const ungraded = term.courses.every((course) => course.grade === null);
+  return pending || ungraded ? "in-progress" : "completed";
 }
 
 function buildCourse(cells: {

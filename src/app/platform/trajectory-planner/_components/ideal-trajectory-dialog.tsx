@@ -2,13 +2,12 @@
 
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
-import { v4 as uuidv4 } from "uuid"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
 import { useCoursePlanner } from "../course-planner-context"
-import type { IdealTrajectory, IdealTrajectorySemester } from "../templates"
+import type { IdealTrajectory, IdealTrajectorySemester } from "../types"
 import type { Course, DegreeTemplate } from "../types"
 import { pluralise } from "../utils"
 
@@ -34,7 +33,7 @@ export function IdealTrajectoryDialog({
     const { addCourse } = useCoursePlanner()
 
     const add = (courses: CourseDraft[]) => {
-        courses.forEach((course) => addCourse(null, { ...course, id: uuidv4() }))
+        courses.forEach((course) => addCourse(null, { ...course, id: crypto.randomUUID() }))
         void haptic.confirm()
         toast.success(courses.length === 1 ? `Added ${courses[0]?.name ?? "course"} to Unplaced` : `Added ${pluralise(courses.length, "course")} to Unplaced`)
     }

@@ -74,8 +74,10 @@ Before any handler code. The PRD's data section is the input; ask if it is missi
 4. **Pick the cache tier per endpoint** with `caching.md` §2. Write it next to the endpoint
    in the plan: `private`, `privateShort`, `shared` + L2 tag, or none.
 5. **Decide where the logic goes.** Used only by this route → `helper.ts` beside it. Also
-   needed by a server component → `src/lib/<feature>/` (the page calls the function, it does
-   not fetch the route). See §4.4.
+   needed by the tool's page or its other routes → the tool's `_server/` folder (the page calls
+   the function, it does not fetch the route). Other tools import it from there. Only logic no
+   single tool owns → `src/lib/<feature>/`.
+   See §4.4.
 6. **Confirm with the user**, then write the handler.
 
 ---
@@ -127,9 +129,11 @@ Full detail: `.agents/blueprints/auth.md`.
 
 ### 4.3 Reuse before you build
 1. `src/lib/apis/` — a service wrapper already does this?
-2. `src/lib/<feature>/`, `src/lib/cache/`, `src/lib/auth.ts` — a helper already does this?
+2. The tool's `_server/`, `src/lib/<feature>/`, `src/lib/cache/`, `src/lib/auth.ts` — a helper
+   already does this?
 3. `src/lib/forms/api-helpers.ts` — response, rate-limit or CSV helper?
-4. Only then write new, in `helper.ts` or `src/lib/<feature>/`.
+4. Only then write new, in `helper.ts`, the tool's `_server/`, or (owned by no single tool)
+   `src/lib/<feature>/`.
 
 Package needs installing? **Ask the user to run the install command.** Never add `googleapis`
 (use the per-API `@googleapis/*` package), and flag anything that adds weight to the shared box.
@@ -137,11 +141,15 @@ Package needs installing? **Ask the user to run the install command.** Never add
 ### 4.4 Thin routes
 Routes orchestrate, they don't compute. A handler reads: gate → validate → call helpers →
 respond. Query building, mapping Strapi's `attributes` into the page's types, and business
-rules go in `helper.ts`. Used by one route → `helper.ts`. Used by 2+ routes or by a server
-component → `src/lib/<feature>/`.
+rules go in `helper.ts`. Used by one route → `helper.ts`. Used by the tool's page or 2+ of its
+routes → `src/app/<area>/<tool>/_server/`, each file starting with `import 'server-only'`.
+Another tool that needs it imports it from that folder; code doesn't move to `src/lib/` because
+something else imports it. `src/lib/<feature>/` is only for logic no single tool owns.
+`src/app/platform/trajectory-planner/_server/` and `src/app/platform/cgpa-planner/_server/` are
+the reference.
 
-**No server component fetches our own route.** It calls the `src/lib/<feature>/` function the
-route calls. A self-fetch with a Cookie header and a `revalidate` is the 3–5 GB disk bug in
+**No server component fetches our own route.** It calls the `_server/` (or shared
+`src/lib/<feature>/`) function the route calls. A self-fetch with a Cookie header and a `revalidate` is the 3–5 GB disk bug in
 `caching.md` §0.2.
 
 ### 4.5 Server boundary
@@ -373,7 +381,8 @@ Backend-level only. Typecheck, build and deploy checks belong to the orchestrato
 - [ ] No `populate: '*'`; `fields` on the root and every populate; lists capped; no N+1.
 - [ ] Cache tier chosen per `caching.md` §2; `withCacheControl` preset on every response;
       writes to cached data call `revalidateTag`.
-- [ ] No server component fetches this route — it calls the shared `src/lib/<feature>/` function.
+- [ ] No server component fetches this route — it calls the tool's `_server/` function (or
+      `src/lib/<feature>/` when no single tool owns it).
 - [ ] Repeatable writes, uploads and mail sends are rate-limited.
 - [ ] Webhooks fail closed with `timingSafeEqual` and are exempted in `src/middleware.ts`.
 - [ ] Secret-holding modules import `'server-only'`; no `'use server'` on route files.

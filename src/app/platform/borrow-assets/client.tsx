@@ -2,6 +2,7 @@
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { preconnect } from 'react-dom';
 import { Bookmark, PackageOpen, RefreshCw, SearchX } from 'lucide-react';
 import { toast } from 'sonner';
 import { TourStep } from '@/components/guided-tour';
@@ -21,7 +22,12 @@ interface BorrowAssetsClientProps {
   initialError: string | null;
 }
 
+/** First row of cards on the widest grid. These load straight away; the rest wait until scrolled to. */
+const EAGER_IMAGES = 4;
+
 export function BorrowAssetsClient({ initialData, initialError }: BorrowAssetsClientProps) {
+  // Opens the connection to Cloudinary while the page renders, so the first images start sooner.
+  preconnect('https://res.cloudinary.com');
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
   const [assets, setAssets] = useState<Asset[]>(initialData.assets);
@@ -156,20 +162,22 @@ export function BorrowAssetsClient({ initialData, initialError }: BorrowAssetsCl
         <TourStep
           id="borrow-grid"
           title="Borrow or save"
-          content="Tap Borrow to request an item. Out on loan? Save it with the bookmark and find it later in the Saved tab."
+          content="Tap Borrow to request an item. Unavailable? Save it with the bookmark and find it later in the Saved tab."
           order={2}
         >
           <div className="space-y-8 sm:space-y-10">
             <AssetSection
               title="Available now"
               assets={available}
+              eagerImages={EAGER_IMAGES}
               showOwner={showOwner}
               onBorrow={setRequesting}
               onToggleBookmark={toggleBookmark}
             />
             <AssetSection
-              title="Out on loan"
+              title="Currently Unavailable"
               assets={out}
+              eagerImages={available.length === 0 ? EAGER_IMAGES : 0}
               showOwner={showOwner}
               onBorrow={setRequesting}
               onToggleBookmark={toggleBookmark}
@@ -216,7 +224,7 @@ function TabEmptyState({ tab, filtered, query, onClear }: TabEmptyStateProps) {
       <EmptyState
         icon={<Bookmark className="size-5" />}
         title="Nothing saved yet"
-        description="Tap the bookmark on any item to keep it here. Handy for things that are out on loan right now."
+        description="Tap the bookmark on any item to keep it here. Handy for things that are unavailable right now."
       />
     );
   }

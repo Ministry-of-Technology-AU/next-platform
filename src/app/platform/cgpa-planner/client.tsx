@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsContents, TabsList, TabsTrigger } from "@/components/ui/shadcn-io/tabs";
 import { haptic } from "@/lib/haptics";
-import type { ParsedCGPAData } from "@/lib/cgpa/types";
+import type { ParsedCGPAData } from "./types";
 import { GoalCalculators } from "./_components/goal-calculators";
 import { GradePlanner } from "./_components/grade-planner";
 import { ImportForm } from "./_components/import-form";

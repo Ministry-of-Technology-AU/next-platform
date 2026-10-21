@@ -15,7 +15,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
-import type { ParsedCGPAData } from "@/lib/cgpa/types";
+import type { ParsedCGPAData } from "../types";
 import { formatCredits, formatGPA } from "../utils";
 import { CGPATrend, type TrendPoint } from "./cgpa-trend";
 

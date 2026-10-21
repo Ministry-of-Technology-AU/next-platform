@@ -5,10 +5,9 @@ import { CalendarDays } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { addDaysToDateString, getCurrentDateISTString } from '@/lib/date-utils';
-import { MAX_BORROW_DAYS } from '@/lib/borrow-assets/policy';
 import { haptic } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
-import { QUICK_RETURN_DAYS } from '../data';
+import { MAX_BORROW_DAYS, QUICK_RETURN_DAYS } from '../data';
 import { longDate, relativeDays } from '../utils';
 
 interface ReturnDateFieldProps {

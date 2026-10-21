@@ -1,144 +1,59 @@
-import type { Course, CourseType, Grade, Semester, DepartmentCode } from "./types"
-import { v4 as uuidv4 } from "uuid"
-import type { ParsedCGPAData } from "@/lib/cgpa/types"
-
-// FC course name patterns to identify foundation courses
-const FC_COURSE_PATTERNS = [
-    "economy, politics",
-    "literature and the world",
-    "great books",
-    "quantitative reasoning",
-    "principles of science",
-    "indian civilis", // matches both civilizations and civilisations
-    "environmental studies",
-    "critical thinking",
-    "mind and behaviour",
-]
-
-// Valid department codes
-const VALID_DEPT_CODES = ["CS", "ENT", "ECO", "MATH", "PHY", "HUM", "CW", "PSY", "BIO", "MAT", "POL", "IR", "HIS", "PHI", "ENG", "CHM", "YIF", "MS", "PA", "AST"]
-
-// Map AMS grades to trajectory planner Grade type
-export function mapGrade(gradeStr: string | null | undefined): Grade {
-    if (!gradeStr || gradeStr === "--" || gradeStr === "Select") return null
-
-    const normalized = gradeStr.trim()
-
-    // Direct matches
-    const validGrades: Grade[] = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F', 'P', 'TP']
-    if (validGrades.includes(normalized as Grade)) {
-        return normalized as Grade
-    }
-
-    // Handle special grades
-    if (normalized === 'F (w P/F)' || normalized === 'F (w/o P/F)') {
-        return 'F'
-    }
-    if (normalized === 'TP (w credits)' || normalized === 'TP (w/o credits)') {
-        return 'TP' // Teaching Practicum - may or may not have credits
-    }
-    if (normalized === 'AU') {
-        return null // Audit doesn't count
-    }
-
-    return null
-}
+import { gradeOf } from "@/app/platform/cgpa-planner/utils"
+import type { ParsedCGPAData } from "@/app/platform/cgpa-planner/types"
+import {
+    AMS_CATEGORY_PREFIXES,
+    AMS_CC_PREFIXES,
+    AMS_DEPT_ALIASES,
+    AMS_FC_PREFIXES,
+    CREDIT_OPTIONS,
+    DEPARTMENT_CODES,
+    FC_TITLE_PATTERNS,
+} from "./data"
+import type { ApiResponse, Course, CourseType, Credits, DepartmentCode, Semester } from "./types"
 
 /**
- * Extract department code from course code
- * Examples:
- * - "CS-1101" -> "CS"
- * - "CS-1390/ PHY-1390" -> "CS" (first one)
- * - "BIO-3513/ BIO-4313/ BIO-6513/ PHY-3513/ PHY-6313/ CS-2456" -> "BIO" (first one)
- * - "FC-0102" -> "" (FC is not a real department)
- * - "CPA-0080" -> "" (CPA is CC, not a department)
+ * Turns a parsed AMS report (from POST /api/platform/cgpa-planner/parse) into planner semesters.
+ * Parsing happens on the server and grades map through the CGPA planner's `toGradeKey`, so both
+ * tools read AMS the same way.
  */
+
+/** First code of a cross-listed course: "CS-1390/ PHY-1390" -> "CS-1390". */
+const firstCode = (code: string | undefined) => (code ?? "").split("/")[0]?.trim().toUpperCase() ?? ""
+
+/** "CS-1101" -> "CS". Requirement codes (FC-, CPA-...) and unknown prefixes give "". */
 export function extractDeptCode(code: string | undefined): DepartmentCode {
-    if (!code) return ""
-
-    // Get the first code if multiple (split by /)
-    const firstCode = code.split("/")[0].trim()
-
-    // Extract the prefix before the dash
-    const match = firstCode.match(/^([A-Z]{2,4})-/)
-    if (match) {
-        const prefix = match[1].toUpperCase()
-
-        // Skip FC, CC, CT codes - these are category codes, not departments
-        if (["FC", "CC", "CT", "CPA", "CVA"].includes(prefix)) {
-            return ""
-        }
-
-        // Map MAT to MATH
-        if (prefix === "MAT") {
-            return "MATH" as DepartmentCode
-        }
-
-        // Check if it's a valid department code
-        if (VALID_DEPT_CODES.includes(prefix)) {
-            // Cast to the allowed values (only return ones in our type)
-            if (["CS", "ENT", "ECO", "MATH", "PHY", "HUM", "CW"].includes(prefix)) {
-                return prefix as DepartmentCode
-            }
-        }
-    }
-
-    return ""
+    const prefix = firstCode(code).match(/^([A-Z]{2,4})-/)?.[1]
+    if (!prefix || AMS_CATEGORY_PREFIXES.includes(prefix)) return ""
+    const dept = AMS_DEPT_ALIASES[prefix] ?? prefix
+    return DEPARTMENT_CODES.find((known) => known === dept) ?? ""
 }
 
-/**
- * Infer course type from course code and title
- * - FC-XXXX codes or matching FC patterns -> FC
- * - CPA-XXXX or CVA-XXXX codes -> CC (Co-Curricular Activities)
- * - CT-XXXX codes -> FC (Critical Thinking is an FC)
- * - Everything else -> defaults based on code
- */
+/** FC from the code or a known FC title, CC from co-curricular codes, else Major (the student can change it). */
 export function inferCourseType(title: string, code?: string): CourseType {
-    const lowerTitle = title.toLowerCase()
-    const upperCode = code?.toUpperCase() || ""
-
-    // First code if multiple
-    const firstCode = upperCode.split("/")[0].trim()
-
-    // Check code prefix first
-    if (firstCode.startsWith("FC-") || firstCode.startsWith("CT-")) {
-        return "FC"
-    }
-
-    if (firstCode.startsWith("CPA-") || firstCode.startsWith("CVA-")) {
-        return "CC"
-    }
-
-    // Check FC name patterns
-    for (const pattern of FC_COURSE_PATTERNS) {
-        if (lowerTitle.includes(pattern)) {
-            return "FC"
-        }
-    }
-
-    // Default to Major for department courses (user can change to Minor)
-    return "Major"
-}
-
-// Parse credits from string
-export function parseCredits(value: number | string | null | undefined): 2 | 4 | 8 {
-    const num = typeof value === "number" ? value : parseFloat(value || "0")
-    if (num <= 2) return 2
-    if (num <= 4) return 4
-    return 8
-}
-
-export interface ParsedCGPADataForPlanner {
-    semesters: Semester[]
-    takenCourseNames: string[] // Names of courses already taken (to remove from tray)
+    const first = firstCode(code)
+    if (AMS_FC_PREFIXES.some((prefix) => first.startsWith(prefix))) return "FC"
+    if (AMS_CC_PREFIXES.some((prefix) => first.startsWith(prefix))) return "CC"
+    const lower = title.toLowerCase()
+    return FC_TITLE_PATTERNS.some((pattern) => lower.includes(pattern)) ? "FC" : "Major"
 }
 
 /**
- * Maps a parsed AMS report (from POST /api/platform/cgpa-planner/parse) onto planner semesters.
- * Parsing itself happens on the server, so this tool and the CGPA planner read AMS the same way.
+ * Snaps AMS credits to the nearest option the planner offers, rounding up. A real 0 stays 0;
+ * credits AMS doesn't show at all fall back to 2, as before zero-credit courses existed here.
  */
-export function mapReportToPlanner(report: ParsedCGPAData): ParsedCGPADataForPlanner {
-    const result: ParsedCGPADataForPlanner = { semesters: [], takenCourseNames: [] }
+export function parseCredits(value: number | null | undefined): Credits {
+    if (value === null || value === undefined || !Number.isFinite(value)) return 2
+    return CREDIT_OPTIONS.find((option) => value <= option) ?? CREDIT_OPTIONS[CREDIT_OPTIONS.length - 1] ?? 4
+}
+
+export interface PlannerImport {
+    semesters: Semester[]
+    /** Lower-cased titles of every course taken, to take matching FC/CC off the tray. */
+    takenTitles: string[]
+}
+
+export function mapReportToPlanner(report: ParsedCGPAData): PlannerImport {
+    const result: PlannerImport = { semesters: [], takenTitles: [] }
 
     for (const term of report.semesters) {
         const courses: Course[] = []
@@ -146,40 +61,39 @@ export function mapReportToPlanner(report: ParsedCGPAData): ParsedCGPADataForPla
             const title = parsed.title?.trim()
             if (!title) continue
             const code = parsed.code ?? undefined
+            const grade = gradeOf(parsed)
             courses.push({
-                id: uuidv4(),
+                id: crypto.randomUUID(),
                 name: title,
                 credits: parseCredits(parsed.creditsRegistered ?? parsed.creditsEarned),
                 deptCode: extractDeptCode(code),
                 type: inferCourseType(title, code),
                 isInSemester: true,
-                grade: mapGrade(parsed.grade),
+                ...(grade ? { grade } : {}),
             })
-            result.takenCourseNames.push(title.toLowerCase())
+            result.takenTitles.push(title.toLowerCase())
         }
-        if (courses.length > 0) {
-            result.semesters.push({ id: `semester-${uuidv4()}`, name: term.semester, courses })
-        }
+        if (courses.length > 0) result.semesters.push({ id: `semester-${crypto.randomUUID()}`, name: term.semester, courses })
     }
 
     return result
 }
 
 /** Sends the pasted AMS text to the shared parser and maps the result for the planner. */
-export async function fetchPlannerSemesters(text: string): Promise<{ data: ParsedCGPADataForPlanner | null; error: string | null }> {
+export async function fetchPlannerImport(text: string): Promise<{ data: PlannerImport; error: null } | { data: null; error: string }> {
     try {
         const response = await fetch("/api/platform/cgpa-planner/parse", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ text }),
         })
-        const json = (await response.json().catch(() => null)) as { success?: boolean; data?: ParsedCGPAData; error?: string } | null
-        if (!response.ok || !json?.success || !json.data) {
-            return { data: null, error: json?.error ?? "Failed to read the pasted data" }
+        const json = (await response.json().catch(() => null)) as ApiResponse<ParsedCGPAData> | null
+        if (!response.ok || !json?.success) {
+            return { data: null, error: (json && !json.success && json.error) || "Couldn't read the pasted report. Copy the whole AMS page and try again." }
         }
         return { data: mapReportToPlanner(json.data), error: null }
     } catch (error) {
-        platform.error("Parsing AMS data failed:", error)
+        platform.error("Trajectory planner: parsing AMS data failed:", error)
         return { data: null, error: "Couldn't reach the server. Check your connection and try again." }
     }
 }
