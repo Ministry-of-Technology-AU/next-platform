@@ -5,8 +5,9 @@ import { Package } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import type { Asset } from '../types';
-import { assetImageUrl, categoryLabel } from '../utils';
+import { CARD_IMAGE_WIDTHS, assetImageSrcSet, assetImageUrl, categoryLabel } from '../utils';
 import { RequestForm } from './request-form';
 
 interface RequestSheetProps {
@@ -19,11 +20,18 @@ interface RequestSheetProps {
 
 function AssetSummary({ asset }: { asset: Asset }) {
   return (
-    <div className="flex items-center gap-3 text-left">
+    <div className={cn('flex gap-3 text-left', asset.description ? 'items-start' : 'items-center')}>
       <div className="size-14 shrink-0 overflow-hidden rounded-lg border bg-muted">
         {asset.image ? (
+          // The card's srcSet, so the browser can reuse the photo it already cached instead of fetching a thumbnail.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={assetImageUrl(asset.image.url, 160)} alt="" className="size-full object-cover" />
+          <img
+            src={assetImageUrl(asset.image.url, CARD_IMAGE_WIDTHS[0])}
+            srcSet={assetImageSrcSet(asset.image.url)}
+            sizes="56px"
+            alt=""
+            className="size-full object-cover"
+          />
         ) : (
           <div className="flex size-full items-center justify-center text-muted-foreground">
             <Package className="size-5" aria-hidden />
@@ -35,6 +43,7 @@ function AssetSummary({ asset }: { asset: Asset }) {
         <p className="line-clamp-1 text-sm text-muted-foreground">
           {[categoryLabel(asset.type), `from ${asset.owner}`].join(' · ')}
         </p>
+        {asset.description && <p className="mt-1.5 text-sm leading-snug text-foreground/80">{asset.description}</p>}
       </div>
     </div>
   );
