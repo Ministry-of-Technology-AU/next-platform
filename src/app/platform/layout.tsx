@@ -51,8 +51,8 @@ export default async function RootLayout({
           <SidebarProvider defaultOpen={false}>
             {!isAshokaAdmin && (
               <NewToolAlert
-                href="/platform/ashokan-around"
-                title="Ashokan Around"
+                href="/platform/sg-rti"
+                title="SG: Right to Information"
                 hideUntilWhatsNewDismissed
               />
             )}

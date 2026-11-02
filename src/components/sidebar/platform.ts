@@ -154,12 +154,14 @@ export const platformSidebar: SidebarInterface = {
           title: "Pool Subscriptions",
           icon: Users,
           href: "/pool-subscription",
+          isComingSoon: true
         },
         {
           title: "Borrow Assets",
           icon: ShoppingBag,
           href: "/borrow-assets",
           hideFor: ["ashoka_admin"],
+          isComingSoon: true
         },
       ],
     },
@@ -172,7 +174,7 @@ export const platformSidebar: SidebarInterface = {
       id: "my-resources",
       title: "My Resources",
       items: [
-        { title: "Request for Information", icon: BadgeInfo, href: "/sg-rti" },
+        { title: "Right to Information", icon: BadgeInfo, href: "/sg-rti", isNew: true },
         {
           title: "Ashokan Around",
           icon: MapPinned,

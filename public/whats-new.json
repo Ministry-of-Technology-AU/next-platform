@@ -1,12 +1,30 @@
 {
-    "version": "1.0.11",
-    "lastUpdated": "2026-08-24",
+    "version": "1.0.12",
+    "lastUpdated": "2026-11-02",
     "updates": [
         {
-            "id": "inductions-platform",
-            "title": "Inductions. Now on Platform.",
-            "description": "You can now track applications, forms, and interview rounds on the platform. See who's inducting, and where you fit in, and apply directly from there!",
-            "link": "/platform/inductions"
+            "id": "cgpa-refreshed",
+            "title": "CGPA Planner - a fresh look, and brand new features!",
+            "description": "We've given the CGPA planner a much-needed facelift, and added a bunch of new features to make tracking your grades and credits even easier. Disclaimer though - In case of any calculation discrepancies, please let us know ASAP!",
+            "link": "/platform/cgpa-planner"
+        },
+        {
+            "id": "trajectory-refreshed",
+            "title": "Trajectory Planner gets an upgrade too!",
+            "description": "We also fixed the CGPA Planner's brother - the Trajectory Planner. We hope you like this new look better, along with the brand new Scratchpad feature. Once again, in case of any calculation discrepancies, please let us know ASAP!",
+            "link": "/platform/trajectory-planner"
+        },
+        {
+            "id": "sg-rti",
+            "title": "New Feature: Right to Information",
+            "description": "Powered by the SG - this feature is meant for you to exercise your right to information. Got questions? Ask away!",
+            "link": "/platform/sg-rti"
+        },
+        {
+            "id": "coming-soon",
+            "title": "What else is cooking?",
+            "description": "You might see a lot of 'Soon's on the sidebar - we're refreshing a lot of old and loved tools to get better versions of them to you, and also introducing brand new tools that you're going to love! Stay tuned!",
+            "link": "/platform"
         }
     ]
 }
