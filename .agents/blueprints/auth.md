@@ -24,7 +24,7 @@ role is added.
 | `src/lib/auth.ts` | What app code uses: `getAuthenticatedUser`, `requireAuth`, and the check helpers |
 | `src/middleware.ts` | Page gating: sign-in redirect, `ROUTE_ACCESS`, per-page special cases |
 | `src/components/sidebar/*.ts` | What each role sees in the sidebar (display only, not security) |
-| `src/lib/<feature>/access.ts` | Feature guards with their own sharing rules. `src/lib/inductions/access.ts` is the reference. |
+| `src/lib/<feature>/access.ts` | Feature guards with their own sharing rules, for features no single tool owns. `src/lib/inductions/access.ts` is the reference. A guard only one tool uses goes in that tool's `_server/access.ts`. |
 | `src/app/admin/layout.tsx` | The `/admin` gate |
 
 ---

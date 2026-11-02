@@ -1,5 +1,5 @@
 // Economics Department: Economics, Economics & Finance, Economics & Public Policy
-import type { IdealTrajectory, DegreeTemplate } from "./shared"
+import type { DegreeTemplate, IdealTrajectory } from "../types"
 
 export const ecoTrajectories: IdealTrajectory[] = [
     {

@@ -1,111 +1,62 @@
-import UnderMaintenance from "@/components/under-maintenance";
-
-export default function PoolSubscription() {
-    return (
-        <UnderMaintenance
-            title="Pool Subscriptions is being revamped"
-            description="We're redesigning how you split Netflix, Spotify, and more. The new experience will be worth the wait — pinky promise."
-        />
-    );
-}
-
-/* ============================================================
- * ORIGINAL PAGE — UNDER MAINTENANCE
- * Uncomment the block below and remove the component above
- * to restore the original page.
- * ============================================================
-
-import { Users, Loader } from "lucide-react"
-import PoolSubscriptionForm from "./PoolSubscriptionForm"
-import ActivePoolSubscription from "./ActivePoolSubscription"
+import { cookies } from "next/headers";
+import { UsersRound } from "lucide-react";
+import { TourStep } from "@/components/guided-tour";
 import PageTitle from "@/components/page-title";
-import { Suspense } from "react";
-import { strapiGet } from "@/lib/apis/strapi";
-import { getUserIdByEmail } from "@/lib/userid";
-import { auth } from "@/auth";
+import { PageNavButton } from "./_components/page-nav-button";
+import { PoolSubscriptionClient } from "./client";
+import type { ActivePoolData } from "./types";
 
-export const dynamic = 'force-dynamic';
+// Per-user data read with the session cookie; never statically cached.
+export const dynamic = "force-dynamic";
 
-async function existSubscriptionPool() {
-    try {
-        const session = await auth();
-        const userId = await getUserIdByEmail(session?.user?.email || '');
+async function fetchActivePool(): Promise<{ data: ActivePoolData; error: string | null }> {
+  const empty: ActivePoolData = { pool: null, matches: [] };
+  try {
+    const cookieStore = await cookies();
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/platform/pool-subscription?scope=mine`,
+      {
+        headers: { Cookie: cookieStore.toString() },
+        cache: "no-store",
+      },
+    );
+    if (!response.ok) throw new Error(`Pool lookup failed with ${response.status}`);
 
-        if (!userId) {
-            platform.log("User not found, cannot check for existing subscription");
-            return null;
-        }
-
-        // Get current date to filter future or current subscriptions
-        const today = new Date().toISOString().split('T')[0];
-
-        // Query Strapi directly for user's subscription (only open ones)
-        const userSubscriptionResponse = await strapiGet('/services', {
-            filters: {
-                user: {
-                    id: {
-                        $eq: userId
-                    }
-                },
-                status: 'open',
-                end: {
-                    $gte: today
-                }
-            },
-            populate: ['user'],
-            sort: ['start:asc'],
-            pagination: {
-                limit: 1
-            }
-        });
-
-        const userSubscription = userSubscriptionResponse?.data?.[0] || null;
-        platform.log("User's subscription from Strapi:", userSubscription);
-
-        return {
-            success: true,
-            userSubscription: userSubscription
-        };
-    } catch (error) {
-        console.error("Error checking subscription pool from Strapi:", error);
-        return null;
-    }
+    const json = (await response.json()) as { success?: boolean; data?: Partial<ActivePoolData> };
+    if (!json.success || !json.data) throw new Error("Invalid response format");
+    return { data: { pool: json.data.pool ?? null, matches: json.data.matches ?? [] }, error: null };
+  } catch (err) {
+    platform.error("Error fetching active pool:", err);
+    return { data: empty, error: err instanceof Error ? err.message : "An error occurred" };
+  }
 }
 
-export default async function PoolSubscription() {
-    const existingRequest = await existSubscriptionPool();
-    platform.log("Existing Subscription Pool:", existingRequest);
+export default async function PoolSubscriptionPage() {
+  const { data, error } = await fetchActivePool();
 
-    // Check if user has existing subscription (query already filters for status='open')
-    const hasActiveSubscription = existingRequest?.success && existingRequest?.userSubscription;
+  return (
+    <>
+      <TourStep
+        id="page-title"
+        title="Pool a Subscription"
+        content="Split the cost of a subscription with other students. Start a pool here, or browse the ones already open."
+        order={0}
+      >
+        <PageTitle
+          icon={UsersRound}
+          text="Pool a Subscription"
+          subheading={
+            data.pool
+              ? "Your pool is live. Mark it full once everyone's in, or browse the other open pools."
+              : "Split Netflix, Spotify, ChatGPT and more with other students. Say what you want to share and for how long, and people after the same plan can find you."
+          }
+          actions={<PageNavButton href="/platform/pool-subscription/results" label="Browse open pools" />}
+        />
+      </TourStep>
 
-    return (
-        <div className="flex justify-center px-4 sm:px-6 lg:px-8">
-            <div className="w-full space-y-6">
-                {/- Header Section -/}
-                <div className="max-w-7xl container mx-auto p-6 space-y-6">
-                    <PageTitle
-                        text="Pool Subscriptions"
-                        subheading={hasActiveSubscription
-                            ? "You have an active subscription pool. Manage it below or view all available pools."
-                            : "Find others to share subscription costs for popular services like Netflix, Spotify, ChatGPT, and more. Create a pool or join existing ones to save money on monthly subscriptions."
-                        }
-                        icon={Users}
-                    />
-                    <div className="my-4 border-t border-gray-300"></div>
-                </div>
-
-                {/- Conditional Rendering: Show Active Subscription or Form -/}
-                <Suspense fallback={<Loader />}>
-                    {hasActiveSubscription ? (
-                        <ActivePoolSubscription userSubscription={existingRequest.userSubscription} />
-                    ) : (
-                        <PoolSubscriptionForm />
-                    )}
-                </Suspense>
-            </div>
-        </div>
-    )
+      <div className="mt-6 sm:mt-8">
+        <PoolSubscriptionClient data={data} error={error} />
+      </div>
+    </>
+  );
 }
-
-============================================================ */

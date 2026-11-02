@@ -1,69 +1,23 @@
-import { NextRequest, NextResponse } from "next/server"
-import { strapiGet } from "@/lib/apis/strapi"
-import { degreeTemplates, idealTrajectories } from "@/app/platform/trajectory-planner/_trajectories"
+import { NextResponse } from "next/server"
+import { getTemplates } from "@/app/platform/trajectory-planner/_server/templates"
+import { ok, privateError, requirePlannerUser } from "../helper"
 
-// GET: Fetch all templates and trajectories (merges Strapi + static fallback)
-export async function GET(request: NextRequest) {
+export const dynamic = "force-dynamic"
+
+/**
+ * GET -> { success, data: { degreeTemplates, idealTrajectories } }
+ *
+ * The planner page reads these on the server (`getTemplates`); this route is for other clients.
+ * Same body for every user, so the server keeps it in L2 and the browser may reuse it.
+ */
+export async function GET() {
     try {
-        // Try to fetch all dept_info from Strapi
-        let strapiTemplates: any[] = []
-        let strapiTrajectories: any[] = []
+        const user = await requirePlannerUser()
+        if (user instanceof NextResponse) return user
 
-        try {
-            const response = await strapiGet("/dept-infos", {
-                pagination: { limit: 100 }
-            })
-
-            if (response?.data) {
-                for (const dept of response.data) {
-                    // Strapi v4 returns data in attributes, v5 returns flat
-                    const attrs = dept.attributes || dept
-                    if (attrs.degree_templates) {
-                        strapiTemplates.push(...attrs.degree_templates)
-                    }
-                    if (attrs.ideal_trajectories) {
-                        strapiTrajectories.push(...attrs.ideal_trajectories)
-                    }
-                }
-            }
-        } catch (strapiError) {
-            console.warn("Strapi fetch failed, using static data only:", strapiError)
-        }
-
-        // Merge: Strapi data takes priority over static data
-        // Create maps by template ID for efficient merging
-        const templateMap = new Map<string, any>()
-        const trajectoryMap = new Map<string, any>()
-
-        // Add static data first
-        for (const template of degreeTemplates) {
-            templateMap.set(template.id, template)
-        }
-        for (const trajectory of idealTrajectories) {
-            trajectoryMap.set(trajectory.templateId, trajectory)
-        }
-
-        // Override with Strapi data (higher priority)
-        for (const template of strapiTemplates) {
-            templateMap.set(template.id, template)
-        }
-        for (const trajectory of strapiTrajectories) {
-            trajectoryMap.set(trajectory.templateId, trajectory)
-        }
-
-        return NextResponse.json({
-            degreeTemplates: Array.from(templateMap.values()),
-            idealTrajectories: Array.from(trajectoryMap.values()),
-            source: strapiTemplates.length > 0 ? "mixed" : "static"
-        })
+        return ok(await getTemplates(), "shared")
     } catch (error) {
-        console.error("Error fetching templates:", error)
-
-        // Fallback to static data on any error
-        return NextResponse.json({
-            degreeTemplates,
-            idealTrajectories,
-            source: "static"
-        })
+        platform.error("GET /api/platform/trajectory-planner/templates failed:", error)
+        return privateError("Degree templates didn't load. Reload the page in a minute.", 500)
     }
 }

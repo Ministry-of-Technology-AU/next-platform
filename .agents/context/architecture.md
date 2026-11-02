@@ -219,7 +219,8 @@ src/
 │   ├── platform/             every student-facing tool, one folder each
 │   │   ├── layout.tsx  loading.tsx  loading.css
 │   │   └── <tool>/           page.tsx · layout.tsx · client.tsx ·
-│   │                         _components/ · types.ts · utils.ts · data.ts
+│   │                         _components/ · types.ts · utils.ts · data.ts ·
+│   │                         schema.ts (zod) · _server/ (server-only Strapi access)
 │   └── api/
 │       ├── auth/  calendar/  organisations/
 │       └── platform/<feature>/route.ts    ← the only thing that talks to Strapi/Google
@@ -238,7 +239,10 @@ src/
 │   ├── platform-logger.ts    platform.log() — the only logger
 │   ├── rate-limit.ts         global /api limit (middleware) + per-route limits
 │   ├── apis.ts  utils.ts  date-utils.ts  userid.ts
-│   ├── cgpa-*.ts  apl-*.ts   domain logic
+│   ├── forms/  inductions/  apl-*.ts
+│   │                         domain logic no single tool owns. A tool's own logic
+│   │                         stays in its folder even when other tools import it
+│   │                         (CGPA maths: app/platform/cgpa-planner/), see page.md
 │   └── constants/
 │
 ├── hooks/                    use-mobile · use-theme · useClickOutside · useIsMac ·

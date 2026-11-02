@@ -1,235 +1,206 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { STORAGE_KEY, newCourse, newComponent, defaultScoreForLetter, computeCourse, getLetterFromPercentage } from "../data";
-import { Download, Plus, Trash2, Calendar, FileText } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent, TabsContents } from "@/components/ui/shadcn-io/tabs";
-import { Course, Semester, GradeComponent } from "@/lib/cgpa-types";
-import { HeaderRow } from "./header-row";
-import { ComponentRowView } from "./component-row-view";
-import { Star } from "lucide-react";
-import { X } from "lucide-react";
-import { ExtraCreditCard } from "./extra-credit-card";
+"use client";
 
-export default function GradePlanner() {
-  const [courses, setCourses] = useState<Course[]>([]);
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, Star, Trash2, X } from "lucide-react";
+import { TourStep } from "@/components/guided-tour";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { haptic } from "@/lib/haptics";
+import { GRADE_PLANNER_STORAGE_KEY, newComponent, newPlannerCourse } from "../data";
+import type { GradeComponent, PlannerCourse } from "../types";
+import { coursePercentage, editComponent, letterForPercentage, readStorage, writeStorage, inSettledTab } from "../utils";
+import { AssessmentHeader, AssessmentRow, type AssessmentField } from "./assessment-row";
+
+/** Courses saved by the old planner carried a `showExtraCredit` flag; fold it into `extraCredit`. */
+type StoredCourse = PlannerCourse & { showExtraCredit?: boolean };
+
+function restore(): PlannerCourse[] {
+  const saved = readStorage<StoredCourse[]>(GRADE_PLANNER_STORAGE_KEY);
+  if (!Array.isArray(saved) || saved.length === 0) return [newPlannerCourse()];
+  return saved.map(({ showExtraCredit, ...course }) => ({
+    ...course,
+    extraCredit: showExtraCredit === false ? null : course.extraCredit ?? null,
+  }));
+}
+
+/**
+ * Works out a course grade from its assessments and weights. Saved in this browser only.
+ */
+export function GradePlanner({ onTourOpen }: { onTourOpen: () => void }) {
+  const [courses, setCourses] = useState<PlannerCourse[]>([]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed: Course[] = JSON.parse(raw);
-        setCourses(parsed);
-        return;
-      }
-    } catch { }
-    // default empty course
-    setCourses([newCourse()]);
-  }, []);
-
-  const persist = useCallback((next: Course[]) => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch { }
-  }, []);
-
-  const debouncedPersist = useCallback((next: Course[]) => {
+  useEffect(() => setCourses(restore()), []);
+  useEffect(() => () => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => persist(next), 400);
-  }, [persist]);
+  }, []);
 
-  const updateCourses = useCallback((updater: (prev: Course[]) => Course[]) => {
+  const update = useCallback((updater: (prev: PlannerCourse[]) => PlannerCourse[]) => {
     setCourses((prev) => {
       const next = updater(prev);
-      debouncedPersist(next);
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => writeStorage(GRADE_PLANNER_STORAGE_KEY, next), 400);
       return next;
     });
-  }, [debouncedPersist]);
+  }, []);
 
-  const addCourse = useCallback(() => updateCourses((prev) => [newCourse(), ...prev]), [updateCourses]);
-  const removeCourse = useCallback((courseId: string) => updateCourses((prev) => prev.filter((c) => c.id !== courseId)), [updateCourses]);
-
-  const addComponentToCourse = useCallback(
-    (courseId: string) =>
-      updateCourses((prev) =>
-        prev.map((c) => (c.id === courseId ? { ...c, components: [newComponent(), ...c.components] } : c))
-      ),
-    [updateCourses]
+  const updateCourse = useCallback(
+    (courseId: string, change: (course: PlannerCourse) => PlannerCourse) =>
+      update((prev) => prev.map((course) => (course.id === courseId ? change(course) : course))),
+    [update],
   );
 
-  const removeComponentFromCourse = useCallback(
-    (courseId: string, compId: string) =>
-      updateCourses((prev) =>
-        prev.map((c) => (c.id === courseId ? { ...c, components: c.components.filter((gc) => gc.id !== compId) } : c))
-      ),
-    [updateCourses]
-  );
+  const editRow = (courseId: string, componentId: string, field: AssessmentField, value: string) =>
+    updateCourse(courseId, (course) => ({
+      ...course,
+      components: course.components.map((c: GradeComponent) => (c.id === componentId ? editComponent(c, field, value) : c)),
+    }));
 
-  const toggleExtraCredit = useCallback(
-    (courseId: string) =>
-      updateCourses((prev) =>
-        prev.map((c) => {
-          if (c.id !== courseId) return c;
-          if (c.showExtraCredit) {
-            return { ...c, showExtraCredit: false, extraCredit: null };
-          }
-          return { ...c, showExtraCredit: true, extraCredit: newComponent() };
-        })
-      ),
-    [updateCourses]
-  );
-
-  const updateCourseField = useCallback(
-    (courseId: string, key: keyof Course, value: any) =>
-      updateCourses((prev) => prev.map((c) => (c.id === courseId ? { ...c, [key]: value } : c))),
-    [updateCourses]
-  );
-
-  const updateComponentField = useCallback(
-    (courseId: string, compId: string, key: keyof GradeComponent, value: string) =>
-      updateCourses((prev) =>
-        prev.map((c) => {
-          if (c.id !== courseId) return c;
-          return {
-            ...c,
-            components: c.components.map((gc) => (gc.id === compId ? { ...gc, [key]: value } : gc)),
-          };
-        })
-      ),
-    [updateCourses]
-  );
-
-  const updateExtraCreditField = useCallback(
-    (courseId: string, key: keyof GradeComponent, value: string) =>
-      updateCourses((prev) =>
-        prev.map((c) => {
-          if (c.id !== courseId) return c;
-          if (!c.extraCredit) return c;
-          return { ...c, extraCredit: { ...c.extraCredit, [key]: value } };
-        })
-      ),
-    [updateCourses]
-  );
-
-  // Sync logic similar to EJS: when letter changes, set score to average of range and total 100.
-  const onLetterChange = useCallback(
-    (courseId: string, compId: string, letter: string) => {
-      const avg = defaultScoreForLetter(letter);
-      updateCourses((prev) =>
-        prev.map((c) => {
-          if (c.id !== courseId) return c;
-          const updater = (gc: GradeComponent) =>
-            gc.id === compId
-              ? { ...gc, letter, score: avg ? String(avg) : "", total: avg ? "100" : gc.total }
-              : gc;
-          return { ...c, components: c.components.map(updater) };
-        })
-      );
-    },
-    [updateCourses]
-  );
-
-  const onExtraLetterChange = useCallback(
-    (courseId: string, letter: string) => {
-      const avg = defaultScoreForLetter(letter);
-      updateCourses((prev) =>
-        prev.map((c) => {
-          if (c.id !== courseId || !c.extraCredit) return c;
-          return {
-            ...c,
-            extraCredit: {
-              ...c.extraCredit,
-              letter,
-              score: avg ? String(avg) : "",
-              total: avg ? "100" : c.extraCredit.total,
-            },
-          };
-        })
-      );
-    },
-    [updateCourses]
-  );
-
+  const editExtra = (courseId: string, field: AssessmentField, value: string) =>
+    updateCourse(courseId, (course) => (course.extraCredit ? { ...course, extraCredit: editComponent(course.extraCredit, field, value) } : course));
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Grade Planner</h2>
-        <Button onClick={addCourse} className="gap-2"><Plus className="h-4 w-4" /> Add Course</Button>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="max-w-prose text-sm text-muted-foreground">
+          Enter each assessment and its weight to see where a course is heading. Weights under 100% are scaled up.
+        </p>
+        <Button
+          className="h-11 md:h-9"
+          onClick={() => {
+            void haptic.press();
+            update((prev) => [newPlannerCourse(), ...prev]);
+          }}
+        >
+          <Plus /> Add course
+        </Button>
       </div>
 
-      {courses.map((course) => {
-        const { finalPct, totalWeight } = computeCourse(course);
-        const displayLetter = Number.isFinite(finalPct) ? getLetterFromPercentage(finalPct) : null;
-        return (
-          <Card key={course.id} className="course-card">
-            <CardHeader className="space-y-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Course</CardTitle>
-                <Button variant="ghost" onClick={() => removeCourse(course.id)} className="text-destructive hover:text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+      {courses.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="p-8 text-center text-sm text-muted-foreground">
+            No courses yet. Add one to start working out its grade.
+          </CardContent>
+        </Card>
+      )}
+
+      {courses.map((course, courseIndex) => {
+        const { percentage, weight } = coursePercentage(course);
+        const card = (
+          <Card key={course.id}>
+            <CardHeader className="flex flex-row items-center gap-2 space-y-0 p-4 pb-2 sm:p-6 sm:pb-3">
+              <label htmlFor={`course-${course.id}`} className="sr-only">Course name</label>
               <Input
+                id={`course-${course.id}`}
                 value={course.name}
-                onChange={(e) => updateCourseField(course.id, "name", e.target.value)}
-                placeholder="e.g., Math 101"
+                onChange={(e) => updateCourse(course.id, (c) => ({ ...c, name: e.target.value }))}
+                placeholder="Course name, e.g. Linear Algebra"
+                className="h-11 flex-1 border-transparent bg-transparent px-1 text-lg font-semibold shadow-none hover:border-border focus-visible:border-input"
               />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Delete ${course.name || "this course"}`}
+                    onClick={() => {
+                      void haptic.warn();
+                      update((prev) => prev.filter((c) => c.id !== course.id));
+                    }}
+                    className="size-11 text-destructive-text hover:text-destructive-text"
+                  >
+                    <Trash2 />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete this course and its assessments</TooltipContent>
+              </Tooltip>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <HeaderRow />
-              <div className="space-y-2">
-                {course.components.map((gc) => (
-                  <ComponentRowView
-                    key={gc.id}
-                    courseId={course.id}
-                    gc={gc}
-                    updateComponentField={updateComponentField}
-                    onLetterChange={onLetterChange}
-                    removeComponentFromCourse={removeComponentFromCourse}
+
+            <CardContent className="space-y-3 p-4 pt-0 sm:px-6">
+              <AssessmentHeader />
+              {course.components.map((component) => (
+                <AssessmentRow
+                  key={component.id}
+                  component={component}
+                  onChange={(field, value) => editRow(course.id, component.id, field, value)}
+                  onRemove={() => updateCourse(course.id, (c) => ({ ...c, components: c.components.filter((x) => x.id !== component.id) }))}
+                />
+              ))}
+
+              {course.extraCredit && (
+                <div className="space-y-2 rounded-lg border border-dashed border-border p-3">
+                  <p className="flex items-center gap-2 text-sm font-medium">
+                    <Star className="size-4 text-primary" aria-hidden /> Extra credit, added on top of 100%
+                  </p>
+                  <AssessmentRow
+                    component={course.extraCredit}
+                    namePlaceholder="e.g. Bonus quiz"
+                    onChange={(field, value) => editExtra(course.id, field, value)}
                   />
-                ))}
-              </div>
-              <ExtraCreditCard
-                course={course}
-                updateExtraCreditField={updateExtraCreditField}
-                onExtraLetterChange={onExtraLetterChange}
-                onRemoveExtraCredit={(courseId) => toggleExtraCredit(courseId)}
-              />
+                </div>
+              )}
             </CardContent>
-            <CardFooter className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="outline" size="sm" onClick={() => addComponentToCourse(course.id)} className="gap-2">
-                  <Plus className="h-4 w-4" /> Add Component
+
+            <CardFooter className="flex flex-col gap-4 p-4 pt-2 sm:p-6 sm:pt-2 md:flex-row md:items-center md:justify-between">
+              <div className="flex w-full flex-wrap gap-2 md:w-auto">
+                <Button
+                  variant="outline"
+                  className="h-11 flex-1 md:h-9 md:flex-none"
+                  onClick={() => {
+                    void haptic.tap();
+                    updateCourse(course.id, (c) => ({ ...c, components: [...c.components, newComponent()] }));
+                  }}
+                >
+                  <Plus /> Add assessment
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => toggleExtraCredit(course.id)} className="gap-2">
-                  {course.showExtraCredit ? (<><X className="h-4 w-4" /> Remove Extra Credit</>) : (<><Star className="h-4 w-4" /> Add Extra Credit</>)}
+                <Button
+                  variant="outline"
+                  className="h-11 flex-1 md:h-9 md:flex-none"
+                  onClick={() => {
+                    void haptic.tap();
+                    updateCourse(course.id, (c) => ({ ...c, extraCredit: c.extraCredit ? null : newComponent() }));
+                  }}
+                >
+                  {course.extraCredit ? <X /> : <Star />}
+                  {course.extraCredit ? "Remove extra credit" : "Add extra credit"}
                 </Button>
               </div>
-              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                <div className="min-w-[180px] rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-inner">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Current Grade</span>
-                  <div className="mt-1 flex items-baseline gap-2 text-emerald-900">
-                    <span className="text-xl font-semibold tabular-nums">
-                      {Number.isFinite(finalPct) ? `${finalPct.toFixed(2)}%` : '--'}
-                    </span>
-                    {displayLetter && (
-                      <span className="text-sm font-medium text-emerald-700">{displayLetter}</span>
+              <dl className="grid w-full grid-cols-2 gap-3 md:flex md:w-auto" aria-live="polite">
+                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Current grade</dt>
+                  <dd className="font-semibold tabular-nums">
+                    {percentage === null ? "--" : (
+                      <>
+                        <span className="text-lg text-primary">{percentage.toFixed(2)}%</span>
+                        <span className="ml-2">{letterForPercentage(percentage)}</span>
+                      </>
                     )}
-                  </div>
+                  </dd>
                 </div>
-                <div className="min-w-[180px] rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 shadow-inner">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Current Weightage</span>
-                  <div className="mt-1 text-lg font-semibold text-slate-900 tabular-nums">
-                    {totalWeight.toFixed(2)}%
-                  </div>
+                <div className="rounded-lg border border-border px-4 py-2.5">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Current weightage</dt>
+                  <dd className="text-lg font-semibold tabular-nums">{weight.toFixed(0)}%</dd>
                 </div>
-              </div>
+              </dl>
             </CardFooter>
           </Card>
+        );
+        if (courseIndex !== 0) return card;
+        return (
+          <TourStep
+            key={course.id}
+            id="cgpa-grade-planner"
+        selector={inSettledTab("grade-planner", '[data-tour-step="cgpa-grade-planner"]')}
+            order={110}
+            title="Work out a course grade"
+            content="Add each assessment with your score, what it was out of and its weight. Your grade so far shows at the bottom, and it's saved in this browser."
+            position="top"
+            onOpen={onTourOpen}
+          >
+            {card}
+          </TourStep>
         );
       })}
     </div>

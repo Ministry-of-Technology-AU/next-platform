@@ -14,7 +14,7 @@ planned. Goal: someone can work on the feature without re-deriving it from code.
    - the tool's `types.ts`
    - each `route.ts` — methods and access checks; `helper.ts` → `grep -n '^export'`
    - each `page.tsx` — which surfaces exist, who reaches them
-   - `src/lib/<feature>/` if it exists → exports only
+   - the tool's `_server/` and `schema.ts`, and `src/lib/<feature>/` if it exists → exports only
 3. Open a function body only to explain something non-obvious — an invariant, a gotcha.
 4. `PRD.md` present → compare; note where the build deviated.
 5. Feature spans areas (e.g. `/admin` + `/organisations` + `/platform`) → confirm scope with the

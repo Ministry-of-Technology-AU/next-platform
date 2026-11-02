@@ -1,5 +1,5 @@
 // Psychology Department: Psychology, Psychology with Research
-import type { IdealTrajectory, DegreeTemplate } from "./shared"
+import type { DegreeTemplate, IdealTrajectory } from "../types"
 
 export const psychTrajectories: IdealTrajectory[] = [
     {

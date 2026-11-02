@@ -377,3 +377,11 @@ export function shouldShowDeadlineExtension(
   // Only show for 1 day (24 hours) from extension
   return diffMs >= 0 && diffMs <= ONE_DAY_MS;
 }
+/**
+ * Adds whole days to a YYYY-MM-DD calendar date and returns YYYY-MM-DD.
+ * Works on the calendar date alone, so it never drifts across a timezone boundary.
+ */
+export function addDaysToDateString(dateString: string, days: number): string {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().split('T')[0];
+}

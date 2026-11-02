@@ -1,5 +1,5 @@
 // CS Department: CS, CS-Research, CS-ENT, CS-ENT-Research, CS-MATH tracks
-import type { IdealTrajectory, DegreeTemplate } from "./shared"
+import type { DegreeTemplate, IdealTrajectory } from "../types"
 
 export const csTrajectories: IdealTrajectory[] = [
     {

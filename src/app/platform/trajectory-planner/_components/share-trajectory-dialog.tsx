@@ -15,16 +15,8 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Share2, Trash2, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
-import type { Semester, Course } from "../types"
-
-interface ExistingTrajectory {
-    id: number
-    title: string
-    description?: string
-    semesters: any[]
-    totalCredits: number
-    createdAt: string
-}
+import { deleteSharedTrajectory, fetchOwnShared, shareTrajectory } from "../shared-api"
+import type { Semester, SharedTrajectory } from "../types"
 
 interface ShareTrajectoryDialogProps {
     open: boolean
@@ -44,91 +36,56 @@ export function ShareTrajectoryDialog({
     const [isSharing, setIsSharing] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
-    const [existingTrajectory, setExistingTrajectory] = useState<ExistingTrajectory | null>(null)
+    const [existingTrajectory, setExistingTrajectory] = useState<SharedTrajectory | null>(null)
 
-    // Check for existing shared trajectory when dialog opens
+    // Check for an existing shared trajectory each time the dialog opens.
     useEffect(() => {
-        if (open) {
-            checkExistingTrajectory()
+        if (!open) return
+        let cancelled = false
+        setIsLoading(true)
+        void fetchOwnShared().then(({ data, error }) => {
+            if (cancelled) return
+            if (error) toast.error(error)
+            setExistingTrajectory(data)
+            setIsLoading(false)
+        })
+        return () => {
+            cancelled = true
         }
     }, [open])
 
-    const checkExistingTrajectory = async () => {
-        setIsLoading(true)
-        try {
-            const res = await fetch("/api/platform/trajectory-planner/shared?mine=true")
-            const data = await res.json()
-            if (res.ok && data.data) {
-                setExistingTrajectory(data.data)
-            } else {
-                setExistingTrajectory(null)
-            }
-        } catch (error) {
-            console.error("Failed to check existing trajectory:", error)
-            setExistingTrajectory(null)
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
     const handleShare = async () => {
         if (!title.trim()) {
-            toast.error("Please enter a title for your trajectory")
+            toast.error("Give your trajectory a title before sharing it.")
             return
         }
 
         setIsSharing(true)
-        try {
-            const res = await fetch("/api/platform/trajectory-planner/shared", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title: title.trim(),
-                    description: description.trim(),
-                    semesters
-                })
-            })
-
-            const data = await res.json()
-
-            if (res.ok) {
-                toast.success("Trajectory shared successfully!")
-                onOpenChange(false)
-                setTitle("")
-                setDescription("")
-                onSuccess?.()
-            } else {
-                toast.error(data.error || "Failed to share trajectory")
-            }
-        } catch (error) {
-            toast.error("Failed to share trajectory")
-        } finally {
-            setIsSharing(false)
+        const { error } = await shareTrajectory(title.trim(), description.trim(), semesters)
+        setIsSharing(false)
+        if (error) {
+            toast.error(error)
+            return
         }
+        toast.success("Trajectory shared")
+        onOpenChange(false)
+        setTitle("")
+        setDescription("")
+        onSuccess?.()
     }
 
     const handleDelete = async () => {
         if (!existingTrajectory) return
 
         setIsDeleting(true)
-        try {
-            const res = await fetch("/api/platform/trajectory-planner/shared", {
-                method: "DELETE"
-            })
-
-            const data = await res.json()
-
-            if (res.ok) {
-                toast.success("Shared trajectory deleted successfully!")
-                setExistingTrajectory(null)
-            } else {
-                toast.error(data.error || "Failed to delete trajectory")
-            }
-        } catch (error) {
-            toast.error("Failed to delete trajectory")
-        } finally {
-            setIsDeleting(false)
+        const { error } = await deleteSharedTrajectory()
+        setIsDeleting(false)
+        if (error) {
+            toast.error(error)
+            return
         }
+        toast.success("Shared trajectory deleted")
+        setExistingTrajectory(null)
     }
 
     // Calculate totals for preview
@@ -169,7 +126,7 @@ export function ShareTrajectoryDialog({
                                     )}
                                 </div>
                                 <span className="text-xs text-muted-foreground">
-                                    {existingTrajectory.semesters?.length || 0} semesters • {existingTrajectory.totalCredits} credits
+                                    {existingTrajectory.semesters.length} semesters • {existingTrajectory.totalCredits} credits
                                 </span>
                             </div>
 
@@ -181,17 +138,17 @@ export function ShareTrajectoryDialog({
                                         Monsoon
                                     </div>
                                     {existingTrajectory.semesters
-                                        ?.filter((_, idx) => idx % 2 === 0)
+                                        .filter((_, idx) => idx % 2 === 0)
                                         .map((sem, idx) => (
                                             <div key={idx} className="border rounded text-xs">
                                                 <div className="bg-orange-50 dark:bg-orange-900/20 px-2 py-1 font-medium">
                                                     {sem.name}
                                                 </div>
                                                 <div className="p-2 space-y-1">
-                                                    {sem.courses?.slice(0, 3).map((c: any, i: number) => (
+                                                    {sem.courses.slice(0, 3).map((c, i) => (
                                                         <div key={i} className="truncate">{c.name}</div>
                                                     ))}
-                                                    {sem.courses?.length > 3 && (
+                                                    {sem.courses.length > 3 && (
                                                         <span className="text-muted-foreground">+{sem.courses.length - 3} more</span>
                                                     )}
                                                 </div>
@@ -205,17 +162,17 @@ export function ShareTrajectoryDialog({
                                         Spring
                                     </div>
                                     {existingTrajectory.semesters
-                                        ?.filter((_, idx) => idx % 2 === 1)
+                                        .filter((_, idx) => idx % 2 === 1)
                                         .map((sem, idx) => (
                                             <div key={idx} className="border rounded text-xs">
                                                 <div className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 font-medium">
                                                     {sem.name}
                                                 </div>
                                                 <div className="p-2 space-y-1">
-                                                    {sem.courses?.slice(0, 3).map((c: any, i: number) => (
+                                                    {sem.courses.slice(0, 3).map((c, i) => (
                                                         <div key={i} className="truncate">{c.name}</div>
                                                     ))}
-                                                    {sem.courses?.length > 3 && (
+                                                    {sem.courses.length > 3 && (
                                                         <span className="text-muted-foreground">+{sem.courses.length - 3} more</span>
                                                     )}
                                                 </div>
@@ -281,7 +238,7 @@ export function ShareTrajectoryDialog({
                                     </div>
                                     {semesters
                                         .filter((_, idx) => idx % 2 === 0)
-                                        .map((sem, idx) => (
+                                        .map((sem) => (
                                             <div key={sem.id} className="border rounded-lg overflow-hidden">
                                                 <div className="bg-orange-50 dark:bg-orange-900/20 px-3 py-2">
                                                     <span className="font-medium text-sm">{sem.name}</span>

@@ -6,6 +6,7 @@ import { batchFromEmail, claimsAreStale, readClaims, resolveClaimsSafe } from ".
 import { fetchStrapiUser } from "./lib/authz/loaders"
 import { DEFAULT_ROLE, accessFor } from "./lib/authz/roles"
 import type { StrapiUser } from "./lib/authz/types"
+import { platform } from "./lib/platform-logger"
 
 // Who gets which role lives in src/lib/authz/roles.ts.
 

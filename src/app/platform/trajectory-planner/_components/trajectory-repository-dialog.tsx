@@ -12,25 +12,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Search, User, Calendar, Plus, ChevronDown, ChevronUp, BookOpen } from "lucide-react"
+import { Loader2, Search, User, Plus, ChevronDown, ChevronUp, BookOpen } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import type { Course } from "../types"
-
-interface SharedTrajectory {
-    id: number
-    title: string
-    description?: string
-    semesters: { id: string; name: string; courses: Omit<Course, 'grade'>[] }[]
-    totalCredits: number
-    authorName: string
-    batch: string
-    createdAt: string
-}
+import { toast } from "sonner"
+import { fetchSharedList } from "../shared-api"
+import type { SharedCourse, SharedTrajectory } from "../types"
 
 interface TrajectoryRepositoryDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    onImportCourses?: (courses: Omit<Course, 'grade'>[]) => void
+    onImportCourses?: (courses: SharedCourse[]) => void
 }
 
 export function TrajectoryRepositoryDialog({
@@ -43,26 +34,21 @@ export function TrajectoryRepositoryDialog({
     const [searchQuery, setSearchQuery] = useState("")
     const [expandedId, setExpandedId] = useState<number | null>(null)
 
+    // Fetched on open. The browser keeps the response for a few minutes, so reopening is instant.
     useEffect(() => {
-        if (open) {
-            fetchTrajectories()
+        if (!open) return
+        let cancelled = false
+        setLoading(true)
+        void fetchSharedList().then(({ data, error }) => {
+            if (cancelled) return
+            if (error) toast.error(error)
+            if (data) setTrajectories(data)
+            setLoading(false)
+        })
+        return () => {
+            cancelled = true
         }
     }, [open])
-
-    const fetchTrajectories = async () => {
-        setLoading(true)
-        try {
-            const res = await fetch("/api/platform/trajectory-planner/shared")
-            const data = await res.json()
-            if (res.ok && data.data) {
-                setTrajectories(data.data)
-            }
-        } catch (error) {
-            console.error("Failed to fetch trajectories:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
 
     // Filter trajectories based on search
     const filteredTrajectories = useMemo(() => {

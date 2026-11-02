@@ -58,7 +58,8 @@ Argument given → use it. Else infer; if two fit, ask. `tool` runs the others �
    `blueprints/auth.md` (always) · `blueprints/strapi.md` → the query sections you use ·
    `blueprints/caching.md` → rules, then the tier they point your data at ·
    `blueprints/realtime.md` → rules first · Google/Cloudinary guides.
-4. Before writing a helper → `context/libraries.md` + `ls src/lib`.
+4. Before writing a helper → `context/libraries.md` + `ls src/lib` + the tool's own folder.
+   New data access for one tool goes in its `_server/`, never a new `src/lib/<feature>/`.
 5. Env keys → `context/architecture.md` → environment. By name only.
 
 ### `page`

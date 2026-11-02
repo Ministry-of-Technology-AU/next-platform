@@ -1,245 +1,72 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getAuthenticatedUser } from '@/lib/auth';
-import { strapiPost, strapiGet, strapiPut } from '@/lib/apis/strapi';
-import { CreateBorrowRequestData } from '@/app/platform/borrow-assets/types';
-import { getCurrentDateISTString, isBeforeTodayIST } from '@/lib/date-utils';
+import { jsonError, jsonOk } from '@/lib/forms/api-helpers';
+import { checkRateLimit, tooManyRequests } from '@/lib/rate-limit';
+import { getCurrentDateISTString } from '@/lib/date-utils';
+import { getAssetUncached, getOpenRequestAssetIds } from '@/app/platform/borrow-assets/_server/data';
+import { sendBorrowRequestEmail } from '@/app/platform/borrow-assets/_server/email';
+import { borrowRequestSchema } from '@/app/platform/borrow-assets/schema';
+import type { BorrowRequestResult } from '@/app/platform/borrow-assets/types';
+import { createBorrowRequest } from './helper';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const dynamic = 'force-dynamic';
+
+const ParamsSchema = z.object({ id: z.coerce.number().int().positive() });
+
+// A real borrower sends one or two; this stops a stuck button from flooding the POCs' inboxes.
+const REQUEST_LIMIT = { limit: 5, windowMs: 10 * 60 * 1000 };
+
+/**
+ * POST /api/platform/borrow-assets/[id]
+ * Creates a borrow request starting today and emails the requester, CC'ing the Borrow Assets POCs.
+ */
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Get authenticated user
     const user = await getAuthenticatedUser();
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!user) return jsonError('Sign in to borrow items.', 401);
+    if (!user.uid) return jsonError("Your account isn't set up on the platform yet.", 404);
+
+    const limit = checkRateLimit(`borrow-assets:request:${user.email}`, REQUEST_LIMIT);
+    if (!limit.ok) {
+      return tooManyRequests(limit.retryAfter, 'You have sent a lot of requests in a short time. Wait a few minutes and try again.');
     }
 
-    const { id: assetId } = await params;
-    
-    // Parse the request body
-    const body = await request.json();
-    const { from, to, reason } = body;
+    const parsedParams = ParamsSchema.safeParse(await params);
+    if (!parsedParams.success) return jsonError('That item no longer exists.', 404);
+    const assetId = parsedParams.data.id;
 
-    // Validate required fields
-    if (!from || !to || !reason) {
-      return NextResponse.json(
-        { error: 'Missing required fields: from, to, reason' },
-        { status: 400 }
-      );
+    const parsedBody = borrowRequestSchema.safeParse(await request.json().catch(() => null));
+    if (!parsedBody.success) {
+      return jsonError(parsedBody.error.issues[0]?.message ?? 'Check the form and try again.', 400);
+    }
+    const { to, reason, phone } = parsedBody.data;
+
+    // Both read fresh: a loan or a request recorded seconds ago must still block this one.
+    const [asset, openRequests] = await Promise.all([getAssetUncached(assetId), getOpenRequestAssetIds(user.uid)]);
+    if (!asset) return jsonError('That item no longer exists.', 404);
+    if (asset.onLoan) {
+      return jsonError("This item is currently unavailable in the inventory.", 409);
+    }
+    if (openRequests.has(asset.id)) {
+      return jsonError('You already have an open request for this item. Check your email for updates.', 409);
     }
 
-    // Validate dates
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-    const todayIST = getCurrentDateISTString();
+    const today = getCurrentDateISTString();
+    const requestId = await createBorrowRequest(user.uid, assetId, today, { to, reason });
 
-    // Allow from date to be today (not in the past)
-    if (isBeforeTodayIST(from)) {
-      return NextResponse.json(
-        { error: `From date cannot be before today (${todayIST})` },
-        { status: 400 }
-      );
+    let emailSent = true;
+    try {
+      await sendBorrowRequestEmail({ requester: user.email, asset, from: today, returnBy: to, reason, phone });
+    } catch (mailError) {
+      // The request is saved either way; the page tells the requester the email didn't go.
+      emailSent = false;
+      platform.error('POST /api/platform/borrow-assets/[id] email failed:', mailError);
     }
 
-    if (toDate <= fromDate) {
-      return NextResponse.json(
-        { error: 'To date must be after from date' },
-        { status: 400 }
-      );
-    }
-
-    // Check if asset exists and is available
-    const assetResponse = await strapiGet(`/assets/${assetId}`, {
-      populate: {
-        last_borrow_request: {
-          populate: '*'
-        }
-      }
-    });
-
-    if (!assetResponse.data) {
-      return NextResponse.json(
-        { error: 'Asset not found' },
-        { status: 404 }
-      );
-    }
-
-    const asset = assetResponse.data;
-
-    // Check if asset is currently borrowed or has pending requests
-    if (asset.attributes.last_borrow_request?.data) {
-      const lastRequest = asset.attributes.last_borrow_request.data.attributes;
-      const currentDate = new Date();
-      
-      // Check if there's an active borrow (issued but not returned)
-      if (lastRequest.issued === 1 && lastRequest.returned !== 1) {
-        return NextResponse.json(
-          { error: 'Asset is currently borrowed and unavailable' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Also check for any pending borrow requests from the same user
-    const existingUserRequests = await strapiGet('/borrow-requests', {
-      filters: {
-        $and: [
-          {
-            asset: {
-              id: {
-                $eq: assetId
-              }
-            }
-          },
-          {
-            user: {
-              email: {
-                $eq: user.email
-              }
-            }
-          },
-          {
-            issued: {
-              $ne: 1
-            }
-          },
-          {
-            returned: {
-              $ne: 1
-            }
-          }
-        ]
-      }
-    });
-
-    if (existingUserRequests.data && existingUserRequests.data.length > 0) {
-      return NextResponse.json(
-        { error: 'You already have a pending request for this asset' },
-        { status: 400 }
-      );
-    }
-
-    // Get user from Strapi by email
-    const userResponse = await strapiGet('/users', {
-      filters: {
-        email: {
-          $eq: user.email
-        }
-      }
-    });
-
-    if (!userResponse || userResponse.length === 0) {
-      return NextResponse.json(
-        { error: 'User not found in the system' },
-        { status: 404 }
-      );
-    }
-
-    const strapiUser = userResponse[0];
-
-    // Create borrow request data with issued_on set to today's date
-    const borrowRequestData: CreateBorrowRequestData = {
-      from,
-      to,
-      user: strapiUser.id,
-      asset: parseInt(assetId),
-      reason,
-      issued_on: getCurrentDateISTString(), // Set to today when request is created
-    };
-
-    // Create the borrow request in Strapi
-    const borrowRequest = await strapiPost('/borrow-requests', {
-      data: borrowRequestData
-    });
-
-    // Update the asset's last_borrow_request relation
-    await strapiPut(`/assets/${assetId}`, {
-      data: {
-        last_borrow_request: borrowRequest.data.id
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      borrowRequest: borrowRequest.data
-    });
-
+    const result: BorrowRequestResult = { requestId, emailSent };
+    return jsonOk(result, 201);
   } catch (error) {
-    console.error('Error creating borrow request:', error);
-    
-    // Handle Strapi specific errors
-    if (error instanceof Error && 'response' in error) {
-      const axiosError = error as any;
-      if (axiosError.response?.data) {
-        return NextResponse.json(
-          { 
-            error: 'Failed to create borrow request',
-            details: axiosError.response.data
-          },
-          { status: axiosError.response.status || 500 }
-        );
-      }
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    // Get authenticated user
-    const user = await getAuthenticatedUser();
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const { id: assetId } = await params;
-
-    // Get borrow requests for this asset
-    const borrowRequests = await strapiGet('/borrow-requests', {
-      filters: {
-        asset: {
-          id: {
-            $eq: assetId
-          }
-        }
-      },
-      populate: {
-        user: true,
-        asset: true,
-        issued_by: true,
-        returned_to: true
-      },
-      sort: {
-        createdAt: 'desc'
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      borrowRequests: borrowRequests.data || []
-    });
-
-  } catch (error) {
-    console.error('Error fetching borrow requests:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    platform.error('POST /api/platform/borrow-assets/[id] failed:', error);
+    return jsonError("Your request didn't go through. Try again in a minute.", 500);
   }
 }

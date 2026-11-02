@@ -14,6 +14,7 @@
 
 ## General Guidelines
 - For types and mock data, always use the same files already defined in the corresponding page. For example, for semester planner route, use the `src/app/platform/semester-planner/data.ts` and `src/app/platform/semester-planner/types.ts` files, instead of creating new ones. This also ensures strong typesafety and consistency. For any new types/data you need to create, add them to these same files.
+- Data access the page also needs (Strapi reads and writes, cached reads) lives in the tool's own `src/app/<area>/<tool>/_server/` folder, not in `src/lib/`. The route and `page.tsx` both import it. Other tools import it from there too. `src/lib/<feature>/` is only for logic no single tool owns. See `.agents/blueprints/page.md` → structure.
 - Always abstract the route into helper functions in `helper.ts`. Avoid redundant functions. Define modular functions that can be used in multiple places. Don't over-modularise things, but try to not make routes too big. 
 - Always use the predefined libraries and functions we have in the repo to avoid redundancy and maintain consistency. Refer to `.agents/context/libraries.md` (and `ls src/lib` — the file can lag the folder). This will be for Strapi, Cloudinary, Google Workspace, etc. 
 - For caching practices, follow `.agents/blueprints/caching.md`. For live updates, `.agents/blueprints/realtime.md` — its rules section is a gate, not advice. 
