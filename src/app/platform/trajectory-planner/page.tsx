@@ -38,7 +38,7 @@ export default async function TrajectoryPlannerPage() {
                 <PageTitle
                     icon={Route}
                     text="Course Trajectory Planner"
-                    subheading="Plan your degree semester by semester and see your credits and CGPA add up."
+                    subheading="Plan your degree semester by semester and see your credits and CGPA add up. In case of any calculation discrepancies, please let us know ASAP!"
                 />
             </TourStep>
 

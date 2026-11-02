@@ -35,7 +35,7 @@ export default async function CGPAPlannerPage() {
         <PageTitle
           icon={Calculator}
           text="CGPA Planner"
-          subheading="See how this term's grades move your CGPA. Retakes, pass/fail, audits, summer terms, semesters abroad and transfer credits all count the way AMS counts them."
+          subheading="See how this term's grades move your CGPA. Retakes, pass/fail, audits, summer terms, semesters abroad and transfer credits all count the way AMS counts them. In case of any calculation discrepancies, please let us know ASAP!"
         />
       </TourStep>
 
