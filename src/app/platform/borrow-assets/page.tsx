@@ -16,7 +16,7 @@ const EMPTY: BorrowAssetsData = { assets: [], phone: '' };
 
 // Techmin's logo leads the banner automatically; only the collaborators are listed here.
 // No Jazbaa logo on file yet, so it shows initials. Add its Cloudinary URL as `logo` when we have it.
-const PARTNERS: CollaborationPartner[] = [{ name: 'Jazbaa', role: 'Cultural Ministry' }];
+const PARTNERS: CollaborationPartner[] = [{ name: 'Jazbaa', role: 'Cultural Ministry', logo: "https://lh3.googleusercontent.com/a/ACg8ocKIVdkngOg7Gmuq_mqY_TiCGY7YDSI0RLlkjATE12YmFT6BZ3cU=s96-c" }];
 
 async function loadAssets(): Promise<{ data: BorrowAssetsData; error: string | null }> {
   try {

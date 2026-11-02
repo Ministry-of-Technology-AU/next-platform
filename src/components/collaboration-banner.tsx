@@ -28,6 +28,8 @@ export interface CollaborationPartner {
   name: string;
   /** Image URL. Cloudinary URLs are resized automatically. Without one, initials are shown. */
   logo?: string;
+  /** Shown instantly while `logo` loads, or if it fails. Falls back to initials if this also fails. */
+  fallbackLogo?: string;
   /** Opens in a new tab from the popover and the credits line. */
   url?: string;
   /** What they did, e.g. "Content and outreach". Shown in the popover. */
@@ -51,6 +53,7 @@ export const TECHMIN: CollaborationPartner = {
   name: "Techmin",
   role: "Ministry of Technology",
   logo: "https://res.cloudinary.com/brxcz8ak/image/upload/v1792592069/Techmin_Logo_NEW.png",
+  fallbackLogo: "https://lh3.googleusercontent.com/a/ACg8ocKscJAAfVb0QJ-W3fOcz7opWFaw8MplMEbiwQw2CuhVU9vV8Gbf=s96-c",
 };
 
 /** Presets built from the platform's tokens. Each pairs light and dark values. */
@@ -148,9 +151,19 @@ const SURFACE =
 const ACCENT = "text-[var(--collab-accent)] dark:text-[var(--collab-accent-dark)]";
 
 function PartnerLogo({ partner, size }: { partner: CollaborationPartner; size: "sm" | "md" }) {
-  const [failed, setFailed] = useState(false);
+  const [src, setSrc] = useState(partner.logo ?? partner.fallbackLogo ?? null);
   const box = size === "sm" ? "size-6" : "size-8";
   const pixels = size === "sm" ? 48 : 64;
+
+  const handleError = () => {
+    // If the primary just failed and a fallback exists, try it; otherwise give up and show initials.
+    if (src === partner.logo && partner.fallbackLogo) {
+      setSrc(partner.fallbackLogo);
+    } else {
+      setSrc(null);
+    }
+  };
+
   return (
     <span
       className={cn(
@@ -158,16 +171,16 @@ function PartnerLogo({ partner, size }: { partner: CollaborationPartner; size: "
         box,
       )}
     >
-      {partner.logo && !failed ? (
+      {src ? (
         // Logos are tiny and mostly on Cloudinary, which resizes them; next/image isn't needed.
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={getOptimizedImageUrl(partner.logo, { width: pixels, height: pixels, crop: "fit" })}
+          src={getOptimizedImageUrl(src, { width: pixels, height: pixels, crop: "fit" })}
           alt=""
           className="size-full object-contain"
           loading="lazy"
           decoding="async"
-          onError={() => setFailed(true)}
+          onError={handleError}
         />
       ) : (
         <span className={cn("text-[10px] font-bold", ACCENT)}>{initials(partner.name)}</span>
