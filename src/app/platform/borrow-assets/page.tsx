@@ -37,6 +37,12 @@ export default async function BorrowAssetsPage() {
       <CollaborationBanner
         partners={PARTNERS}
         message="Borrow from Techmin's or Jazbaa's inventory!"
+        colors={{
+          background: "oklch(0.3765 0.1018 263.08 / 33%)",
+          border: "#000E43",
+          accent: "#D04f50",
+        }}
+        darkColors={{ background: "oklch(0.2168 0.1018 263.08 / 33%)", }}
         className="mb-4 sm:mb-6"
       />
 
