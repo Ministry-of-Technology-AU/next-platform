@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   Trophy,
   Library,
+  Files,
   MapPinned,
   UserCog,
 } from "lucide-react";
@@ -122,6 +123,7 @@ export const platformSidebar: SidebarInterface = {
         { title: "Semester Planner", icon: CalendarSync, href: "/semester-planner" },
         { title: "CGPA Planner", icon: Award, href: "/cgpa-planner" },
         { title: "Trajectory Planner", icon: Route, href: "/trajectory-planner" },
+        { title: "Ashoka Wiki", icon: Files, href: "/platform-resources" },
       ],
     },
     {
