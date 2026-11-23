@@ -1,13 +1,13 @@
 'use client';
 
-import { Download, FileText, X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { haptic } from '@/lib/haptics';
 import type { WikiDocument } from '../types';
 import { formatUpdated } from '../utils';
 import { FavouriteButton } from './favourite-button';
+import { RichTextViewer } from './rich-text-viewer';
 
 interface PreviewPaneProps {
   document: WikiDocument;
@@ -35,24 +35,12 @@ export function PreviewPane({ document, favourited, onToggleFavourite, onClose }
 
         <FavouriteButton title={document.title} favourited={favourited} onToggle={onToggleFavourite} />
 
-        {document.pdfUrl ? (
+        {document.body.kind === 'pdf' && (
           <Button asChild variant="outline" className="h-11 sm:h-9" onClick={() => void haptic.press()}>
-            <a href={document.pdfUrl} download>
+            <a href={document.body.url} download target="_blank" rel="noopener noreferrer">
               <Download /> <span className="hidden sm:inline">Download</span>
             </a>
           </Button>
-        ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {/* Span so the tooltip still opens on a disabled button. */}
-              <span tabIndex={0}>
-                <Button variant="outline" disabled className="h-11 sm:h-9" aria-label="Download (not available yet)">
-                  <Download /> <span className="hidden sm:inline">Download</span>
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>Download works once documents are connected</TooltipContent>
-          </Tooltip>
         )}
 
         <Button
@@ -69,12 +57,11 @@ export function PreviewPane({ document, favourited, onToggleFavourite, onClose }
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden rounded-xl border bg-muted">
-        {document.pdfUrl ? (
-          <iframe src={document.pdfUrl} title={`Preview of ${document.title}`} className="size-full" />
+        {document.body.kind === 'pdf' ? (
+          <iframe src={document.body.url} title={`Preview of ${document.title}`} className="size-full" />
         ) : (
-          <div className="flex size-full flex-col items-center justify-center gap-2 p-6 text-center text-muted-foreground">
-            <FileText className="size-12 opacity-40" aria-hidden />
-            <p className="text-sm">The PDF will show here once documents are connected.</p>
+          <div className="size-full overflow-y-auto bg-card">
+            <RichTextViewer markdown={document.body.markdown} />
           </div>
         )}
       </div>

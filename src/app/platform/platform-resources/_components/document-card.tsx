@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, NotebookText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { haptic } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
@@ -40,7 +40,11 @@ export function DocumentCard({ document, favourited, selected, onOpen, onToggleF
           />
         ) : (
           <div className="flex size-full items-center justify-center text-muted-foreground" aria-hidden>
-            <FileText className="size-12 opacity-40" />
+            {document.body.kind === 'pdf' ? (
+              <FileText className="size-12 opacity-40" />
+            ) : (
+              <NotebookText className="size-12 opacity-40" />
+            )}
           </div>
         )}
         <FavouriteButton

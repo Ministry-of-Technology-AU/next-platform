@@ -81,12 +81,22 @@ Design direction: yes, chosen (existing design system only, no new colours, font
 
 ## 5. Data
 
-Phase 1: placeholder data in `data.ts` and types in `types.ts`. Strapi collections below are a proposal for the later swap, not built now.
+Phase 1: placeholder data in `data.ts` and types in `types.ts`, using a sample PDF and sample rich text. The Strapi collection exists but isn't merged yet, so `_server/data.ts` stays the only swap point.
+
+Strapi collection `platform-resources` (exact field names to confirm when the Strapi changes merge):
+
+| Field | Type | Notes |
+|---|---|---|
+| name | text | Card and viewer title |
+| link | text (URL) | PDF, opened in the viewer iframe |
+| content | rich text (classic, markdown) | Rendered in the same viewer |
+| categories | categories with parent tags | Builds the folder tree |
+| last updated | date | Shown on card and viewer |
+
+Each document has exactly one of `link` or `content`. In code this is `body: { kind: 'pdf' } | { kind: 'content' }`. A Strapi row with both or neither is skipped and logged.
 
 | Collection (proposed) | Fields | Relations |
 |---|---|---|
-| `wiki-folder` | name, slug, order | parent (self), documents |
-| `wiki-document` | title, slug, tags (json), pdf (media), thumbnail (media), updatedAt | folder |
 | `wiki-favourite` | user email | document |
 
 Favourites are per user. They never get a server cache. In phase 1 they live in the page's client state (and TBD whether to keep them in `localStorage` as a stopgap).

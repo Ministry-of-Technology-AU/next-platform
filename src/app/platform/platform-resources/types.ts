@@ -15,9 +15,14 @@ export interface WikiDocument {
   updatedAt: string;
   /** Page-1 image of the PDF. null shows a placeholder tile. */
   thumbnailUrl: string | null;
-  /** null until files are connected. The preview pane shows a stub. */
-  pdfUrl: string | null;
+  /** Strapi holds exactly one of `link` or `content`, never both or neither. */
+  body: WikiDocumentBody;
 }
+
+export type WikiDocumentBody =
+  | { kind: 'pdf'; url: string }
+  /** Strapi classic rich text, which is markdown. */
+  | { kind: 'content'; markdown: string };
 
 export interface WikiData {
   folders: WikiFolder[];
