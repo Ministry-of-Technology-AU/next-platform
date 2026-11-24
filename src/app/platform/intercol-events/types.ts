@@ -5,17 +5,26 @@ export type EventCategory =
   | 'tech'
   | 'other';
 
-export interface IntercolEvent {
-  id: string;
-  name: string;
-  hostCollege: string;
-  category: EventCategory;
-  description: string;
-  fullDescription: string;
-  bannerUrl: string | null;
-  location: string;
-  startDate: string; // ISO date string, e.g. "2026-12-05"
-  endDate: string | null;
-  registrationUrl: string | null;
-  registrationDeadline: string | null;
-}
+export type EventType =
+  | 'fest'
+  | 'single_event'
+  | 'seminar'
+  | 'conference';
+
+  export interface IntercolEvent {
+    id: string;
+    name: string;
+    hostCollege: string;
+    category: EventCategory;
+    eventType: EventType;
+    description: string;
+    fullDescription: string;
+    bannerUrl: string | null;
+    location: string;
+    startDate: string;
+    endDate: string | null;
+    registrationUrl: string | null;
+    websiteUrl: string | null;
+    registrationDeadline: string | null;
+    tags: string;
+  }
