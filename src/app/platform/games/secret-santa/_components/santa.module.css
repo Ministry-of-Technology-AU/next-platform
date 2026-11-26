@@ -1,0 +1,83 @@
+/*
+ * Seasonal motion for Secret Santa. Colours come from globals.css tokens only.
+ * Every keyframe here is switched off under prefers-reduced-motion (bottom of file).
+ */
+
+.snowLayer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.flake {
+    position: absolute;
+    top: -12px;
+    border-radius: 9999px;
+    background: var(--color-white, #fff);
+    opacity: 0.75;
+    animation-name: fall, sway;
+    animation-timing-function: linear, cubic-bezier(0.45, 0, 0.55, 1);
+    animation-iteration-count: infinite, infinite;
+    animation-direction: normal, alternate;
+    will-change: transform;
+}
+
+@keyframes fall {
+    from {
+        translate: 0 -12px;
+    }
+    to {
+        translate: 0 110vh;
+    }
+}
+
+@keyframes sway {
+    from {
+        transform: translateX(-10px);
+    }
+    to {
+        transform: translateX(10px);
+    }
+}
+
+/* Gift tag: a notched label with a punched hole and a string. */
+.tag {
+    position: relative;
+    clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
+}
+
+.tagHole {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    border-radius: 9999px;
+    background: var(--background);
+}
+
+/* String lights twinkle out of step. */
+.light {
+    animation: twinkle 2.4s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .snowLayer {
+        display: none;
+    }
+    .light {
+        animation: none;
+    }
+}
