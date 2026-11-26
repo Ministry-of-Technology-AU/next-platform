@@ -2,7 +2,7 @@ import "server-only"
 
 import { sendMail } from "@/lib/apis/mail"
 import { escapeHtml } from "@/lib/forms/email"
-import { poolPath } from "../data"
+import { SANTA_IMAGES, poolPath, type SantaImage } from "../data"
 import { formatRupees, formatShortDate } from "../utils"
 import type { PoolRecord } from "./records"
 
@@ -14,13 +14,13 @@ import type { PoolRecord } from "./records"
  * Built for Gmail: tables, inline styles, hex colours, Georgia and Arial only. Gmail drops
  * box-shadow, CSS variables and webfonts, and renders many symbols as emoji images, so none
  * of those are used. The one <style> block is progressive (rich-text spacing and a narrow-screen
- * stack). Images live in `public/secret-santa/` and are served from NEXT_PUBLIC_BASE_URL. Wish
- * lists and the host note are sanitised before they are stored, so they go in as HTML;
- * everything else is escaped.
+ * stack). Images come from Cloudinary (`IMAGES`); links use NEXT_PUBLIC_BASE_URL. Wish lists
+ * and the host note are sanitised before they are stored, so they go in as HTML; everything
+ * else is escaped.
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? ""
-if (!BASE_URL) platform.warn("Secret Santa: NEXT_PUBLIC_BASE_URL is not set, so email links and images will break.")
+if (!BASE_URL) platform.warn("Secret Santa: NEXT_PUBLIC_BASE_URL is not set, so email links will break.")
 
 const ALIAS = "Secret Santa"
 
@@ -47,7 +47,7 @@ const C = {
 const SERIF = "Georgia, 'Times New Roman', serif"
 const SANS = "Arial, Helvetica, sans-serif"
 
-const asset = (name: string) => `${BASE_URL}/secret-santa/${name}`
+const asset = (name: SantaImage) => SANTA_IMAGES[name]
 const poolUrl = (pool: PoolRecord) => `${BASE_URL}${poolPath(pool.uid)}`
 
 /** Small uppercase label, used on the tag, tiles and notes. */
@@ -129,7 +129,7 @@ interface LayoutOptions {
     heading: [string, string]
     /** Text on the ribbon, usually the pool title. */
     ribbon: string
-    cat: { file: string; alt: string; width: number; caption: string }
+    cat: { file: SantaImage; alt: string; width: number; caption: string }
     bodyHtml: string
     footer: string
 }
@@ -168,7 +168,7 @@ function layout(o: LayoutOptions): string {
         </td></tr>
         ${plaidStrip()}
         <tr><td align="center" style="padding:18px 28px 22px;font-family:${SANS};font-size:12px;line-height:1.6;color:${C.muted};">
-            ${escapeHtml(o.footer)}<br />Sent with love from the Ashoka platform&rsquo;s Secret Santa.
+            ${escapeHtml(o.footer)}<br />Sent with love from the Platform&rsquo;s Secret Santa.
         </td></tr>
     </table>
 </td></tr>

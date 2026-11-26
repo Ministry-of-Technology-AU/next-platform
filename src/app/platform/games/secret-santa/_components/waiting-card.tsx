@@ -4,6 +4,7 @@ import Image from "next/image"
 import { motion, useReducedMotion } from "motion/react"
 import { Check, Gift, PencilLine, Shuffle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { SANTA_IMAGES } from "../data"
 import type { ParticipantSelf } from "../types"
 import { Countdown } from "./countdown"
 import { EASE_OUT } from "./festive"
@@ -105,7 +106,7 @@ export function WaitingCard({ me, hostName, isHost, eventDate }: WaitingCardProp
                     transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
                 >
                     <Image
-                        src="/secret-santa/email-cat.png"
+                        src={SANTA_IMAGES["email-cat.png"]}
                         alt=""
                         width={150}
                         height={190}

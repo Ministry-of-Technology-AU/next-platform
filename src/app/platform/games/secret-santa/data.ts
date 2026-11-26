@@ -25,6 +25,19 @@ export const STORAGE_KEYS = {
     tourSeen: "secret-santa:tour-seen",
 } as const
 
+/**
+ * Bijlee and the tartan, hosted on Cloudinary so mail clients can fetch them too. Used by the
+ * emails and the pool page.
+ */
+export const SANTA_IMAGES = {
+    "email-cat.png": "https://res.cloudinary.com/brxcz8ak/image/upload/v1795711169/email-cat.png",
+    "email-cat-secret.png": "https://res.cloudinary.com/brxcz8ak/image/upload/v1795711169/email-cat-secret.png",
+    "email-plaid.png": "https://res.cloudinary.com/brxcz8ak/image/upload/v1795711168/email-plaid.png",
+    "email-plaid-band.png": "https://res.cloudinary.com/brxcz8ak/image/upload/v1795711168/email-plaid-band.png",
+} as const
+
+export type SantaImage = keyof typeof SANTA_IMAGES
+
 export const SANTA_BASE_PATH = "/platform/games/secret-santa"
 
 export function poolPath(uid: string): string {

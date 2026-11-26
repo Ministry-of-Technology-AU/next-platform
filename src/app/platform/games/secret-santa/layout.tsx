@@ -1,7 +1,7 @@
 import DeveloperCredits from "@/components/developer-credits"
 import { TourManager } from "./_components/tour-manager"
 
-const developers = [{ name: "Soham Tulsyan", role: "Development" }]
+const developers = [{ name: "Soham Tulsyan", role: "Development" }, { name: "Manavi Jain", role: "Ideation" }]
 
 export default function SecretSantaLayout({ children }: { children: React.ReactNode }) {
     return (
