@@ -1,5 +1,6 @@
 import {
   Home,
+  Gift,
   MailPlus,
   Puzzle,
   BadgeInfo,
@@ -106,6 +107,7 @@ export const platformSidebar: SidebarInterface = {
           hideFor: ["ashoka_admin"],
         },
         { title: "Games and Puzzles", icon: Puzzle, href: "/games", isComingSoon: true },
+        { title: "Secret Santa", icon: Gift, href: "/games/secret-santa", isNew: true },
         { title: "Tofu", icon: TofuIcon, href: "/tofu", isComingSoon: true },
       ],
     },

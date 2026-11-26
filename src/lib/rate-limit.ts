@@ -101,10 +101,11 @@ export const API_LIMITS = {
 } as const satisfies Record<string, RateLimitRule>;
 
 /**
- * Routes whose writes send email. Prefix match. Add a route here when it
- * starts sending mail on a user action.
+ * Routes whose writes send email. A string is a prefix match; a RegExp is for
+ * routes with a dynamic segment before the mailing part. Add a route here when
+ * it starts sending mail on a user action.
  */
-const MAIL_ROUTES = [
+const MAIL_ROUTES: ReadonlyArray<string | RegExp> = [
   '/api/platform/rti',
   '/api/platform/feedback',
   '/api/platform/wifi-tickets',
@@ -114,6 +115,8 @@ const MAIL_ROUTES = [
   '/api/organisations/ads/submit',
   // Trailing slash: only the request route mails, not the bookmark POST on the parent path.
   '/api/platform/borrow-assets/',
+  // Secret Santa: host invites and the draw (resend included). Not join or wish list edits.
+  /^\/api\/platform\/games\/secret-santa\/[^/]+\/(participants|draw)(\/|$)/,
 ];
 
 /**
@@ -170,7 +173,7 @@ export function limitApiRequest(
     return result.ok ? null : tooManyRequests(result.retryAfter);
   }
 
-  if (MAIL_ROUTES.some((prefix) => pathname.startsWith(prefix))) {
+  if (MAIL_ROUTES.some((route) => (typeof route === 'string' ? pathname.startsWith(route) : route.test(pathname)))) {
     const mail = checkRateLimit(`api:mail:${user}`, API_LIMITS.mail);
     if (!mail.ok) {
       return tooManyRequests(
